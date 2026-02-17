@@ -95,10 +95,8 @@ export const AggregateResponseSchema = z.object({
   leaderboard: z.array(z.object({
     name: z.string(),
     freq: z.number(),
-    avgRank: z.number().nullable().optional(),
-    engines: z.record(z.object({
-      position: z.number().nullable(),
-    })).optional(),
+    presenceScore: z.number(),
+    rankingScore: z.number(),
   })),
   ts: z.string(),
 });

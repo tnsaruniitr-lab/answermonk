@@ -115,43 +115,32 @@ export function AnalysisResults({ data }: Props) {
       <div className="space-y-3">
         <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Competitive Landscape</h3>
         <div className="border border-border rounded-md overflow-hidden" data-testid="section-leaderboard">
-          <div className="grid grid-cols-[2rem_1fr_repeat(4,2.5rem)_3rem] gap-0 px-3 py-2 border-b border-border bg-secondary/30">
+          <div className="grid grid-cols-[2rem_1fr_3.5rem_3.5rem] gap-0 px-4 py-2 border-b border-border bg-secondary/30">
             <span className="text-[10px] text-muted-foreground font-medium">#</span>
             <span className="text-[10px] text-muted-foreground font-medium">Brand</span>
-            {["GPT", "Gem", "Cld", "DS"].map((e) => (
-              <span key={e} className="text-[10px] text-muted-foreground font-medium text-center">{e}</span>
-            ))}
-            <span className="text-[10px] text-muted-foreground font-medium text-right">Avg</span>
+            <span className="text-[10px] text-muted-foreground font-medium text-center">Presence</span>
+            <span className="text-[10px] text-muted-foreground font-medium text-center">Ranking</span>
           </div>
           <div className="divide-y divide-border">
             {data.leaderboard.map((item, idx) => {
               const isTarget = item.name.toLowerCase().includes(data.brand.toLowerCase()) ||
                                data.brand.toLowerCase().includes(item.name.toLowerCase());
-              const engineOrder = ["chatgpt", "gemini", "claude", "deepseek"];
 
               return (
                 <div
                   key={idx}
-                  className={`grid grid-cols-[2rem_1fr_repeat(4,2.5rem)_3rem] gap-0 px-3 py-2.5 items-center ${isTarget ? 'bg-foreground/[0.04]' : ''}`}
+                  className={`grid grid-cols-[2rem_1fr_3.5rem_3.5rem] gap-0 px-4 py-2.5 items-center ${isTarget ? 'bg-foreground/[0.04]' : ''}`}
                   data-testid={`row-brand-${idx}`}
                 >
                   <span className="text-xs text-muted-foreground tabular-nums">{idx + 1}</span>
                   <span className={`text-sm truncate pr-2 ${isTarget ? 'font-semibold' : ''}`}>
                     {item.name}
                   </span>
-                  {engineOrder.map((eng) => {
-                    const pos = item.engines?.[eng]?.position ?? null;
-                    return (
-                      <span
-                        key={eng}
-                        className={`text-xs tabular-nums text-center ${pos ? 'text-foreground' : 'text-muted-foreground/40'}`}
-                      >
-                        {pos ? `#${pos}` : "—"}
-                      </span>
-                    );
-                  })}
-                  <span className="text-xs tabular-nums text-right font-medium">
-                    {item.avgRank != null ? `#${item.avgRank}` : "—"}
+                  <span className="text-sm tabular-nums text-center font-medium">
+                    {item.presenceScore}
+                  </span>
+                  <span className="text-sm tabular-nums text-center font-medium">
+                    {item.rankingScore}
                   </span>
                 </div>
               );

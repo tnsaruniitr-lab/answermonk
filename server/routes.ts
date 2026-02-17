@@ -126,19 +126,23 @@ export async function registerRoutes(
       const presence = presenceScore(presenceByEngine, weights);
       const ranking = rankScore(posByEngine, weights, rankDecayP);
 
-      const allEngines = ["chatgpt", "gemini", "claude", "deepseek"];
       const leaderboard = [...brandData.entries()]
-        .sort((a, b) => b[1].freq - a[1].freq)
-        .slice(0, 10)
+        .filter(([name]) => name.length < 60 && name.split(/\s+/).length <= 8)
         .map(([name, data]) => {
-          const positions = Object.values(data.positions).filter((p): p is number => p !== null);
-          const avgRank = positions.length > 0 ? Math.round((positions.reduce((a, b) => a + b, 0) / positions.length) * 10) / 10 : null;
-          const engines: Record<string, { position: number | null }> = {};
-          for (const e of allEngines) {
-            engines[e] = { position: data.positions[e] ?? null };
+          const compPresenceByEngine: Record<string, 0 | 1 | 2> = { chatgpt: 0, gemini: 0, claude: 0, deepseek: 0 };
+          const compPosByEngine: Record<string, number | null> = { chatgpt: null, gemini: null, claude: null, deepseek: null };
+          for (const [eng, pos] of Object.entries(data.positions)) {
+            if (pos !== null) {
+              compPresenceByEngine[eng] = pos <= 3 ? 2 : 1;
+              compPosByEngine[eng] = pos;
+            }
           }
-          return { name, freq: data.freq, avgRank, engines };
-        });
+          const compPresence = presenceScore(compPresenceByEngine, weights);
+          const compRanking = rankScore(compPosByEngine, weights, rankDecayP);
+          return { name, freq: data.freq, presenceScore: compPresence, rankingScore: compRanking };
+        })
+        .sort((a, b) => b.presenceScore - a.presenceScore || b.rankingScore - a.rankingScore)
+        .slice(0, 10);
 
       const response = {
         query,
