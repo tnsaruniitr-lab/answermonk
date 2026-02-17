@@ -1,0 +1,121 @@
+This revised plan is the right level of complexity to actually finish and debug. You kept the important invariants (deterministic seed, cluster quotas, shape distribution, dedupe, verified/unverified separation) and removed the parts that tend to stall builds (full K allocation, required-slot validation engine, geo index preassignment).
+
+A few tight recommendations to make this work smoothly in practice without adding much complexity:
+
+1) One small change to your “fill/resample” rule
+
+Your current rule says: “pick template, fill what’s available, resample if a placeholder can’t be filled.”
+
+Do that, but with a max resample attempts per prompt (e.g., 30). If you hit the cap, fall back to a known-safe template for that cluster (like best {category}).
+
+This avoids rare infinite loops when inputs are sparse (e.g., no geo, no modifiers, only 2 verticals).
+
+2) The “min 6 modifier prompts” guarantee: make it deterministic and cluster-aware (still simple)
+
+Keep it simple, but don’t implement it as “after generation, force 6 prompts to include modifiers” (that can break dedupe and cluster quotas).
+
+Instead:
+
+While generating prompts, for clusters where modifiers make sense, track modifierUsedCount.
+
+If modifiers.length > 0 and you’re getting near the end (say after generating 30 prompts) and modifierUsedCount < 6, then temporarily set modifierRate = 1.0 for remaining prompts only for templates that include {modifier}.
+
+This keeps everything deterministic and avoids rewriting prompts post-hoc.
+
+Also restrict modifier usage to natural clusters:
+
+automation: direct + task only
+
+marketing: direct + persona + task (budget optional, but I’d skip modifiers in budget in V1)
+
+This prevents weird prompts like “budget-friendly Clay”.
+
+3) Geo: keep it probabilistic, but don’t let it vanish
+
+With pure probability, geo may show up too little if the prompt set is small. You’ll get users saying “I’m in Dubai, why only 2 prompts mention Dubai?”
+
+Do the same “soft guarantee” approach as modifiers:
+
+if geo is provided and after 30 prompts geoUsedCount is too low (e.g., <4 for marketing), bump geoRate for last 10 prompts.
+
+No index preassignment needed.
+
+4) Dedupe key: include shape or not? (important choice)
+
+If you dedupe purely on normalized prompt text, these two become duplicates after suffixing:
+
+“best marketing agency for dentists. List top 3.”
+
+“best marketing agency for dentists. List top 5.”
+
+I recommend: dedupe on the base prompt without shape suffix, but allow different shapes for the same base prompt only if you want. For MVP-1, I’d avoid duplicates at the base level.
+
+So do:
+
+build baseText (no suffix)
+
+dedupe on normalizeKey(baseText)
+
+then append shape suffix
+
+This gives real content diversity.
+
+5) Templates: add just enough “modifier-aware” ones
+
+Without a few modifier-aware templates, you’ll struggle to include modifiers naturally.
+
+Minimum set to add (you can keep it to ~4–6 templates each persona):
+
+Automation (platforms)
+
+best {modifier} automation consultant
+
+hire a {modifier} expert for {service}
+
+who can build a {modifier} workflow for {service}
+
+{modifier} expert to {service}
+
+Marketing (channels)
+
+best {modifier} agency for {vertical}
+
+{modifier} agency in {geo}
+
+who can help with {modifier} for {vertical}
+
+best {modifier} agency
+
+Everything else can stay generic.
+
+6) Testing checklist (fast and decisive)
+
+Before wiring to your analyzer, run these tests:
+
+Determinism
+
+same profile + seed → identical prompt texts and ordering
+
+Shape distribution
+
+exactly 14 open / 10 top5 / 10 top3 / 6 best
+
+Cluster quotas
+
+exactly 10 prompts per cluster
+
+Modifier guarantee
+
+with modifiers provided → at least 6 prompts include {modifier} (and they appear in sensible clusters)
+
+Geo sanity
+
+with geo provided → geo appears non-trivially (e.g., ≥4 prompts for marketing)
+
+No duplicates
+
+dedupe on baseText works (no repeats across 40)
+
+Verdict
+
+Your revised spec is good, buildable, and doesn’t cut corners that would break later. The only “must-fix” is implementing modifier/geo minimums in a way that doesn’t rewrite prompts after the fact—do it during generation with a late-stage rate bump.
