@@ -376,6 +376,7 @@ export default function PromptGenerator() {
                   >
                     How do your customers look for you?
                   </h1>
+                  <p className="text-muted-foreground text-sm">Tell us a bit about you</p>
                 </div>
 
                 <form onSubmit={handleGenerate} className="space-y-6 pb-16">
