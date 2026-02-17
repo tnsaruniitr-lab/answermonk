@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { AggregateResponse } from "@shared/schema";
 import { ScoreCircle } from "./ui/score-circle";
 import { motion } from "framer-motion";
-import { Check, X, Minus } from "lucide-react";
+import { Check, X, Minus, ChevronDown, ChevronRight } from "lucide-react";
 
 interface Props {
   data: AggregateResponse;
@@ -20,8 +21,52 @@ function PresenceIndicator({ state }: { state: number }) {
   return <span className="flex items-center gap-1.5 text-muted-foreground text-sm"><X className="w-3.5 h-3.5" /> Absent</span>;
 }
 
+function EngineRow({ engine, presence, position, rawText }: {
+  engine: string;
+  presence: number;
+  position: number | null | undefined;
+  rawText?: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const hasRaw = rawText && rawText.length > 0;
+
+  return (
+    <div data-testid={`row-engine-${engine}`}>
+      <button
+        type="button"
+        onClick={() => hasRaw && setExpanded(!expanded)}
+        className={`w-full flex items-center justify-between px-4 py-3 text-left ${hasRaw ? 'cursor-pointer' : 'cursor-default'}`}
+        data-testid={`button-expand-${engine}`}
+      >
+        <div className="flex items-center gap-2">
+          {hasRaw && (
+            expanded
+              ? <ChevronDown className="w-3 h-3 text-muted-foreground" />
+              : <ChevronRight className="w-3 h-3 text-muted-foreground" />
+          )}
+          <span className="text-sm font-medium">{ENGINE_DISPLAY[engine] || engine}</span>
+        </div>
+        <div className="flex items-center gap-4">
+          {position !== null && position !== undefined && (
+            <span className="text-xs text-muted-foreground tabular-nums">#{position}</span>
+          )}
+          <PresenceIndicator state={presence} />
+        </div>
+      </button>
+      {expanded && rawText && (
+        <div className="px-4 pb-3">
+          <pre className="text-xs text-muted-foreground bg-secondary/50 rounded-md p-3 overflow-x-auto whitespace-pre-wrap font-[inherit] leading-relaxed max-h-64 overflow-y-auto" data-testid={`text-raw-${engine}`}>
+            {rawText}
+          </pre>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function AnalysisResults({ data }: Props) {
   const engines = Object.entries(data.perEngine.presenceByEngine);
+  const rawResponses = data.perEngine.rawResponses || {};
 
   return (
     <motion.div
@@ -44,29 +89,26 @@ export function AnalysisResults({ data }: Props) {
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Engine Breakdown</h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Engine Breakdown</h3>
+          <span className="text-xs text-muted-foreground">Click to view response</span>
+        </div>
         <div className="border border-border rounded-md divide-y divide-border" data-testid="section-engines">
-          {engines.map(([engine, presence], i) => {
-            const pos = data.perEngine.posByEngine[engine];
-            return (
-              <motion.div
-                key={engine}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: i * 0.08 }}
-                className="flex items-center justify-between px-4 py-3"
-                data-testid={`row-engine-${engine}`}
-              >
-                <span className="text-sm font-medium">{ENGINE_DISPLAY[engine] || engine}</span>
-                <div className="flex items-center gap-4">
-                  {pos !== null && pos !== undefined && (
-                    <span className="text-xs text-muted-foreground tabular-nums">#{pos}</span>
-                  )}
-                  <PresenceIndicator state={presence} />
-                </div>
-              </motion.div>
-            );
-          })}
+          {engines.map(([engine, presence], i) => (
+            <motion.div
+              key={engine}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: i * 0.08 }}
+            >
+              <EngineRow
+                engine={engine}
+                presence={presence}
+                position={data.perEngine.posByEngine[engine]}
+                rawText={rawResponses[engine]}
+              />
+            </motion.div>
+          ))}
         </div>
       </div>
 

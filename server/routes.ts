@@ -95,16 +95,18 @@ export async function registerRoutes(
       const parsed = AggregateRequestSchema.parse(req.body);
       const { query, brand, weights, rankDecayP, engineOutputs } = parsed;
 
-      // Build per-engine presence/pos
       const presenceByEngine: Record<string, 0 | 1 | 2> = { chatgpt: 0, gemini: 0, claude: 0, deepseek: 0 };
       const posByEngine: Record<string, number | null> = {};
+      const rawResponses: Record<string, string> = {};
 
-      // Merge brands across engines for leaderboard seed
       const brandCounts = new Map<string, number>();
 
       for (const out of engineOutputs) {
         presenceByEngine[out.engine] = out.presenceState as 0 | 1 | 2;
         posByEngine[out.engine] = out.position ?? null;
+        if (out.rawAnswerText) {
+          rawResponses[out.engine] = out.rawAnswerText;
+        }
 
         for (const b of out.topBrands) {
           const k = b.trim();
@@ -129,7 +131,7 @@ export async function registerRoutes(
         rankDecayP,
         presenceScore: presence,
         rankingScore: ranking,
-        perEngine: { presenceByEngine, posByEngine },
+        perEngine: { presenceByEngine, posByEngine, rawResponses },
         leaderboard,
         ts: new Date().toISOString(),
       };

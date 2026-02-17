@@ -72,6 +72,7 @@ export const AggregateResponseSchema = z.object({
   perEngine: z.object({
     presenceByEngine: z.record(z.number()),
     posByEngine: z.record(z.nullable(z.number())),
+    rawResponses: z.record(z.string()).optional(),
   }),
   leaderboard: z.array(z.object({
     name: z.string(),
