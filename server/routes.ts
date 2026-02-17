@@ -15,7 +15,7 @@ import { z } from "zod";
 import { queryEngine } from "./engines";
 import { generatePromptSet } from "./promptgen/generator";
 import { BuyerIntentProfileSchema } from "./promptgen/types";
-import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_PLATFORMS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, BUDGET_ADJECTIVES } from "./promptgen/presets";
+import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, BUDGET_ADJECTIVES } from "./promptgen/presets";
 
 /** ------------------------
  * Scoring helpers (From user provided logic)
@@ -185,12 +185,11 @@ export async function registerRoutes(
     "Semrush", "Ahrefs", "Moz", "Google Analytics", "Google Ads",
     "Meta Ads", "Hootsuite", "Sprout Social", "Canva", "Figma",
     "Klaviyo", "Brevo", "ConvertKit", "Unbounce", "Webflow",
-  ];
-  const AUTOMATION_MODIFIERS = [
-    "Clay", "Zapier", "Make", "n8n", "HubSpot", "Salesforce",
-    "Apollo", "Instantly", "Lemlist", "Outreach", "Salesloft",
-    "Pipedrive", "Close", "Phantombuster", "La Growth Machine",
-    "Bardeen", "Relay", "Tray.io", "Workato", "Gong",
+    "Buffer", "Later", "Loomly", "Sprinklr", "Brandwatch",
+    "BuzzSumo", "Clearscope", "Surfer SEO", "Jasper", "Copy.ai",
+    "Hotjar", "Crazy Egg", "Optimizely", "VWO", "Google Tag Manager",
+    "Zapier", "Make", "Notion", "Asana", "Monday.com",
+    "Wistia", "Vidyard", "Loom", "Calendly", "Typeform",
   ];
 
   app.get("/api/promptgen/presets", (req, res) => {
@@ -204,9 +203,9 @@ export async function registerRoutes(
       });
     } else if (persona === "automation_consultant") {
       res.json({
-        services: AUTOMATION_PLATFORMS,
+        services: AUTOMATION_SERVICES,
         verticals: AUTOMATION_VERTICALS,
-        modifiers: AUTOMATION_MODIFIERS,
+        modifiers: AUTOMATION_KNOWN_TOOLS.slice(0, 40),
         budget_tiers: Object.keys(BUDGET_ADJECTIVES.automation_consultant),
       });
     } else {
@@ -217,9 +216,9 @@ export async function registerRoutes(
           modifiers: MARKETING_MODIFIERS,
         },
         automation_consultant: {
-          services: AUTOMATION_PLATFORMS,
+          services: AUTOMATION_SERVICES,
           verticals: AUTOMATION_VERTICALS,
-          modifiers: AUTOMATION_MODIFIERS,
+          modifiers: AUTOMATION_KNOWN_TOOLS.slice(0, 40),
         },
       });
     }

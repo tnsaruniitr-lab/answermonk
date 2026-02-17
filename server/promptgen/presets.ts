@@ -30,64 +30,74 @@ export const MARKETING_CHANNELS: string[] = [
   "Branding & Design",
 ];
 
-export const AUTOMATION_PLATFORMS: string[] = [
-  "Salesforce",
-  "HubSpot",
-  "Pipedrive",
-  "Zoho CRM",
-  "Freshsales",
-  "Close",
-  "Copper",
-  "Monday Sales CRM",
-  "Microsoft Dynamics 365",
-  "Apollo",
-  "Outreach",
-  "Salesloft",
-  "Lemlist",
-  "Instantly",
-  "Smartlead",
-  "Woodpecker",
-  "Reply.io",
-  "Mailshake",
-  "Clay",
-  "Clearbit",
-  "ZoomInfo",
-  "Lusha",
-  "RocketReach",
-  "Cognism",
-  "LeadIQ",
-  "Phantombuster",
-  "BuiltWith",
-  "Zapier",
-  "Make",
-  "n8n",
-  "Tray.io",
-  "Workato",
-  "Power Automate",
-  "Activepieces",
-  "Marketo",
-  "Pardot",
-  "ActiveCampaign",
-  "Mailchimp",
-  "Brevo",
-  "Klaviyo",
-  "Customer.io",
-  "Drip",
-  "Airtable",
-  "Notion",
-  "Monday.com",
-  "ClickUp",
-  "Asana",
-  "Smartsheet",
-  "Slack",
-  "Intercom",
-  "Drift",
-  "Zendesk",
-  "Freshdesk",
-  "Gong",
-  "Chorus",
-  "Clari",
-  "People.ai",
+export const AUTOMATION_SERVICES: string[] = [
+  "lead enrichment",
+  "CRM automation",
+  "outbound sequences",
+  "pipeline management",
+  "data scraping",
+  "lead scoring",
+  "email automation",
+  "workflow automation",
+  "sales prospecting",
+  "contact enrichment",
+  "meeting scheduling",
+  "follow-up automation",
+  "lead routing",
+  "deal tracking",
+  "revenue forecasting",
+  "customer onboarding automation",
+  "churn prediction",
+  "proposal automation",
+  "contract management",
+  "invoice automation",
+  "reporting dashboards",
+  "data sync across tools",
+  "lead list building",
+  "cold email campaigns",
+  "LinkedIn outreach",
+  "multi-channel sequences",
+  "intent signal tracking",
+  "account-based marketing",
+  "sales enablement",
+  "territory management",
+  "commission tracking",
+  "call recording analysis",
+  "chatbot setup",
+  "helpdesk automation",
+  "ticket routing",
+  "customer feedback loops",
+  "NPS automation",
+  "renewal management",
+  "upsell automation",
+  "partner management",
+  "referral tracking",
+  "document automation",
+  "e-signature workflows",
+  "inventory sync",
+  "order management",
+  "shipping automation",
+  "social selling automation",
+  "webinar follow-up",
+  "event-triggered workflows",
+  "API integrations",
+];
+
+export const AUTOMATION_KNOWN_TOOLS: string[] = [
+  "Salesforce", "HubSpot", "Pipedrive", "Zoho CRM", "Freshsales", "Close",
+  "Copper", "Monday Sales CRM", "Microsoft Dynamics 365", "Apollo", "Outreach",
+  "Salesloft", "Lemlist", "Instantly", "Smartlead", "Woodpecker", "Reply.io",
+  "Mailshake", "Clay", "Clearbit", "ZoomInfo", "Lusha", "RocketReach",
+  "Cognism", "LeadIQ", "Phantombuster", "BuiltWith", "Zapier", "Make", "n8n",
+  "Tray.io", "Workato", "Power Automate", "Activepieces", "Marketo", "Pardot",
+  "ActiveCampaign", "Mailchimp", "Brevo", "Klaviyo", "Customer.io", "Drip",
+  "Airtable", "Notion", "Monday.com", "ClickUp", "Asana", "Smartsheet",
+  "Slack", "Intercom", "Drift", "Zendesk", "Freshdesk", "Gong", "Chorus",
+  "Clari", "People.ai", "Bardeen", "La Growth Machine", "Relay", "Loom",
+  "Calendly", "Chili Piper", "DocuSign", "PandaDoc", "Proposify",
+  "Highspot", "Seismic", "Vidyard", "Bombora", "6sense", "Demandbase",
+  "Seamless.ai", "Kaspr", "Surfe", "Mixmax", "Yesware", "Groove",
+  "Freshworks CRM", "Nutshell", "Keap", "Insightly",
 ];
 
 export const MARKETING_VERTICALS: string[] = [
@@ -286,12 +296,12 @@ export function resolveModifier(
   const aliased = ALIAS_MAP[key];
 
   if (aliased) {
-    const knownList = personaType === "marketing_agency" ? MARKETING_CHANNELS : AUTOMATION_PLATFORMS;
+    const knownList = personaType === "marketing_agency" ? MARKETING_CHANNELS : AUTOMATION_KNOWN_TOOLS;
     const isKnown = knownList.some((p) => normalizeKey(p) === normalizeKey(aliased));
     return { display: aliased, verified: isKnown };
   }
 
-  const knownList = personaType === "marketing_agency" ? MARKETING_CHANNELS : AUTOMATION_PLATFORMS;
+  const knownList = personaType === "marketing_agency" ? MARKETING_CHANNELS : AUTOMATION_KNOWN_TOOLS;
   const exactMatch = knownList.find((p) => normalizeKey(p) === key);
   if (exactMatch) {
     return { display: exactMatch, verified: true };
@@ -319,12 +329,12 @@ export function ensureServiceVerb(service: string, personaType: PersonaType, rng
 export function getPresetsForPersona(personaType: PersonaType) {
   if (personaType === "marketing_agency") {
     return {
-      channels: MARKETING_CHANNELS,
+      services: MARKETING_CHANNELS,
       verticals: MARKETING_VERTICALS,
     };
   }
   return {
-    channels: AUTOMATION_PLATFORMS,
+    services: AUTOMATION_SERVICES,
     verticals: AUTOMATION_VERTICALS,
   };
 }
