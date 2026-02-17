@@ -81,6 +81,7 @@ export const AUTOMATION_SERVICES: string[] = [
   "webinar follow-up",
   "event-triggered workflows",
   "API integrations",
+  "Clay automation",
 ];
 
 export const AUTOMATION_KNOWN_TOOLS: string[] = [
