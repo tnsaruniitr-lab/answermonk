@@ -22,6 +22,23 @@ export const insertScoringJobSchema = createInsertSchema(scoringJobs).omit({ id:
 export type ScoringJob = typeof scoringJobs.$inferSelect;
 export type InsertScoringJob = z.infer<typeof insertScoringJobSchema>;
 
+export const savedProfiles = pgTable("saved_profiles", {
+  id: serial("id").primaryKey(),
+  brandName: text("brand_name").notNull().unique(),
+  brandDomain: text("brand_domain"),
+  persona: text("persona").notNull(),
+  verticals: text("verticals").array().notNull(),
+  services: text("services").array().notNull(),
+  modifiers: text("modifiers").array().notNull(),
+  geo: text("geo"),
+  budgetTier: text("budget_tier").notNull().default("mid"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertSavedProfileSchema = createInsertSchema(savedProfiles).omit({ id: true, createdAt: true });
+export type SavedProfile = typeof savedProfiles.$inferSelect;
+export type InsertSavedProfile = z.infer<typeof insertSavedProfileSchema>;
+
 // We'll store search history/results here
 export const analysisResults = pgTable("analysis_results", {
   id: serial("id").primaryKey(),

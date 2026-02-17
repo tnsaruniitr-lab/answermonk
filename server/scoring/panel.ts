@@ -5,6 +5,31 @@ export interface MiniPanelResult {
   mini: Prompt[];
 }
 
+export function selectMicroPanel(prompts: Prompt[]): Prompt[] {
+  const byCluster: Record<string, Prompt[]> = {
+    direct: [],
+    task: [],
+    persona: [],
+    budget: [],
+  };
+
+  for (const p of prompts) {
+    if (byCluster[p.cluster]) {
+      byCluster[p.cluster].push(p);
+    }
+  }
+
+  const selected: Prompt[] = [];
+  for (const cluster of ["direct", "task", "persona", "budget"]) {
+    const pool = byCluster[cluster];
+    if (pool.length > 0) {
+      selected.push(pool[0]);
+    }
+  }
+
+  return selected;
+}
+
 export function selectMiniPanel(prompts: Prompt[]): Prompt[] {
   const byCluster: Record<string, Prompt[]> = {
     direct: [],

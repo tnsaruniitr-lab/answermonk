@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +62,18 @@ interface PromptSet {
   };
   prompts: Prompt[];
   unverified_items: { key: string; display: string }[];
+}
+
+interface SavedProfile {
+  id: number;
+  brandName: string;
+  brandDomain: string | null;
+  persona: string;
+  verticals: string[];
+  services: string[];
+  modifiers: string[];
+  geo: string | null;
+  budgetTier: string;
 }
 
 interface Presets {
@@ -513,7 +525,7 @@ export default function PromptGenerator() {
   const [budgetTier, setBudgetTier] = useState("mid");
   const [brandName, setBrandName] = useState("");
   const [brandDomain, setBrandDomain] = useState("");
-  const [scoringMode, setScoringMode] = useState<"quick" | "full">("quick");
+  const [scoringMode, setScoringMode] = useState<"micro" | "quick" | "full">("quick");
   const [filterCluster, setFilterCluster] = useState<string>("all");
   const [filterShape, setFilterShape] = useState<string>("all");
   const [expandedPrompts, setExpandedPrompts] = useState<Set<string>>(
@@ -525,6 +537,31 @@ export default function PromptGenerator() {
   const { data: presets } = useQuery<Presets>({
     queryKey: ["/api/promptgen/presets"],
   });
+
+  const { data: savedProfiles } = useQuery<SavedProfile[]>({
+    queryKey: ["/api/profiles"],
+  });
+
+  const { mutate: saveProfile } = useMutation({
+    mutationFn: async (profile: Omit<SavedProfile, "id">) => {
+      const res = await apiRequest("POST", "/api/profiles", profile);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/profiles"] });
+    },
+  });
+
+  const loadProfile = (profile: SavedProfile) => {
+    setBrandName(profile.brandName);
+    setBrandDomain(profile.brandDomain || "");
+    setPersona(profile.persona);
+    setVerticals(profile.verticals || []);
+    setServices(profile.services || []);
+    setModifiers(profile.modifiers || []);
+    setGeo(profile.geo || "");
+    setBudgetTier(profile.budgetTier || "mid");
+  };
 
   const {
     mutate: generate,
@@ -541,7 +578,7 @@ export default function PromptGenerator() {
   const {
     mutate: runScoring,
     isPending: isScoring,
-  } = useMutation<ScoringResponse, Error, { prompts: Prompt[]; brand_name: string; brand_domain?: string; mode: "quick" | "full" }>({
+  } = useMutation<ScoringResponse, Error, { prompts: Prompt[]; brand_name: string; brand_domain?: string; mode: "micro" | "quick" | "full" }>({
     mutationFn: async (body) => {
       const res = await apiRequest("POST", "/api/scoring/run", body);
       return res.json();
@@ -591,6 +628,17 @@ export default function PromptGenerator() {
       });
       return;
     }
+
+    saveProfile({
+      brandName: brandName.trim(),
+      brandDomain: brandDomain.trim() || null,
+      persona,
+      verticals,
+      services,
+      modifiers,
+      geo: geo.trim() || null,
+      budgetTier,
+    } as any);
 
     generate({
       persona_type: persona,
@@ -683,6 +731,31 @@ export default function PromptGenerator() {
                     Tell us a bit about you?
                   </h1>
                 </div>
+
+                {savedProfiles && savedProfiles.length > 0 && (
+                  <div className="pb-6">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide block mb-1.5">
+                      Load a saved profile
+                    </label>
+                    <Select
+                      onValueChange={(v) => {
+                        const profile = savedProfiles.find((p) => String(p.id) === v);
+                        if (profile) loadProfile(profile);
+                      }}
+                    >
+                      <SelectTrigger className="bg-secondary/50" data-testid="select-saved-profile">
+                        <SelectValue placeholder="Choose a profile..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {savedProfiles.map((p) => (
+                          <SelectItem key={p.id} value={String(p.id)} data-testid={`profile-option-${p.id}`}>
+                            {p.brandName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <form onSubmit={handleGenerate} className="space-y-6 pb-16">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -869,8 +942,15 @@ export default function PromptGenerator() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <Tabs value={scoringMode} onValueChange={(v) => setScoringMode(v as "quick" | "full")}>
+                    <Tabs value={scoringMode} onValueChange={(v) => setScoringMode(v as "micro" | "quick" | "full")}>
                       <TabsList className="h-8">
+                        <TabsTrigger
+                          value="micro"
+                          className="text-xs px-3"
+                          data-testid="toggle-mode-micro"
+                        >
+                          Micro (4)
+                        </TabsTrigger>
                         <TabsTrigger
                           value="quick"
                           className="text-xs px-3"
@@ -893,7 +973,7 @@ export default function PromptGenerator() {
                       data-testid="button-run-scoring"
                     >
                       <Zap className="w-4 h-4 mr-2" />
-                      Run Analysis ({scoringMode === "quick" ? "10" : "40"} prompts x 3 engines)
+                      Run Analysis ({scoringMode === "micro" ? "4" : scoringMode === "quick" ? "10" : "40"} prompts x 3 engines)
                     </Button>
                     <Button
                       variant="ghost"

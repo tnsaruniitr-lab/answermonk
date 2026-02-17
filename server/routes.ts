@@ -16,8 +16,9 @@ import { queryEngine } from "./engines";
 import { generatePromptSet } from "./promptgen/generator";
 import { BuyerIntentProfileSchema } from "./promptgen/types";
 import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, BUDGET_ADJECTIVES } from "./promptgen/presets";
-import { selectMiniPanel } from "./scoring/panel";
+import { selectMiniPanel, selectMicroPanel } from "./scoring/panel";
 import { runScoring } from "./scoring/runner";
+import { insertSavedProfileSchema } from "@shared/schema";
 
 /** ------------------------
  * Scoring helpers (From user provided logic)
@@ -244,7 +245,7 @@ export async function registerRoutes(
   const ScoringRequestSchema = z.object({
     brand_name: z.string().min(1),
     brand_domain: z.string().optional(),
-    mode: z.enum(["quick", "full"]),
+    mode: z.enum(["micro", "quick", "full"]),
     prompts: z.array(z.object({
       id: z.string(),
       cluster: z.string(),
@@ -262,7 +263,9 @@ export async function registerRoutes(
       const parsed = ScoringRequestSchema.parse(req.body);
       let promptsToRun = parsed.prompts;
 
-      if (parsed.mode === "quick") {
+      if (parsed.mode === "micro") {
+        promptsToRun = selectMicroPanel(parsed.prompts as any);
+      } else if (parsed.mode === "quick") {
         promptsToRun = selectMiniPanel(parsed.prompts as any);
       }
 
@@ -324,6 +327,31 @@ export async function registerRoutes(
   app.get("/api/scoring/history", async (_req, res) => {
     const history = await storage.getScoringHistory();
     res.json(history);
+  });
+
+  app.get("/api/profiles", async (_req, res) => {
+    try {
+      const profiles = await storage.listSavedProfiles();
+      res.json(profiles);
+    } catch (err) {
+      console.error("Error listing profiles:", err);
+      res.status(500).json({ message: "Failed to load profiles" });
+    }
+  });
+
+  app.post("/api/profiles", async (req, res) => {
+    try {
+      const parsed = insertSavedProfileSchema.parse(req.body);
+      const profile = await storage.upsertSavedProfile(parsed);
+      res.status(200).json(profile);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors.map((e) => e.message).join(", ") });
+      } else {
+        console.error("Error saving profile:", err);
+        res.status(500).json({ message: "Failed to save profile" });
+      }
+    }
   });
 
   app.get("/api/scoring/results/:id", async (req, res) => {
