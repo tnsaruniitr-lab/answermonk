@@ -374,13 +374,8 @@ export default function PromptGenerator() {
                     className="text-3xl md:text-4xl font-semibold tracking-tight"
                     data-testid="text-heading"
                   >
-                    Generate search prompts
+                    How do your customers look for you?
                   </h1>
-                  <p className="text-muted-foreground text-base leading-relaxed max-w-lg">
-                    Create 40 AI-ready search queries tailored to your business
-                    profile. Use them to test how AI engines recommend your
-                    brand.
-                  </p>
                 </div>
 
                 <form onSubmit={handleGenerate} className="space-y-6 pb-16">
