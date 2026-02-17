@@ -68,7 +68,7 @@ export default function Analyzer() {
                 className="pt-20 pb-10 space-y-3"
               >
                 <h1 className="text-3xl md:text-4xl font-semibold tracking-tight" data-testid="text-heading">
-                  Does AI recommend you?
+                  Your customers ask AI, are you the answer?
                 </h1>
                 <p className="text-muted-foreground text-base leading-relaxed max-w-lg">
                   See how your brand ranks across ChatGPT, Claude, Gemini, and DeepSeek.
