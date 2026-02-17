@@ -17,7 +17,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend (`client/src/`)
 - **Framework**: React 18 with TypeScript, bundled by Vite
-- **Routing**: Wouter (lightweight client-side router) with two main pages: `/` (Analyzer) and `/history` (History)
+- **Routing**: Wouter (lightweight client-side router) with three main pages: `/` (Analyzer), `/history` (History), `/prompts` (Prompt Generator)
 - **State Management**: TanStack React Query for server state; local React state for form inputs
 - **UI Components**: shadcn/ui component library (new-york style) built on Radix UI primitives, styled with Tailwind CSS and CSS variables for theming
 - **Animations**: Framer Motion for smooth transitions
@@ -31,6 +31,8 @@ Preferred communication style: Simple, everyday language.
   - `POST /api/eval` — Query a single AI engine for brand recommendations
   - `POST /api/aggregate` — Aggregate results from multiple engines with weighted scoring
   - `GET /api/history` — Retrieve past analysis results
+  - `POST /api/promptsets` — Generate a set of 40 deterministic search prompts from a buyer intent profile
+  - `GET /api/promptgen/presets` — Retrieve preset verticals, services, and modifiers by persona type
 - **AI Engine Integration** (`server/engines.ts`): Queries AI models via their respective SDKs
   - OpenAI SDK (for ChatGPT and potentially DeepSeek)
   - Anthropic SDK (for Claude)
@@ -39,6 +41,14 @@ Preferred communication style: Simple, everyday language.
   - Presence scoring: Weighted average of presence states (0=absent, 1=weak, 2=strong) across engines
   - Rank scoring: Uses rank decay formula `1/pos^p` where `p` defaults to 1.2
   - Default engine weights: ChatGPT 35%, Gemini 35%, Claude 20%, DeepSeek 10%
+- **Prompt Generator Module** (`server/promptgen/`): Generates 40 deterministic, vendor-seeking search prompts
+  - `types.ts` — Zod schemas for BuyerIntentProfile, SlotBank, Prompt, PromptSet
+  - `presets.ts` — Exhaustive lists of verticals (30+), services (27+ channels / 58+ platforms), modifiers per persona
+  - `templates.ts` — Template strings organized by cluster (direct/persona/budget/task) and persona mode
+  - `generator.ts` — Seeded RNG, slot bank builder, shape distribution, modifier/geo guarantees, dedup logic
+  - Two personas: Marketing Agency (provider-led) and Automation Consultant (problem-led)
+  - Exact distributions: 10 per cluster, 14 open / 10 top5 / 10 top3 / 6 best shapes
+  - Same seed + input = same 40 prompts (deterministic)
 - **Validation**: Zod schemas for all request/response validation, shared between client and server
 
 ### Database
