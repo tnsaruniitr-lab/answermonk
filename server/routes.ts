@@ -180,29 +180,46 @@ export async function registerRoutes(
     }
   });
 
+  const MARKETING_MODIFIERS = [
+    "HubSpot", "Salesforce", "Marketo", "Mailchimp", "ActiveCampaign",
+    "Semrush", "Ahrefs", "Moz", "Google Analytics", "Google Ads",
+    "Meta Ads", "Hootsuite", "Sprout Social", "Canva", "Figma",
+    "Klaviyo", "Brevo", "ConvertKit", "Unbounce", "Webflow",
+  ];
+  const AUTOMATION_MODIFIERS = [
+    "Clay", "Zapier", "Make", "n8n", "HubSpot", "Salesforce",
+    "Apollo", "Instantly", "Lemlist", "Outreach", "Salesloft",
+    "Pipedrive", "Close", "Phantombuster", "La Growth Machine",
+    "Bardeen", "Relay", "Tray.io", "Workato", "Gong",
+  ];
+
   app.get("/api/promptgen/presets", (req, res) => {
     const persona = req.query.persona as string;
     if (persona === "marketing_agency") {
       res.json({
-        channels: MARKETING_CHANNELS,
+        services: MARKETING_CHANNELS,
         verticals: MARKETING_VERTICALS,
+        modifiers: MARKETING_MODIFIERS,
         budget_tiers: Object.keys(BUDGET_ADJECTIVES.marketing_agency),
       });
     } else if (persona === "automation_consultant") {
       res.json({
-        channels: AUTOMATION_PLATFORMS,
+        services: AUTOMATION_PLATFORMS,
         verticals: AUTOMATION_VERTICALS,
+        modifiers: AUTOMATION_MODIFIERS,
         budget_tiers: Object.keys(BUDGET_ADJECTIVES.automation_consultant),
       });
     } else {
       res.json({
         marketing_agency: {
-          channels: MARKETING_CHANNELS,
+          services: MARKETING_CHANNELS,
           verticals: MARKETING_VERTICALS,
+          modifiers: MARKETING_MODIFIERS,
         },
         automation_consultant: {
-          channels: AUTOMATION_PLATFORMS,
+          services: AUTOMATION_PLATFORMS,
           verticals: AUTOMATION_VERTICALS,
+          modifiers: AUTOMATION_MODIFIERS,
         },
       });
     }
