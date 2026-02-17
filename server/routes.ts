@@ -12,6 +12,7 @@ import {
   type EngineOutput 
 } from "@shared/schema";
 import { z } from "zod";
+import { queryEngine } from "./engines";
 
 /** ------------------------
  * Scoring helpers (From user provided logic)
@@ -56,40 +57,21 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
-  /**
-   * Single-engine evaluator (stub)
-   * Later: call the engine API, extract top brands, determine presence + position
-   */
-  app.post(api.eval.run.path, (req, res) => {
+  app.post(api.eval.run.path, async (req, res) => {
     try {
       const parsed = EvalRequestSchema.parse(req.body);
-      const { query, brand, engine, topN } = parsed;
+      const { query, brand, engine } = parsed;
 
-      // STUB: Simulate finding the brand randomly for now
-      // This allows the UI to show different states
-      const randomFoundState = Math.floor(Math.random() * 3); // 0, 1, or 2
-      const randomPos = randomFoundState > 0 ? Math.floor(Math.random() * 10) + 1 : null;
-      
-      // Generate some fake "competitors"
-      const competitors = ["Salesforce", "HubSpot", "Zoho", "Pipedrive", "Monday.com"];
-      // Inject the queried brand into the top list if found
-      const topBrands = [...competitors];
-      if (randomPos && randomPos <= topBrands.length) {
-        topBrands.splice(randomPos - 1, 0, brand);
-      } else if (randomFoundState > 0) {
-        topBrands.push(brand);
-      }
-      
-      const top10 = topBrands.slice(0, 10);
+      const result = await queryEngine(engine, query, brand);
 
       const response = {
         engine,
         query,
         brand,
-        found_state: randomFoundState,
-        pos: randomPos,
-        top10_brands: top10,
-        raw_answer_text: `[Stubbed Analysis from ${engine}] Searched for "${query}". Detected "${brand}" with state ${randomFoundState} at position ${randomPos}.`,
+        found_state: result.presenceState,
+        pos: result.brandPosition,
+        top10_brands: result.topBrands,
+        raw_answer_text: result.rawText,
         citations: [],
         ts: new Date().toISOString(),
       };
@@ -99,6 +81,7 @@ export async function registerRoutes(
       if (err instanceof z.ZodError) {
         res.status(400).json({ message: err.errors[0].message });
       } else {
+        console.error("Engine eval error:", err);
         res.status(500).json({ message: "Internal server error" });
       }
     }
