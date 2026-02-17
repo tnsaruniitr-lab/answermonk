@@ -679,10 +679,17 @@ function ResultsDashboard({ score, brandName, mode, promptsUsed, rawRuns, onNewA
   );
 }
 
-function generateSimplePrompts(persona: string, verticals: string[], services: string[], geo: string): Prompt[] {
+const PROMPT_STYLE_PREFIXES: Record<string, string> = {
+  find_best: "Find me best",
+  top5: "Find, list and rank 5 top",
+  top3: "Find, list and rank 3 top",
+};
+
+function generateSimplePrompts(persona: string, verticals: string[], services: string[], geo: string, style: string = "find_best"): Prompt[] {
   const personaLabel = persona === "marketing_agency" ? "marketing agency" : persona.replace(/_/g, " ");
   const location = geo.trim();
   const suffix = location ? ` in ${location}` : "";
+  const prefix = PROMPT_STYLE_PREFIXES[style] || PROMPT_STYLE_PREFIXES.find_best;
   const prompts: Prompt[] = [];
   let idx = 1;
 
@@ -690,7 +697,7 @@ function generateSimplePrompts(persona: string, verticals: string[], services: s
     prompts.push({
       id: `simple_${idx}`,
       cluster,
-      shape: "open",
+      shape: style === "top5" ? "top5" : style === "top3" ? "top3" : "open",
       text,
       slots_used: {},
       tags: [cluster, "simple_mode"],
@@ -700,19 +707,19 @@ function generateSimplePrompts(persona: string, verticals: string[], services: s
     idx++;
   };
 
-  addPrompt(`Find me best ${personaLabel}${suffix}`, "direct");
+  addPrompt(`${prefix} ${personaLabel}${suffix}`, "direct");
 
   for (const v of verticals) {
-    addPrompt(`Find me best ${personaLabel} for ${v}${suffix}`, "direct");
+    addPrompt(`${prefix} ${personaLabel} for ${v}${suffix}`, "direct");
   }
 
   for (const s of services) {
-    addPrompt(`Find me best ${personaLabel} for ${s}${suffix}`, "task");
+    addPrompt(`${prefix} ${personaLabel} for ${s}${suffix}`, "task");
   }
 
   for (const v of verticals) {
     for (const s of services) {
-      addPrompt(`Find me best ${personaLabel} for ${v} for ${s}${suffix}`, "task");
+      addPrompt(`${prefix} ${personaLabel} for ${v} for ${s}${suffix}`, "task");
     }
   }
 
@@ -721,6 +728,7 @@ function generateSimplePrompts(persona: string, verticals: string[], services: s
 
 export default function PromptGenerator() {
   const [simpleMode, setSimpleMode] = useState(true);
+  const [promptStyle, setPromptStyle] = useState<"find_best" | "top5" | "top3">("find_best");
   const [persona, setPersona] = useState<string>("marketing_agency");
   const [verticals, setVerticals] = useState<string[]>([]);
   const [services, setServices] = useState<string[]>([]);
@@ -858,7 +866,7 @@ export default function PromptGenerator() {
         budgetTier: "mid",
       } as any);
 
-      const simplePrompts = generateSimplePrompts(persona, verticals, services, geo);
+      const simplePrompts = generateSimplePrompts(persona, verticals, services, geo, promptStyle);
       const clusterCounts: Record<string, number> = {};
       const shapeCounts: Record<string, number> = {};
       simplePrompts.forEach((p) => {
@@ -1175,6 +1183,26 @@ export default function PromptGenerator() {
                         </SelectContent>
                       </Select>
                     </div>
+                    {simpleMode && (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Prompt Style
+                        </label>
+                        <Select value={promptStyle} onValueChange={(v) => setPromptStyle(v as "find_best" | "top5" | "top3")}>
+                          <SelectTrigger
+                            className="bg-secondary/50"
+                            data-testid="select-prompt-style"
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="find_best">Find me best</SelectItem>
+                            <SelectItem value="top5">Find, list and rank 5 top</SelectItem>
+                            <SelectItem value="top3">Find, list and rank 3 top</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     {!simpleMode && (
                       <div className="space-y-1.5">
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
