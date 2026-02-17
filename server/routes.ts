@@ -13,6 +13,9 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { queryEngine } from "./engines";
+import { generatePromptSet } from "./promptgen/generator";
+import { BuyerIntentProfileSchema } from "./promptgen/types";
+import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_PLATFORMS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, BUDGET_ADJECTIVES } from "./promptgen/presets";
 
 /** ------------------------
  * Scoring helpers (From user provided logic)
@@ -159,6 +162,50 @@ export async function registerRoutes(
   app.get(api.history.list.path, async (req, res) => {
     const history = await storage.getAnalysisHistory();
     res.json(history);
+  });
+
+  app.post("/api/promptsets", async (req, res) => {
+    try {
+      const profile = BuyerIntentProfileSchema.parse(req.body.profile ?? req.body);
+      const seed = req.body.seed ? Number(req.body.seed) : undefined;
+      const result = generatePromptSet(profile, { seed });
+      res.status(200).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors.map((e) => e.message).join(", ") });
+      } else {
+        console.error("Prompt generation error:", err);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    }
+  });
+
+  app.get("/api/promptgen/presets", (req, res) => {
+    const persona = req.query.persona as string;
+    if (persona === "marketing_agency") {
+      res.json({
+        channels: MARKETING_CHANNELS,
+        verticals: MARKETING_VERTICALS,
+        budget_tiers: Object.keys(BUDGET_ADJECTIVES.marketing_agency),
+      });
+    } else if (persona === "automation_consultant") {
+      res.json({
+        channels: AUTOMATION_PLATFORMS,
+        verticals: AUTOMATION_VERTICALS,
+        budget_tiers: Object.keys(BUDGET_ADJECTIVES.automation_consultant),
+      });
+    } else {
+      res.json({
+        marketing_agency: {
+          channels: MARKETING_CHANNELS,
+          verticals: MARKETING_VERTICALS,
+        },
+        automation_consultant: {
+          channels: AUTOMATION_PLATFORMS,
+          verticals: AUTOMATION_VERTICALS,
+        },
+      });
+    }
   });
 
   return httpServer;
