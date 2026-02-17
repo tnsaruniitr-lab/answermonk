@@ -1,0 +1,115 @@
+Your plan is solid. It keeps the statistical correctness (seeded RNG, cluster quotas, shape distribution, dedupe, deterministic alias resolution) while cutting the surface area to something you can actually build and debug.
+
+A few tweaks I’d make so it stays simple and doesn’t paint you into a corner:
+
+What I’d keep exactly as-is
+
+4–5 files (types / presets+aliases+normalize / templates / generator / route)
+
+No DB, no UI review
+
+SlotBank builder included (important)
+
+Seeded RNG is non-negotiable
+
+Fixed 40 prompts: 10 per cluster
+
+Shape distribution: 14 open / 10 top5 / 10 top3 / 6 best
+
+Deduplication loop
+
+Two simplifications I’d do (to build slower and safer)
+1) Don’t implement the “K guarantee” on day 1
+
+Start with pure probabilistic modifier inclusion:
+
+automation: modifier_rate = 0.45
+
+marketing: modifier_rate = 0.40
+
+geo_rate = 0.35 marketing, 0.20 automation
+
+Then after you see output quality, add a very small guarantee like:
+
+“if modifiers exist, ensure at least 6 prompts contain a modifier”
+That’s much easier than full K allocation + cluster splitting, and prevents “Clay never appears” without complexity.
+
+You can add full K later.
+
+2) First make templates slot-agnostic and simple
+
+Instead of required/optional slot validation logic, just:
+
+pick a template string
+
+fill only the placeholders that exist in the profile
+
+if a placeholder is missing, resample template
+
+This keeps generator logic dead simple. You can formalize required slots later if needed.
+
+What I would change in your file plan (minimal)
+
+Your 4-file structure is fine. I’d slightly reorganize contents:
+
+types.ts
+
+TS types
+
+Zod schema for profile
+
+enums for persona/cluster/shape
+
+presets.ts
+
+persona presets
+
+alias maps
+
+normalization utilities (normalizeKey, toDisplayFallback, dedupeByKey)
+
+resolveModifier() helper
+
+templates.ts
+
+templates grouped by cluster
+
+two sets: marketing vs automation (small differences)
+
+generator.ts
+
+Contains:
+
+buildSlotBank(profile)
+
+seededRng(seed)
+
+generatePromptSet(profile, seed?)
+
+No separate allocator file initially.
+
+One important design guardrail
+
+Do not put “Clay” into category.
+Keep category="automation consultant" and modifiers=["Clay"].
+That preserves separation: category = role, modifier = platform/channel.
+
+Minimal output contract (don’t overbuild)
+
+Return:
+
+prompts[] with cluster + shape + text
+
+unverified_modifiers[]
+
+seed_used
+
+That’s enough for now.
+
+What you’ll get (accurate)
+
+Yes: a working /api/promptsets returning 40 deterministic, deduped, vendor-seeking prompts. That’s exactly the right MVP for prompt gen.
+
+My only warning
+
+If you skip both (a) modifier minimum guarantee and (b) a tiny set of modifier-specific templates, you may see cases where users provide “Clay” but only 1–2 prompts use it. That’s not statistically wrong, but it will feel broken to users. The tiny “min 6 modifier prompts” rule fixes that with almost no extra code.
