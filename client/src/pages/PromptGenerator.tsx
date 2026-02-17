@@ -354,13 +354,10 @@ export default function PromptGenerator() {
             sherlok.ai
           </Link>
           <div className="flex items-center gap-4">
-            <span
-              className="text-sm text-muted-foreground flex items-center gap-1.5"
-              data-testid="text-page-label"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              Prompt Generator
-            </span>
+            <Link href="/" className="text-sm text-muted-foreground flex items-center gap-1.5 transition-colors hover:text-foreground" data-testid="link-analyzer">
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Analyzer
+            </Link>
           </div>
         </div>
       </nav>
