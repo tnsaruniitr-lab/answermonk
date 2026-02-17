@@ -34,6 +34,7 @@ import {
   Target,
   Eye,
   TrendingUp,
+  FileText,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -110,6 +111,7 @@ interface GEOScore {
 
 interface RawRun {
   prompt_id: string;
+  prompt_text: string;
   cluster: string;
   engine: string;
   raw_text: string;
@@ -373,11 +375,133 @@ function ScoreCard({ label, value, suffix, icon: Icon, description }: {
   );
 }
 
-function ResultsDashboard({ score, brandName, mode, promptsUsed, onNewAnalysis }: {
+function RawRunsSection({ runs }: { runs: RawRun[] }) {
+  const [expandedRun, setExpandedRun] = useState<string | null>(null);
+  const [engineFilter, setEngineFilter] = useState<string>("all");
+  const [clusterFilter, setClusterFilter] = useState<string>("all");
+
+  const grouped = useMemo(() => {
+    let filtered = runs;
+    if (engineFilter !== "all") filtered = filtered.filter((r) => r.engine === engineFilter);
+    if (clusterFilter !== "all") filtered = filtered.filter((r) => r.cluster === clusterFilter);
+
+    const byPrompt: Record<string, RawRun[]> = {};
+    for (const run of filtered) {
+      if (!byPrompt[run.prompt_id]) byPrompt[run.prompt_id] = [];
+      byPrompt[run.prompt_id].push(run);
+    }
+    return byPrompt;
+  }, [runs, engineFilter, clusterFilter]);
+
+  const engines = [...new Set(runs.map((r) => r.engine))];
+  const clusters = [...new Set(runs.map((r) => r.cluster))];
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <h3 className="text-sm font-medium flex items-center gap-2">
+          <FileText className="w-4 h-4 text-muted-foreground" />
+          Raw LLM Responses
+        </h3>
+        <div className="flex items-center gap-2">
+          <Select value={engineFilter} onValueChange={setEngineFilter}>
+            <SelectTrigger className="h-7 text-xs w-28" data-testid="select-raw-engine-filter">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Engines</SelectItem>
+              {engines.map((e) => (
+                <SelectItem key={e} value={e}>{ENGINE_LABELS[e] || e}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={clusterFilter} onValueChange={setClusterFilter}>
+            <SelectTrigger className="h-7 text-xs w-28" data-testid="select-raw-cluster-filter">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {clusters.map((c) => (
+                <SelectItem key={c} value={c}>{CLUSTER_LABELS[c] || c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="border border-border rounded-md divide-y divide-border" data-testid="section-raw-runs">
+        {Object.entries(grouped).map(([promptId, promptRuns]) => {
+          const first = promptRuns[0];
+          const isExpanded = expandedRun === promptId;
+          return (
+            <div key={promptId}>
+              <button
+                type="button"
+                onClick={() => setExpandedRun(isExpanded ? null : promptId)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left cursor-pointer"
+                data-testid={`button-expand-run-${promptId}`}
+              >
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  {isExpanded
+                    ? <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
+                    : <ChevronRight className="w-3 h-3 text-muted-foreground shrink-0" />
+                  }
+                  <span className="text-xs text-muted-foreground shrink-0 capitalize">{first.cluster}</span>
+                  <span className="text-sm truncate">{first.prompt_text}</span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                  {promptRuns.map((r) => (
+                    <span
+                      key={r.engine}
+                      className={`text-[10px] px-1.5 py-0.5 rounded ${r.brand_found ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-secondary text-muted-foreground'}`}
+                    >
+                      {(ENGINE_LABELS[r.engine] || r.engine).slice(0, 3)}
+                    </span>
+                  ))}
+                </div>
+              </button>
+              {isExpanded && (
+                <div className="px-4 pb-3 space-y-3">
+                  {promptRuns.map((r) => (
+                    <div key={r.engine} className="space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-medium">{ENGINE_LABELS[r.engine] || r.engine}</span>
+                        <div className="flex items-center gap-2">
+                          {r.brand_found && (
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                              Found {r.brand_rank !== null ? `#${r.brand_rank}` : ""}
+                            </span>
+                          )}
+                          {r.candidates.length > 0 && (
+                            <span className="text-[10px] text-muted-foreground">
+                              {r.candidates.length} brands extracted
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <pre className="text-xs text-muted-foreground bg-secondary/50 rounded-md p-3 whitespace-pre-wrap font-[inherit] leading-relaxed max-h-48 overflow-y-auto" data-testid={`text-raw-run-${r.prompt_id}-${r.engine}`}>
+                        {r.raw_text}
+                      </pre>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {Object.keys(grouped).length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-6">No results match the current filters.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ResultsDashboard({ score, brandName, mode, promptsUsed, rawRuns, onNewAnalysis }: {
   score: GEOScore;
   brandName: string;
   mode: string;
   promptsUsed: number;
+  rawRuns?: RawRun[];
   onNewAnalysis: () => void;
 }) {
   return (
@@ -519,6 +643,12 @@ function ResultsDashboard({ score, brandName, mode, promptsUsed, onNewAnalysis }
               ))}
             </div>
           </Card>
+        </div>
+      )}
+
+      {rawRuns && rawRuns.length > 0 && (
+        <div className="mb-8">
+          <RawRunsSection runs={rawRuns} />
         </div>
       )}
 
@@ -1165,6 +1295,7 @@ export default function PromptGenerator() {
                 brandName={brandName}
                 mode={scoringResult.mode}
                 promptsUsed={scoringResult.prompts_used}
+                rawRuns={scoringResult.raw_runs}
                 onNewAnalysis={handleStartOver}
               />
             )}

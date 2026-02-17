@@ -309,6 +309,16 @@ export async function registerRoutes(
           score: result.score,
           prompts_used: promptsToRun.length,
           mode: parsed.mode,
+          raw_runs: result.raw_runs.map((r) => ({
+            prompt_id: r.prompt_id,
+            prompt_text: (promptsToRun as any[]).find((p: any) => p.id === r.prompt_id)?.text || "",
+            cluster: r.cluster,
+            engine: r.engine,
+            raw_text: r.raw_text,
+            candidates: r.extraction.candidates,
+            brand_found: r.match.brand.brand_found,
+            brand_rank: r.match.brand.brand_rank,
+          })),
         });
       } catch (runErr) {
         await storage.updateScoringJob(job.id, { status: "failed" });
