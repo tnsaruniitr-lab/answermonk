@@ -108,11 +108,22 @@ interface GEOScore {
   engine_breakdown: Record<string, { appearance_rate: number; primary_rate: number; valid_runs: number }>;
 }
 
+interface RawRun {
+  prompt_id: string;
+  cluster: string;
+  engine: string;
+  raw_text: string;
+  candidates: string[];
+  brand_found: boolean;
+  brand_rank: number | null;
+}
+
 interface ScoringResponse {
   job_id: number;
   score: GEOScore;
   prompts_used: number;
   mode: string;
+  raw_runs?: RawRun[];
 }
 
 const WAITING_MESSAGES = [

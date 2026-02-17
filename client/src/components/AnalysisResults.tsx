@@ -21,11 +21,12 @@ function PresenceIndicator({ state }: { state: number }) {
   return <span className="flex items-center gap-1.5 text-muted-foreground text-sm"><X className="w-3.5 h-3.5" /> Absent</span>;
 }
 
-function EngineRow({ engine, presence, position, rawText }: {
+function EngineRow({ engine, presence, position, rawText, query }: {
   engine: string;
   presence: number;
   position: number | null | undefined;
   rawText?: string;
+  query?: string;
 }) {
   const [expanded, setExpanded] = useState(false);
   const hasRaw = rawText && rawText.length > 0;
@@ -53,11 +54,24 @@ function EngineRow({ engine, presence, position, rawText }: {
           <PresenceIndicator state={presence} />
         </div>
       </button>
-      {expanded && rawText && (
-        <div className="px-4 pb-3">
-          <pre className="text-xs text-muted-foreground bg-secondary/50 rounded-md p-3 overflow-x-auto whitespace-pre-wrap font-[inherit] leading-relaxed max-h-64 overflow-y-auto" data-testid={`text-raw-${engine}`}>
-            {rawText}
-          </pre>
+      {expanded && (
+        <div className="px-4 pb-3 space-y-2">
+          {query && (
+            <div>
+              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Query Sent</span>
+              <pre className="text-xs text-foreground bg-secondary/50 rounded-md p-3 overflow-x-auto whitespace-pre-wrap font-[inherit] leading-relaxed mt-1" data-testid={`text-query-${engine}`}>
+                {query}
+              </pre>
+            </div>
+          )}
+          {rawText && (
+            <div>
+              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Raw Response</span>
+              <pre className="text-xs text-muted-foreground bg-secondary/50 rounded-md p-3 overflow-x-auto whitespace-pre-wrap font-[inherit] leading-relaxed max-h-64 overflow-y-auto mt-1" data-testid={`text-raw-${engine}`}>
+                {rawText}
+              </pre>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -106,6 +120,7 @@ export function AnalysisResults({ data }: Props) {
                 presence={presence}
                 position={data.perEngine.posByEngine[engine]}
                 rawText={rawResponses[engine]}
+                query={data.query}
               />
             </motion.div>
           ))}
