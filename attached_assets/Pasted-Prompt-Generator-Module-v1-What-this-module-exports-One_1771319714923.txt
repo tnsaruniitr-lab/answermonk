@@ -1,0 +1,400 @@
+Prompt Generator Module v1
+What this module exports
+
+One function + one route:
+
+generatePromptSet(profile, options) -> PromptSet
+
+POST /promptsets (optional API wrapper)
+
+Folder / files to add
+
+Add a folder like:
+
+/src/promptgen
+  types.ts
+  validate.ts
+  presets.ts
+  aliases.ts
+  normalize.ts
+  slotbank.ts
+  templates.ts
+  rng.ts
+  allocator.ts
+  generator.ts
+
+
+If you prefer fewer files, you can merge allocator+generator, but keep templates separate.
+
+1) types.ts
+
+Define these types:
+
+PersonaType = "marketing_agency" | "automation_consultant"
+
+ModifierType = "channel" | "platform"
+
+Input
+
+BuyerIntentProfile
+
+persona_type
+
+category
+
+verticals[]
+
+services[]
+
+modifiers[] (optional)
+
+geo (optional)
+
+budget_tier (optional)
+
+modifier_focus (optional boolean)
+
+language ("en")
+
+Internal
+
+SlotTerm { key, display, verified, type, source }
+
+SlotBank
+
+category_terms: SlotTerm[]
+
+vertical_terms: SlotTerm[]
+
+service_terms: SlotTerm[]
+
+modifier_terms: SlotTerm[] // verified only by default
+
+geo_terms: SlotTerm[]
+
+budget_adjs: SlotTerm[]
+
+unverified_modifiers: SlotTerm[]
+
+persona_mode: "provider_led" | "problem_led"
+
+Output
+
+Prompt
+
+id
+
+cluster: "direct"|"persona"|"budget"|"task"
+
+shape: "open"|"top3"|"top5"|"best"
+
+text
+
+slots_used (object)
+
+tags: string[]
+
+PromptSet
+
+prompt_set_id
+
+version: "pg_v1"
+
+seed_used
+
+counts (cluster/shape/modifier/geo)
+
+slot_bank (final)
+
+prompts: Prompt[]
+
+unverified_items (for UI review)
+
+2) validate.ts
+
+Use whatever validation you already use (zod/joi/manual). Enforce:
+
+verticals length >= 2
+
+services length >= 3
+
+modifiers length <= 6 if provided
+
+category non-empty
+
+persona_type valid
+
+3) presets.ts
+
+Seed only what the prompt generator needs:
+
+Marketing Agency presets
+
+Channels list (10): SEO, Local SEO, Google Ads/PPC, Meta Ads, Social Media, Content Marketing, Email Marketing, Influencer, TikTok, YouTube
+
+Vertical list (15): law firms, dentists, medical clinics, real estate, restaurants, gyms, home services, B2B SaaS, ecommerce, accountants, cosmetic clinics, interior designers, coaches, recruitment agencies, luxury retail
+
+Budget adjectives:
+
+budget: affordable, low cost, budget-friendly
+
+mid: reasonably priced, good value
+
+premium: premium, high-end, top-tier
+
+Automation Consultant presets
+
+Platforms list (6–8): Clay, HubSpot, Salesforce, Zapier, Make, n8n, Apollo (optional)
+
+“Verticals” here can be operators (6–10): recruiters, founders, agencies, sales teams, ops managers, real estate teams, ecommerce ops
+
+Budget adjectives:
+
+budget: freelancer-friendly, startup budget, affordable
+
+mid: experienced, good value
+
+premium: premium consultant, senior, expert-level
+
+4) aliases.ts (modifier-only)
+
+A small alias map for modifiers (channels/platforms) and common typos.
+
+Examples:
+
+cly, clay.com, clai -> Clay
+
+hub spot -> HubSpot
+
+fb ads, facebook ads -> Meta Ads
+
+g ads, adwords -> Google Ads
+
+ppc -> Google Ads / PPC (pick one canonical)
+
+This is deterministic and avoids relying on the LLM to fix typos.
+
+5) normalize.ts
+
+Implement:
+
+normalizeKey(s: string) -> string
+
+trim
+
+lowercase
+
+replace punctuation with spaces
+
+collapse spaces
+
+toDisplayFallback(s: string) -> string
+
+basic title casing for unknown phrases (don’t overthink)
+
+dedupeByKey(terms: SlotTerm[]) -> SlotTerm[]
+
+You’ll use normalizeKey for:
+
+dedupe verticals/services/modifiers
+
+dedupe prompt strings
+
+6) slotbank.ts
+
+Function:
+
+buildSlotBank(profile) -> SlotBank
+
+Steps:
+
+Create category term
+
+Convert verticals + services into SlotTerms (verified=true, source=user)
+
+Resolve modifiers:
+
+normalizeKey
+
+check alias_map → canonical
+
+check if canonical is in known list for persona_type (platforms/channels)
+
+if yes: verified=true + display=canonical
+
+else: verified=false (keep display fallback)
+
+Choose modifier type:
+
+marketing_agency -> channel
+
+automation_consultant -> platform
+
+Geo terms:
+
+if geo present: city first, then country (as separate terms)
+
+Budget adjectives from tier (or default mid if omitted)
+
+Return:
+
+modifier_terms = verified only (by default)
+
+unverified_modifiers list (for UI)
+
+Also set:
+
+persona_mode = provider_led (marketing) / problem_led (automation)
+
+7) templates.ts
+
+Store templates as objects with required slots:
+
+Example:
+
+{
+  id: "task_03",
+  cluster: "task",
+  text: "hire someone to {service} using {modifier}. {shape_suffix}",
+  required: ["service", "modifier"],
+  optional: ["vertical", "geo", "budget_adj"]
+}
+
+
+Keep ~8 templates per cluster.
+
+Important: create modifier-specific templates for natural clusters:
+
+automation: task + direct
+
+marketing: task + persona + small direct
+
+8) rng.ts
+
+Seeded RNG so output is reproducible.
+
+Expose:
+
+pick(list)
+
+shuffle(list)
+
+rand() returns [0,1)
+
+Use a library or your own.
+
+9) allocator.ts (the key part)
+
+This decides how many prompts must include modifiers and where.
+
+getModifierK(profile, modifiersVerifiedCount) -> number
+
+Rules:
+
+if modifiersVerifiedCount == 0 → 0
+
+else:
+
+marketing_agency:
+
+focus=false → 12
+
+focus=true → 20
+
+automation_consultant:
+
+focus=false → 14
+
+focus=true → 24
+
+allocateModifierCounts(modifiers, K, rng)
+
+Balanced allocation (round-robin) across modifiers.
+
+splitModifierKAcrossClusters(persona_type, K)
+
+automation: task = ceil(0.7K), direct = K - task
+
+marketing: task = round(0.5K), persona = round(0.4K), direct = remainder
+
+getGeoK(persona_type, geoProvided)
+
+Only if geo provided:
+
+marketing: ~14 prompts include geo (35% of 40)
+
+automation: ~8 prompts include geo (20% of 40)
+
+(Implement similarly: a minimum guarantee, not pure probability.)
+
+10) generator.ts
+
+Main function:
+
+generatePromptSet(profile, {seed, nPrompts=40})
+
+Process:
+
+validate profile
+
+slotBank = buildSlotBank(profile)
+
+set cluster quotas: 10 each (direct/persona/budget/task)
+
+shapes list for 40 with distribution:
+
+14 open, 10 top5, 10 top3, 6 best (shuffle)
+
+geo guarantee: choose which prompt indices get geo (based on GeoK)
+
+modifier guarantee:
+
+compute K
+
+choose which prompt indices get modifiers, respecting cluster split
+
+assign specific modifier values per index using allocation map
+
+For each cluster:
+
+pick a template that matches available slots
+
+fill slots (choose random vertical/service/budget_adj/geo/modifier)
+
+add shape suffix
+
+compute prompt_key = normalizeKey(text) for dedupe
+
+if duplicate → resample (cap attempts)
+
+Return PromptSet with counts + slotbank + unverified items
+
+Hard rule: generator should never emit broken prompts:
+
+if modifier required but none available → pick non-modifier template
+
+if geo template chosen but geo missing → pick no-geo template
+
+11) Optional route wrapper
+
+If you want an endpoint:
+
+POST /promptsets
+Body: profile + seed optional
+Returns: PromptSet
+
+“Done” checklist for this module
+
+Same profile + seed → same 40 prompts
+
+40 prompts, 10 per cluster
+
+Modifiers appear at least K times if provided
+
+Geo appears roughly at GeoK times if provided
+
+Unverified modifiers are returned separately
+
+No duplicates
+
+Prompts are vendor-seeking (best/top/recommend/hire/provider)
