@@ -3,7 +3,7 @@ import { useRunAnalysis } from "@/hooks/use-analysis";
 import { AnalysisResults } from "@/components/AnalysisResults";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowRight, History } from "lucide-react";
+import { Loader2, ArrowRight, History, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -43,10 +43,16 @@ export default function Analyzer() {
       <nav className="w-full border-b border-border sticky top-0 z-50 bg-background">
         <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
           <span className="text-base font-semibold tracking-tight" data-testid="text-logo">sherlok.ai</span>
-          <Link href="/history" className="text-sm text-muted-foreground flex items-center gap-1.5 transition-colors hover:text-foreground" data-testid="link-history">
-            <History className="w-3.5 h-3.5" />
-            History
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/prompts" className="text-sm text-muted-foreground flex items-center gap-1.5 transition-colors hover:text-foreground" data-testid="link-prompts">
+              <Sparkles className="w-3.5 h-3.5" />
+              Prompts
+            </Link>
+            <Link href="/history" className="text-sm text-muted-foreground flex items-center gap-1.5 transition-colors hover:text-foreground" data-testid="link-history">
+              <History className="w-3.5 h-3.5" />
+              History
+            </Link>
+          </div>
         </div>
       </nav>
 
