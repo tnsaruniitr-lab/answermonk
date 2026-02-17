@@ -1,0 +1,142 @@
+import type { MatchResult, CompetitorEntry } from "./matcher";
+
+export interface RunData {
+  prompt_id: string;
+  cluster: string;
+  engine: string;
+  valid: boolean;
+  brand: MatchResult;
+  competitors: CompetitorEntry[];
+}
+
+export interface ClusterBreakdown {
+  appearance_rate: number;
+  primary_rate: number;
+  valid_runs: number;
+}
+
+export interface CompetitorScore {
+  name: string;
+  share: number;
+  appearances: number;
+}
+
+export interface GEOScore {
+  valid_runs: number;
+  total_runs: number;
+  invalid_runs: number;
+  appearance_rate: number;
+  primary_rate: number;
+  avg_rank: number | null;
+  competitors: CompetitorScore[];
+  cluster_breakdown: Record<string, ClusterBreakdown>;
+  engine_breakdown: Record<string, { appearance_rate: number; primary_rate: number; valid_runs: number }>;
+}
+
+export function computeGEOScore(runs: RunData[]): GEOScore {
+  const validRuns = runs.filter((r) => r.valid);
+  const V = validRuns.length;
+  const totalRuns = runs.length;
+  const invalidRuns = totalRuns - V;
+
+  if (V === 0) {
+    return {
+      valid_runs: 0,
+      total_runs: totalRuns,
+      invalid_runs: invalidRuns,
+      appearance_rate: 0,
+      primary_rate: 0,
+      avg_rank: null,
+      competitors: [],
+      cluster_breakdown: {},
+      engine_breakdown: {},
+    };
+  }
+
+  const A = validRuns.filter((r) => r.brand.brand_found).length;
+  const T = validRuns.filter(
+    (r) => r.brand.brand_found && r.brand.brand_rank !== null && r.brand.brand_rank <= 3,
+  ).length;
+
+  const ranksWhenFound = validRuns
+    .filter((r) => r.brand.brand_found && r.brand.brand_rank !== null)
+    .map((r) => r.brand.brand_rank!);
+
+  const avgRank =
+    ranksWhenFound.length > 0
+      ? ranksWhenFound.reduce((sum, r) => sum + r, 0) / ranksWhenFound.length
+      : null;
+
+  const competitorFreq = new Map<string, { name_raw: string; count: number }>();
+  for (const run of validRuns) {
+    for (const comp of run.competitors) {
+      const existing = competitorFreq.get(comp.name_norm);
+      if (existing) {
+        existing.count++;
+      } else {
+        competitorFreq.set(comp.name_norm, { name_raw: comp.name_raw, count: 1 });
+      }
+    }
+  }
+
+  const competitors: CompetitorScore[] = [...competitorFreq.entries()]
+    .map(([norm, data]) => ({
+      name: data.name_raw,
+      share: data.count / V,
+      appearances: data.count,
+    }))
+    .sort((a, b) => b.share - a.share)
+    .slice(0, 10);
+
+  const clusterBreakdown: Record<string, ClusterBreakdown> = {};
+  const clusterGroups = groupBy(validRuns, (r) => r.cluster);
+  for (const [cluster, clusterRuns] of Object.entries(clusterGroups)) {
+    const cv = clusterRuns.length;
+    const ca = clusterRuns.filter((r) => r.brand.brand_found).length;
+    const ct = clusterRuns.filter(
+      (r) => r.brand.brand_found && r.brand.brand_rank !== null && r.brand.brand_rank <= 3,
+    ).length;
+    clusterBreakdown[cluster] = {
+      appearance_rate: cv > 0 ? ca / cv : 0,
+      primary_rate: cv > 0 ? ct / cv : 0,
+      valid_runs: cv,
+    };
+  }
+
+  const engineBreakdown: Record<string, { appearance_rate: number; primary_rate: number; valid_runs: number }> = {};
+  const engineGroups = groupBy(validRuns, (r) => r.engine);
+  for (const [engine, engineRuns] of Object.entries(engineGroups)) {
+    const ev = engineRuns.length;
+    const ea = engineRuns.filter((r) => r.brand.brand_found).length;
+    const et = engineRuns.filter(
+      (r) => r.brand.brand_found && r.brand.brand_rank !== null && r.brand.brand_rank <= 3,
+    ).length;
+    engineBreakdown[engine] = {
+      appearance_rate: ev > 0 ? ea / ev : 0,
+      primary_rate: ev > 0 ? et / ev : 0,
+      valid_runs: ev,
+    };
+  }
+
+  return {
+    valid_runs: V,
+    total_runs: totalRuns,
+    invalid_runs: invalidRuns,
+    appearance_rate: A / V,
+    primary_rate: T / V,
+    avg_rank: avgRank ? Math.round(avgRank * 10) / 10 : null,
+    competitors,
+    cluster_breakdown: clusterBreakdown,
+    engine_breakdown: engineBreakdown,
+  };
+}
+
+function groupBy<T>(items: T[], key: (item: T) => string): Record<string, T[]> {
+  const groups: Record<string, T[]> = {};
+  for (const item of items) {
+    const k = key(item);
+    if (!groups[k]) groups[k] = [];
+    groups[k].push(item);
+  }
+  return groups;
+}

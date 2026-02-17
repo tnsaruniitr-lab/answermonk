@@ -4,6 +4,24 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // === TABLE DEFINITIONS ===
+
+export const scoringJobs = pgTable("scoring_jobs", {
+  id: serial("id").primaryKey(),
+  brandName: text("brand_name").notNull(),
+  brandDomain: text("brand_domain"),
+  mode: text("mode").notNull(),
+  status: text("status").notNull().default("pending"),
+  promptCount: integer("prompt_count").notNull(),
+  engineCount: integer("engine_count").notNull().default(3),
+  resultJson: jsonb("result_json"),
+  rawData: jsonb("raw_data"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertScoringJobSchema = createInsertSchema(scoringJobs).omit({ id: true, createdAt: true });
+export type ScoringJob = typeof scoringJobs.$inferSelect;
+export type InsertScoringJob = z.infer<typeof insertScoringJobSchema>;
+
 // We'll store search history/results here
 export const analysisResults = pgTable("analysis_results", {
   id: serial("id").primaryKey(),

@@ -16,6 +16,8 @@ import { queryEngine } from "./engines";
 import { generatePromptSet } from "./promptgen/generator";
 import { BuyerIntentProfileSchema } from "./promptgen/types";
 import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, BUDGET_ADJECTIVES } from "./promptgen/presets";
+import { selectMiniPanel } from "./scoring/panel";
+import { runScoring } from "./scoring/runner";
 
 /** ------------------------
  * Scoring helpers (From user provided logic)
@@ -222,6 +224,105 @@ export async function registerRoutes(
         },
       });
     }
+  });
+
+  const ScoringRequestSchema = z.object({
+    brand_name: z.string().min(1),
+    brand_domain: z.string().optional(),
+    mode: z.enum(["quick", "full"]),
+    prompts: z.array(z.object({
+      id: z.string(),
+      cluster: z.string(),
+      shape: z.string(),
+      text: z.string(),
+      slots_used: z.record(z.string()),
+      tags: z.array(z.string()),
+      modifier_included: z.boolean(),
+      geo_included: z.boolean(),
+    })),
+  });
+
+  app.post("/api/scoring/run", async (req, res) => {
+    try {
+      const parsed = ScoringRequestSchema.parse(req.body);
+      let promptsToRun = parsed.prompts;
+
+      if (parsed.mode === "quick") {
+        promptsToRun = selectMiniPanel(parsed.prompts as any);
+      }
+
+      const job = await storage.createScoringJob({
+        brandName: parsed.brand_name,
+        brandDomain: parsed.brand_domain || null,
+        mode: parsed.mode,
+        status: "running",
+        promptCount: promptsToRun.length,
+        engineCount: 3,
+      });
+
+      try {
+        const result = await runScoring(
+          promptsToRun as any,
+          parsed.brand_name,
+          parsed.brand_domain,
+        );
+
+        await storage.updateScoringJob(job.id, {
+          status: "completed",
+          resultJson: result.score as any,
+          rawData: {
+            runs: result.raw_runs.map((r) => ({
+              prompt_id: r.prompt_id,
+              cluster: r.cluster,
+              engine: r.engine,
+              raw_text: r.raw_text,
+              candidates: r.extraction.candidates,
+              valid: r.extraction.valid,
+              brand_found: r.match.brand.brand_found,
+              brand_rank: r.match.brand.brand_rank,
+              match_tier: r.match.brand.match_tier,
+            })),
+            brand_identity: result.brand_identity,
+          } as any,
+        });
+
+        res.status(200).json({
+          job_id: job.id,
+          score: result.score,
+          prompts_used: promptsToRun.length,
+          mode: parsed.mode,
+        });
+      } catch (runErr) {
+        await storage.updateScoringJob(job.id, { status: "failed" });
+        throw runErr;
+      }
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors.map((e) => e.message).join(", ") });
+      } else {
+        console.error("Scoring error:", err);
+        res.status(500).json({ message: "Scoring failed. Please try again." });
+      }
+    }
+  });
+
+  app.get("/api/scoring/history", async (_req, res) => {
+    const history = await storage.getScoringHistory();
+    res.json(history);
+  });
+
+  app.get("/api/scoring/results/:id", async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "Invalid job ID" });
+      return;
+    }
+    const job = await storage.getScoringJob(id);
+    if (!job) {
+      res.status(404).json({ message: "Scoring job not found" });
+      return;
+    }
+    res.json(job);
   });
 
   return httpServer;

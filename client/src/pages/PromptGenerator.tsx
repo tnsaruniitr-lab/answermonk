@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,13 @@ import {
   Sparkles,
   Download,
   Filter,
+  Zap,
+  Globe,
+  BarChart3,
+  Trophy,
+  Target,
+  Eye,
+  TrendingUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -66,6 +73,52 @@ interface Presets {
     modifiers: string[];
   };
 }
+
+interface ClusterBreakdown {
+  appearance_rate: number;
+  primary_rate: number;
+  valid_runs: number;
+}
+
+interface CompetitorScore {
+  name: string;
+  share: number;
+  appearances: number;
+}
+
+interface GEOScore {
+  valid_runs: number;
+  total_runs: number;
+  invalid_runs: number;
+  appearance_rate: number;
+  primary_rate: number;
+  avg_rank: number | null;
+  competitors: CompetitorScore[];
+  cluster_breakdown: Record<string, ClusterBreakdown>;
+  engine_breakdown: Record<string, { appearance_rate: number; primary_rate: number; valid_runs: number }>;
+}
+
+interface ScoringResponse {
+  job_id: number;
+  score: GEOScore;
+  prompts_used: number;
+  mode: string;
+}
+
+const WAITING_MESSAGES = [
+  "Searching the web for your brand...",
+  "Asking ChatGPT what it thinks...",
+  "Checking if Gemini knows your name...",
+  "Claude is thinking it over...",
+  "Scanning competitor landscapes...",
+  "Mapping your AI presence...",
+  "Crunching the numbers...",
+  "Analyzing recommendation patterns...",
+  "Cross-referencing across engines...",
+  "Building your competitive profile...",
+  "Almost there, final checks...",
+  "Putting it all together...",
+];
 
 function TagInput({
   values,
@@ -223,6 +276,236 @@ const SHAPE_LABELS: Record<string, string> = {
   best: "Best",
 };
 
+const CLUSTER_DESCRIPTIONS: Record<string, string> = {
+  direct: "Do they know your name?",
+  persona: "Right audience fit?",
+  task: "Linked to your services?",
+  budget: "Right price positioning?",
+};
+
+const ENGINE_LABELS: Record<string, string> = {
+  chatgpt: "ChatGPT",
+  gemini: "Gemini",
+  claude: "Claude",
+};
+
+function WaitingScreen() {
+  const [msgIndex, setMsgIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMsgIndex((prev) => (prev + 1) % WAITING_MESSAGES.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      key="scoring"
+      className="pt-32 pb-16 flex flex-col items-center gap-6"
+    >
+      <div className="relative">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={msgIndex}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3 }}
+          className="text-sm text-muted-foreground text-center"
+          data-testid="text-waiting-message"
+        >
+          {WAITING_MESSAGES[msgIndex]}
+        </motion.p>
+      </AnimatePresence>
+      <p className="text-xs text-muted-foreground/60">
+        This can take 30-60 seconds
+      </p>
+    </motion.div>
+  );
+}
+
+function ScoreCard({ label, value, suffix, icon: Icon, description }: {
+  label: string;
+  value: string;
+  suffix?: string;
+  icon: any;
+  description: string;
+}) {
+  return (
+    <Card className="p-4 space-y-2" data-testid={`score-card-${label.toLowerCase().replace(/\s/g, "-")}`}>
+      <div className="flex items-center gap-2">
+        <Icon className="w-4 h-4 text-muted-foreground" />
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
+      </div>
+      <div className="flex items-baseline gap-1">
+        <span className="text-2xl font-semibold">{value}</span>
+        {suffix && <span className="text-sm text-muted-foreground">{suffix}</span>}
+      </div>
+      <p className="text-xs text-muted-foreground">{description}</p>
+    </Card>
+  );
+}
+
+function ResultsDashboard({ score, brandName, mode, promptsUsed, onNewAnalysis }: {
+  score: GEOScore;
+  brandName: string;
+  mode: string;
+  promptsUsed: number;
+  onNewAnalysis: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      key="results-dashboard"
+    >
+      <div className="pt-8 pb-6 space-y-2">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight" data-testid="text-score-heading">
+              GEO Score for {brandName}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {promptsUsed} prompts x 3 engines = {score.valid_runs} valid runs
+              {score.invalid_runs > 0 && ` (${score.invalid_runs} invalid)`}
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onNewAnalysis}
+            data-testid="button-new-analysis"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
+            New Analysis
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        <ScoreCard
+          label="Appearance Rate"
+          value={`${Math.round(score.appearance_rate * 100)}%`}
+          icon={Eye}
+          description="How often AI mentions you"
+        />
+        <ScoreCard
+          label="Top 3 Rate"
+          value={`${Math.round(score.primary_rate * 100)}%`}
+          icon={Trophy}
+          description="How often you're a top pick"
+        />
+        <ScoreCard
+          label="Avg Rank"
+          value={score.avg_rank !== null ? `#${score.avg_rank}` : "N/A"}
+          icon={TrendingUp}
+          description={score.avg_rank !== null ? "Your typical position when found" : "Not found in any responses"}
+        />
+      </div>
+
+      {Object.keys(score.engine_breakdown).length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-muted-foreground" />
+            By Engine
+          </h3>
+          <div className="grid grid-cols-3 gap-3">
+            {Object.entries(score.engine_breakdown).map(([engine, data]) => (
+              <Card key={engine} className="p-3 space-y-1.5" data-testid={`engine-card-${engine}`}>
+                <span className="text-xs font-medium text-muted-foreground">
+                  {ENGINE_LABELS[engine] || engine}
+                </span>
+                <div className="text-lg font-semibold">
+                  {Math.round(data.appearance_rate * 100)}%
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-muted-foreground">Top 3</span>
+                  <span className="text-xs font-medium">{Math.round(data.primary_rate * 100)}%</span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {Object.keys(score.cluster_breakdown).length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+            <Target className="w-4 h-4 text-muted-foreground" />
+            By Query Type
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {Object.entries(score.cluster_breakdown).map(([cluster, data]) => (
+              <Card key={cluster} className="p-3 space-y-1.5" data-testid={`cluster-card-${cluster}`}>
+                <span className="text-xs font-medium text-muted-foreground capitalize">
+                  {CLUSTER_LABELS[cluster] || cluster}
+                </span>
+                <div className="text-lg font-semibold">
+                  {Math.round(data.appearance_rate * 100)}%
+                </div>
+                <p className="text-[10px] text-muted-foreground leading-tight">
+                  {CLUSTER_DESCRIPTIONS[cluster] || ""}
+                </p>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-muted-foreground">Top 3</span>
+                  <span className="text-xs font-medium">{Math.round(data.primary_rate * 100)}%</span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {score.competitors.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+            <Globe className="w-4 h-4 text-muted-foreground" />
+            Top Competitors
+          </h3>
+          <Card>
+            <div className="divide-y divide-border">
+              {score.competitors.map((comp, i) => (
+                <div
+                  key={comp.name}
+                  className="flex items-center justify-between gap-4 px-4 py-2.5"
+                  data-testid={`competitor-row-${i}`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-xs text-muted-foreground font-mono w-5 text-right shrink-0">
+                      {i + 1}
+                    </span>
+                    <span className="text-sm truncate">{comp.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-foreground/40 rounded-full"
+                        style={{ width: `${Math.round(comp.share * 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-medium w-10 text-right">
+                      {Math.round(comp.share * 100)}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      )}
+
+      <div className="pb-16" />
+    </motion.div>
+  );
+}
+
 export default function PromptGenerator() {
   const [persona, setPersona] = useState<string>("marketing_agency");
   const [verticals, setVerticals] = useState<string[]>([]);
@@ -230,11 +513,15 @@ export default function PromptGenerator() {
   const [modifiers, setModifiers] = useState<string[]>([]);
   const [geo, setGeo] = useState("");
   const [budgetTier, setBudgetTier] = useState("mid");
+  const [brandName, setBrandName] = useState("");
+  const [brandDomain, setBrandDomain] = useState("");
+  const [scoringMode, setScoringMode] = useState<"quick" | "full">("quick");
   const [filterCluster, setFilterCluster] = useState<string>("all");
   const [filterShape, setFilterShape] = useState<string>("all");
   const [expandedPrompts, setExpandedPrompts] = useState<Set<string>>(
     new Set(),
   );
+  const [scoringResult, setScoringResult] = useState<ScoringResponse | null>(null);
   const { toast } = useToast();
 
   const { data: presets } = useQuery<Presets>({
@@ -243,13 +530,33 @@ export default function PromptGenerator() {
 
   const {
     mutate: generate,
-    isPending,
+    isPending: isGenerating,
     data: result,
-    reset,
+    reset: resetPrompts,
   } = useMutation<PromptSet, Error, unknown>({
     mutationFn: async (body) => {
       const res = await apiRequest("POST", "/api/promptsets", body);
       return res.json();
+    },
+  });
+
+  const {
+    mutate: runScoring,
+    isPending: isScoring,
+  } = useMutation<ScoringResponse, Error, { prompts: Prompt[]; brand_name: string; brand_domain?: string; mode: "quick" | "full" }>({
+    mutationFn: async (body) => {
+      const res = await apiRequest("POST", "/api/scoring/run", body);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setScoringResult(data);
+    },
+    onError: (err) => {
+      toast({
+        title: "Scoring failed",
+        description: err.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -278,6 +585,14 @@ export default function PromptGenerator() {
       });
       return;
     }
+    if (!brandName.trim()) {
+      toast({
+        title: "Brand name required",
+        description: "Enter your brand name to run analysis.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     generate({
       persona_type: persona,
@@ -290,8 +605,19 @@ export default function PromptGenerator() {
     });
   };
 
+  const handleRunScoring = () => {
+    if (!result) return;
+    runScoring({
+      prompts: result.prompts,
+      brand_name: brandName.trim(),
+      brand_domain: brandDomain.trim() || undefined,
+      mode: scoringMode,
+    });
+  };
+
   const handleStartOver = () => {
-    reset();
+    resetPrompts();
+    setScoringResult(null);
     setFilterCluster("all");
     setFilterShape("all");
     setExpandedPrompts(new Set());
@@ -338,6 +664,11 @@ export default function PromptGenerator() {
     URL.revokeObjectURL(url);
   };
 
+  const showForm = !result && !isGenerating && !isScoring && !scoringResult;
+  const showPrompts = result && !isGenerating && !isScoring && !scoringResult;
+  const showScoring = isScoring;
+  const showResults = scoringResult && !isScoring;
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <nav className="w-full border-b border-border sticky top-0 z-50 bg-background">
@@ -361,7 +692,7 @@ export default function PromptGenerator() {
       <main className="flex-1 flex flex-col items-center justify-start px-6">
         <div className="w-full max-w-2xl">
           <AnimatePresence mode="wait">
-            {!result && !isPending && (
+            {showForm && (
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -380,6 +711,34 @@ export default function PromptGenerator() {
                 </div>
 
                 <form onSubmit={handleGenerate} className="space-y-6 pb-16">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Brand Name
+                      </label>
+                      <Input
+                        value={brandName}
+                        onChange={(e) => setBrandName(e.target.value)}
+                        placeholder="e.g. Deep Singh"
+                        className="bg-secondary/50 border-border"
+                        data-testid="input-brand-name"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Website
+                        <span className="text-muted-foreground/60 normal-case ml-1">(recommended)</span>
+                      </label>
+                      <Input
+                        value={brandDomain}
+                        onChange={(e) => setBrandDomain(e.target.value)}
+                        placeholder="e.g. deep.co"
+                        className="bg-secondary/50 border-border"
+                        data-testid="input-brand-domain"
+                      />
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -485,22 +844,22 @@ export default function PromptGenerator() {
 
                   <Button
                     type="submit"
-                    disabled={isPending}
+                    disabled={isGenerating}
                     className="w-full"
                     data-testid="button-generate"
                   >
-                    {isPending ? (
+                    {isGenerating ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     ) : (
                       <Sparkles className="w-4 h-4 mr-2" />
                     )}
-                    Generate 40 Prompts
+                    Generate Prompts
                   </Button>
                 </form>
               </motion.div>
             )}
 
-            {isPending && (
+            {isGenerating && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -515,12 +874,12 @@ export default function PromptGenerator() {
               </motion.div>
             )}
 
-            {result && !isPending && (
+            {showPrompts && result && (
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                key="results"
+                key="prompts"
               >
                 <div className="pt-8 pb-6 space-y-4">
                   <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -565,6 +924,45 @@ export default function PromptGenerator() {
                       </Button>
                     </div>
                   </div>
+
+                  <Card className="p-4 space-y-3">
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">Run AI Analysis</p>
+                        <p className="text-xs text-muted-foreground">
+                          Test these prompts against ChatGPT, Gemini, and Claude
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Tabs value={scoringMode} onValueChange={(v) => setScoringMode(v as "quick" | "full")}>
+                          <TabsList className="h-7">
+                            <TabsTrigger
+                              value="quick"
+                              className="text-xs px-2.5 h-6"
+                              data-testid="toggle-mode-quick"
+                            >
+                              Quick (10)
+                            </TabsTrigger>
+                            <TabsTrigger
+                              value="full"
+                              className="text-xs px-2.5 h-6"
+                              data-testid="toggle-mode-full"
+                            >
+                              Full (40)
+                            </TabsTrigger>
+                          </TabsList>
+                        </Tabs>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={handleRunScoring}
+                      className="w-full"
+                      data-testid="button-run-scoring"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Run Analysis ({scoringMode === "quick" ? "10" : "40"} prompts x 3 engines)
+                    </Button>
+                  </Card>
 
                   {result.unverified_items.length > 0 && (
                     <div className="text-xs text-muted-foreground border border-border rounded-md p-3">
@@ -750,6 +1148,18 @@ export default function PromptGenerator() {
                   )}
                 </div>
               </motion.div>
+            )}
+
+            {showScoring && <WaitingScreen />}
+
+            {showResults && scoringResult && (
+              <ResultsDashboard
+                score={scoringResult.score}
+                brandName={brandName}
+                mode={scoringResult.mode}
+                promptsUsed={scoringResult.prompts_used}
+                onNewAnalysis={handleStartOver}
+              />
             )}
           </AnimatePresence>
         </div>

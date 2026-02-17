@@ -50,11 +50,19 @@ Preferred communication style: Simple, everyday language.
   - Exact distributions: 10 per cluster, 14 open / 10 top5 / 10 top3 / 6 best shapes
   - Same seed + input = same 40 prompts (deterministic)
 - **Validation**: Zod schemas for all request/response validation, shared between client and server
+- **GEO Scoring Service** (`server/scoring/`): Separate probabilistic scoring pipeline
+  - `panel.ts` — Deterministic mini-panel selector (10-from-40: 3 direct, 3 task, 2 persona, 2 budget)
+  - `runner.ts` — Batched parallel LLM executor (ChatGPT, Gemini, Claude), rate-limited
+  - `extractor.ts` — Regex-based provider name extraction from raw AI responses, normalization
+  - `matcher.ts` — Tiered brand matching (exact name, domain root), false-positive protection for short names
+  - `scorer.ts` — Pure frequency math: appearance_rate, primary_rate, avg_rank, competitor shares, cluster/engine breakdowns
+  - Two modes: Quick (10 prompts) and Full (40 prompts), both run against all 3 engines
+  - Results stored in `scoring_jobs` table with JSONB columns for flexible iteration
 
 ### Database
 - **Database**: PostgreSQL (required, referenced via `DATABASE_URL` environment variable)
 - **ORM**: Drizzle ORM with PostgreSQL dialect
-- **Schema** (`shared/schema.ts`): Main table is `analysis_results` storing query, brand, scores, and detailed engine breakdowns as JSONB
+- **Schema** (`shared/schema.ts`): Tables include `analysis_results` (single-query analyzer) and `scoring_jobs` (GEO scoring runs with JSONB result/raw data)
 - **Additional tables** (`shared/models/chat.ts`): `conversations` and `messages` tables exist for Replit AI integration features (chat/voice)
 - **Migrations**: Managed via `drizzle-kit push` (schema push approach, not migration files)
 - **Storage layer** (`server/storage.ts`): `DatabaseStorage` class implementing `IStorage` interface for data access
