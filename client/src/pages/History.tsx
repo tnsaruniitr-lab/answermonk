@@ -13,7 +13,7 @@ export default function HistoryPage() {
       <nav className="w-full border-b border-border sticky top-0 z-50 bg-background">
         <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
           <Link href="/">
-            <span className="text-base font-semibold tracking-tight" data-testid="text-logo">sherlok.ai</span>
+            <span className="text-base font-semibold tracking-tight" data-testid="text-logo">BrandSense</span>
           </Link>
           <Link href="/">
             <Button variant="ghost" className="gap-1.5 text-sm" data-testid="button-back">

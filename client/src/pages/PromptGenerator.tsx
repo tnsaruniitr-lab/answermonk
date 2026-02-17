@@ -859,7 +859,7 @@ export default function PromptGenerator() {
             className="text-base font-semibold tracking-tight"
             data-testid="link-home"
           >
-            sherlok.ai
+            BrandSense
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/" className="text-sm text-muted-foreground flex items-center gap-1.5 transition-colors hover:text-foreground" data-testid="link-analyzer">
@@ -1321,7 +1321,7 @@ export default function PromptGenerator() {
       </main>
 
       <footer className="py-6 text-center text-xs text-muted-foreground border-t border-border mt-auto">
-        sherlok.ai
+        BrandSense
       </footer>
     </div>
   );

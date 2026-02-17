@@ -42,7 +42,7 @@ export default function Analyzer() {
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <nav className="w-full border-b border-border sticky top-0 z-50 bg-background">
         <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
-          <span className="text-base font-semibold tracking-tight" data-testid="text-logo">sherlok.ai</span>
+          <span className="text-base font-semibold tracking-tight" data-testid="text-logo">BrandSense</span>
           <div className="flex items-center gap-4">
             <Link href="/prompts" className="text-sm text-muted-foreground flex items-center gap-1.5 transition-colors hover:text-foreground" data-testid="link-prompts">
               <Sparkles className="w-3.5 h-3.5" />
@@ -158,7 +158,7 @@ export default function Analyzer() {
       </main>
 
       <footer className="py-6 text-center text-xs text-muted-foreground border-t border-border mt-auto">
-        sherlok.ai
+        BrandSense
       </footer>
     </div>
   );
