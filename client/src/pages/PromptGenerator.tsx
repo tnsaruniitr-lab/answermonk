@@ -225,7 +225,6 @@ const SHAPE_LABELS: Record<string, string> = {
 
 export default function PromptGenerator() {
   const [persona, setPersona] = useState<string>("marketing_agency");
-  const [category, setCategory] = useState("");
   const [verticals, setVerticals] = useState<string[]>([]);
   const [services, setServices] = useState<string[]>([]);
   const [modifiers, setModifiers] = useState<string[]>([]);
@@ -256,16 +255,13 @@ export default function PromptGenerator() {
 
   const currentPresets = presets?.[persona];
 
+  const PERSONA_CATEGORY: Record<string, string> = {
+    marketing_agency: "marketing agency",
+    automation_consultant: "automation consultant",
+  };
+
   const handleGenerate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!category.trim()) {
-      toast({
-        title: "Missing field",
-        description: "Please enter a business category.",
-        variant: "destructive",
-      });
-      return;
-    }
     if (verticals.length < 2) {
       toast({
         title: "Need more verticals",
@@ -285,7 +281,7 @@ export default function PromptGenerator() {
 
     generate({
       persona_type: persona,
-      category: category.trim(),
+      category: PERSONA_CATEGORY[persona] || persona.replace(/_/g, " "),
       verticals,
       services,
       modifiers,
@@ -436,23 +432,6 @@ export default function PromptGenerator() {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Business Category
-                    </label>
-                    <Input
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      placeholder={
-                        persona === "marketing_agency"
-                          ? "e.g. digital marketing agency"
-                          : "e.g. automation consultant"
-                      }
-                      className="bg-secondary/50 border-border"
-                      data-testid="input-category"
-                    />
                   </div>
 
                   <div className="space-y-1.5">
