@@ -86,15 +86,15 @@ function TagInput({
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const filtered = useMemo(() => {
-    if (!suggestions || !input.trim()) return [];
+    if (!suggestions) return [];
+    const available = suggestions.filter(
+      (s) => !values.some((v) => v.toLowerCase() === s.toLowerCase()),
+    );
+    if (!input.trim()) return available.slice(0, 12);
     const lower = input.toLowerCase();
-    return suggestions
-      .filter(
-        (s) =>
-          s.toLowerCase().includes(lower) &&
-          !values.some((v) => v.toLowerCase() === s.toLowerCase()),
-      )
-      .slice(0, 8);
+    return available
+      .filter((s) => s.toLowerCase().includes(lower))
+      .slice(0, 12);
   }, [suggestions, input, values]);
 
   const addValue = (val: string) => {
