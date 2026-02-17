@@ -1,0 +1,184 @@
+GEO Scoring Service — Basic Logic
+Inputs
+
+From previous modules you already have:
+
+1) PromptSet
+
+40 prompts
+
+cluster for each prompt
+
+2) Runs
+For each prompt you execute N times (ex: 8)
+
+Each run returns raw text.
+
+Step 1 — Extract providers from each run
+
+For each run produce:
+
+RunExtraction {
+  prompt_id
+  cluster
+  providers: [
+    { name_norm, rank }
+  ]
+}
+
+
+Rules:
+
+only keep top 10 providers max
+
+normalized names (lowercase, remove suffixes etc.)
+
+rank = order in list (1,2,3...)
+
+If < 2 providers → mark run as INVALID
+
+We never score invalid runs.
+
+Step 2 — Detect brand match
+
+You must provide:
+
+brand_key = normalize("Your Brand Name")
+
+
+Then for each valid run:
+
+brand_found = any(provider.name_norm contains brand_key)
+brand_rank = provider.rank if found else null
+
+
+Store:
+
+RunResult {
+  valid: boolean
+  brand_found: boolean
+  brand_rank: number | null
+}
+
+Step 3 — Aggregate across all runs
+
+Let:
+
+V = total valid runs
+A = runs where brand_found
+T = runs where brand_rank <= 3
+
+Step 4 — Core metrics (the actual scoring)
+1) Appearance Rate
+
+Probability AI recommends you at all
+
+appearance_rate = A / V
+
+
+Interpretation:
+
+Out of all recommendation situations, how often you exist.
+
+2) Primary Recommendation Rate
+
+Probability AI considers you a main choice
+
+primary_rate = T / V
+
+
+Interpretation:
+
+How often you are a top option.
+
+3) Average Rank (conditional)
+
+Only when appearing:
+
+avg_rank = average(brand_rank | brand_found)
+
+
+Interpretation:
+
+When AI includes you, how strong you are.
+
+Step 5 — Competitor distribution
+
+Build frequency table:
+
+competitor_frequency[name_norm] += 1 (per valid run appearance)
+
+
+Then compute:
+
+competitor_share = frequency / V
+
+
+Top 10 competitors = highest shares excluding brand.
+
+Step 6 — Cluster breakdown (important insight)
+
+For each cluster separately compute:
+
+appearance_rate_by_cluster
+primary_rate_by_cluster
+
+
+This tells:
+
+direct queries: reputation
+
+persona queries: market fit
+
+task queries: problem association
+
+budget queries: affordability positioning
+
+What we explicitly DO NOT compute
+
+(no premature cleverness)
+
+no weighted models
+
+no decay formulas
+
+no confidence intervals (yet)
+
+no semantic similarity scoring
+
+no “strength” classification
+
+no sentiment analysis
+
+Just empirical frequencies.
+
+Output shape
+
+The service returns:
+
+GEOScore {
+  valid_runs
+  appearance_rate
+  primary_rate
+  avg_rank
+
+  competitors: [{name, share}]
+
+  cluster_breakdown: {
+    direct: {appearance_rate, primary_rate}
+    persona: ...
+    task: ...
+    budget: ...
+  }
+}
+
+Why this works
+
+You are approximating:
+
+P(brand appears | user asks AI for providers)
+
+This is stable, explainable, and statistically meaningful.
+
+Your previous analyzer was deterministic scoring.
+This becomes probabilistic measurement.
