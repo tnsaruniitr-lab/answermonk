@@ -1,0 +1,240 @@
+Yep. Here’s a Replit-ready setup command flow for a Node + TypeScript + Express microbit that supports:
+
+/eval (single-engine evaluator stub)
+
+/aggregate (multi-engine aggregator logic)
+
+Configurable weights + rank decay
+
+No engine adapters yet (we’ll wire OpenAI/Gemini/Claude after this boots cleanly)
+
+1) Create the project (run in Replit Shell)
+# Create folder + init
+mkdir geo-mvp && cd geo-mvp
+npm init -y
+
+# TypeScript + tooling
+npm i -D typescript ts-node-dev @types/node @types/express
+
+# Server deps
+npm i express cors zod dotenv
+
+# Init TS config
+npx tsc --init --rootDir src --outDir dist --esModuleInterop true --resolveJsonModule true --module nodenext --target es2022
+
+# Create files
+mkdir -p src
+cat > src/index.ts <<'EOF'
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { z } from "zod";
+
+dotenv.config();
+
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: "1mb" }));
+
+/** ------------------------
+ * Scoring helpers (MVP)
+ * ------------------------ */
+type Engine = "chatgpt" | "gemini" | "claude" | "deepseek";
+
+const defaultWeights: Record<Engine, number> = {
+  chatgpt: 35,
+  gemini: 35,
+  claude: 20,
+  deepseek: 10,
+};
+
+function normalizeWeights(w: Record<Engine, number>) {
+  const sum = Object.values(w).reduce((a, b) => a + b, 0) || 1;
+  const out: Record<Engine, number> = { ...w };
+  (Object.keys(out) as Engine[]).forEach((k) => (out[k] = out[k] / sum));
+  return out;
+}
+
+/**
+ * Presence state:
+ * 2 = strong presence, 1 = weak presence, 0 = absent
+ */
+function presenceScore(presenceByEngine: Record<Engine, 0 | 1 | 2>, weights: Record<Engine, number>) {
+  const wn = normalizeWeights(weights);
+  let s = 0;
+  (Object.keys(wn) as Engine[]).forEach((e) => {
+    s += wn[e] * (presenceByEngine[e] / 2);
+  });
+  return Math.round(s * 100);
+}
+
+/**
+ * Rank score: if found at position pos (1..10), use decay 1 / pos^p
+ */
+function rankScore(posByEngine: Partial<Record<Engine, number | null>>, weights: Record<Engine, number>, p = 1.2) {
+  const wn = normalizeWeights(weights);
+  let s = 0;
+  (Object.keys(wn) as Engine[]).forEach((e) => {
+    const pos = posByEngine[e];
+    if (pos && pos >= 1) {
+      s += wn[e] * (1 / Math.pow(pos, p));
+    }
+  });
+  return Math.round(s * 100);
+}
+
+/** ------------------------
+ * Schemas
+ * ------------------------ */
+const EvalReq = z.object({
+  query: z.string().min(3),
+  brand: z.string().min(2),
+  engine: z.enum(["chatgpt", "gemini", "claude", "deepseek"]),
+  topN: z.number().int().min(1).max(20).default(10),
+});
+
+const AggregateReq = z.object({
+  query: z.string().min(3),
+  brand: z.string().min(2),
+  weights: z
+    .object({
+      chatgpt: z.number().min(0).max(100).default(defaultWeights.chatgpt),
+      gemini: z.number().min(0).max(100).default(defaultWeights.gemini),
+      claude: z.number().min(0).max(100).default(defaultWeights.claude),
+      deepseek: z.number().min(0).max(100).default(defaultWeights.deepseek),
+    })
+    .default(defaultWeights),
+  rankDecayP: z.number().min(0.2).max(5).default(1.2),
+  // For now, we accept precomputed engine outputs (later we’ll call APIs)
+  engineOutputs: z.array(
+    z.object({
+      engine: z.enum(["chatgpt", "gemini", "claude", "deepseek"]),
+      presenceState: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+      position: z.number().int().min(1).max(10).nullable(),
+      topBrands: z.array(z.string()).max(20).default([]),
+      rawAnswerText: z.string().optional(),
+    })
+  ),
+});
+
+/** ------------------------
+ * Routes
+ * ------------------------ */
+
+/**
+ * Single-engine evaluator (stub)
+ * Later: call the engine API, extract top brands, determine presence + position
+ */
+app.post("/eval", (req, res) => {
+  const parsed = EvalReq.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  const { query, brand, engine, topN } = parsed.data;
+
+  // STUB: pretend not found. This is just to prove the pipeline.
+  return res.json({
+    engine,
+    query,
+    brand,
+    found_state: 0,         // 0/1/2
+    pos: null,              // 1..10 or null
+    top10_brands: [],       // later extracted from model answer
+    raw_answer_text: `[stub] Would query ${engine} for: "${query}" and detect "${brand}" within top ${topN}.`,
+    citations: [],
+    ts: new Date().toISOString(),
+  });
+});
+
+/**
+ * Aggregator: consumes engineOutputs (real or stub) and returns two scores + leaderboard
+ */
+app.post("/aggregate", (req, res) => {
+  const parsed = AggregateReq.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  const { query, brand, weights, rankDecayP, engineOutputs } = parsed.data;
+
+  // Build per-engine presence/pos
+  const presenceByEngine: Record<Engine, 0 | 1 | 2> = { chatgpt: 0, gemini: 0, claude: 0, deepseek: 0 };
+  const posByEngine: Partial<Record<Engine, number | null>> = {};
+
+  // Merge brands across engines for leaderboard seed
+  const brandCounts = new Map<string, number>();
+
+  for (const out of engineOutputs) {
+    presenceByEngine[out.engine] = out.presenceState;
+    posByEngine[out.engine] = out.position ?? null;
+
+    for (const b of out.topBrands) {
+      const k = b.trim();
+      if (!k) continue;
+      brandCounts.set(k, (brandCounts.get(k) ?? 0) + 1);
+    }
+  }
+
+  const presence = presenceScore(presenceByEngine, weights);
+  const ranking = rankScore(posByEngine, weights, rankDecayP);
+
+  // Naive leaderboard: by frequency across engines (placeholder)
+  const leaderboard = [...brandCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([name, freq]) => ({ name, freq }));
+
+  res.json({
+    query,
+    brand,
+    weights,
+    rankDecayP,
+    presenceScore: presence,
+    rankingScore: ranking,
+    perEngine: { presenceByEngine, posByEngine },
+    leaderboard,
+    ts: new Date().toISOString(),
+  });
+});
+
+app.get("/", (_req, res) => {
+  res.type("text").send("geo-mvp up. POST /eval or /aggregate");
+});
+
+const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+app.listen(port, () => console.log(`Server on http://localhost:${port}`));
+EOF
+
+# Add scripts
+node -e "const p=require('./package.json'); p.type='module'; p.scripts={dev:'ts-node-dev --respawn --transpile-only src/index.ts', build:'tsc', start:'node dist/index.js'}; require('fs').writeFileSync('package.json', JSON.stringify(p,null,2));"
+
+# Run
+npm run dev
+
+2) Test it immediately (from Replit Shell)
+
+Aggregator test (with fake engine outputs):
+
+curl -s http://localhost:3000/aggregate \
+  -H 'content-type: application/json' \
+  -d '{
+    "query":"best marketing agency in dubai",
+    "brand":"Acme Marketing",
+    "weights":{"chatgpt":35,"gemini":35,"claude":20,"deepseek":10},
+    "rankDecayP":1.2,
+    "engineOutputs":[
+      {"engine":"chatgpt","presenceState":2,"position":3,"topBrands":["A","B","Acme Marketing"],"rawAnswerText":"..."},
+      {"engine":"gemini","presenceState":1,"position":7,"topBrands":["C","Acme Marketing","D"],"rawAnswerText":"..."},
+      {"engine":"claude","presenceState":0,"position":null,"topBrands":["E","F"],"rawAnswerText":"..."},
+      {"engine":"deepseek","presenceState":0,"position":null,"topBrands":[],"rawAnswerText":"..."}
+    ]
+  }' | jq
+
+
+Single-engine stub test:
+
+curl -s http://localhost:3000/eval \
+  -H 'content-type: application/json' \
+  -d '{"query":"best marketing agency for lawyers in dubai","brand":"Acme Marketing","engine":"chatgpt","topN":10}' | jq
+
+
+That’s the microbit bootstrapped: scoring logic + API skeleton + test harness.
+
+When you’re ready, next microbit is: replace /eval stub with real adapters (OpenAI Responses + Gemini + Claude), parse top 10 brands, then call /aggregate internally.
