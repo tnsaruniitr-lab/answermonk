@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import type { Engine } from "@shared/schema";
 
 const openai = new OpenAI({
@@ -10,6 +11,14 @@ const openai = new OpenAI({
 const anthropic = new Anthropic({
   apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY,
   baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
+});
+
+const gemini = new GoogleGenAI({
+  apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
+  httpOptions: {
+    apiVersion: "",
+    baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
+  },
 });
 
 const SYSTEM_PROMPT = `You are a helpful product recommendation expert. When asked about products, services, or brands in a category, provide a numbered list of the top recommendations. Format your response EXACTLY as:
@@ -136,6 +145,18 @@ async function queryClaude(query: string, brand: string): Promise<EngineResult> 
   return { rawText, ...parsed };
 }
 
+async function queryGemini(query: string, brand: string): Promise<EngineResult> {
+  const response = await gemini.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(query)}`,
+    config: { maxOutputTokens: 8192 },
+  });
+
+  const rawText = response.text ?? "";
+  const parsed = parseBrandsFromResponse(rawText, brand);
+  return { rawText, ...parsed };
+}
+
 function stubEngine(query: string, brand: string, engine: Engine): EngineResult {
   const normalizedBrand = brand.toLowerCase().trim();
   const isFound = Math.random() > 0.35;
@@ -172,6 +193,7 @@ export async function queryEngine(
       case "claude":
         return await queryClaude(query, brand);
       case "gemini":
+        return await queryGemini(query, brand);
       case "deepseek":
         return stubEngine(query, brand, engine);
       default:
