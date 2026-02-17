@@ -1,0 +1,160 @@
+You tackle this in two layers:
+
+Extraction cleaning (turn messy lines into a plausible “name candidate”)
+
+Entity resolution / matching (decide whether a candidate equals your brand or a competitor)
+
+Don’t try to solve “Deep vs Deep Singh” inside the extractor. The extractor should output candidates; a separate matcher resolves identity.
+
+Layer 1: Extractor cleaning (what it outputs)
+A) Keep multi-word names intact
+
+When you parse a list item, you take the leading name chunk and stop at separators:
+
+Stop at: —, –, -, :, (, |
+
+Examples:
+
+"Deep Singh — Clay automation expert" → "Deep Singh"
+
+"ABC Inc. (US)" → "ABC Inc."
+
+"abc.com — website" → "abc.com"
+
+This prevents losing last names or truncating to “Deep”.
+
+B) Minimal normalization (for stable keys)
+
+Create two strings for each candidate:
+
+name_raw
+
+Exactly what was extracted (“Deep Singh”, “ABC Inc.”, “abc.com”)
+
+name_norm (for dedupe/frequency only)
+
+lowercase
+
+remove punctuation
+
+collapse spaces
+
+remove legal suffixes: inc, llc, ltd, gmbh, co, company
+
+strip trailing “agency/consulting” only if it’s clearly a suffix (optional)
+
+Examples:
+
+"ABC Inc." → "abc"
+
+"Deep Singh" → "deep singh"
+
+"abc.com" → "abc com" (or map domains separately—see below)
+
+Key point: extractor does not decide identity. It just cleans.
+
+Layer 2: Entity resolution / matching (brand + competitors)
+
+This is where you handle:
+
+Deep vs Deep Singh
+
+abc.com vs abc
+
+suffix variants
+
+partial matches safely
+
+A) Brand matching: require strong evidence
+
+For your brand, you want to minimize false positives.
+
+Use a tiered match with confidence:
+
+Tier 1 (exact-ish) — high confidence
+
+name_norm == brand_norm
+
+OR name_raw contains official brand name as full token sequence
+
+Tier 2 (domain match) — high confidence
+
+If you have a brand domain:
+
+extract root token from domain: abc.com → abc
+
+if candidate contains the root token as a full token and other tokens don’t contradict → match
+
+Tier 3 (partial match) — low confidence, usually reject in MVP
+
+single word match only (“deep”) should be rejected unless brand itself is single-word and distinctive.
+
+Rule: if brand has 2+ tokens (“deep singh”), do NOT accept a 1-token candidate (“deep”) as a match.
+
+That solves your Deep vs Deep Singh example.
+
+B) Competitor resolution: lighter rules ok
+
+Competitors can be handled by frequency tables; exact identity is less critical initially. But still:
+
+canonicalize with suffix stripping
+
+use token sequence containment, not substring
+
+keep a manual alias list for known competitors later
+
+Domain handling (abc.com vs abc)
+
+Domains are special: treat them as a strong identifier.
+
+When extractor sees something that looks like a domain:
+
+store domain = abc.com
+
+also store domain_root = abc
+
+Then matcher can match:
+
+candidate domain root to brand domain root
+
+This is much more reliable than fuzzy name matching.
+
+Two- or three-word names
+
+Heuristic extractor already preserves them because it grabs the chunk before separators.
+
+Examples:
+
+“Ignite Visibility” stays as two words
+
+“WebFX” stays one
+
+“Deep Singh” stays two
+
+Normalization collapses them but doesn’t remove meaningful tokens.
+
+What about ambiguous short names (like “Deep”)?
+
+You’ll see those occasionally when the model writes “Deep” casually. For MVP:
+
+Reject ambiguous single-token matches unless:
+
+brand is single-token, AND
+
+token length ≥ 4, AND
+
+not in a stoplist of common words, AND
+
+optional: appears with a hint (“Deep (…domain…)”)
+
+Better to miss a few than to pollute your score with false positives.
+
+Summary: how it’s tackled
+
+Extractor: preserve full candidate names, strip descriptors, output raw + norm (+ domain if present)
+
+Matcher: token-aware matching with strict rules to avoid partial false positives
+
+This separation keeps the extractor simple and the identity logic controllable.
+
+If you tell me how you’ll collect the brand identity (brand name only? or name + website?), I’ll give you the exact matching tiers as code-ready rules (including tokenization and domain-root extraction).
