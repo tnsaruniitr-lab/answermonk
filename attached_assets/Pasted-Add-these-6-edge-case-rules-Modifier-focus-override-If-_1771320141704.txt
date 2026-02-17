@@ -1,0 +1,58 @@
+Add these 6 edge-case rules
+
+Modifier focus override
+
+If modifier_focus=true and there’s exactly 1 verified modifier, then in the last-10 “boost window” don’t just set modifierRate=1.0—also bias selection so that single modifier is always used (otherwise you’ll still sometimes generate modifier templates but fail to include the modifier due to resampling).
+
+Missing geo handling
+
+If geo is provided but only country (no city), allow {geo} templates to use country. Don’t force city-only.
+
+Service verb cleanup
+
+For automation services, normalize a few phrases so templates read naturally:
+
+if service doesn’t start with a verb, prefix “set up / build / automate” depending on persona (simple heuristic).
+
+Otherwise you’ll generate awkward prompts like “who can help me CRM automation”.
+
+Template selection guardrail
+
+When you bump modifierRate or geoRate near the end, also bias template selection toward templates that can accept those fields (otherwise you keep sampling templates that never use them and your guarantee may still fail).
+
+Strict cluster pool
+
+Maintain per-cluster template pools:
+
+genericTemplates[cluster]
+
+modifierTemplates[cluster]
+
+geoTemplates[cluster] (optional; can overlap)
+Then in boost mode pick from the right pool first. This keeps logic clean.
+
+Deterministic ordering
+
+After generating prompts, don’t “sort” them. Keep the generation order deterministic from the seeded RNG. Otherwise you’ll introduce subtle non-determinism across environments.
+
+Output metadata (optional but worth it)
+
+Even if you don’t surface metrics, include these tiny flags per prompt in the response for debugging:
+
+modifier_included: boolean
+
+geo_included: boolean
+
+base_text: string (optional)
+
+Doesn’t complicate the product, but makes debugging 10× easier.
+
+Your build order is correct
+
+types/validation/presets/aliases/normalize
+
+templates + generator loop (with the 30-attempt cap + fallback)
+
+route + checklist tests
+
+If you want to move one step at a time, the very first milestone should be: generate 40 prompts with correct cluster + shape counts, deterministic with seed, even before modifiers/geo guarantees. Then add guarantees.
