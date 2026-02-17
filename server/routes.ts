@@ -104,7 +104,7 @@ export async function registerRoutes(
       const posByEngine: Record<string, number | null> = {};
       const rawResponses: Record<string, string> = {};
 
-      const brandCounts = new Map<string, number>();
+      const brandData = new Map<string, { freq: number; positions: Record<string, number | null> }>();
 
       for (const out of engineOutputs) {
         presenceByEngine[out.engine] = out.presenceState as 0 | 1 | 2;
@@ -113,21 +113,32 @@ export async function registerRoutes(
           rawResponses[out.engine] = out.rawAnswerText;
         }
 
-        for (const b of out.topBrands) {
-          const k = b.trim();
+        for (let i = 0; i < out.topBrands.length; i++) {
+          const k = out.topBrands[i].trim();
           if (!k) continue;
-          brandCounts.set(k, (brandCounts.get(k) ?? 0) + 1);
+          const existing = brandData.get(k) || { freq: 0, positions: {} };
+          existing.freq += 1;
+          existing.positions[out.engine] = i + 1;
+          brandData.set(k, existing);
         }
       }
 
       const presence = presenceScore(presenceByEngine, weights);
       const ranking = rankScore(posByEngine, weights, rankDecayP);
 
-      // Naive leaderboard: by frequency across engines
-      const leaderboard = [...brandCounts.entries()]
-        .sort((a, b) => b[1] - a[1])
+      const allEngines = ["chatgpt", "gemini", "claude", "deepseek"];
+      const leaderboard = [...brandData.entries()]
+        .sort((a, b) => b[1].freq - a[1].freq)
         .slice(0, 10)
-        .map(([name, freq]) => ({ name, freq }));
+        .map(([name, data]) => {
+          const positions = Object.values(data.positions).filter((p): p is number => p !== null);
+          const avgRank = positions.length > 0 ? Math.round((positions.reduce((a, b) => a + b, 0) / positions.length) * 10) / 10 : null;
+          const engines: Record<string, { position: number | null }> = {};
+          for (const e of allEngines) {
+            engines[e] = { position: data.positions[e] ?? null };
+          }
+          return { name, freq: data.freq, avgRank, engines };
+        });
 
       const response = {
         query,

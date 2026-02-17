@@ -114,33 +114,49 @@ export function AnalysisResults({ data }: Props) {
 
       <div className="space-y-3">
         <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Competitive Landscape</h3>
-        <div className="border border-border rounded-md divide-y divide-border" data-testid="section-leaderboard">
-          {data.leaderboard.map((item, idx) => {
-            const isTarget = item.name.toLowerCase().includes(data.brand.toLowerCase()) ||
-                             data.brand.toLowerCase().includes(item.name.toLowerCase());
-            const maxFreq = data.leaderboard[0]?.freq || 1;
-            const barWidth = (item.freq / maxFreq) * 100;
+        <div className="border border-border rounded-md overflow-hidden" data-testid="section-leaderboard">
+          <div className="grid grid-cols-[2rem_1fr_repeat(4,2.5rem)_3rem] gap-0 px-3 py-2 border-b border-border bg-secondary/30">
+            <span className="text-[10px] text-muted-foreground font-medium">#</span>
+            <span className="text-[10px] text-muted-foreground font-medium">Brand</span>
+            {["GPT", "Gem", "Cld", "DS"].map((e) => (
+              <span key={e} className="text-[10px] text-muted-foreground font-medium text-center">{e}</span>
+            ))}
+            <span className="text-[10px] text-muted-foreground font-medium text-right">Avg</span>
+          </div>
+          <div className="divide-y divide-border">
+            {data.leaderboard.map((item, idx) => {
+              const isTarget = item.name.toLowerCase().includes(data.brand.toLowerCase()) ||
+                               data.brand.toLowerCase().includes(item.name.toLowerCase());
+              const engineOrder = ["chatgpt", "gemini", "claude", "deepseek"];
 
-            return (
-              <div
-                key={idx}
-                className="flex items-center gap-3 px-4 py-3 relative"
-                data-testid={`row-brand-${idx}`}
-              >
+              return (
                 <div
-                  className="absolute inset-0 bg-foreground/[0.03] dark:bg-foreground/[0.04] rounded-none"
-                  style={{ width: `${barWidth}%` }}
-                />
-                <span className="text-xs text-muted-foreground w-5 tabular-nums relative z-10">{idx + 1}</span>
-                <span className={`text-sm relative z-10 flex-1 ${isTarget ? 'font-semibold' : ''}`}>
-                  {item.name}
-                </span>
-                <span className="text-xs text-muted-foreground tabular-nums relative z-10">
-                  {item.freq} {item.freq === 1 ? 'mention' : 'mentions'}
-                </span>
-              </div>
-            );
-          })}
+                  key={idx}
+                  className={`grid grid-cols-[2rem_1fr_repeat(4,2.5rem)_3rem] gap-0 px-3 py-2.5 items-center ${isTarget ? 'bg-foreground/[0.04]' : ''}`}
+                  data-testid={`row-brand-${idx}`}
+                >
+                  <span className="text-xs text-muted-foreground tabular-nums">{idx + 1}</span>
+                  <span className={`text-sm truncate pr-2 ${isTarget ? 'font-semibold' : ''}`}>
+                    {item.name}
+                  </span>
+                  {engineOrder.map((eng) => {
+                    const pos = item.engines?.[eng]?.position ?? null;
+                    return (
+                      <span
+                        key={eng}
+                        className={`text-xs tabular-nums text-center ${pos ? 'text-foreground' : 'text-muted-foreground/40'}`}
+                      >
+                        {pos ? `#${pos}` : "—"}
+                      </span>
+                    );
+                  })}
+                  <span className="text-xs tabular-nums text-right font-medium">
+                    {item.avgRank != null ? `#${item.avgRank}` : "—"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </motion.div>
