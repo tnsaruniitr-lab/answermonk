@@ -1,0 +1,189 @@
+First: yes — add the domain field
+
+Absolutely include:
+
+Brand Name
+Website / Domain (optional but strongly recommended)
+
+Why it matters:
+
+Without domain → false positives explode for short names
+
+With domain → matching becomes almost deterministic
+
+It also stabilizes competitor identity later
+
+So this is not a UI luxury — it’s part of measurement accuracy.
+
+Now the architecture review
+
+Your structure is logically correct but over-persisted too early.
+
+Right now you are storing 4 tables before you know the output is useful.
+
+For MVP your goal is:
+
+Can I run this repeatedly and does the score feel stable and believable?
+
+You do NOT yet need a historical research dataset.
+
+What to keep exactly as planned
+
+These are correct separations:
+
+extractor.ts (cleaning)
+
+matcher.ts (identity resolution)
+
+scorer.ts (math)
+
+runner.ts (LLM orchestration)
+
+That separation is perfect — don’t merge them.
+
+What to simplify (important)
+1) Collapse DB storage to 1 table for now
+
+Instead of:
+
+scoring_jobs
+scoring_runs
+scoring_extractions
+scoring_matches
+
+Start with only:
+
+scoring_jobs
+
+id
+brand_name
+brand_domain
+mode
+status
+result_json
+raw_json (optional)
+created_at
+
+
+Store the entire run output JSON inside raw_json.
+
+Why:
+
+Faster iteration
+
+Easier schema changes
+
+You will change extraction format multiple times
+
+Premature relational modeling slows experimentation
+
+You can normalize later once the metric stabilizes.
+
+2) Don’t build async job progress yet
+
+You don’t need background job orchestration immediately.
+
+For MVP do:
+
+request → run → return result
+
+Yes it blocks for ~20–40s — that’s fine for internal testing.
+
+Progress UI can come after you trust the numbers.
+
+3) Don’t multi-engine yet
+
+This is the biggest simplification.
+
+For GEO scoring:
+
+prompt diversity matters more than model diversity
+
+Using 3 models multiplies:
+
+cost
+
+latency
+
+noise
+
+Start with one model only (ChatGPT or Gemini).
+
+Add multi-model later as a confidence enhancer, not baseline.
+
+4) Mini-panel selector — keep
+
+Good idea. Keep the deterministic 10 selection.
+
+This is actually critical for iteration speed.
+
+Revised MVP pipeline (lean version)
+Step A — User inputs
+
+brand name
+brand domain
+mode: quick(10) or full(40)
+
+Step B — Runner
+
+Run prompts on ONE model
+5–8 runs per prompt (configurable)
+
+Step C — Extractor
+
+Regex extraction only
+
+Step D — Matcher
+
+Strict token + domain match
+
+Step E — Scorer
+
+appearance rate
+top3 rate
+avg rank
+competitor share
+cluster breakdown
+
+Step F — Response
+
+Return JSON result
+(Optionally store one row in scoring_jobs)
+
+That’s it.
+
+No queues
+No progress tracking
+No multiple tables
+No multi-model weighting
+
+Why this is the right MVP
+
+Right now you’re validating:
+
+Does repeated querying approximate “AI discoverability”?
+
+Not building an analytics warehouse.
+
+The moment you see stable patterns across reruns, then you scale infra.
+
+When to add your heavier plan
+
+Add these later, in this order:
+
+multi-model runs (confidence validation)
+
+job progress tracking
+
+normalized run tables
+
+historical trend graphs
+
+If you do them now you’ll spend weeks debugging infra instead of validating the core idea.
+
+Verdict
+
+Your design thinking is correct.
+Your implementation scope is too big for the current stage.
+
+You don’t need a research database yet — you need a reliable measurement loop.
