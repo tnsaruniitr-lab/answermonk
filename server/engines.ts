@@ -2,7 +2,8 @@ import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenAI } from "@google/genai";
 import type { Engine } from "@shared/schema";
-import { extractBrandsWithLLM } from "./scoring/llm-extractor";
+import { extractBrandsWithLLM, llmResultToExtractedCandidates } from "./scoring/llm-extractor";
+import { buildBrandIdentity, matchRun } from "./scoring/matcher";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -48,37 +49,26 @@ export interface EngineResult {
 
 async function parseBrandsFromResponse(text: string, targetBrand: string, query?: string): Promise<Omit<EngineResult, "rawText">> {
   const llmResult = await extractBrandsWithLLM(text, query);
-  const brands = llmResult.brands;
+  const extraction = llmResultToExtractedCandidates(llmResult);
+  const brandIdentity = buildBrandIdentity(targetBrand);
+  const matchResult = matchRun(extraction.candidates, brandIdentity);
 
-  const normalizedTarget = targetBrand.toLowerCase().trim();
-  const targetTokens = normalizedTarget.split(/\s+/);
-  let brandPosition: number | null = null;
   let presenceState: 0 | 1 | 2 = 0;
+  let brandPosition: number | null = null;
 
-  for (let i = 0; i < brands.length; i++) {
-    const brandLower = brands[i].toLowerCase();
-    if (
-      brandLower === normalizedTarget ||
-      brandLower.includes(normalizedTarget) ||
-      normalizedTarget.includes(brandLower) ||
-      targetTokens.every((token) => brandLower.includes(token))
-    ) {
-      brandPosition = i + 1;
-      break;
-    }
-  }
-
-  if (brandPosition === null) {
+  if (matchResult.brand.brand_found) {
+    brandPosition = matchResult.brand.brand_rank;
+    presenceState = brandPosition !== null && brandPosition <= 3 ? 2 : 1;
+  } else {
     const lowerText = text.toLowerCase();
+    const normalizedTarget = targetBrand.toLowerCase().trim();
     if (lowerText.includes(normalizedTarget)) {
       presenceState = 1;
     }
-  } else {
-    presenceState = brandPosition <= 3 ? 2 : 1;
   }
 
   return {
-    topBrands: brands.slice(0, 10),
+    topBrands: llmResult.brands.slice(0, 10),
     brandPosition,
     presenceState,
   };
