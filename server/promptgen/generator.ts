@@ -210,8 +210,11 @@ export function generatePromptSet(
 
   for (const cluster of clusters) {
     let generated = 0;
+    let clusterRetries = 0;
+    const maxClusterRetries = clusterCounts[cluster] * 10;
 
-    while (generated < clusterCounts[cluster]) {
+    while (generated < clusterCounts[cluster] && clusterRetries < maxClusterRetries) {
+      clusterRetries++;
       const totalGenerated = prompts.length;
       const remaining = nPrompts - totalGenerated;
       const boostWindow = totalGenerated >= 30;
@@ -380,6 +383,32 @@ export function generatePromptSet(
 
       generated++;
       promptCounter = 0;
+    }
+
+    while (generated < clusterCounts[cluster]) {
+      const fallback = getFallbackTemplate(cluster);
+      const fbSlots: Record<string, string> = {
+        category: slotBank.category_terms[0]?.display ?? "consultant",
+      };
+      const fbPh = extractPlaceholders(fallback.text);
+      for (const ph of fbPh) {
+        const val = fillSlot(ph, slotBank, rng, validated.persona_type);
+        if (val) fbSlots[ph] = val;
+      }
+      const fbText = fillTemplate(fallback.text, fbSlots);
+      const shape = shapes[shapeIdx % shapes.length];
+      shapeIdx++;
+      prompts.push({
+        id: `p_${prompts.length + 1}`,
+        cluster,
+        shape,
+        text: fbText + getShapeSuffix(shape),
+        slots_used: fbSlots,
+        tags: [cluster, shape],
+        modifier_included: false,
+        geo_included: false,
+      });
+      generated++;
     }
   }
 
