@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useRunAnalysis } from "@/hooks/use-analysis";
 import { AnalysisResults } from "@/components/AnalysisResults";
-import { InputMinimal } from "@/components/ui/input-minimal";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Loader2, Search, Sparkles, TrendingUp, History } from "lucide-react";
+import { Loader2, ArrowRight, History } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+
+const ENGINE_LABELS = ["ChatGPT", "Claude", "Gemini", "DeepSeek"];
 
 export default function Analyzer() {
   const [query, setQuery] = useState("");
@@ -25,160 +26,133 @@ export default function Analyzer() {
       });
       return;
     }
-    
-    // Clear previous results
     reset();
-    
     analyze({ query, brand }, {
       onError: (err) => {
         toast({
           title: "Analysis Failed",
           description: err.message,
-          variant: "destructive"
+          variant: "destructive",
         });
-      }
+      },
     });
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-primary/10">
-      
-      {/* Navigation */}
-      <nav className="w-full border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-primary" />
-            <span className="text-xl font-serif font-bold tracking-tight">Sherlok.ai</span>
-          </div>
-          <div className="flex items-center gap-6">
-            <Link href="/history" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
-              <History className="w-4 h-4" />
-              History
-            </Link>
-            <Button variant="ghost" className="text-sm font-medium">
-              About
-            </Button>
-          </div>
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <nav className="w-full border-b border-border sticky top-0 z-50 bg-background">
+        <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
+          <span className="text-base font-semibold tracking-tight" data-testid="text-logo">sherlok.ai</span>
+          <Link href="/history" className="text-sm text-muted-foreground flex items-center gap-1.5 transition-colors hover:text-foreground" data-testid="link-history">
+            <History className="w-3.5 h-3.5" />
+            History
+          </Link>
         </div>
       </nav>
 
-      {/* Main Content */}
-      <main className="flex-1 container mx-auto px-4 py-12 md:py-20 max-w-5xl">
-        
-        {/* Hero Section */}
-        <AnimatePresence mode="wait">
-          {!result && !isPending && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="text-center space-y-6 mb-16"
-            >
-              <h1 className="text-4xl md:text-6xl font-serif font-bold text-primary tracking-tight">
-                Does AI recommend you?
-              </h1>
-              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Discover how your brand appears in AI-generated responses across ChatGPT, Claude, Gemini, and DeepSeek.
-              </p>
-            </motion.div>
+      <main className="flex-1 flex flex-col items-center justify-start px-6">
+        <div className="w-full max-w-2xl">
+          <AnimatePresence mode="wait">
+            {!result && !isPending && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+                className="pt-20 pb-10 space-y-3"
+              >
+                <h1 className="text-3xl md:text-4xl font-semibold tracking-tight" data-testid="text-heading">
+                  Does AI recommend you?
+                </h1>
+                <p className="text-muted-foreground text-base leading-relaxed max-w-lg">
+                  See how your brand ranks across ChatGPT, Claude, Gemini, and DeepSeek.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {(result || isPending) && (
+            <div className="pt-8 pb-6">
+              <span className="text-sm text-muted-foreground">
+                Results for <span className="font-medium text-foreground">{brand || "..."}</span>
+              </span>
+            </div>
           )}
-        </AnimatePresence>
 
-        {/* Input Form */}
-        <div className={`transition-all duration-500 ease-in-out ${result ? 'mb-12' : 'mb-20'}`}>
-          <Card className="p-8 md:p-10 shadow-xl shadow-primary/5 border-primary/10 bg-white/50 backdrop-blur-sm">
-            <form onSubmit={handleAnalyze} className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <label htmlFor="query" className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                    Target Search Query
-                  </label>
-                  <InputMinimal
-                    id="query"
-                    placeholder="e.g. Best CRM for small business"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    disabled={isPending}
-                    autoFocus
-                  />
-                  <p className="text-xs text-muted-foreground/60">What would your potential customers ask AI?</p>
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="brand" className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                    Your Brand Name
-                  </label>
-                  <InputMinimal
-                    id="brand"
-                    placeholder="e.g. Salesforce"
-                    value={brand}
-                    onChange={(e) => setBrand(e.target.value)}
-                    disabled={isPending}
-                  />
-                  <p className="text-xs text-muted-foreground/60">The exact brand name you want to track.</p>
-                </div>
-              </div>
-
-              <div className="flex justify-center pt-4">
-                <Button 
-                  type="submit" 
-                  size="lg" 
+          <form onSubmit={handleAnalyze} className={`${result ? 'pb-8' : 'pb-16'}`}>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 space-y-1.5">
+                <label htmlFor="query" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Query</label>
+                <Input
+                  id="query"
+                  data-testid="input-query"
+                  placeholder="Best CRM for small business"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
                   disabled={isPending}
-                  className="px-12 py-6 text-lg rounded-full font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all duration-300"
+                  autoFocus
+                  className="bg-secondary/50 border-border"
+                />
+              </div>
+              <div className="flex-1 space-y-1.5">
+                <label htmlFor="brand" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Brand</label>
+                <Input
+                  id="brand"
+                  data-testid="input-brand"
+                  placeholder="Salesforce"
+                  value={brand}
+                  onChange={(e) => setBrand(e.target.value)}
+                  disabled={isPending}
+                  className="bg-secondary/50 border-border"
+                />
+              </div>
+              <div className="flex items-end">
+                <Button
+                  type="submit"
+                  disabled={isPending}
+                  size="icon"
+                  data-testid="button-analyze"
                 >
                   {isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Analyzing Engines...
-                    </>
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <>
-                      <Search className="mr-2 h-5 w-5" />
-                      Analyze Presence
-                    </>
+                    <ArrowRight className="h-4 w-4" />
                   )}
                 </Button>
               </div>
-            </form>
-          </Card>
-        </div>
-
-        {/* Loading State Animation */}
-        {isPending && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center space-y-8 py-12"
-          >
-            <div className="flex justify-center gap-4">
-              {["ChatGPT", "Claude", "Gemini", "DeepSeek"].map((engine, i) => (
-                <motion.div
-                  key={engine}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.2 }}
-                  className="flex flex-col items-center gap-2"
-                >
-                  <div className="w-12 h-12 rounded-full bg-secondary animate-pulse flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-muted-foreground/50" />
-                  </div>
-                  <span className="text-xs font-medium text-muted-foreground">{engine}</span>
-                </motion.div>
-              ))}
             </div>
-            <p className="text-muted-foreground animate-pulse">Querying LLMs and aggregating results...</p>
-          </motion.div>
-        )}
+          </form>
 
-        {/* Results Section */}
-        {result && (
-          <AnalysisResults data={result} />
-        )}
+          {isPending && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="py-16 space-y-6"
+            >
+              <div className="flex items-center justify-center gap-8">
+                {ENGINE_LABELS.map((engine, i) => (
+                  <motion.div
+                    key={engine}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: i * 0.15 }}
+                    className="flex flex-col items-center gap-2"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-foreground/20 animate-pulse" style={{ animationDelay: `${i * 200}ms` }} />
+                    <span className="text-xs text-muted-foreground">{engine}</span>
+                  </motion.div>
+                ))}
+              </div>
+              <p className="text-center text-sm text-muted-foreground">Querying AI engines...</p>
+            </motion.div>
+          )}
+
+          {result && <AnalysisResults data={result} />}
+        </div>
       </main>
 
-      {/* Footer */}
-      <footer className="py-8 text-center text-sm text-muted-foreground border-t border-border/40 mt-auto">
-        <p>© 2025 Sherlok.ai. Intelligent Brand Presence Analytics.</p>
+      <footer className="py-6 text-center text-xs text-muted-foreground border-t border-border mt-auto">
+        sherlok.ai
       </footer>
     </div>
   );

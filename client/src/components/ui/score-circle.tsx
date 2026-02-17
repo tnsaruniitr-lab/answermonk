@@ -4,33 +4,27 @@ interface ScoreCircleProps {
   score: number;
   label: string;
   subLabel?: string;
-  size?: "sm" | "md" | "lg";
-  color?: string;
 }
 
-export function ScoreCircle({ score, label, subLabel, size = "md", color = "currentColor" }: ScoreCircleProps) {
-  const radius = size === "lg" ? 60 : size === "md" ? 40 : 24;
-  const stroke = size === "lg" ? 8 : size === "md" ? 6 : 4;
+export function ScoreCircle({ score, label, subLabel }: ScoreCircleProps) {
+  const radius = 52;
+  const stroke = 5;
   const normalizedRadius = radius - stroke * 2;
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset = circumference - (score / 100) * circumference;
 
-  const sizeClasses = {
-    sm: "w-16 h-16 text-xs",
-    md: "w-32 h-32 text-sm",
-    lg: "w-48 h-48 text-base",
+  const getScoreColor = (s: number) => {
+    if (s >= 70) return "hsl(142, 71%, 45%)";
+    if (s >= 40) return "hsl(45, 93%, 47%)";
+    return "hsl(0, 0%, 60%)";
   };
 
   return (
-    <div className="flex flex-col items-center justify-center gap-3">
-      <div className={`relative flex items-center justify-center ${sizeClasses[size]}`}>
-        <svg
-          height={radius * 2}
-          width={radius * 2}
-          className="transform -rotate-90 drop-shadow-lg"
-        >
+    <div className="flex flex-col items-center gap-4" data-testid={`score-${label.toLowerCase().replace(/\s+/g, '-')}`}>
+      <div className="relative flex items-center justify-center w-32 h-32">
+        <svg height={radius * 2} width={radius * 2} className="transform -rotate-90">
           <circle
-            stroke="hsl(var(--muted))"
+            stroke="hsl(var(--border))"
             strokeWidth={stroke}
             fill="transparent"
             r={normalizedRadius}
@@ -40,8 +34,8 @@ export function ScoreCircle({ score, label, subLabel, size = "md", color = "curr
           <motion.circle
             initial={{ strokeDashoffset: circumference }}
             animate={{ strokeDashoffset }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            stroke={color}
+            transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
+            stroke={getScoreColor(score)}
             strokeWidth={stroke}
             strokeLinecap="round"
             fill="transparent"
@@ -51,20 +45,20 @@ export function ScoreCircle({ score, label, subLabel, size = "md", color = "curr
             style={{ strokeDasharray: circumference + ' ' + circumference }}
           />
         </svg>
-        <div className="absolute flex flex-col items-center justify-center text-center">
-          <motion.span 
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className={`font-serif font-bold ${size === 'lg' ? 'text-4xl' : 'text-2xl'}`}
+        <div className="absolute flex flex-col items-center">
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="text-3xl font-semibold tracking-tight"
           >
             {Math.round(score)}
           </motion.span>
         </div>
       </div>
-      <div className="text-center">
-        <h4 className="font-medium uppercase tracking-wider text-muted-foreground text-xs">{label}</h4>
-        {subLabel && <p className="text-xs text-muted-foreground/70 mt-1">{subLabel}</p>}
+      <div className="text-center space-y-0.5">
+        <div className="text-sm font-medium text-foreground">{label}</div>
+        {subLabel && <div className="text-xs text-muted-foreground">{subLabel}</div>}
       </div>
     </div>
   );
