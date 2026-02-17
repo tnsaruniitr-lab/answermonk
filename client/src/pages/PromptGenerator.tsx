@@ -19,6 +19,8 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Loader2,
   ArrowLeft,
@@ -36,6 +38,8 @@ import {
   Eye,
   TrendingUp,
   FileText,
+  MapPin,
+  Pencil,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -733,6 +737,11 @@ export default function PromptGenerator() {
   );
   const [scoringResult, setScoringResult] = useState<ScoringResponse | null>(null);
   const [simpleResult, setSimpleResult] = useState<PromptSet | null>(null);
+  const [disabledPrompts, setDisabledPrompts] = useState<Set<string>>(new Set());
+  const [geoDisabled, setGeoDisabled] = useState<Set<string>>(new Set());
+  const [editingPromptId, setEditingPromptId] = useState<string | null>(null);
+  const [editDrafts, setEditDrafts] = useState<Record<string, string>>({});
+  const [editedTexts, setEditedTexts] = useState<Record<string, string>>({});
   const { toast } = useToast();
 
   const { data: presets } = useQuery<Presets>({
@@ -914,8 +923,23 @@ export default function PromptGenerator() {
 
   const handleRunScoring = () => {
     if (!result) return;
+    const enabledPrompts = result.prompts
+      .filter((p) => !disabledPrompts.has(p.id))
+      .map((p) => ({
+        ...p,
+        text: getPromptDisplayText(p),
+        geo_included: p.geo_included && !geoDisabled.has(p.id),
+      }));
+    if (enabledPrompts.length === 0) {
+      toast({
+        title: "No prompts selected",
+        description: "Enable at least one prompt to run the analysis.",
+        variant: "destructive",
+      });
+      return;
+    }
     runScoring({
-      prompts: result.prompts,
+      prompts: enabledPrompts,
       brand_name: brandName.trim(),
       brand_domain: brandDomain.trim() || undefined,
       mode: simpleMode ? "full" : scoringMode,
@@ -928,6 +952,65 @@ export default function PromptGenerator() {
     setFilterCluster("all");
     setFilterShape("all");
     setExpandedPrompts(new Set());
+    setDisabledPrompts(new Set());
+    setGeoDisabled(new Set());
+    setEditingPromptId(null);
+    setEditDrafts({});
+    setEditedTexts({});
+  };
+
+  const getPromptDisplayText = (prompt: Prompt) => {
+    const base = editedTexts[prompt.id] ?? prompt.text;
+    if (geoDisabled.has(prompt.id) && prompt.geo_included && geo.trim()) {
+      const geoStr = geo.trim();
+      const lower = base.toLowerCase();
+      const geoLower = geoStr.toLowerCase();
+      const patterns = [
+        ` in ${geoLower}`,
+        ` near ${geoLower}`,
+        ` around ${geoLower}`,
+        ` for ${geoLower}`,
+      ];
+      for (const pat of patterns) {
+        const idx = lower.lastIndexOf(pat);
+        if (idx !== -1 && idx + pat.length >= lower.trimEnd().length) {
+          return base.substring(0, idx).trimEnd();
+        }
+      }
+    }
+    return base;
+  };
+
+  const togglePromptEnabled = (id: string) => {
+    setDisabledPrompts((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleGeo = (id: string) => {
+    setGeoDisabled((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const startEditing = (prompt: Prompt) => {
+    setEditingPromptId(prompt.id);
+    setEditDrafts((prev) => ({ ...prev, [prompt.id]: editedTexts[prompt.id] ?? prompt.text }));
+  };
+
+  const saveEdit = (id: string) => {
+    setEditedTexts((prev) => ({ ...prev, [id]: editDrafts[id] }));
+    setEditingPromptId(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingPromptId(null);
   };
 
   const filteredPrompts = useMemo(() => {
@@ -1219,7 +1302,7 @@ export default function PromptGenerator() {
                       This is how your customers look for you...
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                      {result.prompts.length} prompts generated
+                      {result.prompts.length} prompts generated{disabledPrompts.size > 0 ? ` (${result.prompts.length - disabledPrompts.size} enabled)` : ""}
                     </p>
                   </div>
 
@@ -1257,9 +1340,11 @@ export default function PromptGenerator() {
                       data-testid="button-run-scoring"
                     >
                       <Zap className="w-4 h-4 mr-2" />
-                      {simpleMode
-                        ? `Run Analysis (${result?.prompts.length ?? 0} prompts x 3 engines)`
-                        : `Run Analysis (${scoringMode === "micro" ? "4" : scoringMode === "quick" ? "10" : "40"} prompts x 3 engines)`}
+                      {(() => {
+                        const enabled = result ? result.prompts.length - disabledPrompts.size : 0;
+                        if (simpleMode) return `Run Analysis (${enabled} prompts x 3 engines)`;
+                        return `Run Analysis (${scoringMode === "micro" ? "4" : scoringMode === "quick" ? "10" : enabled} prompts x 3 engines)`;
+                      })()}
                     </Button>
                     <Button
                       variant="ghost"
@@ -1330,98 +1415,163 @@ export default function PromptGenerator() {
                 </div>
 
                 <div className="space-y-2 pb-16">
-                  {filteredPrompts.map((prompt, idx) => (
-                    <Collapsible
-                      key={prompt.id}
-                      open={expandedPrompts.has(prompt.id)}
-                      onOpenChange={() => toggleExpanded(prompt.id)}
-                    >
-                      <Card
-                        data-testid={`prompt-card-${prompt.id}`}
+                  {filteredPrompts.map((prompt, idx) => {
+                    const isDisabled = disabledPrompts.has(prompt.id);
+                    const isGeoOff = geoDisabled.has(prompt.id);
+                    const isEditing = editingPromptId === prompt.id;
+                    const displayText = getPromptDisplayText(prompt);
+
+                    return (
+                      <Collapsible
+                        key={prompt.id}
+                        open={expandedPrompts.has(prompt.id)}
+                        onOpenChange={() => toggleExpanded(prompt.id)}
                       >
-                        <div className="flex items-start gap-3 p-3">
-                          <span className="text-xs text-muted-foreground font-mono mt-0.5 shrink-0 w-6 text-right">
-                            {idx + 1}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <p
-                              className="text-sm leading-relaxed"
-                              data-testid={`text-prompt-${prompt.id}`}
-                            >
-                              {prompt.text}
-                            </p>
-                            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                              <Badge
-                                variant="outline"
-                                className="text-[10px] capitalize"
-                              >
-                                {CLUSTER_LABELS[prompt.cluster] ||
-                                  prompt.cluster}
-                              </Badge>
-                              <Badge
-                                variant="outline"
-                                className="text-[10px]"
-                              >
-                                {SHAPE_LABELS[prompt.shape] || prompt.shape}
-                              </Badge>
-                              {prompt.modifier_included && (
-                                <Badge
-                                  variant="secondary"
-                                  className="text-[10px]"
-                                >
-                                  modifier
-                                </Badge>
-                              )}
-                              {prompt.geo_included && (
-                                <Badge
-                                  variant="secondary"
-                                  className="text-[10px]"
-                                >
-                                  geo
-                                </Badge>
-                              )}
+                        <Card
+                          className={isDisabled ? "opacity-50" : ""}
+                          data-testid={`prompt-card-${prompt.id}`}
+                        >
+                          <div className="flex items-start gap-3 p-3">
+                            <div className="flex items-center mt-0.5 shrink-0">
+                              <Checkbox
+                                checked={!isDisabled}
+                                onCheckedChange={() => togglePromptEnabled(prompt.id)}
+                                data-testid={`checkbox-prompt-${prompt.id}`}
+                              />
                             </div>
-                          </div>
-                          <div className="flex items-center gap-0.5 shrink-0">
-                            <CopyButton text={prompt.text} promptId={prompt.id} />
-                            <CollapsibleTrigger asChild>
+                            <span className="text-xs text-muted-foreground font-mono mt-0.5 shrink-0 w-6 text-right">
+                              {idx + 1}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              {isEditing ? (
+                                <div className="space-y-2">
+                                  <Textarea
+                                    value={editDrafts[prompt.id] ?? ""}
+                                    onChange={(e) => setEditDrafts((prev) => ({ ...prev, [prompt.id]: e.target.value }))}
+                                    className="text-sm min-h-[60px]"
+                                    data-testid={`textarea-edit-${prompt.id}`}
+                                  />
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => saveEdit(prompt.id)}
+                                      data-testid={`button-save-edit-${prompt.id}`}
+                                    >
+                                      <Check className="w-3 h-3 mr-1" />
+                                      Save
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={cancelEdit}
+                                      data-testid={`button-cancel-edit-${prompt.id}`}
+                                    >
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p
+                                  className={`text-sm leading-relaxed ${editedTexts[prompt.id] ? "text-primary" : ""}`}
+                                  data-testid={`text-prompt-${prompt.id}`}
+                                >
+                                  {displayText}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] capitalize"
+                                >
+                                  {CLUSTER_LABELS[prompt.cluster] ||
+                                    prompt.cluster}
+                                </Badge>
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px]"
+                                >
+                                  {SHAPE_LABELS[prompt.shape] || prompt.shape}
+                                </Badge>
+                                {prompt.modifier_included && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-[10px]"
+                                  >
+                                    modifier
+                                  </Badge>
+                                )}
+                                {prompt.geo_included && !isGeoOff && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-[10px]"
+                                  >
+                                    geo
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              {prompt.geo_included && (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => toggleGeo(prompt.id)}
+                                  className={isGeoOff ? "text-muted-foreground" : "text-primary"}
+                                  title={isGeoOff ? "Location removed" : "Click to remove location"}
+                                  data-testid={`button-geo-${prompt.id}`}
+                                >
+                                  <MapPin className="w-3.5 h-3.5" />
+                                </Button>
+                              )}
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                data-testid={`button-expand-${prompt.id}`}
+                                onClick={() => startEditing(prompt)}
+                                title="Edit prompt"
+                                data-testid={`button-edit-${prompt.id}`}
                               >
-                                {expandedPrompts.has(prompt.id) ? (
-                                  <ChevronDown className="w-3.5 h-3.5" />
-                                ) : (
-                                  <ChevronRight className="w-3.5 h-3.5" />
-                                )}
+                                <Pencil className="w-3.5 h-3.5" />
                               </Button>
-                            </CollapsibleTrigger>
-                          </div>
-                        </div>
-                        <CollapsibleContent>
-                          <div className="px-3 pb-3 pt-0 ml-9">
-                            <div className="text-xs text-muted-foreground space-y-1 border-t border-border pt-2">
-                              <p>
-                                <span className="font-medium text-foreground">
-                                  Slots:
-                                </span>{" "}
-                                {Object.entries(prompt.slots_used)
-                                  .map(([k, v]) => `${k}="${v}"`)
-                                  .join(", ")}
-                              </p>
-                              <p>
-                                <span className="font-medium text-foreground">
-                                  Tags:
-                                </span>{" "}
-                                {prompt.tags.join(", ")}
-                              </p>
+                              <CopyButton text={displayText} promptId={prompt.id} />
+                              <CollapsibleTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  data-testid={`button-expand-${prompt.id}`}
+                                >
+                                  {expandedPrompts.has(prompt.id) ? (
+                                    <ChevronDown className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <ChevronRight className="w-3.5 h-3.5" />
+                                  )}
+                                </Button>
+                              </CollapsibleTrigger>
                             </div>
                           </div>
-                        </CollapsibleContent>
-                      </Card>
-                    </Collapsible>
-                  ))}
+                          <CollapsibleContent>
+                            <div className="px-3 pb-3 pt-0 ml-9">
+                              <div className="text-xs text-muted-foreground space-y-1 border-t border-border pt-2">
+                                <p>
+                                  <span className="font-medium text-foreground">
+                                    Slots:
+                                  </span>{" "}
+                                  {Object.entries(prompt.slots_used)
+                                    .map(([k, v]) => `${k}="${v}"`)
+                                    .join(", ")}
+                                </p>
+                                <p>
+                                  <span className="font-medium text-foreground">
+                                    Tags:
+                                  </span>{" "}
+                                  {prompt.tags.join(", ")}
+                                </p>
+                              </div>
+                            </div>
+                          </CollapsibleContent>
+                        </Card>
+                      </Collapsible>
+                    );
+                  })}
 
                   {filteredPrompts.length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-8">
