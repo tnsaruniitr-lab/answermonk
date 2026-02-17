@@ -53,7 +53,8 @@ Preferred communication style: Simple, everyday language.
 - **GEO Scoring Service** (`server/scoring/`): Separate probabilistic scoring pipeline
   - `panel.ts` — Deterministic mini-panel selector (10-from-40: 3 direct, 3 task, 2 persona, 2 budget)
   - `runner.ts` — Batched parallel LLM executor (ChatGPT, Gemini, Claude), rate-limited
-  - `extractor.ts` — Regex-based provider name extraction from raw AI responses, normalization
+  - `llm-extractor.ts` — LLM-based brand extraction using gpt-4o-mini; replaces regex-based extraction for both Analyzer and Scoring pipelines
+  - `extractor.ts` — Legacy regex-based extraction (kept for reference, no longer primary)
   - `matcher.ts` — Tiered brand matching (exact name, domain root), false-positive protection for short names
   - `scorer.ts` — Pure frequency math: appearance_rate, primary_rate, avg_rank, competitor shares, cluster/engine breakdowns
   - Two modes: Quick (10 prompts) and Full (40 prompts), both run against all 3 engines

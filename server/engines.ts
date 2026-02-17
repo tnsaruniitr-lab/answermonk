@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenAI } from "@google/genai";
 import type { Engine } from "@shared/schema";
+import { extractBrandsWithLLM } from "./scoring/llm-extractor";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -45,37 +46,9 @@ export interface EngineResult {
   presenceState: 0 | 1 | 2;
 }
 
-const LIST_PATTERNS = [
-  /^\s*\d+[\.\)]\s*\*{1,2}([^*]+)\*{1,2}/,
-  /^\s*\d+[\.\)]\s*\[([^\]]+)\]/,
-  /^\s*\d+[\.\)]\s*([A-Z][A-Za-z0-9\s\.&']+?)(?:\s*[-–—:]\s|$)/,
-  /^\s*[-•]\s*\*{1,2}([^*]+)\*{1,2}/,
-  /^\s*[-•]\s*([A-Z][A-Za-z0-9\s\.&']+?)(?:\s*[-–—:]\s|$)/,
-];
-
-function extractBrandName(raw: string): string {
-  return raw
-    .replace(/[*[\]#]/g, "")
-    .replace(/\(.*?\)/g, "")
-    .trim();
-}
-
-function parseBrandsFromResponse(text: string, targetBrand: string): Omit<EngineResult, "rawText"> {
-  const lines = text.split("\n");
-  const brands: string[] = [];
-
-  for (const line of lines) {
-    for (const pattern of LIST_PATTERNS) {
-      const match = line.match(pattern);
-      if (match) {
-        const name = extractBrandName(match[1]);
-        if (name.length > 1 && name.length < 80) {
-          brands.push(name);
-        }
-        break;
-      }
-    }
-  }
+async function parseBrandsFromResponse(text: string, targetBrand: string, query?: string): Promise<Omit<EngineResult, "rawText">> {
+  const llmResult = await extractBrandsWithLLM(text, query);
+  const brands = llmResult.brands;
 
   const normalizedTarget = targetBrand.toLowerCase().trim();
   const targetTokens = normalizedTarget.split(/\s+/);
@@ -123,7 +96,7 @@ async function queryChatGPT(query: string, brand: string): Promise<EngineResult>
   });
 
   const rawText = completion.choices[0]?.message?.content ?? "";
-  const parsed = parseBrandsFromResponse(rawText, brand);
+  const parsed = await parseBrandsFromResponse(rawText, brand, query);
   return { rawText, ...parsed };
 }
 
@@ -141,7 +114,7 @@ async function queryClaude(query: string, brand: string): Promise<EngineResult> 
     .map((b) => b.text)
     .join("\n");
 
-  const parsed = parseBrandsFromResponse(rawText, brand);
+  const parsed = await parseBrandsFromResponse(rawText, brand, query);
   return { rawText, ...parsed };
 }
 
@@ -153,7 +126,7 @@ async function queryGemini(query: string, brand: string): Promise<EngineResult> 
   });
 
   const rawText = response.text ?? "";
-  const parsed = parseBrandsFromResponse(rawText, brand);
+  const parsed = await parseBrandsFromResponse(rawText, brand, query);
   return { rawText, ...parsed };
 }
 

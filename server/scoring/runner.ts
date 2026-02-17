@@ -2,7 +2,8 @@ import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenAI } from "@google/genai";
 import type { Prompt } from "../promptgen/types";
-import { extractCandidates, type ExtractionResult } from "./extractor";
+import { extractBrandsWithLLM, llmResultToExtractedCandidates } from "./llm-extractor";
+import { type ExtractionResult } from "./extractor";
 import { matchRun, buildBrandIdentity, type BrandIdentity, type RunMatchResult } from "./matcher";
 import { computeGEOScore, type RunData, type GEOScore } from "./scorer";
 
@@ -64,7 +65,8 @@ export async function runScoring(
       ENGINES.map(async (engine) => {
         try {
           const rawText = await queryEngine(engine, prompt.text);
-          const extraction = extractCandidates(rawText);
+          const llmResult = await extractBrandsWithLLM(rawText, prompt.text);
+          const extraction = llmResultToExtractedCandidates(llmResult);
           const match = matchRun(extraction.candidates, brand);
 
           const result: RawRunResult = {
