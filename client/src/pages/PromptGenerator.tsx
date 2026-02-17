@@ -732,6 +732,7 @@ export default function PromptGenerator() {
     new Set(),
   );
   const [scoringResult, setScoringResult] = useState<ScoringResponse | null>(null);
+  const [simpleResult, setSimpleResult] = useState<PromptSet | null>(null);
   const { toast } = useToast();
 
   const { data: presets } = useQuery<Presets>({
@@ -766,14 +767,20 @@ export default function PromptGenerator() {
   const {
     mutate: generate,
     isPending: isGenerating,
-    data: result,
-    reset: resetPrompts,
+    data: advancedResult,
+    reset: resetAdvanced,
   } = useMutation<PromptSet, Error, unknown>({
     mutationFn: async (body) => {
       const res = await apiRequest("POST", "/api/promptsets", body);
       return res.json();
     },
   });
+
+  const result = simpleResult || advancedResult;
+  const resetPrompts = () => {
+    setSimpleResult(null);
+    resetAdvanced();
+  };
 
   const {
     mutate: runScoring,
@@ -843,11 +850,25 @@ export default function PromptGenerator() {
       } as any);
 
       const simplePrompts = generateSimplePrompts(persona, verticals, services, geo);
-      runScoring({
+      const clusterCounts: Record<string, number> = {};
+      const shapeCounts: Record<string, number> = {};
+      simplePrompts.forEach((p) => {
+        clusterCounts[p.cluster] = (clusterCounts[p.cluster] || 0) + 1;
+        shapeCounts[p.shape] = (shapeCounts[p.shape] || 0) + 1;
+      });
+      setSimpleResult({
+        prompt_set_id: `simple-${Date.now()}`,
+        version: "pg_v1",
+        seed_used: 0,
+        counts: {
+          by_cluster: clusterCounts,
+          by_shape: shapeCounts,
+          modifier_prompts: 0,
+          geo_prompts: simplePrompts.filter((p) => p.geo_included).length,
+        },
+        slot_bank: { verticals: [], services: [], modifiers: [], geo_terms: [] },
         prompts: simplePrompts,
-        brand_name: brandName.trim(),
-        brand_domain: brandDomain.trim() || undefined,
-        mode: "full",
+        unverified_items: [],
       });
       return;
     }
@@ -897,7 +918,7 @@ export default function PromptGenerator() {
       prompts: result.prompts,
       brand_name: brandName.trim(),
       brand_domain: brandDomain.trim() || undefined,
-      mode: scoringMode,
+      mode: simpleMode ? "full" : scoringMode,
     });
   };
 
@@ -1203,38 +1224,42 @@ export default function PromptGenerator() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <Tabs value={scoringMode} onValueChange={(v) => setScoringMode(v as "micro" | "quick" | "full")}>
-                      <TabsList className="h-8">
-                        <TabsTrigger
-                          value="micro"
-                          className="text-xs px-3"
-                          data-testid="toggle-mode-micro"
-                        >
-                          Micro (4)
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value="quick"
-                          className="text-xs px-3"
-                          data-testid="toggle-mode-quick"
-                        >
-                          Quick (10)
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value="full"
-                          className="text-xs px-3"
-                          data-testid="toggle-mode-full"
-                        >
-                          Full (40)
-                        </TabsTrigger>
-                      </TabsList>
-                    </Tabs>
+                    {!simpleMode && (
+                      <Tabs value={scoringMode} onValueChange={(v) => setScoringMode(v as "micro" | "quick" | "full")}>
+                        <TabsList className="h-8">
+                          <TabsTrigger
+                            value="micro"
+                            className="text-xs px-3"
+                            data-testid="toggle-mode-micro"
+                          >
+                            Micro (4)
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="quick"
+                            className="text-xs px-3"
+                            data-testid="toggle-mode-quick"
+                          >
+                            Quick (10)
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="full"
+                            className="text-xs px-3"
+                            data-testid="toggle-mode-full"
+                          >
+                            Full (40)
+                          </TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                    )}
                     <Button
                       onClick={handleRunScoring}
                       className="flex-1"
                       data-testid="button-run-scoring"
                     >
                       <Zap className="w-4 h-4 mr-2" />
-                      Run Analysis ({scoringMode === "micro" ? "4" : scoringMode === "quick" ? "10" : "40"} prompts x 3 engines)
+                      {simpleMode
+                        ? `Run Analysis (${result?.prompts.length ?? 0} prompts x 3 engines)`
+                        : `Run Analysis (${scoringMode === "micro" ? "4" : scoringMode === "quick" ? "10" : "40"} prompts x 3 engines)`}
                     </Button>
                     <Button
                       variant="ghost"
