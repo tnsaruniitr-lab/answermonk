@@ -18,6 +18,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Switch } from "@/components/ui/switch";
 import {
   Loader2,
   ArrowLeft,
@@ -674,7 +675,48 @@ function ResultsDashboard({ score, brandName, mode, promptsUsed, rawRuns, onNewA
   );
 }
 
+function generateSimplePrompts(persona: string, verticals: string[], services: string[], geo: string): Prompt[] {
+  const personaLabel = persona === "marketing_agency" ? "marketing agency" : persona.replace(/_/g, " ");
+  const location = geo.trim();
+  const suffix = location ? ` in ${location}` : "";
+  const prompts: Prompt[] = [];
+  let idx = 1;
+
+  const addPrompt = (text: string, cluster: string) => {
+    prompts.push({
+      id: `simple_${idx}`,
+      cluster,
+      shape: "open",
+      text,
+      slots_used: {},
+      tags: [cluster, "simple_mode"],
+      modifier_included: false,
+      geo_included: !!location,
+    });
+    idx++;
+  };
+
+  addPrompt(`Find me best ${personaLabel}${suffix}`, "direct");
+
+  for (const v of verticals) {
+    addPrompt(`Find me best ${personaLabel} for ${v}${suffix}`, "direct");
+  }
+
+  for (const s of services) {
+    addPrompt(`Find me best ${personaLabel} for ${s}${suffix}`, "task");
+  }
+
+  for (const v of verticals) {
+    for (const s of services) {
+      addPrompt(`Find me best ${personaLabel} for ${v} for ${s}${suffix}`, "task");
+    }
+  }
+
+  return prompts;
+}
+
 export default function PromptGenerator() {
+  const [simpleMode, setSimpleMode] = useState(true);
   const [persona, setPersona] = useState<string>("marketing_agency");
   const [verticals, setVerticals] = useState<string[]>([]);
   const [services, setServices] = useState<string[]>([]);
@@ -762,6 +804,54 @@ export default function PromptGenerator() {
 
   const handleGenerate = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!brandName.trim()) {
+      toast({
+        title: "Brand name required",
+        description: "Enter your brand name to run analysis.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (simpleMode) {
+      if (verticals.length < 1 || verticals.length > 2) {
+        toast({
+          title: "Select 1-2 verticals",
+          description: "Simple mode supports up to 2 target verticals.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (services.length < 1 || services.length > 2) {
+        toast({
+          title: "Select 1-2 services",
+          description: "Simple mode supports up to 2 services.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      saveProfile({
+        brandName: brandName.trim(),
+        brandDomain: brandDomain.trim() || null,
+        persona,
+        verticals,
+        services,
+        modifiers: [],
+        geo: geo.trim() || null,
+        budgetTier: "mid",
+      } as any);
+
+      const simplePrompts = generateSimplePrompts(persona, verticals, services, geo);
+      runScoring({
+        prompts: simplePrompts,
+        brand_name: brandName.trim(),
+        brand_domain: brandDomain.trim() || undefined,
+        mode: "full",
+      });
+      return;
+    }
+
     if (verticals.length < 2) {
       toast({
         title: "Need more verticals",
@@ -774,14 +864,6 @@ export default function PromptGenerator() {
       toast({
         title: "Need more services",
         description: "Add at least 3 services.",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (!brandName.trim()) {
-      toast({
-        title: "Brand name required",
-        description: "Enter your brand name to run analysis.",
         variant: "destructive",
       });
       return;
@@ -881,13 +963,28 @@ export default function PromptGenerator() {
                 transition={{ duration: 0.3 }}
                 key="form"
               >
-                <div className="pt-16 pb-8 space-y-2">
+                <div className="pt-16 pb-8 space-y-4">
                   <h1
                     className="text-3xl md:text-4xl font-semibold tracking-tight"
                     data-testid="text-heading"
                   >
                     Tell us a bit about you?
                   </h1>
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      id="simple-mode"
+                      checked={simpleMode}
+                      onCheckedChange={setSimpleMode}
+                      data-testid="switch-simple-mode"
+                    />
+                    <label htmlFor="simple-mode" className="text-sm cursor-pointer select-none">
+                      {simpleMode ? (
+                        <span><span className="font-medium">Simple Mode</span> <span className="text-muted-foreground">— 9 focused prompts, fast results</span></span>
+                      ) : (
+                        <span><span className="font-medium">Advanced Mode</span> <span className="text-muted-foreground">— 4-40 prompts, full template engine</span></span>
+                      )}
+                    </label>
+                  </div>
                 </div>
 
                 {savedProfiles && savedProfiles.length > 0 && (
@@ -944,7 +1041,7 @@ export default function PromptGenerator() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className={simpleMode ? "" : "grid grid-cols-1 sm:grid-cols-2 gap-4"}>
                     <div className="space-y-1.5">
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                         Persona
@@ -974,69 +1071,75 @@ export default function PromptGenerator() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Budget Tier
-                      </label>
-                      <Select value={budgetTier} onValueChange={setBudgetTier}>
-                        <SelectTrigger
-                          className="bg-secondary/50"
-                          data-testid="select-budget"
-                        >
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="budget">Budget</SelectItem>
-                          <SelectItem value="mid">Mid-range</SelectItem>
-                          <SelectItem value="premium">Premium</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    {!simpleMode && (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Budget Tier
+                        </label>
+                        <Select value={budgetTier} onValueChange={setBudgetTier}>
+                          <SelectTrigger
+                            className="bg-secondary/50"
+                            data-testid="select-budget"
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="budget">Budget</SelectItem>
+                            <SelectItem value="mid">Mid-range</SelectItem>
+                            <SelectItem value="premium">Premium</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Target Verticals (min 2)
+                      Target Verticals ({simpleMode ? "pick 1-2" : "min 2"})
                     </label>
                     <TagInput
                       values={verticals}
-                      onChange={setVerticals}
+                      onChange={(vals) => simpleMode ? setVerticals(vals.slice(0, 2)) : setVerticals(vals)}
                       placeholder="Type or pick verticals..."
                       suggestions={currentPresets?.verticals}
+                      maxItems={simpleMode ? 2 : undefined}
                       testIdPrefix="verticals"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Services (min 3)
+                      Services ({simpleMode ? "pick 1-2" : "min 3"})
                     </label>
                     <TagInput
                       values={services}
-                      onChange={setServices}
+                      onChange={(vals) => simpleMode ? setServices(vals.slice(0, 2)) : setServices(vals)}
                       placeholder="Type or pick services..."
                       suggestions={currentPresets?.services}
+                      maxItems={simpleMode ? 2 : undefined}
                       testIdPrefix="services"
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Tool / Platform Modifiers (optional, max 6)
-                    </label>
-                    <TagInput
-                      values={modifiers}
-                      onChange={setModifiers}
-                      placeholder="e.g. HubSpot, Clay, Zapier..."
-                      suggestions={currentPresets?.modifiers}
-                      maxItems={6}
-                      testIdPrefix="modifiers"
-                    />
-                  </div>
+                  {!simpleMode && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Tool / Platform Modifiers (optional, max 6)
+                      </label>
+                      <TagInput
+                        values={modifiers}
+                        onChange={setModifiers}
+                        placeholder="e.g. HubSpot, Clay, Zapier..."
+                        suggestions={currentPresets?.modifiers}
+                        maxItems={6}
+                        testIdPrefix="modifiers"
+                      />
+                    </div>
+                  )}
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Geographic Focus (optional)
+                      Geographic Focus {simpleMode ? "" : "(optional)"}
                     </label>
                     <Input
                       value={geo}
@@ -1049,16 +1152,16 @@ export default function PromptGenerator() {
 
                   <Button
                     type="submit"
-                    disabled={isGenerating}
+                    disabled={isGenerating || isScoring}
                     className="w-full"
                     data-testid="button-generate"
                   >
-                    {isGenerating ? (
+                    {(isGenerating || (simpleMode && isScoring)) ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     ) : (
                       <Sparkles className="w-4 h-4 mr-2" />
                     )}
-                    Generate Prompts
+                    {simpleMode ? `Run Analysis (${1 + verticals.length + services.length + verticals.length * services.length} prompts x 3 engines)` : "Generate Prompts"}
                   </Button>
                 </form>
               </motion.div>
