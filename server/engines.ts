@@ -113,12 +113,12 @@ function parseBrandsFromResponse(text: string, targetBrand: string): Omit<Engine
 
 async function queryChatGPT(query: string, brand: string): Promise<EngineResult> {
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-5.2",
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: buildUserPrompt(query) },
     ],
-    max_tokens: 1024,
+    max_completion_tokens: 1024,
     temperature: 0.7,
   });
 
@@ -147,7 +147,7 @@ async function queryClaude(query: string, brand: string): Promise<EngineResult> 
 
 async function queryGemini(query: string, brand: string): Promise<EngineResult> {
   const response = await gemini.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-3-flash-preview",
     contents: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(query)}`,
     config: { maxOutputTokens: 8192 },
   });
