@@ -27,8 +27,6 @@ import {
   ChevronRight,
   X,
   Sparkles,
-  Download,
-  Filter,
   Zap,
   Globe,
   BarChart3,
@@ -641,29 +639,6 @@ export default function PromptGenerator() {
     });
   };
 
-  const copyAllPrompts = () => {
-    const allText = filteredPrompts.map((p) => p.text).join("\n\n");
-    navigator.clipboard.writeText(allText);
-    toast({ title: "Copied", description: `${filteredPrompts.length} prompts copied to clipboard.` });
-  };
-
-  const exportCsv = () => {
-    if (!result) return;
-    const header = "id,cluster,shape,modifier,geo,text";
-    const rows = result.prompts.map(
-      (p) =>
-        `${p.id},${p.cluster},${p.shape},${p.modifier_included},${p.geo_included},"${p.text.replace(/"/g, '""')}"`,
-    );
-    const csv = [header, ...rows].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `prompts_${result.seed_used}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   const showForm = !result && !isGenerating && !isScoring && !scoringResult;
   const showPrompts = result && !isGenerating && !isScoring && !scoringResult;
   const showScoring = isScoring;
@@ -880,124 +855,66 @@ export default function PromptGenerator() {
                 transition={{ duration: 0.3 }}
                 key="prompts"
               >
-                <div className="pt-8 pb-6 space-y-4">
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <div>
-                      <h2
-                        className="text-xl font-semibold tracking-tight"
-                        data-testid="text-results-heading"
-                      >
-                        {result.prompts.length} prompts generated
-                      </h2>
-                      <p className="text-sm text-muted-foreground mt-0.5">
-                        Seed: {result.seed_used}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={copyAllPrompts}
-                        data-testid="button-copy-all"
-                      >
-                        <Copy className="w-3.5 h-3.5 mr-1.5" />
-                        Copy All
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={exportCsv}
-                        data-testid="button-export-csv"
-                      >
-                        <Download className="w-3.5 h-3.5 mr-1.5" />
-                        CSV
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleStartOver}
-                        data-testid="button-start-over"
-                      >
-                        <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
-                        New Set
-                      </Button>
-                    </div>
+                <div className="pt-12 pb-6 space-y-6">
+                  <div className="space-y-1">
+                    <h2
+                      className="text-2xl md:text-3xl font-semibold tracking-tight"
+                      data-testid="text-results-heading"
+                    >
+                      This is how your customers look for you...
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      {result.prompts.length} prompts generated
+                    </p>
                   </div>
 
-                  <Card className="p-4 space-y-3">
-                    <div className="flex items-center justify-between gap-4 flex-wrap">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">Run AI Analysis</p>
-                        <p className="text-xs text-muted-foreground">
-                          Test these prompts against ChatGPT, Gemini, and Claude
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Tabs value={scoringMode} onValueChange={(v) => setScoringMode(v as "quick" | "full")}>
-                          <TabsList className="h-7">
-                            <TabsTrigger
-                              value="quick"
-                              className="text-xs px-2.5 h-6"
-                              data-testid="toggle-mode-quick"
-                            >
-                              Quick (10)
-                            </TabsTrigger>
-                            <TabsTrigger
-                              value="full"
-                              className="text-xs px-2.5 h-6"
-                              data-testid="toggle-mode-full"
-                            >
-                              Full (40)
-                            </TabsTrigger>
-                          </TabsList>
-                        </Tabs>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-3">
+                    <Tabs value={scoringMode} onValueChange={(v) => setScoringMode(v as "quick" | "full")}>
+                      <TabsList className="h-8">
+                        <TabsTrigger
+                          value="quick"
+                          className="text-xs px-3"
+                          data-testid="toggle-mode-quick"
+                        >
+                          Quick (10)
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="full"
+                          className="text-xs px-3"
+                          data-testid="toggle-mode-full"
+                        >
+                          Full (40)
+                        </TabsTrigger>
+                      </TabsList>
+                    </Tabs>
                     <Button
                       onClick={handleRunScoring}
-                      className="w-full"
+                      className="flex-1"
                       data-testid="button-run-scoring"
                     >
                       <Zap className="w-4 h-4 mr-2" />
                       Run Analysis ({scoringMode === "quick" ? "10" : "40"} prompts x 3 engines)
                     </Button>
-                  </Card>
-
-                  {result.unverified_items.length > 0 && (
-                    <div className="text-xs text-muted-foreground border border-border rounded-md p-3">
-                      <span className="font-medium text-foreground">
-                        Unverified:
-                      </span>{" "}
-                      {result.unverified_items.map((u) => u.display).join(", ")}
-                      . These terms were used but may not match known
-                      tools/platforms.
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {Object.entries(result.counts.by_cluster).map(
-                      ([cluster, count]) => (
-                        <div
-                          key={cluster}
-                          className="text-center py-2 border border-border rounded-md"
-                          data-testid={`stat-cluster-${cluster}`}
-                        >
-                          <div className="text-lg font-semibold">{count}</div>
-                          <div className="text-xs text-muted-foreground capitalize">
-                            {CLUSTER_LABELS[cluster] || cluster}
-                          </div>
-                        </div>
-                      ),
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleStartOver}
+                      data-testid="button-start-over"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
+                      Start Over
+                    </Button>
                   </div>
 
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <div className="flex items-center gap-1.5">
-                      <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">
-                        Filter:
-                      </span>
-                    </div>
+                  {result.unverified_items.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground">Note:</span>{" "}
+                      {result.unverified_items.map((u) => u.display).join(", ")}{" "}
+                      may not match known tools/platforms.
+                    </p>
+                  )}
+
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Tabs
                       value={filterCluster}
                       onValueChange={setFilterCluster}
