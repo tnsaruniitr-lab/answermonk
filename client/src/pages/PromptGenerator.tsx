@@ -608,43 +608,60 @@ function ResultsDashboard({ score, brandName, mode, promptsUsed, rawRuns, onNewA
         </div>
       )}
 
-      {score.competitors.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-            <Globe className="w-4 h-4 text-muted-foreground" />
-            Top Competitors
-          </h3>
-          <Card>
-            <div className="divide-y divide-border">
-              {score.competitors.map((comp, i) => (
-                <div
-                  key={comp.name}
-                  className="flex items-center justify-between gap-4 px-4 py-2.5"
-                  data-testid={`competitor-row-${i}`}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-xs text-muted-foreground font-mono w-5 text-right shrink-0">
-                      {i + 1}
-                    </span>
-                    <span className="text-sm truncate">{comp.name}</span>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-foreground/40 rounded-full"
-                        style={{ width: `${Math.round(comp.share * 100)}%` }}
-                      />
+      {(() => {
+        const brandEntry = {
+          name: brandName,
+          share: score.appearance_rate,
+          appearances: 0,
+          isBrand: true as const,
+        };
+        const allEntries = [brandEntry, ...score.competitors.map(c => ({ ...c, isBrand: false as const }))]
+          .sort((a, b) => b.share - a.share);
+        return allEntries.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+              <Globe className="w-4 h-4 text-muted-foreground" />
+              Brand & Competitor Rankings
+            </h3>
+            <Card>
+              <div className="divide-y divide-border">
+                {allEntries.map((entry, i) => (
+                  <div
+                    key={entry.name}
+                    className={`flex items-center justify-between gap-4 px-4 py-2.5 ${entry.isBrand ? "bg-primary/10" : ""}`}
+                    data-testid={entry.isBrand ? "brand-row" : `competitor-row-${i}`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-xs text-muted-foreground font-mono w-5 text-right shrink-0">
+                        {i + 1}
+                      </span>
+                      <span className={`text-sm truncate ${entry.isBrand ? "font-semibold text-primary" : ""}`}>
+                        {entry.name}
+                        {entry.isBrand && (
+                          <span className="ml-1.5 text-[10px] uppercase tracking-wider font-medium text-primary/70">
+                            You
+                          </span>
+                        )}
+                      </span>
                     </div>
-                    <span className="text-xs font-medium w-10 text-right">
-                      {Math.round(comp.share * 100)}%
-                    </span>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${entry.isBrand ? "bg-primary" : "bg-foreground/40"}`}
+                          style={{ width: `${Math.round(entry.share * 100)}%` }}
+                        />
+                      </div>
+                      <span className={`text-xs font-medium w-10 text-right ${entry.isBrand ? "text-primary" : ""}`}>
+                        {Math.round(entry.share * 100)}%
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
-      )}
+                ))}
+              </div>
+            </Card>
+          </div>
+        );
+      })()}
 
       {rawRuns && rawRuns.length > 0 && (
         <div className="mb-8">
