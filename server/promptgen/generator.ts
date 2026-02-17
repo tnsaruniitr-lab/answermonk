@@ -236,11 +236,7 @@ export function generatePromptSet(
       }
 
       if (hasGeo) {
-        if (boostWindow && geoUsedCount < geoMinGuarantee) {
-          useGeo = true;
-        } else {
-          useGeo = rng.rand() < geoRate;
-        }
+        useGeo = true;
       }
 
       const template = pickTemplate(
