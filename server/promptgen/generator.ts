@@ -276,7 +276,11 @@ export function generatePromptSet(
             if (val) slots[ph] = val;
           }
         }
-        const baseText = fillTemplate(fallback.text, slots);
+        let baseText = fillTemplate(fallback.text, slots);
+        if (hasGeo && !fallback.has_geo) {
+          const geoTerm = rng.pick(slotBank.geo_terms).display;
+          baseText = baseText + ` in ${geoTerm}`;
+        }
         const baseKey = normalizeKey(baseText);
 
         if (seenBaseKeys.has(baseKey)) {
@@ -291,9 +295,9 @@ export function generatePromptSet(
               shape,
               text: baseText + getShapeSuffix(shape),
               slots_used: slots,
-              tags: [cluster, shape],
+              tags: [cluster, shape, ...(hasGeo ? ["has_geo"] : [])],
               modifier_included: false,
-              geo_included: false,
+              geo_included: hasGeo,
             });
             generated++;
             promptCounter = 0;
@@ -311,16 +315,21 @@ export function generatePromptSet(
           shape,
           text: baseText + getShapeSuffix(shape),
           slots_used: slots,
-          tags: [cluster, shape],
+          tags: [cluster, shape, ...(hasGeo ? ["has_geo"] : [])],
           modifier_included: false,
-          geo_included: false,
+          geo_included: hasGeo,
         });
         generated++;
         promptCounter = 0;
         continue;
       }
 
-      const baseText = fillTemplate(template.text, slots);
+      let baseText = fillTemplate(template.text, slots);
+      const templateHasGeo = template.has_geo && !!slots.geo;
+      if (hasGeo && !templateHasGeo) {
+        const geoTerm = rng.pick(slotBank.geo_terms).display;
+        baseText = baseText + ` in ${geoTerm}`;
+      }
       const baseKey = normalizeKey(baseText);
 
       if (seenBaseKeys.has(baseKey)) {
@@ -337,7 +346,11 @@ export function generatePromptSet(
               if (val) fbSlots[ph] = val;
             }
           }
-          const fbText = fillTemplate(fallback.text, fbSlots);
+          let fbText = fillTemplate(fallback.text, fbSlots);
+          if (hasGeo && !fallback.has_geo) {
+            const geoTerm = rng.pick(slotBank.geo_terms).display;
+            fbText = fbText + ` in ${geoTerm}`;
+          }
           const fbKey = normalizeKey(fbText);
           if (!seenBaseKeys.has(fbKey)) {
             seenBaseKeys.add(fbKey);
@@ -349,9 +362,9 @@ export function generatePromptSet(
               shape,
               text: fbText + getShapeSuffix(shape),
               slots_used: fbSlots,
-              tags: [cluster, shape],
+              tags: [cluster, shape, "has_geo"],
               modifier_included: false,
-              geo_included: false,
+              geo_included: true,
             });
             generated++;
           }
@@ -365,7 +378,7 @@ export function generatePromptSet(
       shapeIdx++;
 
       const modIncluded = template.has_modifier && !!slots.modifier;
-      const geoIncluded = template.has_geo && !!slots.geo;
+      const geoIncluded = templateHasGeo || hasGeo;
 
       if (modIncluded) modifierUsedCount++;
       if (geoIncluded) geoUsedCount++;
@@ -395,7 +408,11 @@ export function generatePromptSet(
         const val = fillSlot(ph, slotBank, rng, validated.persona_type);
         if (val) fbSlots[ph] = val;
       }
-      const fbText = fillTemplate(fallback.text, fbSlots);
+      let fbText = fillTemplate(fallback.text, fbSlots);
+      if (hasGeo && !fallback.has_geo) {
+        const geoTerm = rng.pick(slotBank.geo_terms).display;
+        fbText = fbText + ` in ${geoTerm}`;
+      }
       const shape = shapes[shapeIdx % shapes.length];
       shapeIdx++;
       prompts.push({
@@ -404,9 +421,9 @@ export function generatePromptSet(
         shape,
         text: fbText + getShapeSuffix(shape),
         slots_used: fbSlots,
-        tags: [cluster, shape],
+        tags: [cluster, shape, ...(hasGeo ? ["has_geo"] : [])],
         modifier_included: false,
-        geo_included: false,
+        geo_included: hasGeo,
       });
       generated++;
     }
