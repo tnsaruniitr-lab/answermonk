@@ -15,7 +15,7 @@ import { z } from "zod";
 import { queryEngine } from "./engines";
 import { generatePromptSet } from "./promptgen/generator";
 import { BuyerIntentProfileSchema } from "./promptgen/types";
-import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, BUDGET_ADJECTIVES } from "./promptgen/presets";
+import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, BUDGET_ADJECTIVES, DECISION_MAKERS } from "./promptgen/presets";
 import { selectMiniPanel, selectMicroPanel } from "./scoring/panel";
 import { runScoring } from "./scoring/runner";
 import { insertSavedProfileSchema } from "@shared/schema";
@@ -217,6 +217,7 @@ export async function registerRoutes(
         services: MARKETING_CHANNELS,
         verticals: MARKETING_VERTICALS,
         modifiers: MARKETING_MODIFIERS,
+        decision_makers: DECISION_MAKERS,
         budget_tiers: Object.keys(BUDGET_ADJECTIVES.marketing_agency),
       });
     } else if (persona === "automation_consultant") {
@@ -224,6 +225,7 @@ export async function registerRoutes(
         services: AUTOMATION_SERVICES,
         verticals: AUTOMATION_VERTICALS,
         modifiers: AUTOMATION_KNOWN_TOOLS.slice(0, 40),
+        decision_makers: DECISION_MAKERS,
         budget_tiers: Object.keys(BUDGET_ADJECTIVES.automation_consultant),
       });
     } else {
@@ -232,11 +234,13 @@ export async function registerRoutes(
           services: MARKETING_CHANNELS,
           verticals: MARKETING_VERTICALS,
           modifiers: MARKETING_MODIFIERS,
+          decision_makers: DECISION_MAKERS,
         },
         automation_consultant: {
           services: AUTOMATION_SERVICES,
           verticals: AUTOMATION_VERTICALS,
           modifiers: AUTOMATION_KNOWN_TOOLS.slice(0, 40),
+          decision_makers: DECISION_MAKERS,
         },
       });
     }

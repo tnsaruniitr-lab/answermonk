@@ -32,6 +32,7 @@ export const savedProfiles = pgTable("saved_profiles", {
   modifiers: text("modifiers").array().notNull(),
   geo: text("geo"),
   budgetTier: text("budget_tier").notNull().default("mid"),
+  decisionMakers: text("decision_makers").array().notNull().default([]),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
