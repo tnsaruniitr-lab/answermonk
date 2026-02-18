@@ -1,0 +1,94 @@
+A few final “sharp edges” to address before you code, so you don’t discover them painfully later:
+
+1) Industry clause: choose one industry, not a list
+
+industries_served can return multiple entries (e.g., “restaurants, real estate, healthcare”). If you inject multiple, prompts become messy and reduce recall quality.
+
+Rule (deterministic):
+
+pick the single best industry = the one with highest keyword support (count mentions in extracted text/meta), else take the first item.
+
+store the full list for UI, but use only industry_primary for prompts.
+
+2) “Too vague” industry detection needs a whitelist/blacklist
+
+“businesses” and “companies” are vague, but so are “SMEs”, “brands”, “clients”, “all industries”.
+
+Add VAGUE_INDUSTRIES set:
+
+businesses, companies, startups, SMEs, brands, clients, all industries, various industries, multiple industries, any industry
+
+If industry_primary ∈ vague → drop clause.
+
+3) Buyer phrases and verbs: keep them deterministic (don’t randomize)
+
+Don’t randomize buyer/verb combinations per run; keep it fixed per territory so results across time are comparable.
+
+Example fixed mapping:
+
+Task v1: buyer[0] + verb[0] + task[0]
+
+Task v2: buyer[2] + verb[2] + task[1]
+
+This prevents accidental drift (“today the system used ‘outsource to’ instead of ‘hire’”).
+
+4) Strengthen “no tools” constraint with a second guard
+
+Even with “do not include software tools,” models still sometimes include platforms.
+
+Add a second line (still short):
+
+“Only include agencies/consultants, not SaaS products or platforms.”
+
+That reduces leakage materially.
+
+5) Alias stopwords: make it configurable + include city/country tokens
+
+You already have “dubai” in stopwords — add:
+
+uae, ksa, saudi, london, india, me, mena
+Otherwise aliases like “Prism UAE” can create weird partial matches.
+
+Also: make the stopword list a config constant so you can update without code changes.
+
+6) Word-boundary matching with punctuation normalization: do it in the right order
+
+To make \b work, you need a consistent normalized string.
+
+Pipeline should be:
+
+lowercase
+
+replace punctuation with spaces (not remove)
+
+collapse whitespace
+
+then boundary match on space-delimited tokens
+
+If you remove punctuation without adding spaces, you’ll break boundaries on strings like “Adash-Creatives”.
+
+7) Control territory injection: cap total territories at 4 (you already do)
+
+Good. Just ensure it doesn’t add Outsourced Marketing when the overlap score is near zero and the only trigger is the word “agency” in the footer.
+
+Rule: control injection requires:
+
+at least 2 distinct trigger hits among {agency, full service, digital marketing, advertising, creative agency} OR one strong phrase (“full service”, “360”).
+
+This avoids spurious additions.
+
+8) Two-page crawl: define deterministic selection
+
+“Optionally follow /services or /about” can be ambiguous.
+
+Make it deterministic:
+
+if /services exists, fetch it
+
+else if /service exists, fetch it
+
+else if /about exists, fetch it
+
+else only homepage
+
+Use same ordering always.
