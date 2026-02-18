@@ -1,0 +1,90 @@
+Fixes I strongly recommend
+1) Don’t ask the extractor for “hiring_situations”
+
+This reintroduces the “LLM invents prompts” loop through the back door.
+
+You only need: services, positioning terms, industries, geo mentions.
+
+“Hiring situations” is subjective and will be model-driven.
+
+Change: remove hiring_situations from extraction JSON, or keep it purely for UI display but do not feed it into prompt generation.
+
+2) Add a “service provider only” guardrail to prompts
+
+Otherwise your lists will drift into software tools (Sprout Social, HubSpot, Semrush) instead of hireable agencies/consultants.
+
+Modify template:
+
+“Give a numbered list of 10 service providers (agencies/consultants) … Only list names. Do not include software tools.”
+
+This single line makes your panel far cleaner.
+
+3) Rework the “Generic variant”
+
+Your current generic example (“10 branding agencies in the restaurant industry”) is fine, but I’d keep the syntax uniform (same “Give a numbered list…” prefix) to reduce format drift.
+
+Generic variant should be:
+
+“Give a numbered list of 10 branding agencies that work with restaurant brands. Only list names.”
+
+(Still category-level, but consistent format.)
+
+4) Alias matching: add entity boundary checks
+
+Alias matching via substring will create false positives (e.g., “Prism” matching “Prismify” or “Adash” matching “Adasha…”).
+
+Rule: require word boundaries for aliases ≥4 chars.
+For very short aliases (<4) you already plan stricter matching—good. Extend boundary logic to all.
+
+5) Store “territory scores” and “matched trigger keywords”
+
+When the user asks “why is competitor shown and not me?”, you need explainability.
+
+Store:
+
+keyword overlap counts per territory
+
+which trigger keywords fired
+
+Then you can say:
+
+“We tested Branding because website contains: identity, logo, creative direction…”
+
+6) Add 1 “Outsourced marketing” control prompt even if not in top 3 (optional but high value)
+
+For Dubai agencies, “outsourced marketing team/360 partner” is a major recall bucket. Sometimes websites under-signal it, but buyers still ask it.
+
+If you can afford +4 prompts, add a single fixed control territory:
+
+Outsourced Marketing (global + city)
+
+Acquisition (global + city)
+
+That makes comparisons more robust and reduces overfitting to website wording.
+
+One thing you should NOT do
+
+In Task 3 you’re extracting brand_name_variants via GPT-5.2. That’s fine for matching, but don’t feed brand variants back into prompt generation (you aren’t, good). Keep it that way.
+
+About bias: will this still be biased?
+
+This design is relatively low-bias because prompt drafting is deterministic.
+
+The remaining bias comes from:
+
+the LLM’s extraction quality (misreading site)
+
+the website itself (marketing copy may not reflect what buyers ask)
+
+But those are acceptable for MVP, and you can mitigate with:
+
+max 2 pages crawled (home + services/about)
+
+caching extraction per domain
+
+a “manual override territories” later as advanced option (not default)
+
+Verdict
+
+Yes, this plan matches our approach and is a strong MVP.
+Make the 4–6 adjustments above and you’ll avoid the main failure modes (tool pollution, narrative loop, false positives, weak explainability).
