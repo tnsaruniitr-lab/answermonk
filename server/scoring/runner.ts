@@ -28,8 +28,10 @@ const gemini = new GoogleGenAI({
 type ScoringEngine = "chatgpt" | "gemini" | "claude";
 const ENGINES: ScoringEngine[] = ["chatgpt", "gemini", "claude"];
 
-const BATCH_SIZE = 5;
-const BATCH_DELAY_MS = 500;
+const BATCH_SIZE = 3;
+const BATCH_DELAY_MS = 1500;
+const MAX_RETRIES = 3;
+const RETRY_BASE_MS = 2000;
 
 export interface RawRunResult {
   prompt_id: string;
@@ -64,42 +66,56 @@ export async function runScoring(
 
     const batchPromises = batch.flatMap((prompt) =>
       ENGINES.map(async (engine) => {
-        try {
-          const rawText = await queryEngine(engine, prompt.text);
-          const llmResult = await extractBrandsWithLLM(rawText, prompt.text);
-          const extraction = llmResultToExtractedCandidates(llmResult);
-          const match = matchRun(extraction.candidates, brand);
+        let lastErr: unknown;
+        for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+          try {
+            if (attempt > 0) {
+              const delay = RETRY_BASE_MS * Math.pow(2, attempt - 1);
+              console.log(`Retry ${attempt}/${MAX_RETRIES} for ${engine} prompt ${prompt.id} after ${delay}ms`);
+              await sleep(delay);
+            }
+            const rawText = await queryEngine(engine, prompt.text);
+            const llmResult = await extractBrandsWithLLM(rawText, prompt.text);
+            const extraction = llmResultToExtractedCandidates(llmResult);
+            const match = matchRun(extraction.candidates, brand);
 
-          const result: RawRunResult = {
-            prompt_id: prompt.id,
-            cluster: prompt.cluster,
-            engine,
-            raw_text: rawText,
-            extraction,
-            match,
-          };
+            const result: RawRunResult = {
+              prompt_id: prompt.id,
+              cluster: prompt.cluster,
+              engine,
+              raw_text: rawText,
+              extraction,
+              match,
+            };
 
-          completed++;
-          onProgress?.(completed, totalCalls);
+            completed++;
+            onProgress?.(completed, totalCalls);
 
-          return result;
-        } catch (err) {
-          console.error(`Scoring engine ${engine} failed for prompt ${prompt.id}:`, err);
-          completed++;
-          onProgress?.(completed, totalCalls);
-
-          return {
-            prompt_id: prompt.id,
-            cluster: prompt.cluster,
-            engine,
-            raw_text: `[Error: ${engine} unavailable]`,
-            extraction: { candidates: [], valid: false },
-            match: {
-              brand: { brand_found: false, brand_rank: null, match_tier: null },
-              competitors: [],
-            },
-          } as RawRunResult;
+            return result;
+          } catch (err) {
+            lastErr = err;
+            const isRetryable = isRetryableError(err);
+            if (!isRetryable || attempt === MAX_RETRIES) {
+              console.error(`Scoring engine ${engine} failed for prompt ${prompt.id} (attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, err);
+              break;
+            }
+          }
         }
+
+        completed++;
+        onProgress?.(completed, totalCalls);
+
+        return {
+          prompt_id: prompt.id,
+          cluster: prompt.cluster,
+          engine,
+          raw_text: `[Error: ${engine} unavailable]`,
+          extraction: { candidates: [], valid: false },
+          match: {
+            brand: { brand_found: false, brand_rank: null, match_tier: null },
+            competitors: [],
+          },
+        } as RawRunResult;
       }),
     );
 
@@ -169,6 +185,16 @@ async function queryGemini(prompt: string): Promise<string> {
     config: { maxOutputTokens: 1024 },
   });
   return response.text ?? "";
+}
+
+function isRetryableError(err: unknown): boolean {
+  if (err && typeof err === "object") {
+    const status = (err as any).status ?? (err as any).statusCode ?? (err as any).code;
+    if (status === 429 || status === 500 || status === 502 || status === 503 || status === 529) return true;
+    const msg = String((err as any).message ?? "");
+    if (msg.includes("rate") || msg.includes("429") || msg.includes("overloaded") || msg.includes("capacity") || msg.includes("timeout") || msg.includes("ECONNRESET")) return true;
+  }
+  return false;
 }
 
 function sleep(ms: number): Promise<void> {

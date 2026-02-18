@@ -116,7 +116,7 @@ interface GEOScore {
   avg_rank: number | null;
   competitors: CompetitorScore[];
   cluster_breakdown: Record<string, ClusterBreakdown>;
-  engine_breakdown: Record<string, { appearance_rate: number; primary_rate: number; valid_runs: number }>;
+  engine_breakdown: Record<string, { appearance_rate: number; primary_rate: number; valid_runs: number; total_runs?: number; error_runs?: number }>;
 }
 
 interface RawRun {
@@ -572,20 +572,37 @@ function ResultsDashboard({ score, brandName, mode, promptsUsed, rawRuns, onNewA
             By Engine
           </h3>
           <div className="grid grid-cols-3 gap-3">
-            {Object.entries(score.engine_breakdown).map(([engine, data]) => (
-              <Card key={engine} className="p-3 space-y-1.5" data-testid={`engine-card-${engine}`}>
-                <span className="text-xs font-medium text-muted-foreground">
-                  {ENGINE_LABELS[engine] || engine}
-                </span>
-                <div className="text-lg font-semibold">
-                  {Math.round(data.appearance_rate * 100)}%
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs text-muted-foreground">Top 3</span>
-                  <span className="text-xs font-medium">{Math.round(data.primary_rate * 100)}%</span>
-                </div>
-              </Card>
-            ))}
+            {Object.entries(score.engine_breakdown).map(([engine, data]) => {
+              const hasErrors = (data.error_runs ?? 0) > 0;
+              const allFailed = data.valid_runs === 0 && hasErrors;
+              return (
+                <Card key={engine} className={`p-3 space-y-1.5 ${allFailed ? "opacity-60" : ""}`} data-testid={`engine-card-${engine}`}>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {ENGINE_LABELS[engine] || engine}
+                  </span>
+                  {allFailed ? (
+                    <div className="text-sm text-destructive font-medium" data-testid={`engine-error-${engine}`}>
+                      All {data.total_runs ?? 0} calls failed
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-lg font-semibold">
+                        {Math.round(data.appearance_rate * 100)}%
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs text-muted-foreground">Top 3</span>
+                        <span className="text-xs font-medium">{Math.round(data.primary_rate * 100)}%</span>
+                      </div>
+                      {hasErrors && (
+                        <div className="text-xs text-destructive" data-testid={`engine-partial-error-${engine}`}>
+                          {data.error_runs} of {data.total_runs} calls failed
+                        </div>
+                      )}
+                    </>
+                  )}
+                </Card>
+              );
+            })}
           </div>
         </div>
       )}

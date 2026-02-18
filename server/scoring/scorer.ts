@@ -30,7 +30,7 @@ export interface GEOScore {
   avg_rank: number | null;
   competitors: CompetitorScore[];
   cluster_breakdown: Record<string, ClusterBreakdown>;
-  engine_breakdown: Record<string, { appearance_rate: number; primary_rate: number; valid_runs: number }>;
+  engine_breakdown: Record<string, { appearance_rate: number; primary_rate: number; valid_runs: number; total_runs: number; error_runs: number }>;
 }
 
 export function computeGEOScore(runs: RunData[]): GEOScore {
@@ -40,6 +40,11 @@ export function computeGEOScore(runs: RunData[]): GEOScore {
   const invalidRuns = totalRuns - V;
 
   if (V === 0) {
+    const ebZero: Record<string, { appearance_rate: number; primary_rate: number; valid_runs: number; total_runs: number; error_runs: number }> = {};
+    const allGroups = groupBy(runs, (r) => r.engine);
+    for (const [engine, engineRuns] of Object.entries(allGroups)) {
+      ebZero[engine] = { appearance_rate: 0, primary_rate: 0, valid_runs: 0, total_runs: engineRuns.length, error_runs: engineRuns.length };
+    }
     return {
       valid_runs: 0,
       total_runs: totalRuns,
@@ -49,7 +54,7 @@ export function computeGEOScore(runs: RunData[]): GEOScore {
       avg_rank: null,
       competitors: [],
       cluster_breakdown: {},
-      engine_breakdown: {},
+      engine_breakdown: ebZero,
     };
   }
 
@@ -103,18 +108,21 @@ export function computeGEOScore(runs: RunData[]): GEOScore {
     };
   }
 
-  const engineBreakdown: Record<string, { appearance_rate: number; primary_rate: number; valid_runs: number }> = {};
-  const engineGroups = groupBy(validRuns, (r) => r.engine);
-  for (const [engine, engineRuns] of Object.entries(engineGroups)) {
-    const ev = engineRuns.length;
-    const ea = engineRuns.filter((r) => r.brand.brand_found).length;
-    const et = engineRuns.filter(
+  const engineBreakdown: Record<string, { appearance_rate: number; primary_rate: number; valid_runs: number; total_runs: number; error_runs: number }> = {};
+  const allEngineGroups = groupBy(runs, (r) => r.engine);
+  for (const [engine, allEngineRuns] of Object.entries(allEngineGroups)) {
+    const engineValid = allEngineRuns.filter((r) => r.valid);
+    const ev = engineValid.length;
+    const ea = engineValid.filter((r) => r.brand.brand_found).length;
+    const et = engineValid.filter(
       (r) => r.brand.brand_found && r.brand.brand_rank !== null && r.brand.brand_rank <= 3,
     ).length;
     engineBreakdown[engine] = {
       appearance_rate: ev > 0 ? ea / ev : 0,
       primary_rate: ev > 0 ? et / ev : 0,
       valid_runs: ev,
+      total_runs: allEngineRuns.length,
+      error_runs: allEngineRuns.length - ev,
     };
   }
 
