@@ -1040,10 +1040,10 @@ export default function PromptGenerator() {
       });
       return;
     }
-    if (services.length < 3) {
+    if (services.length < 2) {
       toast({
         title: "Need more services",
-        description: "Add at least 3 services.",
+        description: "Add at least 2 services.",
         variant: "destructive",
       });
       return;
