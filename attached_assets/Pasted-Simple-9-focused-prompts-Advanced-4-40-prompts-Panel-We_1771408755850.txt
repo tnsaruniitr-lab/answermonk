@@ -1,0 +1,142 @@
+Simple
+— 9 focused prompts
+
+Advanced
+— 4-40 prompts
+
+Panel
+— Website recall test
+Brand Name
+adashcreatives
+Website URL
+https://adashcreatives.com/
+City
+dubai
+Analyze Website
+Detected Profile
+Industry: General
+City: dubai
+Service Keywords:
+Brand Aliases:
+adashcreatives
+Adash Creative Agency
+Adash Creatives
+AdashCreative
+Adash Creative
+Adash Creativ
+Adash Creatves
+Adash Creativs
+Adashcreativs
+Hide Raw Dataset
+{
+  "step1_gpt_extraction": {
+    "primary_services": [],
+    "secondary_services": [],
+    "industries_served": [],
+    "client_size_indicators": [],
+    "positioning_terms": [
+      "modern agency"
+    ],
+    "geo_mentions": [],
+    "brand_name_variants": [
+      "Adash Creative Agency"
+    ]
+  },
+  "step2_prompt_dataset": {
+    "territories": [],
+    "industry_primary": "General",
+    "city": "dubai"
+  },
+  "all_territory_scores": [
+    {
+      "territory_id": "acquisition",
+      "label": "Acquisition",
+      "score": 0,
+      "matched_keywords": []
+    },
+    {
+      "territory_id": "outsourced_marketing",
+      "label": "Outsourced Marketing",
+      "score": 0,
+      "matched_keywords": []
+    },
+    {
+      "territory_id": "branding",
+      "label": "Branding",
+      "score": 0,
+      "matched_keywords": []
+    },
+    {
+      "territory_id": "social_content",
+      "label": "Social / Content",
+      "score": 0,
+      "matched_keywords": []
+    },
+    {
+      "territory_id": "web_presence",
+      "label": "Web Presence",
+      "score": 0,
+      "matched_keywords": []
+    },
+    {
+      "territory_id": "marketing_ops",
+      "label": "Marketing Ops",
+      "score": 0,
+      "matched_keywords": []
+    },
+    {
+      "territory_id": "pr_reputation",
+      "label": "PR / Reputation",
+      "score": 0,
+      "matched_keywords": []
+    }
+  ],
+  "aliases": [
+    {
+      "original": "adashcreatives",
+      "tokens": "adashcreatives",
+      "compact": "adashcreatives"
+    },
+    {
+      "original": "Adash Creative Agency",
+      "tokens": "adash creative agency",
+      "compact": "adashcreativeagency"
+    },
+    {
+      "original": "Adash Creatives",
+      "tokens": "adash creatives",
+      "compact": "adashcreatives"
+    },
+    {
+      "original": "AdashCreative",
+      "tokens": "adashcreative",
+      "compact": "adashcreative"
+    },
+    {
+      "original": "Adash Creative",
+      "tokens": "adash creative",
+      "compact": "adashcreative"
+    },
+    {
+      "original": "Adash Creativ",
+      "tokens": "adash creativ",
+      "compact": "adashcreativ"
+    },
+    {
+      "original": "Adash Creatves",
+      "tokens": "adash creatves",
+      "compact": "adashcreatves"
+    },
+    {
+      "original": "Adash Creativs",
+      "tokens": "adash creativs",
+      "compact": "adashcreativs"
+    },
+    {
+      "original": "Adashcreativs",
+      "tokens": "adashcreativs",
+      "compact": "adashcreativs"
+    }
+  ]
+}
+Matched Territories (0)
