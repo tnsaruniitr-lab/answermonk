@@ -4,7 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 import type { Prompt } from "../promptgen/types";
 import { extractBrandsWithLLM, llmResultToExtractedCandidates } from "./llm-extractor";
 import { type ExtractionResult } from "./extractor";
-import { matchRun, buildBrandIdentity, type BrandIdentity, type RunMatchResult } from "./matcher";
+import { matchRun, buildBrandIdentity, type BrandIdentity, type RunMatchResult, type AliasEntry } from "./matcher";
 import { computeGEOScore, type RunData, type GEOScore } from "./scorer";
 
 const openai = new OpenAI({
@@ -51,8 +51,9 @@ export async function runScoring(
   brandName: string,
   brandDomain?: string | null,
   onProgress?: (completed: number, total: number) => void,
+  aliases?: AliasEntry[],
 ): Promise<ScoringRunResult> {
-  const brand = buildBrandIdentity(brandName, brandDomain);
+  const brand = buildBrandIdentity(brandName, brandDomain, aliases);
   const totalCalls = prompts.length * ENGINES.length;
   let completed = 0;
 

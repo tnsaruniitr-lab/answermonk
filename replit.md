@@ -49,13 +49,20 @@ Preferred communication style: Simple, everyday language.
   - Two personas: Marketing Agency (provider-led) and Automation Consultant (problem-led)
   - Exact distributions: 10 per cluster, 14 open / 10 top5 / 10 top3 / 6 best shapes
   - Same seed + input = same 40 prompts (deterministic)
+- **Panel Mode** (`server/panel/`): Website-first recall testing system
+  - `territories.ts` — 7 fixed territories with weighted keywords, synonym map, and control territory logic
+  - `templates.ts` — Deterministic prompt generation (4 prompts per territory: task_v1, task_v2, generic, local)
+  - `aliases.ts` — Brand alias extraction from HTML + LLM expansion, dual normalization (tokens + compact)
+  - `generator.ts` — Website crawling (2-page: home + /services|/about), GPT-5.2 extraction, territory matching
+  - API endpoints: `POST /api/panel/analyze` (website analysis), `POST /api/panel/score` (scoring with aliases)
+  - 12-16 standardized prompts per run across 3 AI engines
 - **Validation**: Zod schemas for all request/response validation, shared between client and server
 - **GEO Scoring Service** (`server/scoring/`): Separate probabilistic scoring pipeline
   - `panel.ts` — Deterministic mini-panel selector (10-from-40: 3 direct, 3 task, 2 persona, 2 budget)
   - `runner.ts` — Batched parallel LLM executor (ChatGPT, Gemini, Claude), rate-limited
   - `llm-extractor.ts` — LLM-based brand extraction using gpt-4o-mini; replaces regex-based extraction for both Analyzer and Scoring pipelines
   - `extractor.ts` — Legacy regex-based extraction (kept for reference, no longer primary)
-  - `matcher.ts` — Tiered brand matching (exact name, domain root), false-positive protection for short names
+  - `matcher.ts` — Tiered brand matching (exact name, domain root, alias), false-positive protection for short names
   - `scorer.ts` — Pure frequency math: appearance_rate, primary_rate, avg_rank, competitor shares, cluster/engine breakdowns
   - Two modes: Quick (10 prompts) and Full (40 prompts), both run against all 3 engines
   - Results stored in `scoring_jobs` table with JSONB columns for flexible iteration

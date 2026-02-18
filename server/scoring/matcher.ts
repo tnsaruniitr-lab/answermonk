@@ -1,17 +1,24 @@
 import { normalizeName, getDomainRoot, type ExtractedCandidate } from "./extractor";
 
+export interface AliasEntry {
+  original: string;
+  tokens: string;
+  compact: string;
+}
+
 export interface BrandIdentity {
   name: string;
   name_norm: string;
   name_tokens: string[];
   domain: string | null;
   domain_root: string | null;
+  aliases?: AliasEntry[];
 }
 
 export interface MatchResult {
   brand_found: boolean;
   brand_rank: number | null;
-  match_tier: "exact" | "domain" | null;
+  match_tier: "exact" | "domain" | "alias" | null;
 }
 
 export interface CompetitorEntry {
@@ -33,7 +40,7 @@ const COMMON_WORDS = new Set([
   "app", "web", "api", "data", "lead", "sales", "tool",
 ]);
 
-export function buildBrandIdentity(brandName: string, brandDomain?: string | null): BrandIdentity {
+export function buildBrandIdentity(brandName: string, brandDomain?: string | null, aliases?: AliasEntry[]): BrandIdentity {
   const nameNorm = normalizeName(brandName);
   const nameTokens = nameNorm.split(/\s+/).filter(Boolean);
 
@@ -51,7 +58,38 @@ export function buildBrandIdentity(brandName: string, brandDomain?: string | nul
     name_tokens: nameTokens,
     domain,
     domain_root: domainRoot,
+    aliases,
   };
+}
+
+function normalizeToTokens(text: string): string {
+  let result = text.toLowerCase().trim();
+  result = result.replace(/[^\w\s]/g, " ");
+  result = result.replace(/\s+/g, " ").trim();
+  return result;
+}
+
+function normalizeToCompact(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function matchAlias(candidateNameRaw: string, aliases: AliasEntry[]): boolean {
+  const candTokens = normalizeToTokens(candidateNameRaw);
+  const candCompact = normalizeToCompact(candidateNameRaw);
+
+  for (const alias of aliases) {
+    const aliasTokensEscaped = alias.tokens.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const boundaryRegex = new RegExp(`(?:^|\\s)${aliasTokensEscaped}(?:\\s|$)`);
+    if (boundaryRegex.test(` ${candTokens} `)) {
+      return true;
+    }
+
+    if (alias.compact.length >= 6 && candCompact.includes(alias.compact)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 export function matchRun(
@@ -92,7 +130,7 @@ export function matchRun(
 function matchCandidate(
   candidate: ExtractedCandidate,
   brand: BrandIdentity,
-): "exact" | "domain" | null {
+): "exact" | "domain" | "alias" | null {
   if (candidate.name_norm === brand.name_norm) {
     return "exact";
   }
@@ -139,6 +177,12 @@ function matchCandidate(
       !COMMON_WORDS.has(brand.domain_root)
     ) {
       return "domain";
+    }
+  }
+
+  if (brand.aliases && brand.aliases.length > 0) {
+    if (matchAlias(candidate.name_raw, brand.aliases)) {
+      return "alias";
     }
   }
 

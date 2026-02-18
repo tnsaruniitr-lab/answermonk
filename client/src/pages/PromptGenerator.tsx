@@ -40,6 +40,9 @@ import {
   FileText,
   MapPin,
   Pencil,
+  Search,
+  Shield,
+  Tag,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -727,8 +730,36 @@ function generateSimplePrompts(persona: string, verticals: string[], services: s
   return prompts;
 }
 
+interface PanelPrompt {
+  id: string;
+  territory_id: string;
+  territory_label: string;
+  query_type: string;
+  text: string;
+  cluster: string;
+}
+
+interface PanelAnalysisResult {
+  brand_name: string;
+  website_url: string;
+  city: string;
+  industry: string;
+  service_keywords: string[];
+  territories: Array<{
+    territory_id: string;
+    label: string;
+    score: number;
+    matched_keywords: string[];
+  }>;
+  aliases: Array<{ original: string; tokens: string; compact: string }>;
+  prompts: PanelPrompt[];
+}
+
+type GeneratorMode = "simple" | "advanced" | "panel";
+
 export default function PromptGenerator() {
-  const [simpleMode, setSimpleMode] = useState(true);
+  const [mode, setMode] = useState<GeneratorMode>("simple");
+  const simpleMode = mode === "simple";
   const [promptStyle, setPromptStyle] = useState<"find_best" | "top5" | "top3">("find_best");
   const [persona, setPersona] = useState<string>("marketing_agency");
   const [verticals, setVerticals] = useState<string[]>([]);
@@ -752,6 +783,13 @@ export default function PromptGenerator() {
   const [editingPromptId, setEditingPromptId] = useState<string | null>(null);
   const [editDrafts, setEditDrafts] = useState<Record<string, string>>({});
   const [editedTexts, setEditedTexts] = useState<Record<string, string>>({});
+
+  const [panelUrl, setPanelUrl] = useState("");
+  const [panelBrand, setPanelBrand] = useState("");
+  const [panelCity, setPanelCity] = useState("");
+  const [panelAnalysis, setPanelAnalysis] = useState<PanelAnalysisResult | null>(null);
+  const [panelScoringResult, setPanelScoringResult] = useState<ScoringResponse | null>(null);
+  const [panelRawRuns, setPanelRawRuns] = useState<any[] | null>(null);
   const { toast } = useToast();
 
   const { data: presets } = useQuery<Presets>({
@@ -821,6 +859,83 @@ export default function PromptGenerator() {
       });
     },
   });
+
+  const {
+    mutate: analyzePanel,
+    isPending: isPanelAnalyzing,
+  } = useMutation<PanelAnalysisResult, Error, { brand_name: string; website_url: string; city: string }>({
+    mutationFn: async (body) => {
+      const res = await apiRequest("POST", "/api/panel/analyze", body);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setPanelAnalysis(data);
+    },
+    onError: (err) => {
+      toast({
+        title: "Website analysis failed",
+        description: err.message || "Could not analyze website. Check the URL and try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const {
+    mutate: runPanelScoring,
+    isPending: isPanelScoring,
+  } = useMutation<any, Error, any>({
+    mutationFn: async (body) => {
+      const res = await apiRequest("POST", "/api/panel/score", body);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setPanelScoringResult(data.score);
+      setPanelRawRuns(data.raw_runs || []);
+    },
+    onError: (err) => {
+      toast({
+        title: "Panel scoring failed",
+        description: err.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handlePanelAnalyze = () => {
+    if (!panelBrand.trim() || !panelUrl.trim() || !panelCity.trim()) {
+      toast({
+        title: "All fields required",
+        description: "Enter your brand name, website URL, and city.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setPanelAnalysis(null);
+    setPanelScoringResult(null);
+    setPanelRawRuns(null);
+    analyzePanel({
+      brand_name: panelBrand.trim(),
+      website_url: panelUrl.trim(),
+      city: panelCity.trim(),
+    });
+  };
+
+  const handlePanelScore = () => {
+    if (!panelAnalysis) return;
+    const domainMatch = panelUrl.match(/https?:\/\/(?:www\.)?([^/]+)/);
+    runPanelScoring({
+      brand_name: panelBrand.trim(),
+      brand_domain: domainMatch?.[1] || undefined,
+      city: panelCity.trim(),
+      prompts: panelAnalysis.prompts,
+      aliases: panelAnalysis.aliases,
+      panel_context: {
+        industry: panelAnalysis.industry,
+        service_keywords: panelAnalysis.service_keywords,
+        territories: panelAnalysis.territories,
+      },
+    });
+  };
 
   const currentPresets = presets?.[persona];
 
@@ -1044,8 +1159,8 @@ export default function PromptGenerator() {
     });
   };
 
-  const showForm = !result && !isGenerating && !isScoring && !scoringResult;
-  const showPrompts = result && !isGenerating && !isScoring && !scoringResult;
+  const showForm = mode === "panel" || (!result && !isGenerating && !isScoring && !scoringResult);
+  const showPrompts = mode !== "panel" && result && !isGenerating && !isScoring && !scoringResult;
   const showScoring = isScoring;
   const showResults = scoringResult && !isScoring;
 
@@ -1087,24 +1202,32 @@ export default function PromptGenerator() {
                   >
                     Tell us a bit about you?
                   </h1>
-                  <div className="flex items-center gap-3">
-                    <Switch
-                      id="simple-mode"
-                      checked={simpleMode}
-                      onCheckedChange={setSimpleMode}
-                      data-testid="switch-simple-mode"
-                    />
-                    <label htmlFor="simple-mode" className="text-sm cursor-pointer select-none">
-                      {simpleMode ? (
-                        <span><span className="font-medium">Simple Mode</span> <span className="text-muted-foreground">— 9 focused prompts, fast results</span></span>
-                      ) : (
-                        <span><span className="font-medium">Advanced Mode</span> <span className="text-muted-foreground">— 4-40 prompts, full template engine</span></span>
-                      )}
-                    </label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {([
+                      { key: "simple" as GeneratorMode, label: "Simple", desc: "9 focused prompts", icon: Zap },
+                      { key: "advanced" as GeneratorMode, label: "Advanced", desc: "4-40 prompts", icon: Sparkles },
+                      { key: "panel" as GeneratorMode, label: "Panel", desc: "Website recall test", icon: Shield },
+                    ]).map((m) => (
+                      <button
+                        key={m.key}
+                        type="button"
+                        onClick={() => setMode(m.key)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors border ${
+                          mode === m.key
+                            ? "border-primary bg-primary/10 text-primary font-medium"
+                            : "border-border hover-elevate"
+                        }`}
+                        data-testid={`button-mode-${m.key}`}
+                      >
+                        <m.icon className="w-3.5 h-3.5" />
+                        <span>{m.label}</span>
+                        <span className="text-muted-foreground text-xs hidden sm:inline">— {m.desc}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                {savedProfiles && savedProfiles.length > 0 && (
+                {mode !== "panel" && savedProfiles && savedProfiles.length > 0 && (
                   <div className="pb-6">
                     <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide block mb-1.5">
                       Load a saved profile
@@ -1129,7 +1252,196 @@ export default function PromptGenerator() {
                   </div>
                 )}
 
-                <form onSubmit={handleGenerate} className="space-y-6 pb-16">
+                {mode === "panel" && (
+                  <div className="space-y-6 pb-16">
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Brand Name
+                        </label>
+                        <Input
+                          value={panelBrand}
+                          onChange={(e) => setPanelBrand(e.target.value)}
+                          placeholder="e.g. Deep Agency"
+                          className="bg-secondary/50 border-border"
+                          data-testid="input-panel-brand"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Website URL
+                        </label>
+                        <Input
+                          value={panelUrl}
+                          onChange={(e) => setPanelUrl(e.target.value)}
+                          placeholder="e.g. https://deep.co"
+                          className="bg-secondary/50 border-border"
+                          data-testid="input-panel-url"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          City
+                        </label>
+                        <Input
+                          value={panelCity}
+                          onChange={(e) => setPanelCity(e.target.value)}
+                          placeholder="e.g. Dubai"
+                          className="bg-secondary/50 border-border"
+                          data-testid="input-panel-city"
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      type="button"
+                      onClick={handlePanelAnalyze}
+                      disabled={isPanelAnalyzing || !panelBrand.trim() || !panelUrl.trim() || !panelCity.trim()}
+                      data-testid="button-panel-analyze"
+                    >
+                      {isPanelAnalyzing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Analyzing website...
+                        </>
+                      ) : (
+                        <>
+                          <Search className="w-4 h-4 mr-2" />
+                          Analyze Website
+                        </>
+                      )}
+                    </Button>
+
+                    {panelAnalysis && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-6"
+                      >
+                        <Card className="p-4 space-y-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Tag className="w-4 h-4 text-primary" />
+                            <span className="font-medium text-sm">Detected Profile</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <span className="text-muted-foreground">Industry:</span>{" "}
+                              <span className="font-medium">{panelAnalysis.industry}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">City:</span>{" "}
+                              <span className="font-medium">{panelAnalysis.city}</span>
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground text-sm">Service Keywords:</span>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {panelAnalysis.service_keywords.map((kw) => (
+                                <Badge key={kw} variant="secondary" className="text-xs">
+                                  {kw}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          {panelAnalysis.aliases.length > 0 && (
+                            <div>
+                              <span className="text-muted-foreground text-sm">Brand Aliases:</span>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {panelAnalysis.aliases.map((a) => (
+                                  <Badge key={a.original} variant="outline" className="text-xs">
+                                    {a.original}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </Card>
+
+                        <Card className="p-4 space-y-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Target className="w-4 h-4 text-primary" />
+                            <span className="font-medium text-sm">Matched Territories ({panelAnalysis.territories.length})</span>
+                          </div>
+                          <div className="space-y-2">
+                            {panelAnalysis.territories.map((t) => (
+                              <div key={t.territory_id} className="flex items-start gap-2 text-sm">
+                                <div className="flex-1">
+                                  <span className="font-medium">{t.label}</span>
+                                  <span className="text-muted-foreground ml-2 text-xs">score {t.score.toFixed(1)}</span>
+                                  <div className="flex flex-wrap gap-1 mt-0.5">
+                                    {t.matched_keywords.slice(0, 5).map((kw) => (
+                                      <span key={kw} className="text-xs text-muted-foreground">{kw}</span>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </Card>
+
+                        <Card className="p-4 space-y-3">
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-primary" />
+                              <span className="font-medium text-sm">Generated Prompts ({panelAnalysis.prompts.length})</span>
+                            </div>
+                          </div>
+                          <div className="space-y-1.5 max-h-64 overflow-y-auto">
+                            {panelAnalysis.prompts.map((p, i) => (
+                              <div key={p.id} className="flex items-start gap-2 text-sm py-1 border-b last:border-b-0">
+                                <span className="text-muted-foreground text-xs font-mono w-5 shrink-0 pt-0.5">{i + 1}</span>
+                                <div className="flex-1 min-w-0">
+                                  <span className="break-words">{p.text}</span>
+                                  <div className="flex flex-wrap gap-1 mt-0.5">
+                                    <Badge variant="outline" className="text-[10px] py-0">{p.territory_label}</Badge>
+                                    <Badge variant="outline" className="text-[10px] py-0">{p.query_type}</Badge>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </Card>
+
+                        <Button
+                          type="button"
+                          onClick={handlePanelScore}
+                          disabled={isPanelScoring}
+                          className="w-full"
+                          data-testid="button-panel-score"
+                        >
+                          {isPanelScoring ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Running across 3 AI engines...
+                            </>
+                          ) : (
+                            <>
+                              <BarChart3 className="w-4 h-4 mr-2" />
+                              Run GEO Scoring ({panelAnalysis.prompts.length} prompts x 3 engines)
+                            </>
+                          )}
+                        </Button>
+
+                        {panelScoringResult && (
+                          <ResultsDashboard
+                            score={panelScoringResult}
+                            brandName={panelBrand}
+                            mode="panel"
+                            promptsUsed={panelAnalysis?.prompts.length || 0}
+                            rawRuns={panelRawRuns || []}
+                            onNewAnalysis={() => {
+                              setPanelAnalysis(null);
+                              setPanelScoringResult(null);
+                              setPanelRawRuns(null);
+                            }}
+                          />
+                        )}
+                      </motion.div>
+                    )}
+                  </div>
+                )}
+
+                {mode !== "panel" && (<form onSubmit={handleGenerate} className="space-y-6 pb-16">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -1314,7 +1626,7 @@ export default function PromptGenerator() {
                     )}
                     {simpleMode ? `Run Analysis (${1 + verticals.length + services.length + verticals.length * services.length} prompts x 3 engines)` : "Generate Prompts"}
                   </Button>
-                </form>
+                </form>)}
               </motion.div>
             )}
 

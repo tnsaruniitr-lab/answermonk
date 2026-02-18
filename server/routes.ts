@@ -19,6 +19,7 @@ import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATI
 import { selectMiniPanel, selectMicroPanel } from "./scoring/panel";
 import { runScoring } from "./scoring/runner";
 import { insertSavedProfileSchema } from "@shared/schema";
+import { analyzePanelWebsite } from "./panel/generator";
 
 /** ------------------------
  * Scoring helpers (From user provided logic)
@@ -380,6 +381,155 @@ export async function registerRoutes(
       return;
     }
     res.json(job);
+  });
+
+  const PanelAnalyzeSchema = z.object({
+    brand_name: z.string().min(1),
+    website_url: z.string().min(3),
+    city: z.string().min(1),
+  });
+
+  app.post("/api/panel/analyze", async (req, res) => {
+    try {
+      const parsed = PanelAnalyzeSchema.parse(req.body);
+      const result = await analyzePanelWebsite(
+        parsed.brand_name,
+        parsed.website_url,
+        parsed.city,
+      );
+
+      res.status(200).json({
+        brand_name: parsed.brand_name,
+        website_url: parsed.website_url,
+        city: parsed.city,
+        industry: result.industryPrimary || "General",
+        service_keywords: [
+          ...result.extractedProfile.primary_services,
+          ...result.extractedProfile.secondary_services,
+        ],
+        territories: result.territories.map((t) => ({
+          territory_id: t.territory.id,
+          label: t.territory.label,
+          score: t.score,
+          matched_keywords: t.matchedKeywords.map((k) => k.phrase),
+        })),
+        aliases: result.aliases,
+        prompts: result.prompts,
+      });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors.map((e) => e.message).join(", ") });
+      } else if (err instanceof Error) {
+        console.error("Panel analyze error:", err);
+        res.status(500).json({ message: err.message });
+      } else {
+        res.status(500).json({ message: "Panel analysis failed" });
+      }
+    }
+  });
+
+  const PanelScoreSchema = z.object({
+    brand_name: z.string().min(1),
+    brand_domain: z.string().optional(),
+    city: z.string().min(1),
+    prompts: z.array(z.object({
+      id: z.string(),
+      territory_id: z.string(),
+      territory_label: z.string(),
+      query_type: z.string(),
+      text: z.string(),
+      cluster: z.string(),
+    })),
+    aliases: z.array(z.object({
+      original: z.string(),
+      tokens: z.string(),
+      compact: z.string(),
+    })).optional(),
+    panel_context: z.any().optional(),
+  });
+
+  app.post("/api/panel/score", async (req, res) => {
+    try {
+      const parsed = PanelScoreSchema.parse(req.body);
+
+      const promptsForRunner = parsed.prompts.map((p) => ({
+        id: p.id,
+        cluster: p.cluster,
+        shape: "open" as const,
+        text: p.text,
+        slots_used: { territory: p.territory_id },
+        tags: [p.territory_label, p.query_type],
+        modifier_included: false,
+        geo_included: p.query_type === "local",
+      }));
+
+      const job = await storage.createScoringJob({
+        brandName: parsed.brand_name,
+        brandDomain: parsed.brand_domain || null,
+        mode: "panel",
+        status: "running",
+        promptCount: promptsForRunner.length,
+        engineCount: 3,
+      });
+
+      try {
+        const result = await runScoring(
+          promptsForRunner,
+          parsed.brand_name,
+          parsed.brand_domain,
+          undefined,
+          parsed.aliases,
+        );
+
+        await storage.updateScoringJob(job.id, {
+          status: "completed",
+          resultJson: result.score as any,
+          rawData: {
+            runs: result.raw_runs.map((r) => ({
+              prompt_id: r.prompt_id,
+              cluster: r.cluster,
+              engine: r.engine,
+              raw_text: r.raw_text,
+              candidates: r.extraction.candidates,
+              valid: r.extraction.valid,
+              brand_found: r.match.brand.brand_found,
+              brand_rank: r.match.brand.brand_rank,
+              match_tier: r.match.brand.match_tier,
+            })),
+            brand_identity: result.brand_identity,
+            panel_context: parsed.panel_context,
+            aliases: parsed.aliases,
+          } as any,
+        });
+
+        res.status(200).json({
+          job_id: job.id,
+          score: result.score,
+          prompts_used: promptsForRunner.length,
+          mode: "panel",
+          raw_runs: result.raw_runs.map((r) => ({
+            prompt_id: r.prompt_id,
+            prompt_text: promptsForRunner.find((p) => p.id === r.prompt_id)?.text || "",
+            cluster: r.cluster,
+            engine: r.engine,
+            raw_text: r.raw_text,
+            candidates: r.extraction.candidates,
+            brand_found: r.match.brand.brand_found,
+            brand_rank: r.match.brand.brand_rank,
+          })),
+        });
+      } catch (runErr) {
+        await storage.updateScoringJob(job.id, { status: "failed" });
+        throw runErr;
+      }
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors.map((e) => e.message).join(", ") });
+      } else {
+        console.error("Panel scoring error:", err);
+        res.status(500).json({ message: "Panel scoring failed. Please try again." });
+      }
+    }
   });
 
   return httpServer;
