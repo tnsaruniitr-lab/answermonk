@@ -1,0 +1,99 @@
+Refinements I recommend (small but important)
+1) Add an explicit “Only agencies/consultants” constraint in every prompt
+
+You already have it in parentheses, but I’d repeat it as a hard constraint because models sometimes ignore parentheticals.
+
+Change template to:
+
+“Give a numbered list of 10 agencies or consultants … Only list names. Do not include software tools.”
+
+This reduces tool leakage further.
+
+2) Generic variant: avoid using the territory label literally
+
+“Give a numbered list of 10 Branding agencies…” is unnatural phrasing. It can reduce recall quality and increase variance.
+
+Instead maintain a per-territory category phrase:
+
+Branding → “branding agencies”
+
+Acquisition → “performance marketing agencies”
+
+Outsourced → “full-service marketing agencies”
+
+Social → “social media marketing agencies”
+
+Web → “web design and development agencies”
+
+Ops → “marketing automation agencies/consultants”
+
+PR → “PR agencies”
+
+So generic becomes:
+
+“Give a numbered list of 10 {category_phrase} that work with {industry} brands. Only list names. Do not include software tools.”
+
+More natural, more stable.
+
+3) Industry source: prefer user-provided industry if available, otherwise infer
+
+Right now Panel Mode has only 3 fields, so “industry” will come only from website extraction. That’s fine, but it will sometimes be missing or overly broad (“businesses”).
+
+Two options:
+
+keep MVP as-is, but…
+
+if industries_served is empty, default to “this industry” removal rather than inserting a wrong industry.
+
+Fallback rule:
+
+If industry unknown → drop “in the [industry] industry” clause entirely.
+
+This avoids garbage prompts.
+
+4) Control territory heuristic: make it based on extracted positioning, not “marketing/agency”
+
+Your condition “service type appears to be marketing/agency” is good, but be explicit:
+
+Trigger if any of these appear in services/positioning:
+
+“agency”, “full service”, “digital marketing”, “advertising”, “creative agency”
+
+Then inject Outsourced Marketing if missing.
+
+This prevents accidental injection for non-agencies.
+
+5) Alias expansion: treat very short tokens carefully
+
+Word boundaries help, but “Prism” is safe; “AD” or “ME” is not.
+
+Add one additional rule:
+
+discard aliases that are purely generic words (“digital”, “marketing”, “creative”, “agency”, “dubai”)
+
+discard aliases shorter than 3 chars
+
+for 3–4 chars, require exact-case-insensitive whole-token match (you already do boundary matching; add “stopword alias list”)
+
+This will prevent false hits that inflate visibility.
+
+6) Website crawl: make extraction robust to JS-heavy sites
+
+Many agency sites are JS-rendered and return thin HTML.
+
+MVP fix (low effort):
+
+also fetch the meta description + OpenGraph + JSON-LD and feed that into the extraction prompt along with text.
+
+if extracted text < N chars, include those fields explicitly.
+
+This improves extraction without needing headless browsing.
+
+One product-level note (not a blocker)
+
+Your cost model assumes one extraction call + 12–16×3 scoring calls. That’s fine.
+
+But to make results “explain why competitor not me”, you’ll eventually want:
+
+store the top competitors per query and their frequency (which you likely already store in scoring output).
+This is what drives the diagnostic layer.
