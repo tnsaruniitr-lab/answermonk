@@ -116,6 +116,7 @@ export const MARKETING_VERTICALS: string[] = [
   "interior designers",
   "coaches",
   "recruitment agencies",
+  "staffing companies",
   "luxury retail",
   "automotive dealers",
   "insurance agencies",
