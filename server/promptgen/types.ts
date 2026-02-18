@@ -15,7 +15,7 @@ export type BudgetTier = z.infer<typeof BudgetTierEnum>;
 export const BuyerIntentProfileSchema = z.object({
   persona_type: PersonaTypeEnum,
   category: z.string().min(1),
-  verticals: z.array(z.string().min(1)).min(2),
+  verticals: z.array(z.string().min(1)).min(1),
   services: z.array(z.string().min(1)).min(2),
   modifiers: z.array(z.string().min(1)).max(6).optional().default([]),
   geo: z.string().optional(),

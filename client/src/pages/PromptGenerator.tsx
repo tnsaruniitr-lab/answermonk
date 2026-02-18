@@ -1049,10 +1049,10 @@ export default function PromptGenerator() {
       return;
     }
 
-    if (verticals.length < 2) {
+    if (verticals.length < 1) {
       toast({
-        title: "Need more verticals",
-        description: "Add at least 2 target verticals.",
+        title: "Need verticals",
+        description: "Add at least 1 target vertical.",
         variant: "destructive",
       });
       return;
