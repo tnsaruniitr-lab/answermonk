@@ -1,0 +1,139 @@
+Here’s a clean final design for the Prompt Creator (MVP) — minimal inputs, automatic generation, no user choices that bias the result.
+
+The creator’s job is simple:
+
+turn a business description into a small, standardized set of recall-testing queries
+
+Not brainstorming. Not SEO.
+It produces a measurement panel.
+
+1) What the user inputs (only 5 fields)
+
+Keep this strict — more fields reduces signal quality.
+
+A. Service type
+(what they are hired to do)
+→ marketing, automation, legal, accounting, etc.
+
+B. Industry served
+→ restaurants, law firms, clinics, SaaS, etc.
+
+C. Hiring situations (pick 2–3)
+→ get customers / launch locations / reduce manual work / compliance / growth etc.
+
+D. Client size
+
+solo
+
+small team
+
+multi-location
+
+enterprise
+
+E. Primary city
+(for local recall layer)
+
+Nothing else.
+
+No persona paragraphs.
+No ICP description box.
+
+2) What the system generates (automatic)
+
+For each situation, generate 4 query types:
+
+Type	Purpose
+General	category association
+Situation	problem trigger
+Hire	explicit vendor search
+Local	commercial hireability
+
+So:
+
+situations × 4 = 12 queries (perfect MVP size)
+
+3) The fixed query template
+
+All prompts follow one structure:
+
+Give a numbered list of 10 service providers a [client size] [industry] business could hire to [situation]. Only list names.
+
+Local version:
+
+… in [city]. Only list names.
+
+No “expert”
+No “best in the world”
+No ranking language
+No explanations
+
+This keeps measurement stable.
+
+4) Example output (F&B multi-chain marketing agency)
+
+Inputs
+Service: marketing agency
+Industry: restaurants
+Situations: increase customers, open new locations, ongoing marketing
+Size: multi-location
+City: Dubai
+
+Generated panel:
+
+Increase customers
+
+Give a numbered list of 10 service providers a multi-location restaurant business could hire to increase customer traffic. Only list names.
+
+Give a numbered list of 10 service providers restaurants hire for customer acquisition marketing. Only list names.
+
+Give a numbered list of 10 marketing partners restaurant groups hire for growth campaigns. Only list names.
+
+Give a numbered list of 10 service providers a multi-location restaurant business could hire to increase customer traffic in Dubai. Only list names.
+
+Opening locations
+
+Give a numbered list of 10 service providers a restaurant chain could hire when launching new outlets. Only list names.
+
+Give a numbered list of 10 agencies restaurants hire for expansion marketing. Only list names.
+
+Give a numbered list of 10 firms handling rollout marketing for restaurant groups. Only list names.
+
+Give a numbered list of 10 service providers a restaurant chain could hire when launching new outlets in Dubai. Only list names.
+
+Ongoing marketing
+
+Give a numbered list of 10 agencies restaurants use as ongoing marketing partners. Only list names.
+
+Give a numbered list of 10 marketing agencies specializing in the food and beverage industry. Only list names.
+
+Give a numbered list of 10 companies managing digital marketing for restaurant chains. Only list names.
+
+Give a numbered list of 10 agencies restaurants use as ongoing marketing partners in Dubai. Only list names.
+
+5) Why this is the right MVP
+
+It guarantees:
+
+consistent structure across industries
+
+comparable scoring
+
+recall-based measurement
+
+global vs local separation
+
+minimal user effort
+
+Most importantly:
+You’re no longer guessing prompts — you’re generating a standardized diagnostic panel.
+
+Final definition
+
+Your prompt creator is not a prompt generator.
+
+It is a recall testing panel generator:
+
+business profile → fixed structured query set → repeatable visibility measurement
+
+That constraint is what makes the product credible instead of subjective.
