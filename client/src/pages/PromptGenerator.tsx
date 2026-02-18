@@ -86,6 +86,7 @@ interface Presets {
   [persona: string]: {
     verticals: string[];
     services: string[];
+    decision_makers?: string[];
     modifiers: string[];
   };
 }
@@ -737,6 +738,7 @@ export default function PromptGenerator() {
   const [budgetTier, setBudgetTier] = useState("mid");
   const [brandName, setBrandName] = useState("");
   const [brandDomain, setBrandDomain] = useState("");
+  const [decisionMakers, setDecisionMakers] = useState<string[]>([]);
   const [scoringMode, setScoringMode] = useState<"micro" | "quick" | "full">("quick");
   const [filterCluster, setFilterCluster] = useState<string>("all");
   const [filterShape, setFilterShape] = useState<string>("all");
@@ -779,6 +781,7 @@ export default function PromptGenerator() {
     setModifiers(profile.modifiers || []);
     setGeo(profile.geo || "");
     setBudgetTier(profile.budgetTier || "mid");
+    setDecisionMakers((profile as any).decisionMakers || []);
   };
 
   const {
@@ -864,6 +867,7 @@ export default function PromptGenerator() {
         modifiers: [],
         geo: geo.trim() || null,
         budgetTier: "mid",
+        decisionMakers,
       } as any);
 
       const simplePrompts = generateSimplePrompts(persona, verticals, services, geo, promptStyle);
@@ -916,6 +920,7 @@ export default function PromptGenerator() {
       modifiers,
       geo: geo.trim() || null,
       budgetTier,
+      decisionMakers,
     } as any);
 
     generate({
@@ -1279,6 +1284,20 @@ export default function PromptGenerator() {
                       placeholder="e.g. Dubai, UAE"
                       className="bg-secondary/50 border-border"
                       data-testid="input-geo"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Decision Maker
+                      <span className="text-muted-foreground/60 normal-case ml-1">(optional)</span>
+                    </label>
+                    <TagInput
+                      values={decisionMakers}
+                      onChange={setDecisionMakers}
+                      placeholder="Type or pick roles..."
+                      suggestions={currentPresets?.decision_makers}
+                      testIdPrefix="decision-makers"
                     />
                   </div>
 
