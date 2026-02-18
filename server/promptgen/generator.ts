@@ -5,7 +5,6 @@ import type {
   Prompt,
   PromptSet,
   Cluster,
-  Shape,
 } from "./types";
 import { BuyerIntentProfileSchema } from "./types";
 import {
@@ -18,8 +17,9 @@ import {
 } from "./presets";
 import {
   buildTemplatePools,
-  getShapeSuffix,
   getFallbackTemplate,
+  ADVANCED_PREFIX,
+  ADVANCED_SUFFIX,
   type PromptTemplate,
   type TemplatePools,
 } from "./templates";
@@ -161,6 +161,10 @@ interface GenerateOptions {
   nPrompts?: number;
 }
 
+function wrapPromptText(coreText: string): string {
+  return `${ADVANCED_PREFIX} ${coreText}. ${ADVANCED_SUFFIX}`;
+}
+
 export function generatePromptSet(
   profile: BuyerIntentProfile,
   options: GenerateOptions = {}
@@ -183,8 +187,6 @@ export function generatePromptSet(
     task: base,
   };
 
-  const shapes = buildShapeDistribution(nPrompts, rng);
-
   const modifierRate =
     validated.persona_type === "automation_consultant" ? 0.45 : 0.40;
   const geoRate =
@@ -205,18 +207,16 @@ export function generatePromptSet(
   const seenBaseKeys = new Set<string>();
   let modifierUsedCount = 0;
   let geoUsedCount = 0;
-  let shapeIdx = 0;
   let promptCounter = 0;
 
   for (const cluster of clusters) {
     let generated = 0;
     let clusterRetries = 0;
-    const maxClusterRetries = clusterCounts[cluster] * 10;
+    const maxClusterRetries = clusterCounts[cluster] * 15;
 
     while (generated < clusterCounts[cluster] && clusterRetries < maxClusterRetries) {
       clusterRetries++;
       const totalGenerated = prompts.length;
-      const remaining = nPrompts - totalGenerated;
       const boostWindow = totalGenerated >= 30;
 
       let useModifier = false;
@@ -284,38 +284,17 @@ export function generatePromptSet(
         const baseKey = normalizeKey(baseText);
 
         if (seenBaseKeys.has(baseKey)) {
-          promptCounter++;
-          if (promptCounter > nPrompts * 3) {
-            seenBaseKeys.add(baseKey + `_force_${prompts.length}`);
-            const shape = shapes[shapeIdx % shapes.length];
-            shapeIdx++;
-            prompts.push({
-              id: `p_${prompts.length + 1}`,
-              cluster,
-              shape,
-              text: baseText + getShapeSuffix(shape),
-              slots_used: slots,
-              tags: [cluster, shape, ...(hasGeo ? ["has_geo"] : [])],
-              modifier_included: false,
-              geo_included: hasGeo,
-            });
-            generated++;
-            promptCounter = 0;
-          }
           continue;
         }
         seenBaseKeys.add(baseKey);
 
-        const shape = shapes[shapeIdx % shapes.length];
-        shapeIdx++;
-
         prompts.push({
           id: `p_${prompts.length + 1}`,
           cluster,
-          shape,
-          text: baseText + getShapeSuffix(shape),
+          shape: "open",
+          text: wrapPromptText(baseText),
           slots_used: slots,
-          tags: [cluster, shape, ...(hasGeo ? ["has_geo"] : [])],
+          tags: [cluster, ...(hasGeo ? ["has_geo"] : [])],
           modifier_included: false,
           geo_included: hasGeo,
         });
@@ -354,15 +333,13 @@ export function generatePromptSet(
           const fbKey = normalizeKey(fbText);
           if (!seenBaseKeys.has(fbKey)) {
             seenBaseKeys.add(fbKey);
-            const shape = shapes[shapeIdx % shapes.length];
-            shapeIdx++;
             prompts.push({
               id: `p_${prompts.length + 1}`,
               cluster,
-              shape,
-              text: fbText + getShapeSuffix(shape),
+              shape: "open",
+              text: wrapPromptText(fbText),
               slots_used: fbSlots,
-              tags: [cluster, shape, "has_geo"],
+              tags: [cluster, "has_geo"],
               modifier_included: false,
               geo_included: true,
             });
@@ -374,8 +351,6 @@ export function generatePromptSet(
       }
 
       seenBaseKeys.add(baseKey);
-      const shape = shapes[shapeIdx % shapes.length];
-      shapeIdx++;
 
       const modIncluded = template.has_modifier && !!slots.modifier;
       const geoIncluded = templateHasGeo || hasGeo;
@@ -386,10 +361,10 @@ export function generatePromptSet(
       prompts.push({
         id: `p_${prompts.length + 1}`,
         cluster,
-        shape,
-        text: baseText + getShapeSuffix(shape),
+        shape: "open",
+        text: wrapPromptText(baseText),
         slots_used: slots,
-        tags: [cluster, shape, ...(modIncluded ? ["has_modifier"] : []), ...(geoIncluded ? ["has_geo"] : [])],
+        tags: [cluster, ...(modIncluded ? ["has_modifier"] : []), ...(geoIncluded ? ["has_geo"] : [])],
         modifier_included: modIncluded,
         geo_included: geoIncluded,
       });
@@ -398,7 +373,9 @@ export function generatePromptSet(
       promptCounter = 0;
     }
 
-    while (generated < clusterCounts[cluster]) {
+    let backfillAttempts = 0;
+    while (generated < clusterCounts[cluster] && backfillAttempts < 20) {
+      backfillAttempts++;
       const fallback = getFallbackTemplate(cluster);
       const fbSlots: Record<string, string> = {
         category: slotBank.category_terms[0]?.display ?? "consultant",
@@ -413,15 +390,16 @@ export function generatePromptSet(
         const geoTerm = rng.pick(slotBank.geo_terms).display;
         fbText = fbText + ` in ${geoTerm}`;
       }
-      const shape = shapes[shapeIdx % shapes.length];
-      shapeIdx++;
+      const fbKey = normalizeKey(fbText);
+      if (seenBaseKeys.has(fbKey)) continue;
+      seenBaseKeys.add(fbKey);
       prompts.push({
         id: `p_${prompts.length + 1}`,
         cluster,
-        shape,
-        text: fbText + getShapeSuffix(shape),
+        shape: "open",
+        text: wrapPromptText(fbText),
         slots_used: fbSlots,
-        tags: [cluster, shape, ...(hasGeo ? ["has_geo"] : [])],
+        tags: [cluster, ...(hasGeo ? ["has_geo"] : [])],
         modifier_included: false,
         geo_included: hasGeo,
       });
@@ -430,10 +408,8 @@ export function generatePromptSet(
   }
 
   const countsByCluster: Record<string, number> = {};
-  const countsByShape: Record<string, number> = {};
   for (const p of prompts) {
     countsByCluster[p.cluster] = (countsByCluster[p.cluster] ?? 0) + 1;
-    countsByShape[p.shape] = (countsByShape[p.shape] ?? 0) + 1;
   }
 
   return {
@@ -442,7 +418,7 @@ export function generatePromptSet(
     seed_used: seed,
     counts: {
       by_cluster: countsByCluster,
-      by_shape: countsByShape,
+      by_shape: { open: prompts.length },
       modifier_prompts: modifierUsedCount,
       geo_prompts: geoUsedCount,
     },
@@ -450,39 +426,6 @@ export function generatePromptSet(
     prompts,
     unverified_items: slotBank.unverified_modifiers,
   };
-}
-
-function buildShapeDistribution(n: number, rng: ReturnType<typeof seededRng>): Shape[] {
-  const shapes: Shape[] = [];
-  const targets: [Shape, number][] = [
-    ["open", 14],
-    ["top5", 10],
-    ["top3", 10],
-    ["best", 6],
-  ];
-  const totalTarget = targets.reduce((s, [, c]) => s + c, 0);
-
-  const counts: number[] = targets.map(([, c]) => Math.floor((c / totalTarget) * n));
-  let assigned = counts.reduce((s, c) => s + c, 0);
-  const remainders = targets.map(([, c], i) => ({
-    idx: i,
-    frac: ((c / totalTarget) * n) - counts[i],
-  }));
-  remainders.sort((a, b) => b.frac - a.frac);
-  let ri = 0;
-  while (assigned < n) {
-    counts[remainders[ri % remainders.length].idx]++;
-    assigned++;
-    ri++;
-  }
-
-  for (let i = 0; i < targets.length; i++) {
-    for (let j = 0; j < counts[i]; j++) {
-      shapes.push(targets[i][0]);
-    }
-  }
-
-  return rng.shuffle(shapes);
 }
 
 function pickTemplate(
@@ -524,7 +467,7 @@ function fillSlot(
   placeholder: string,
   bank: SlotBank,
   rng: ReturnType<typeof seededRng>,
-  personaType: PersonaType
+  personaType: string
 ): string | null {
   switch (placeholder) {
     case "category":
@@ -537,7 +480,7 @@ function fillSlot(
       if (bank.service_terms.length === 0) return null;
       return ensureServiceVerb(
         rng.pick(bank.service_terms).display,
-        personaType,
+        personaType as any,
         rng.pick
       );
     case "modifier":
