@@ -16,7 +16,7 @@ export const BuyerIntentProfileSchema = z.object({
   persona_type: PersonaTypeEnum,
   category: z.string().min(1),
   verticals: z.array(z.string().min(1)).min(2),
-  services: z.array(z.string().min(1)).min(3),
+  services: z.array(z.string().min(1)).min(2),
   modifiers: z.array(z.string().min(1)).max(6).optional().default([]),
   geo: z.string().optional(),
   budget_tier: BudgetTierEnum.optional().default("mid"),
