@@ -89,7 +89,7 @@ export async function expandAliasesWithLLM(brandName: string): Promise<string[]>
           content: `List common name variations for "${brandName}". Return JSON array only.`,
         },
       ],
-      max_tokens: 128,
+      max_completion_tokens: 128,
       temperature: 0,
     });
 

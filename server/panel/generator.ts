@@ -237,7 +237,7 @@ ${content}`;
         { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
         { role: "user", content: userPrompt },
       ],
-      max_tokens: 1024,
+      max_completion_tokens: 1024,
       temperature: 0,
     });
 
