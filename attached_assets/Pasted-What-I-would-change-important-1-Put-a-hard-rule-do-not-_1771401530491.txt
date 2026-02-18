@@ -1,0 +1,74 @@
+What I would change (important)
+1) Put a hard rule: “do not infer, only extract from text”
+
+Otherwise GPT will hallucinate industries/services that aren’t explicitly present.
+
+Add to system or user prompt:
+
+“Only include items explicitly supported by the provided content. If unknown, return an empty array.”
+
+2) Add “return empty arrays, never null”
+
+For parsing stability. You want consistent types.
+
+Add:
+
+“If a field is not present, return [] (empty array).”
+
+3) Add lightweight dedupe / normalization instruction
+
+GPT tends to return duplicates (“UAE”, “Dubai, UAE”, “Dubai”).
+
+Add:
+
+“Deduplicate entries; keep them short; don’t include long sentences.”
+
+4) Brand name variants: constrain format
+
+Otherwise it will include taglines or marketing phrases as variants.
+
+Add:
+
+“brand_name_variants must be company-name-like strings only (no slogans, no service phrases).”
+
+5) The 8,000 character cap: ensure it’s prioritized, not truncated arbitrarily
+
+If you just take the first 8k chars, you might cut out the services section.
+
+Better deterministic approach:
+
+Take first N chars plus any sections around headings like “Services”, “What we do”, “Solutions”, “About”.
+Even without HTML structure, you can do a simple keyword window extraction.
+
+If you keep it simple: at least concatenate:
+
+meta/OG/JSON-LD
+
+top of page
+
+snippets around the words “services”, “solutions”, “about”, “industries”
+
+6) Alias expansion: add constraints to avoid garbage aliases
+
+In the alias expansion prompt, add:
+
+“Return 1 per line.”
+
+“Do not include generic words like ‘digital’, ‘marketing’, ‘agency’, or locations like ‘Dubai’.”
+
+“Do not include domains/URLs.”
+
+(You already filter stopwords later, but this reduces junk upstream.)
+
+Revised extraction prompt (minimal edits)
+
+System:
+
+“You extract structured business information from website content. Return ONLY valid JSON. Do not infer.”
+
+User:
+
+“Only include items explicitly mentioned. If unknown, return [].
+Deduplicate entries. Keep each entry under 5 words.”
+
+Schema stays the same.
