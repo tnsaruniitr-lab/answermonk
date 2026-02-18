@@ -1,0 +1,134 @@
+Good catch — this actually matters a lot, because LLMs don’t store companies by domain names.
+They store them by name variants.
+
+So if you only check:
+
+“prism-me.com”
+
+you’ll miss most recalls, because the model almost never outputs domains — it outputs brand tokens.
+
+Your GEO system therefore needs a brand resolution step before scoring.
+
+The real problem
+
+One company can exist in the model under multiple identities:
+
+Type	Example
+Official name	Prism Digital
+Short name	Prism
+Legal name	Prism Digital Marketing LLC
+Domain	prism-me.com
+Abbreviation	Prism ME
+Misspelling	Prizm Digital
+
+When the model lists providers, it may output any of them.
+
+If you don’t normalize → you mark real appearances as “missing”.
+
+The solution: Brand Canonicalization
+
+Before running ranking analysis, build a brand alias set.
+
+Think of it as mapping all tokens that refer to the same entity.
+
+Step 1 — Extract candidates (automated)
+
+From the website:
+
+<title>
+
+logo alt text
+
+footer legal name
+
+meta tags
+
+structured data
+
+contact page
+
+This gives 2–6 variants automatically.
+
+Step 2 — Expand with LLM (safe usage)
+
+Ask:
+
+List common name variations someone might use to refer to this company. Return short phrases only.
+
+Important:
+This is safe because it doesn’t affect ranking prompts — only matching.
+
+Step 3 — Normalize
+
+Store:
+
+canonical: Prism Digital
+aliases:
+- Prism
+- Prism Digital Marketing
+- Prism ME
+- Prism Digital Dubai
+- Prism Digital Marketing LLC
+
+Step 4 — Match during scoring
+
+When parsing list results:
+
+If any alias appears → count as a hit.
+
+Do NOT require exact match.
+
+Use:
+
+case insensitive
+
+punctuation removed
+
+minor spacing tolerance
+
+Extra important rule
+
+Never show aliases to the ranking model.
+
+Only use them after generation.
+
+Otherwise you bias the output.
+
+Why this matters
+
+Without alias resolution you get false negatives like:
+
+Model output:
+
+Prism Digital Marketing LLC
+
+Your system:
+
+looking for “Prism Digital”
+
+→ counted as absent
+
+You’d incorrectly conclude invisibility.
+
+Advanced (later)
+
+You can also cluster entity mentions across runs to automatically discover competitors:
+
+If multiple unknown names repeatedly appear → add them to comparison set.
+
+Final takeaway
+
+Brand ≠ domain
+Brand ≠ single string
+
+So your pipeline becomes:
+
+website → extract brand
+
+expand aliases
+
+run recall tests
+
+match aliases in results
+
+That makes your visibility metric accurate instead of brittle.
