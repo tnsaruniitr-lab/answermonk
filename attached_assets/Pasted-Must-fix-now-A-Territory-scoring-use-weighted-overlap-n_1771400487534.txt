@@ -1,0 +1,101 @@
+Must-fix now
+A) Territory scoring: use weighted overlap, not raw counts
+
+Raw counts bias toward territories with longer keyword lists and toward generic words like “creative”, “video”, “content”.
+
+Change: give each keyword a weight (still deterministic):
+
+strong phrases (multi-word): weight 3 (e.g., “paid search”, “marketing partner”, “visual identity”, “public relations”)
+
+medium: weight 2 (e.g., “ppc”, “ecommerce”, “influencer”, “crm”, “reputation”)
+
+generic: weight 1 (e.g., “content”, “video”, “creative”, “media”)
+
+Score = sum(weights of matched keywords), not match count.
+Still store matched keywords for explainability.
+
+Why this matters: prevents “Social/Content” winning just because “content” appears 20 times.
+
+B) Keyword matching: add phrase-first, then token match
+
+If you just do token overlap, “paid” + “media” might match separately and inflate.
+
+Rule:
+
+match multi-word phrases on normalized text first (substring on tokenized text)
+
+then match single tokens
+
+don’t double-count overlaps for the same keyword
+
+C) Synonym map: keep it directional + conservative
+
+You already fixed the biggest one (“branding→brand” too lossy). Make sure synonyms don’t explode matches.
+
+Add/adjust these only (safe):
+
+“paid ads” → “paid media”
+
+“google ads” → “paid search”
+
+“meta ads” → “paid social”
+
+“social media management” → “social media”
+
+“website development” → “web development”
+
+“online store” → “ecommerce”
+Avoid “marketing” expansions.
+
+Should-fix now (highly recommended)
+D) Prompt grammar: remove the “to” when task doesn’t take infinitive cleanly
+
+Your task phrases are fine, but you’ll eventually add tasks like “SEO” where “to SEO” is wrong.
+
+Change: task phrases should be verb phrases that always fit “to ___” (you mostly did).
+Enforce a rule: every task phrase must start with a verb (“manage”, “run”, “build”, “implement”, “handle”, “create”, “develop”).
+
+E) Prevent “big-firm domination” in Dubai local prompts
+
+Local prompts tend to yield “Ogilvy / Publicis / Dentsu” etc. That’s okay, but you might want to measure hireable agencies not holding companies.
+
+For MVP, simplest constraint:
+
+add: “Prefer agencies that operate in the UAE, not global holding companies.”
+
+Don’t overdo it; just one sentence in local prompts can reduce irrelevant global conglomerates.
+
+F) Website crawl: handle redirects + canonicalize domain
+
+Make sure you:
+
+follow 301/302 to final URL
+
+store brand_domain as the final hostname (strip www)
+
+resolve relative links properly for /services
+
+This avoids “/services exists” check failing due to wrong base URL.
+
+Fine as-is (don’t change now)
+
+12–16 prompts, 3 engines ✅
+
+deterministic slot indices ✅
+
+industry_primary selection + vague industry drop ✅
+
+control territory injection threshold ✅
+
+alias stopwords + dual tokens/compact + compact fallback ✅ (good)
+
+boundary matching with punctuation→spaces ✅
+
+storing explainability data (matched keywords, overlap scores) ✅
+
+One last thing to decide now (so you don’t revisit)
+G) What counts as “/services exists”?
+
+Do a HEAD first? Many servers block HEAD.
+
+Recommendation: use GET with Range: bytes=0-50000 (or just GET with the same 500KB cap) and treat 200–299 as exists. Deterministic, fewer surprises.
