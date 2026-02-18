@@ -43,6 +43,7 @@ import {
   Search,
   Shield,
   Tag,
+  Code,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -753,6 +754,21 @@ interface PanelAnalysisResult {
   }>;
   aliases: Array<{ original: string; tokens: string; compact: string }>;
   prompts: PanelPrompt[];
+  raw_extraction?: {
+    primary_services: string[];
+    secondary_services: string[];
+    industries_served: string[];
+    client_size_indicators: string[];
+    positioning_terms: string[];
+    geo_mentions: string[];
+    brand_name_variants: string[];
+  };
+  all_territory_scores?: Array<{
+    territory_id: string;
+    label: string;
+    score: number;
+    matched_keywords: string[];
+  }>;
 }
 
 type GeneratorMode = "simple" | "advanced" | "panel";
@@ -787,6 +803,7 @@ export default function PromptGenerator() {
   const [panelUrl, setPanelUrl] = useState("");
   const [panelBrand, setPanelBrand] = useState("");
   const [panelCity, setPanelCity] = useState("");
+  const [showRawData, setShowRawData] = useState(false);
   const [panelAnalysis, setPanelAnalysis] = useState<PanelAnalysisResult | null>(null);
   const [panelScoringResult, setPanelScoringResult] = useState<ScoringResponse | null>(null);
   const [panelRawRuns, setPanelRawRuns] = useState<any[] | null>(null);
@@ -1355,6 +1372,34 @@ export default function PromptGenerator() {
                               </div>
                             </div>
                           )}
+
+                          <div className="pt-2 border-t">
+                            <button
+                              type="button"
+                              onClick={() => setShowRawData(!showRawData)}
+                              className="flex items-center gap-1.5 text-xs text-muted-foreground hover-elevate rounded-md px-2 py-1"
+                              data-testid="button-toggle-raw-data"
+                            >
+                              <Code className="w-3 h-3" />
+                              {showRawData ? "Hide" : "Show"} Raw Dataset
+                              {showRawData ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                            </button>
+                            {showRawData && (
+                              <pre
+                                className="mt-2 p-3 bg-muted rounded-md text-xs font-mono overflow-x-auto max-h-96 overflow-y-auto"
+                                data-testid="text-raw-dataset"
+                              >{JSON.stringify({
+                                  step1_gpt_extraction: panelAnalysis.raw_extraction || null,
+                                  step2_prompt_dataset: {
+                                    territories: panelAnalysis.territories,
+                                    industry_primary: panelAnalysis.industry,
+                                    city: panelAnalysis.city,
+                                  },
+                                  all_territory_scores: panelAnalysis.all_territory_scores || [],
+                                  aliases: panelAnalysis.aliases,
+                                }, null, 2)}</pre>
+                            )}
+                          </div>
                         </Card>
 
                         <Card className="p-4 space-y-3">

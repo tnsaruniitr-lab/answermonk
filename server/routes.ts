@@ -415,6 +415,13 @@ export async function registerRoutes(
         })),
         aliases: result.aliases,
         prompts: result.prompts,
+        raw_extraction: result.extractedProfile,
+        all_territory_scores: result.allTerritoryScores.map((s) => ({
+          territory_id: s.territory.id,
+          label: s.territory.label,
+          score: s.score,
+          matched_keywords: s.matchedKeywords.map((k) => k.phrase),
+        })),
       });
     } catch (err) {
       if (err instanceof z.ZodError) {
