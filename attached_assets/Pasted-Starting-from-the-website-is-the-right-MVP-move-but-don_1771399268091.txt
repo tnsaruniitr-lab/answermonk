@@ -1,0 +1,330 @@
+Starting from the website is the right MVP move, but don’t do it with a single “what is X known for?” step. That will bias results.
+
+Why: the same model that will later “rank” providers will also be the one inventing the categories + queries. That creates a closed loop:
+
+model’s beliefs → model’s prompts → model’s outputs
+
+So you end up measuring the model’s self-consistency, not market reality.
+
+What bias shows up
+
+It will pick “safe” generic categories (full-service, branding, performance).
+
+It may mirror phrasing on the site (marketing copy) rather than real buyer language.
+
+It will generate prompts that naturally surface the competitor because it implicitly chose a territory where it already remembers them.
+
+That makes competitors look stronger than they are, and your gap analysis becomes muddy.
+
+The better approach (still website-first, but not circular)
+
+Use the website to extract claims, but use a fixed prompt panel + light variation to test recall.
+
+Step A — Website → service claims (extraction only)
+
+Use an LLM to extract structured facts from the site:
+
+primary services (top 3)
+
+secondary services (next 5)
+
+industries mentioned
+
+positioning words (“full-service”, “creative”, “performance”, “outsourced marketing”)
+
+locations
+
+This is not “known for” (which is subjective). It’s “what the site claims”.
+
+Step B — Map claims into a predefined territory library
+
+You maintain a small fixed library like:
+
+acquisition / lead gen
+
+full-service / outsourced marketing
+
+branding / identity
+
+social & content
+
+web & ecommerce
+
+marketing ops (CRM/automation)
+
+PR/reputation
+
+Then you map the website claims to these territories.
+
+This avoids the model inventing new categories just to fit its memory.
+
+Step C — Generate queries using fixed templates
+
+Queries come from templates (like the ones we used), not freeform generation.
+
+So the model can’t “steer” the test toward where it already recalls the competitor.
+
+Step D — Run analysis queries for BOTH: competitor and “you”
+
+Now you have comparable recall maps.
+
+The simplest MVP version (low bias)
+
+Crawl website → extract services + territories (LLM ok)
+
+Pick top 3 territories
+
+For each territory, run:
+
+3 global queries
+
+3 local (city) queries
+Each query returns top 10 names (no explanation), repeated 5 times.
+
+This is already strong.
+
+If you still want the model to draft queries
+
+Then constrain it hard:
+
+give it the territory labels upfront
+
+force it to produce only templates with slots
+
+forbid brand names in prompts
+
+require 1–2 synonym variants per territory, not creative prompt writing
+
+That reduces circularity.
+
+Best practice for your “why competitor not me” feature
+
+You need two things:
+
+1) Where competitor appears reliably
+
+That’s the recall map.
+
+2) What triggers those queries
+
+That’s the territory label + the exact phrasing pattern.
+
+Then you can say:
+
+“Competitor appears when the buyer asks for ‘outsourced marketing department’ + ‘restaurant chain’, but you don’t.”
+
+Actionable.
+
+Bottom line
+
+Website-first is correct.
+
+But “what is X known for → draft 10 prompts” using the same LLM is biased (closed loop).
+
+Use website for extraction, then use a fixed territory library + fixed templates to generate prompts. That keeps the measurement honest and comparable.
+
+what are the details for this specially for method of fdrafting prompts 
+
+Good — this is the part that actually determines whether your product is credible or just a fancy prompt wrapper.
+
+You need a deterministic prompt drafting system, not “creative prompt generation”.
+
+The goal is:
+
+Same business profile → always produces structurally comparable queries
+Different businesses → comparable recall measurement
+
+So the prompt creator must behave more like a rules engine than a chatbot.
+
+The architecture
+
+You will NOT ask the LLM:
+
+“generate queries”
+
+You will ask it only:
+
+“classify the website into predefined territories”
+
+Then your backend drafts prompts using templates.
+
+Step 1 — Extract structured signals from website
+
+Ask LLM for structured JSON only:
+
+Prompt
+
+Extract the following fields from this company website.
+Return valid JSON only.
+Fields: primary_services (max 5), secondary_services (max 8), industries_served, positioning_terms, geography_mentions.
+
+This step is safe because it does not influence later ranking.
+
+Step 2 — Map to fixed territory library
+
+You maintain a fixed dictionary:
+
+Territory	Trigger words
+Acquisition	ads, lead gen, growth, performance, PPC
+Outsourced marketing	full service, 360, retainer, marketing partner
+Branding	identity, logo, brand strategy, creative
+Social/content	social media, content, influencer
+Web presence	website, ecommerce, UI/UX
+Marketing ops	CRM, automation, chatbot
+PR	media, reputation, press
+
+Simple scoring:
+count keyword overlaps → pick top 3 territories
+
+No LLM here.
+
+Step 3 — Deterministic prompt drafting (core part)
+
+You now build prompts using templates.
+
+Every prompt =
+
+ROLE + BUYER + TASK + INDUSTRY + (OPTIONAL GEO)
+
+You never allow free-form generation.
+
+Component dictionaries
+Buyer phrases
+
+businesses
+
+companies
+
+startups
+
+local businesses
+
+multi-location businesses
+
+Hiring verbs (very important for recall)
+
+hire
+
+work with
+
+partner with
+
+outsource to
+
+Task phrases per territory
+
+Acquisition
+
+generate leads online
+
+run paid advertising campaigns
+
+increase customer acquisition
+
+Outsourced marketing
+
+act as an outsourced marketing team
+
+handle all marketing activities
+
+manage ongoing marketing
+
+Branding
+
+create brand identity
+
+design branding and visual identity
+
+develop brand positioning
+
+Social/content
+
+manage social media presence
+
+create social media content
+
+run social media campaigns
+
+Web presence
+
+build website and online presence
+
+design and develop website
+
+launch an ecommerce site
+
+Marketing ops
+
+implement marketing automation
+
+set up CRM and automated workflows
+
+automate customer communication
+
+Query template (fixed)
+
+Give a numbered list of 10 service providers [buyer] [verb] to [task] in the [industry] industry. Only list names.
+
+Geo variant:
+
+… in [city]. Only list names.
+
+Step 4 — Generate panel
+
+For each of top 3 territories:
+
+Create:
+
+2 task variants
+
+1 generic variant
+
+1 geo variant
+
+= 12 queries total
+
+Always same structure → comparable metrics.
+
+Example (branding territory, restaurant industry, Dubai)
+
+Give a numbered list of 10 service providers businesses hire to create brand identity in the restaurant industry. Only list names.
+
+Give a numbered list of 10 service providers companies work with to design branding and visual identity in the restaurant industry. Only list names.
+
+Give a numbered list of 10 branding agencies in the restaurant industry. Only list names.
+
+Give a numbered list of 10 service providers businesses hire to create brand identity in the restaurant industry in Dubai. Only list names.
+
+Why this method works
+
+You eliminate three major biases:
+
+Problem	Prevented by
+LLM creativity	fixed templates
+self-fulfilling prompts	territory library
+inconsistent phrasing	controlled dictionaries
+
+So the ranking differences now actually reflect recall differences.
+
+What you should NOT do
+
+Do not:
+
+let users type prompts
+
+let LLM freely invent prompts
+
+use marketing copy as prompts
+
+add long persona descriptions
+
+All of these destroy comparability.
+
+Final mental model
+
+Your prompt system is not language generation.
+It is a measurement instrument.
+
+Like a lab device — same input must produce same test conditions.
+
+If useful, next I can help you design the scoring output
