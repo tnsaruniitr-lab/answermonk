@@ -78,7 +78,7 @@ export function extractAliasesFromHTML(html: string, brandName: string): string[
 export async function expandAliasesWithLLM(brandName: string): Promise<string[]> {
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5.2",
       messages: [
         {
           role: "system",
