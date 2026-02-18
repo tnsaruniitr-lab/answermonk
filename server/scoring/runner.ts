@@ -28,8 +28,8 @@ const gemini = new GoogleGenAI({
 type ScoringEngine = "chatgpt" | "gemini" | "claude";
 const ENGINES: ScoringEngine[] = ["chatgpt", "gemini", "claude"];
 
-const BATCH_SIZE = 3;
-const BATCH_DELAY_MS = 1500;
+const BATCH_SIZE = 5;
+const BATCH_DELAY_MS = 500;
 const MAX_RETRIES = 3;
 const RETRY_BASE_MS = 2000;
 
@@ -61,70 +61,75 @@ export async function runScoring(
 
   const allRawRuns: RawRunResult[] = [];
 
-  for (let i = 0; i < prompts.length; i += BATCH_SIZE) {
-    const batch = prompts.slice(i, i + BATCH_SIZE);
+  const engineResults = await Promise.all(
+    ENGINES.map(async (engine) => {
+      const runs: RawRunResult[] = [];
+      for (let i = 0; i < prompts.length; i += BATCH_SIZE) {
+        const batch = prompts.slice(i, i + BATCH_SIZE);
 
-    const batchPromises = batch.flatMap((prompt) =>
-      ENGINES.map(async (engine) => {
-        let lastErr: unknown;
-        for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-          try {
-            if (attempt > 0) {
-              const delay = RETRY_BASE_MS * Math.pow(2, attempt - 1);
-              console.log(`Retry ${attempt}/${MAX_RETRIES} for ${engine} prompt ${prompt.id} after ${delay}ms`);
-              await sleep(delay);
+        const batchResults = await Promise.all(
+          batch.map(async (prompt) => {
+            for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+              try {
+                if (attempt > 0) {
+                  const delay = RETRY_BASE_MS * Math.pow(2, attempt - 1);
+                  console.log(`Retry ${attempt}/${MAX_RETRIES} for ${engine} prompt ${prompt.id} after ${delay}ms`);
+                  await sleep(delay);
+                }
+                const rawText = await queryEngine(engine, prompt.text);
+                const llmResult = await extractBrandsWithLLM(rawText, prompt.text);
+                const extraction = llmResultToExtractedCandidates(llmResult);
+                const match = matchRun(extraction.candidates, brand);
+
+                completed++;
+                onProgress?.(completed, totalCalls);
+
+                return {
+                  prompt_id: prompt.id,
+                  cluster: prompt.cluster,
+                  engine,
+                  raw_text: rawText,
+                  extraction,
+                  match,
+                } as RawRunResult;
+              } catch (err) {
+                const isRetryErr = isRetryableError(err);
+                if (!isRetryErr || attempt === MAX_RETRIES) {
+                  console.error(`Scoring engine ${engine} failed for prompt ${prompt.id} (attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, err);
+                  break;
+                }
+              }
             }
-            const rawText = await queryEngine(engine, prompt.text);
-            const llmResult = await extractBrandsWithLLM(rawText, prompt.text);
-            const extraction = llmResultToExtractedCandidates(llmResult);
-            const match = matchRun(extraction.candidates, brand);
-
-            const result: RawRunResult = {
-              prompt_id: prompt.id,
-              cluster: prompt.cluster,
-              engine,
-              raw_text: rawText,
-              extraction,
-              match,
-            };
 
             completed++;
             onProgress?.(completed, totalCalls);
 
-            return result;
-          } catch (err) {
-            lastErr = err;
-            const isRetryable = isRetryableError(err);
-            if (!isRetryable || attempt === MAX_RETRIES) {
-              console.error(`Scoring engine ${engine} failed for prompt ${prompt.id} (attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, err);
-              break;
-            }
-          }
+            return {
+              prompt_id: prompt.id,
+              cluster: prompt.cluster,
+              engine,
+              raw_text: `[Error: ${engine} unavailable]`,
+              extraction: { candidates: [], valid: false },
+              match: {
+                brand: { brand_found: false, brand_rank: null, match_tier: null },
+                competitors: [],
+              },
+            } as RawRunResult;
+          }),
+        );
+
+        runs.push(...batchResults);
+
+        if (i + BATCH_SIZE < prompts.length) {
+          await sleep(BATCH_DELAY_MS);
         }
+      }
+      return runs;
+    }),
+  );
 
-        completed++;
-        onProgress?.(completed, totalCalls);
-
-        return {
-          prompt_id: prompt.id,
-          cluster: prompt.cluster,
-          engine,
-          raw_text: `[Error: ${engine} unavailable]`,
-          extraction: { candidates: [], valid: false },
-          match: {
-            brand: { brand_found: false, brand_rank: null, match_tier: null },
-            competitors: [],
-          },
-        } as RawRunResult;
-      }),
-    );
-
-    const batchResults = await Promise.all(batchPromises);
-    allRawRuns.push(...batchResults);
-
-    if (i + BATCH_SIZE < prompts.length) {
-      await sleep(BATCH_DELAY_MS);
-    }
+  for (const runs of engineResults) {
+    allRawRuns.push(...runs);
   }
 
   const runDataList: RunData[] = allRawRuns.map((r) => ({
@@ -160,7 +165,7 @@ async function queryChatGPT(prompt: string): Promise<string> {
   const completion = await openai.chat.completions.create({
     model: "gpt-5.2",
     messages: [{ role: "user", content: prompt }],
-    max_tokens: 1024,
+    max_completion_tokens: 1024,
     temperature: 0.7,
   });
   return completion.choices[0]?.message?.content ?? "";

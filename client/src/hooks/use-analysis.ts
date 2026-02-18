@@ -68,3 +68,26 @@ export function useHistory() {
     },
   });
 }
+
+export interface ScoringHistoryItem {
+  id: number;
+  brandName: string;
+  brandDomain: string | null;
+  mode: string;
+  status: string;
+  promptCount: number;
+  engineCount: number;
+  resultJson: any;
+  createdAt: string;
+}
+
+export function useScoringHistory() {
+  return useQuery<ScoringHistoryItem[]>({
+    queryKey: ["/api/scoring/history"],
+    queryFn: async () => {
+      const res = await fetch("/api/scoring/history");
+      if (!res.ok) throw new Error("Failed to fetch scoring history");
+      return res.json();
+    },
+  });
+}
