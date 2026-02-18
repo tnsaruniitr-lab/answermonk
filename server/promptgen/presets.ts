@@ -28,6 +28,7 @@ export const MARKETING_CHANNELS: string[] = [
   "Conversion Rate Optimization",
   "Reputation Management",
   "Branding & Design",
+  "Performance Marketing",
 ];
 
 export const AUTOMATION_SERVICES: string[] = [
