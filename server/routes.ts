@@ -387,6 +387,7 @@ export async function registerRoutes(
     brand_name: z.string().min(1),
     website_url: z.string().min(3),
     city: z.string().min(1),
+    seeded_services: z.array(z.string()).optional().default([]),
   });
 
   app.post("/api/panel/analyze", async (req, res) => {
@@ -396,6 +397,7 @@ export async function registerRoutes(
         parsed.brand_name,
         parsed.website_url,
         parsed.city,
+        parsed.seeded_services,
       );
 
       res.status(200).json({
@@ -403,10 +405,11 @@ export async function registerRoutes(
         website_url: parsed.website_url,
         city: parsed.city,
         industry: result.industryPrimary || "General",
-        service_keywords: [
+        service_keywords: [...new Set([
+          ...parsed.seeded_services,
           ...result.extractedProfile.primary_services,
           ...result.extractedProfile.secondary_services,
-        ],
+        ])],
         territories: result.territories.map((t) => ({
           territory_id: t.territory.id,
           label: t.territory.label,

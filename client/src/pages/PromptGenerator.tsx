@@ -803,6 +803,7 @@ export default function PromptGenerator() {
   const [panelUrl, setPanelUrl] = useState("");
   const [panelBrand, setPanelBrand] = useState("");
   const [panelCity, setPanelCity] = useState("");
+  const [panelSeededServices, setPanelSeededServices] = useState("");
   const [showRawData, setShowRawData] = useState(false);
   const [panelAnalysis, setPanelAnalysis] = useState<PanelAnalysisResult | null>(null);
   const [panelScoringResult, setPanelScoringResult] = useState<ScoringResponse | null>(null);
@@ -880,7 +881,7 @@ export default function PromptGenerator() {
   const {
     mutate: analyzePanel,
     isPending: isPanelAnalyzing,
-  } = useMutation<PanelAnalysisResult, Error, { brand_name: string; website_url: string; city: string }>({
+  } = useMutation<PanelAnalysisResult, Error, { brand_name: string; website_url: string; city: string; seeded_services?: string[] }>({
     mutationFn: async (body) => {
       const res = await apiRequest("POST", "/api/panel/analyze", body);
       return res.json();
@@ -930,10 +931,15 @@ export default function PromptGenerator() {
     setPanelAnalysis(null);
     setPanelScoringResult(null);
     setPanelRawRuns(null);
+    const seeded = panelSeededServices
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
     analyzePanel({
       brand_name: panelBrand.trim(),
       website_url: panelUrl.trim(),
       city: panelCity.trim(),
+      seeded_services: seeded.length > 0 ? seeded : undefined,
     });
   };
 
@@ -1307,6 +1313,21 @@ export default function PromptGenerator() {
                           className="bg-secondary/50 border-border"
                           data-testid="input-panel-city"
                         />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Seed Services (optional)
+                        </label>
+                        <Input
+                          value={panelSeededServices}
+                          onChange={(e) => setPanelSeededServices(e.target.value)}
+                          placeholder="e.g. Performance Marketing, Branding"
+                          className="bg-secondary/50 border-border"
+                          data-testid="input-panel-seeded-services"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Comma-separated services to include alongside website-extracted ones
+                        </p>
                       </div>
                     </div>
 

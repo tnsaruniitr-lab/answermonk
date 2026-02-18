@@ -251,6 +251,7 @@ export async function analyzePanelWebsite(
   brandName: string,
   websiteUrl: string,
   city: string,
+  seededServices: string[] = [],
 ): Promise<PanelAnalysisResult> {
   let normalizedUrl = websiteUrl;
   if (!normalizedUrl.startsWith("http")) {
@@ -338,8 +339,13 @@ export async function analyzePanelWebsite(
     mainText + " " + metadataText,
   );
 
+  const allServices = [...new Set([
+    ...seededServices,
+    ...extractedProfile.primary_services,
+    ...extractedProfile.secondary_services,
+  ])];
   const { selected: territories, allScores } = selectTopTerritories(
-    [...extractedProfile.primary_services, ...extractedProfile.secondary_services],
+    allServices,
     extractedProfile.positioning_terms,
   );
 
