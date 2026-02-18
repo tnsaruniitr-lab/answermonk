@@ -1,0 +1,83 @@
+his final plan is coherent, deterministic, and matches the thesis. At this point the main remaining risks are implementation edge cases, not conceptual gaps. Two last adjustments (both small) will prevent avoidable bugs.
+
+1) Keep two normalized strings in matcher: “tokenized” and “compact”
+
+Your boundary-based matcher will miss some real mentions that LLMs output in compacted form, e.g.:
+
+“PrismDigital” (no space)
+
+“AdashCreatives” (no space)
+
+“PrismDigitalDubai” (social handles)
+
+If you only do punctuation→spaces + word boundaries, these will be false negatives.
+
+Fix (minimal, safe):
+
+Build A) norm_tokens = lowercase → punctuation→spaces → collapse whitespace
+
+Build B) norm_compact = lowercase → remove all non-alphanum (no spaces)
+
+Then for each alias also keep:
+
+alias_tokens and alias_compact
+
+Matching logic:
+
+primary: token boundary match on norm_tokens
+
+fallback: substring match on norm_compact only for aliases length ≥ 6 (to avoid false positives)
+
+This preserves your boundary rigor but catches compacted mentions.
+
+2) Territory keyword matching: add light stemming / synonyms (without LLM)
+
+Your trigger lists are good, but keyword overlap will undercount common variants:
+
+“paid ads” vs “paid advertising”
+
+“leadgen” vs “lead gen”
+
+“ecommerce” vs “e-commerce”
+
+“brand identity” vs “branding”
+
+Fix (still deterministic):
+Before overlap counting, normalize extracted terms + keywords with:
+
+lowercase
+
+punctuation→spaces
+
+collapse whitespace
+
+apply a small synonym map, e.g.:
+
+“leadgen” → “lead gen”
+
+“e-commerce” → “ecommerce”
+
+“paid ads” → “paid media”
+
+“branding” → “brand”
+No heavy NLP needed—just 10–20 mappings.
+
+This will make territory selection more reliable.
+
+Everything else looks ready
+
+Deterministic crawl order ✅
+
+Extraction fields are safe (no prompt-loop) ✅
+
+Industry selection rule is deterministic ✅
+
+Control-territory injection threshold avoids footer “agency” noise ✅
+
+Templates are clean and enforce agency/consultant-only ✅
+
+Alias stopwords list is sensible and configurable ✅
+
+Preview UX shows why territories were chosen ✅
+
+If you implement the two tweaks above, you’ll eliminate the last common “why didn’t it match?” and “why did it pick the wrong territory?” complaints.
