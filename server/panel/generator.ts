@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import puppeteer from "puppeteer-core";
+import * as fs from "fs";
 import { selectTopTerritories, type TerritoryScore } from "./territories";
 import { generatePanelPrompts, type PanelPrompt } from "./templates";
 import { extractAliasesFromHTML, expandAliasesWithLLM, buildAliasSet, type AliasEntry } from "./aliases";
@@ -15,35 +16,29 @@ const MAX_HTML_SIZE = 500000;
 const MIN_TEXT_LENGTH = 200;
 
 function findChromiumPath(): string {
-  const fs = require("fs");
-  const possiblePaths = [
-    "/nix/var/nix/profiles/default/bin/chromium",
-    process.env.CHROMIUM_PATH,
-  ];
-  const nixStore = "/nix/store";
   try {
-    const entries = fs.readdirSync(nixStore);
-    for (const entry of entries) {
-      if (entry.includes("chromium") && !entry.includes(".drv")) {
-        const binPath = `${nixStore}/${entry}/bin/chromium`;
-        if (fs.existsSync(binPath)) {
-          possiblePaths.push(binPath);
-        }
-      }
-    }
+    const { execSync } = require("child_process");
+    const whichResult = execSync("which chromium 2>/dev/null", { encoding: "utf-8" }).trim();
+    if (whichResult && fs.existsSync(whichResult)) return whichResult;
   } catch {}
-  for (const p of possiblePaths) {
+  const fallbacks = [
+    process.env.CHROMIUM_PATH,
+    "/nix/var/nix/profiles/default/bin/chromium",
+  ];
+  for (const p of fallbacks) {
     if (p && fs.existsSync(p)) return p;
   }
   return "chromium";
 }
 
+const CHROMIUM_PATH = findChromiumPath();
+console.log(`[panel] Chromium path: ${CHROMIUM_PATH}`);
+
 async function fetchPageWithBrowser(url: string): Promise<{ html: string; finalUrl: string } | null> {
   let browser;
   try {
-    const executablePath = findChromiumPath();
     browser = await puppeteer.launch({
-      executablePath,
+      executablePath: CHROMIUM_PATH,
       headless: true,
       args: [
         "--no-sandbox",
@@ -59,6 +54,15 @@ async function fetchPageWithBrowser(url: string): Promise<{ html: string; finalU
     await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
     await page.goto(url, { waitUntil: "networkidle2", timeout: BROWSER_TIMEOUT });
     await page.waitForSelector("body", { timeout: 5000 }).catch(() => {});
+
+    await page.evaluate(async () => {
+      for (let i = 0; i < 8; i++) {
+        window.scrollBy(0, 600);
+        await new Promise(r => setTimeout(r, 300));
+      }
+    });
+    await new Promise(r => setTimeout(r, 1500));
+
     const html = await page.content();
     const finalUrl = page.url();
     return { html: html.slice(0, MAX_HTML_SIZE), finalUrl };
@@ -321,7 +325,13 @@ export async function analyzePanelWebsite(
       : smartText;
   }
 
-  const extractedProfile = await extractWithGPT(contentForExtraction);
+  let extractedProfile = await extractWithGPT(contentForExtraction);
+
+  const hasServices = extractedProfile.primary_services.length > 0 || extractedProfile.secondary_services.length > 0;
+  if (!hasServices) {
+    console.log(`[panel] Extraction returned no services, trying GPT inference from brand name + domain...`);
+    extractedProfile = await inferProfileWithGPT(brandName, brandDomain, mainText + " " + metadataText);
+  }
 
   const industryPrimary = selectPrimaryIndustry(
     extractedProfile.industries_served,
@@ -431,6 +441,57 @@ function emptyExtractionResult(): ExtractionResult {
     geo_mentions: [],
     brand_name_variants: [],
   };
+}
+
+async function inferProfileWithGPT(brandName: string, domain: string, snippets: string): Promise<ExtractionResult> {
+  const trimmedSnippets = snippets.trim().slice(0, 2000);
+  const prompt = `A company's website at "${domain}" (brand name: "${brandName}") had very little readable text content. Here are the few snippets we could extract:
+
+"${trimmedSnippets}"
+
+Based on the brand name, domain, and these snippets, infer what this company most likely does. Focus on their likely services.
+
+Return valid JSON only:
+{
+  "primary_services": ["string"] (most likely main services, max 5),
+  "secondary_services": ["string"] (other probable services, max 5),
+  "industries_served": ["string"] (likely industries they serve),
+  "client_size_indicators": [],
+  "positioning_terms": ["string"] (how they likely position themselves),
+  "geo_mentions": [],
+  "brand_name_variants": []
+}`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-5.2",
+      messages: [
+        { role: "system", content: "You infer a company's business profile from minimal information. Return ONLY valid JSON. Be reasonable — stick to common services for the type of company suggested by the name and domain." },
+        { role: "user", content: prompt },
+      ],
+      max_completion_tokens: 512,
+      temperature: 0.3,
+    });
+
+    const raw = completion.choices[0]?.message?.content ?? "{}";
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return emptyExtractionResult();
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    console.log(`[panel] GPT inference returned services: ${JSON.stringify(parsed.primary_services)}`);
+    return {
+      primary_services: Array.isArray(parsed.primary_services) ? parsed.primary_services.slice(0, 5) : [],
+      secondary_services: Array.isArray(parsed.secondary_services) ? parsed.secondary_services.slice(0, 5) : [],
+      industries_served: Array.isArray(parsed.industries_served) ? parsed.industries_served : [],
+      client_size_indicators: Array.isArray(parsed.client_size_indicators) ? parsed.client_size_indicators : [],
+      positioning_terms: Array.isArray(parsed.positioning_terms) ? parsed.positioning_terms : [],
+      geo_mentions: Array.isArray(parsed.geo_mentions) ? parsed.geo_mentions : [],
+      brand_name_variants: Array.isArray(parsed.brand_name_variants) ? parsed.brand_name_variants : [],
+    };
+  } catch (err) {
+    console.error("GPT inference failed:", err);
+    return emptyExtractionResult();
+  }
 }
 
 const VAGUE_INDUSTRIES = new Set([
