@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import puppeteer from "puppeteer-core";
 import { selectTopTerritories, type TerritoryScore } from "./territories";
 import { generatePanelPrompts, type PanelPrompt } from "./templates";
 import { extractAliasesFromHTML, expandAliasesWithLLM, buildAliasSet, type AliasEntry } from "./aliases";
@@ -9,8 +10,65 @@ const openai = new OpenAI({
 });
 
 const FETCH_TIMEOUT = 10000;
+const BROWSER_TIMEOUT = 20000;
 const MAX_HTML_SIZE = 500000;
 const MIN_TEXT_LENGTH = 200;
+
+function findChromiumPath(): string {
+  const fs = require("fs");
+  const possiblePaths = [
+    "/nix/var/nix/profiles/default/bin/chromium",
+    process.env.CHROMIUM_PATH,
+  ];
+  const nixStore = "/nix/store";
+  try {
+    const entries = fs.readdirSync(nixStore);
+    for (const entry of entries) {
+      if (entry.includes("chromium") && !entry.includes(".drv")) {
+        const binPath = `${nixStore}/${entry}/bin/chromium`;
+        if (fs.existsSync(binPath)) {
+          possiblePaths.push(binPath);
+        }
+      }
+    }
+  } catch {}
+  for (const p of possiblePaths) {
+    if (p && fs.existsSync(p)) return p;
+  }
+  return "chromium";
+}
+
+async function fetchPageWithBrowser(url: string): Promise<{ html: string; finalUrl: string } | null> {
+  let browser;
+  try {
+    const executablePath = findChromiumPath();
+    browser = await puppeteer.launch({
+      executablePath,
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process",
+      ],
+    });
+    const page = await browser.newPage();
+    await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+    await page.goto(url, { waitUntil: "networkidle2", timeout: BROWSER_TIMEOUT });
+    await page.waitForSelector("body", { timeout: 5000 }).catch(() => {});
+    const html = await page.content();
+    const finalUrl = page.url();
+    return { html: html.slice(0, MAX_HTML_SIZE), finalUrl };
+  } catch (err) {
+    console.error(`Browser fetch failed for ${url}:`, err);
+    return null;
+  } finally {
+    if (browser) await browser.close().catch(() => {});
+  }
+}
 
 export interface ExtractionResult {
   primary_services: string[];
@@ -195,10 +253,34 @@ export async function analyzePanelWebsite(
     normalizedUrl = `https://${normalizedUrl}`;
   }
 
-  const homePage = await fetchPage(normalizedUrl);
+  console.log(`[panel] Attempting browser render for ${normalizedUrl}...`);
+  let homePage = await fetchPageWithBrowser(normalizedUrl);
+  let usedBrowser = !!homePage;
+
+  if (!homePage) {
+    console.log(`[panel] Browser render failed, falling back to simple fetch...`);
+    homePage = await fetchPage(normalizedUrl);
+  }
+
   if (!homePage) {
     throw new Error("Could not fetch the website. Please check the URL and try again.");
   }
+
+  let homeText = extractTextFromHTML(homePage.html);
+  if (usedBrowser && homeText.length < MIN_TEXT_LENGTH) {
+    console.log(`[panel] Browser returned thin content (${homeText.length} chars), trying simple fetch...`);
+    const fallback = await fetchPage(normalizedUrl);
+    if (fallback) {
+      const fallbackText = extractTextFromHTML(fallback.html);
+      if (fallbackText.length > homeText.length) {
+        homePage = fallback;
+        homeText = fallbackText;
+        usedBrowser = false;
+      }
+    }
+  }
+
+  console.log(`[panel] Using ${usedBrowser ? "browser" : "fetch"} result (${homeText.length} chars text)`);
 
   const brandDomain = canonicalizeDomain(homePage.finalUrl);
   const baseUrl = new URL(homePage.finalUrl);
@@ -209,8 +291,17 @@ export async function analyzePanelWebsite(
 
   for (const path of SECOND_PAGE_PATHS) {
     const secondUrl = `${baseOrigin}${path}`;
-    const secondPage = await fetchPage(secondUrl);
-    if (secondPage) {
+    const secondPage = usedBrowser
+      ? await fetchPageWithBrowser(secondUrl)
+      : await fetchPage(secondUrl);
+    if (!secondPage && usedBrowser) {
+      const fallbackSecond = await fetchPage(secondUrl);
+      if (fallbackSecond) {
+        pagesUsed.push(fallbackSecond.finalUrl);
+        combinedHTML += "\n" + fallbackSecond.html;
+        break;
+      }
+    } else if (secondPage) {
       pagesUsed.push(secondPage.finalUrl);
       combinedHTML += "\n" + secondPage.html;
       break;
