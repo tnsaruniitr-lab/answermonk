@@ -82,11 +82,11 @@ export async function expandAliasesWithLLM(brandName: string): Promise<string[]>
       messages: [
         {
           role: "system",
-          content: "You list common name variations for a company/brand. Return ONLY a JSON array of strings. Include abbreviations, short forms, and common misspellings. Maximum 8 variants.",
+          content: "You list common name variations for a company/brand. Return ONLY a JSON array of strings. Include abbreviations, short forms, and common misspellings. Maximum 8 variants. Do not include generic words like 'digital', 'marketing', 'agency', 'media', 'solutions', or location names. Do not include domains or URLs. Only return company-name-like strings.",
         },
         {
           role: "user",
-          content: `List common name variations for "${brandName}". Return JSON array only.`,
+          content: `List common name variations, abbreviations, and likely misspellings for the company "${brandName}". Return JSON array only. Do not include slogans, taglines, or service descriptions.`,
         },
       ],
       max_completion_tokens: 128,

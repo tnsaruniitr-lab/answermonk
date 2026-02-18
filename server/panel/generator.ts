@@ -116,6 +116,66 @@ function extractMetadata(html: string): string {
   return parts.join(". ");
 }
 
+const SECTION_KEYWORDS = [
+  "services", "solutions", "what we do", "our work", "capabilities",
+  "expertise", "about", "industries", "sectors", "clients",
+  "offerings", "specialties", "approach", "methodology",
+];
+
+function extractSmartContent(fullText: string, maxLength: number): string {
+  if (fullText.length <= maxLength) return fullText;
+
+  const headBudget = Math.floor(maxLength * 0.4);
+  const windowBudget = maxLength - headBudget;
+  const head = fullText.slice(0, headBudget);
+
+  const lowerText = fullText.toLowerCase();
+  const windows: { start: number; end: number; keyword: string }[] = [];
+  const windowRadius = 500;
+
+  for (const keyword of SECTION_KEYWORDS) {
+    let searchFrom = headBudget;
+    while (searchFrom < lowerText.length) {
+      const idx = lowerText.indexOf(keyword, searchFrom);
+      if (idx === -1) break;
+      const start = Math.max(headBudget, idx - windowRadius);
+      const end = Math.min(fullText.length, idx + keyword.length + windowRadius);
+      windows.push({ start, end, keyword });
+      searchFrom = idx + keyword.length;
+    }
+  }
+
+  if (windows.length === 0) {
+    return fullText.slice(0, maxLength);
+  }
+
+  windows.sort((a, b) => a.start - b.start);
+
+  const merged: { start: number; end: number }[] = [];
+  for (const w of windows) {
+    if (merged.length > 0 && w.start <= merged[merged.length - 1].end) {
+      merged[merged.length - 1].end = Math.max(merged[merged.length - 1].end, w.end);
+    } else {
+      merged.push({ start: w.start, end: w.end });
+    }
+  }
+
+  let windowText = "";
+  let budgetLeft = windowBudget;
+  for (const m of merged) {
+    const chunk = fullText.slice(m.start, m.end);
+    if (chunk.length <= budgetLeft) {
+      windowText += " ... " + chunk;
+      budgetLeft -= chunk.length;
+    } else {
+      windowText += " ... " + chunk.slice(0, budgetLeft);
+      break;
+    }
+  }
+
+  return head + windowText;
+}
+
 function canonicalizeDomain(url: string): string {
   try {
     const parsed = new URL(url);
@@ -164,10 +224,10 @@ export async function analyzePanelWebsite(
   if (mainText.length < MIN_TEXT_LENGTH) {
     contentForExtraction = `Website metadata:\n${metadataText}\n\nPage content:\n${mainText}`;
   } else {
-    const trimmedText = mainText.length > 8000 ? mainText.slice(0, 8000) : mainText;
+    const smartText = extractSmartContent(mainText, 8000);
     contentForExtraction = metadataText
-      ? `Website metadata:\n${metadataText}\n\nPage content:\n${trimmedText}`
-      : trimmedText;
+      ? `Website metadata:\n${metadataText}\n\nPage content:\n${smartText}`
+      : smartText;
   }
 
   const extractedProfile = await extractWithGPT(contentForExtraction);
@@ -212,10 +272,17 @@ export async function analyzePanelWebsite(
   };
 }
 
-const EXTRACTION_SYSTEM_PROMPT = `You extract structured business information from website content. Return ONLY valid JSON, no other text.`;
+const EXTRACTION_SYSTEM_PROMPT = `You extract structured business information from website content. Return ONLY valid JSON, no other text. Do not infer or guess — only extract what is explicitly stated in the provided content.`;
 
 async function extractWithGPT(content: string): Promise<ExtractionResult> {
   const userPrompt = `Extract the following from this company website content.
+
+RULES:
+- Only include items explicitly mentioned or clearly supported by the text. Do not infer.
+- If a field has no evidence in the text, return [] (empty array). Never return null.
+- Deduplicate entries. Keep each entry under 5 words.
+- brand_name_variants must be company-name-like strings only (no slogans, no taglines, no service descriptions, no marketing phrases).
+
 Return valid JSON only, matching this exact schema:
 {
   "primary_services": ["string"] (the main services offered, max 5),
