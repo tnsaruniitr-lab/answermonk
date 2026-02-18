@@ -201,12 +201,12 @@ export async function extractBrandsWithLLM(
       : `AI response to extract brands from:\n${rawText}`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5.2",
       messages: [
         { role: "system", content: EXTRACTION_PROMPT },
         { role: "user", content: userMessage },
       ],
-      max_tokens: 256,
+      max_completion_tokens: 256,
       temperature: 0,
     });
 
