@@ -707,6 +707,47 @@ const PROMPT_STYLE_PREFIXES: Record<string, string> = {
   top3: "Find, list and rank 3 top",
 };
 
+const QUICK_QUALIFIERS = [
+  "top",
+  "best",
+  "most used",
+  "most popular",
+  "most recommended",
+  "leading",
+  "highest rated",
+  "most trusted",
+  "top rated",
+  "most reliable",
+];
+
+function generateQuickPrompts(
+  persona: string,
+  seedType: string,
+  customerType: string,
+  count: number,
+  location: string,
+): Prompt[] {
+  const personaLabel = persona === "marketing_agency" ? "marketing agency" : persona.replace(/_/g, " ");
+  const prompts: Prompt[] = [];
+
+  for (let i = 0; i < 10; i++) {
+    const qualifier = QUICK_QUALIFIERS[i];
+    const text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType} for ${customerType} in ${location}`;
+    prompts.push({
+      id: `quick_${i + 1}`,
+      cluster: "direct",
+      shape: "open",
+      text,
+      slots_used: {},
+      tags: ["direct", "quick_mode", "has_geo"],
+      modifier_included: false,
+      geo_included: true,
+    });
+  }
+
+  return prompts;
+}
+
 function generateSimplePrompts(persona: string, verticals: string[], services: string[], geo: string, style: string = "find_best"): Prompt[] {
   const personaLabel = persona === "marketing_agency" ? "marketing agency" : persona.replace(/_/g, " ");
   const location = geo.trim();
@@ -788,7 +829,7 @@ interface PanelAnalysisResult {
   }>;
 }
 
-type GeneratorMode = "simple" | "advanced" | "panel";
+type GeneratorMode = "simple" | "advanced" | "quick" | "panel";
 
 export default function PromptGenerator() {
   const [mode, setMode] = useState<GeneratorMode>("simple");
@@ -826,6 +867,13 @@ export default function PromptGenerator() {
   const [panelAnalysis, setPanelAnalysis] = useState<PanelAnalysisResult | null>(null);
   const [panelScoringResult, setPanelScoringResult] = useState<ScoringResponse | null>(null);
   const [panelRawRuns, setPanelRawRuns] = useState<any[] | null>(null);
+
+  const [quickSeedType, setQuickSeedType] = useState("providers");
+  const [quickCustomerType, setQuickCustomerType] = useState("");
+  const [quickCount, setQuickCount] = useState(5);
+  const [quickLocation, setQuickLocation] = useState("");
+  const [quickResult, setQuickResult] = useState<PromptSet | null>(null);
+  const [quickScoringResult, setQuickScoringResult] = useState<ScoringResponse | null>(null);
   const { toast } = useToast();
 
   const { data: presets } = useQuery<Presets>({
@@ -886,6 +934,26 @@ export default function PromptGenerator() {
     },
     onSuccess: (data) => {
       setScoringResult(data);
+    },
+    onError: (err) => {
+      toast({
+        title: "Scoring failed",
+        description: err.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const {
+    mutate: runQuickScoring,
+    isPending: isQuickScoring,
+  } = useMutation<ScoringResponse, Error, { prompts: Prompt[]; brand_name: string; brand_domain?: string; mode: "micro" | "quick" | "full" }>({
+    mutationFn: async (body) => {
+      const res = await apiRequest("POST", "/api/scoring/run", body);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setQuickScoringResult(data);
     },
     onError: (err) => {
       toast({
@@ -1205,8 +1273,8 @@ export default function PromptGenerator() {
     });
   };
 
-  const showForm = mode === "panel" || (!result && !isGenerating && !isScoring && !scoringResult);
-  const showPrompts = mode !== "panel" && result && !isGenerating && !isScoring && !scoringResult;
+  const showForm = mode === "panel" || mode === "quick" || (!result && !isGenerating && !isScoring && !scoringResult);
+  const showPrompts = mode !== "panel" && mode !== "quick" && result && !isGenerating && !isScoring && !scoringResult;
   const showScoring = isScoring;
   const showResults = scoringResult && !isScoring;
 
@@ -1252,12 +1320,18 @@ export default function PromptGenerator() {
                     {([
                       { key: "simple" as GeneratorMode, label: "Simple", desc: "9 focused prompts", icon: Zap },
                       { key: "advanced" as GeneratorMode, label: "Advanced", desc: "4-40 prompts", icon: Sparkles },
+                      { key: "quick" as GeneratorMode, label: "Quick", desc: "10 ranked prompts", icon: Target },
                       { key: "panel" as GeneratorMode, label: "Panel", desc: "Website recall test", icon: Shield },
                     ]).map((m) => (
                       <button
                         key={m.key}
                         type="button"
-                        onClick={() => setMode(m.key)}
+                        onClick={() => {
+                          setMode(m.key);
+                          setScoringResult(null);
+                          setQuickResult(null);
+                          setQuickScoringResult(null);
+                        }}
                         className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors border ${
                           mode === m.key
                             ? "border-primary bg-primary/10 text-primary font-medium"
@@ -1530,7 +1604,264 @@ export default function PromptGenerator() {
                   </div>
                 )}
 
-                {mode !== "panel" && (<form onSubmit={handleGenerate} className="space-y-6 pb-16">
+                {mode === "quick" && (
+                  <div className="space-y-6 pb-16">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Brand Name
+                        </label>
+                        <Input
+                          value={brandName}
+                          onChange={(e) => setBrandName(e.target.value)}
+                          placeholder="e.g. Pemo"
+                          className="bg-secondary/50 border-border"
+                          data-testid="input-quick-brand-name"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Website
+                          <span className="text-muted-foreground/60 normal-case ml-1">(recommended)</span>
+                        </label>
+                        <Input
+                          value={brandDomain}
+                          onChange={(e) => setBrandDomain(e.target.value)}
+                          placeholder="e.g. pemo.io"
+                          className="bg-secondary/50 border-border"
+                          data-testid="input-quick-brand-domain"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Persona
+                        </label>
+                        <Select
+                          value={persona}
+                          onValueChange={(v) => {
+                            setPersona(v);
+                            setQuickCustomerType("");
+                          }}
+                        >
+                          <SelectTrigger className="bg-secondary/50" data-testid="select-quick-persona">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="marketing_agency">Marketing Agency</SelectItem>
+                            <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
+                            <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
+                            <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Seed Type
+                        </label>
+                        <Select value={quickSeedType} onValueChange={setQuickSeedType}>
+                          <SelectTrigger className="bg-secondary/50" data-testid="select-quick-seed-type">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="software">Software</SelectItem>
+                            <SelectItem value="providers">Providers</SelectItem>
+                            <SelectItem value="vendors">Vendors</SelectItem>
+                            <SelectItem value="platforms">Platforms</SelectItem>
+                            <SelectItem value="tools">Tools</SelectItem>
+                            <SelectItem value="solutions">Solutions</SelectItem>
+                            <SelectItem value="companies">Companies</SelectItem>
+                            <SelectItem value="agencies">Agencies</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Customer Type
+                        </label>
+                        <Select value={quickCustomerType} onValueChange={setQuickCustomerType}>
+                          <SelectTrigger className="bg-secondary/50" data-testid="select-quick-customer-type">
+                            <SelectValue placeholder="Select customer type..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(currentPresets?.verticals || []).map((v) => (
+                              <SelectItem key={v} value={v}>{v}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Result Count
+                        </label>
+                        <Select value={String(quickCount)} onValueChange={(v) => setQuickCount(Number(v))}>
+                          <SelectTrigger className="bg-secondary/50" data-testid="select-quick-count">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="3">3</SelectItem>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="15">15</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Location (city or country)
+                      </label>
+                      <Input
+                        value={quickLocation}
+                        onChange={(e) => setQuickLocation(e.target.value)}
+                        placeholder="e.g. UAE, Dubai, Singapore"
+                        className="bg-secondary/50 border-border"
+                        data-testid="input-quick-location"
+                      />
+                    </div>
+
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        if (!brandName.trim()) {
+                          toast({ title: "Brand name required", description: "Enter your brand name.", variant: "destructive" });
+                          return;
+                        }
+                        if (!quickCustomerType) {
+                          toast({ title: "Customer type required", description: "Select a customer type.", variant: "destructive" });
+                          return;
+                        }
+                        if (!quickLocation.trim()) {
+                          toast({ title: "Location required", description: "Enter a city or country.", variant: "destructive" });
+                          return;
+                        }
+                        setQuickScoringResult(null);
+                        setScoringResult(null);
+                        const quickPrompts = generateQuickPrompts(persona, quickSeedType, quickCustomerType, quickCount, quickLocation.trim());
+                        setQuickResult({
+                          prompt_set_id: `quick-${Date.now()}`,
+                          version: "pg_v1",
+                          seed_used: 0,
+                          counts: {
+                            by_cluster: { direct: 10 },
+                            by_shape: { open: 10 },
+                            modifier_prompts: 0,
+                            geo_prompts: 10,
+                          },
+                          prompts: quickPrompts,
+                          unverified_items: [],
+                        });
+                      }}
+                      data-testid="button-quick-generate"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Generate 10 Prompts
+                    </Button>
+
+                    {quickResult && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-4"
+                      >
+                        <Card className="p-4 space-y-3">
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-primary" />
+                              <span className="font-medium text-sm">Generated Prompts ({quickResult.prompts.length})</span>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setQuickResult(null);
+                                setQuickScoringResult(null);
+                              }}
+                              data-testid="button-quick-reset"
+                            >
+                              <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+                              Reset
+                            </Button>
+                          </div>
+                          <div className="space-y-1.5 max-h-80 overflow-y-auto">
+                            {quickResult.prompts.map((p, i) => (
+                              <div key={p.id} className="flex items-start gap-2 text-sm py-1.5 border-b last:border-b-0">
+                                <span className="text-muted-foreground text-xs font-mono w-5 shrink-0 pt-0.5">{i + 1}</span>
+                                <span className="break-words flex-1">{p.text}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </Card>
+
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                              Scoring Mode
+                            </label>
+                            <Select value={scoringMode} onValueChange={(v) => setScoringMode(v as any)}>
+                              <SelectTrigger className="bg-secondary/50 w-32" data-testid="select-quick-scoring-mode">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="quick">Quick</SelectItem>
+                                <SelectItem value="full">Full</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              runQuickScoring({
+                                prompts: quickResult.prompts,
+                                brand_name: brandName.trim(),
+                                brand_domain: brandDomain.trim() || undefined,
+                                mode: scoringMode,
+                              });
+                            }}
+                            disabled={isQuickScoring}
+                            className="w-full"
+                            data-testid="button-quick-score"
+                          >
+                            {isQuickScoring ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Running across 3 AI engines...
+                              </>
+                            ) : (
+                              <>
+                                <BarChart3 className="w-4 h-4 mr-2" />
+                                Run GEO Scoring (10 prompts x 3 engines)
+                              </>
+                            )}
+                          </Button>
+                        </div>
+
+                        {quickScoringResult && (
+                          <ResultsDashboard
+                            score={quickScoringResult}
+                            brandName={brandName}
+                            mode="quick"
+                            promptsUsed={quickResult.prompts.length}
+                            rawRuns={[]}
+                            onNewAnalysis={() => {
+                              setQuickResult(null);
+                              setQuickScoringResult(null);
+                            }}
+                          />
+                        )}
+                      </motion.div>
+                    )}
+                  </div>
+                )}
+
+                {mode !== "panel" && mode !== "quick" && (<form onSubmit={handleGenerate} className="space-y-6 pb-16">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
