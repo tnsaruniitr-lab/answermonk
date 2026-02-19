@@ -1807,20 +1807,6 @@ export default function PromptGenerator() {
                         </Card>
 
                         <div className="space-y-3">
-                          <div className="flex items-center gap-3">
-                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                              Scoring Mode
-                            </label>
-                            <Select value={scoringMode} onValueChange={(v) => setScoringMode(v as any)}>
-                              <SelectTrigger className="bg-secondary/50 w-32" data-testid="select-quick-scoring-mode">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="quick">Quick</SelectItem>
-                                <SelectItem value="full">Full</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
                           <Button
                             type="button"
                             onClick={() => {
@@ -1828,7 +1814,7 @@ export default function PromptGenerator() {
                                 prompts: quickResult.prompts,
                                 brand_name: brandName.trim(),
                                 brand_domain: brandDomain.trim() || undefined,
-                                mode: scoringMode,
+                                mode: "full",
                               });
                             }}
                             disabled={isQuickScoring}
