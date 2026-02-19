@@ -83,6 +83,9 @@ export const AUTOMATION_SERVICES: string[] = [
   "event-triggered workflows",
   "API integrations",
   "Clay automation",
+  "invoice management",
+  "accounting automation",
+  "expense management",
 ];
 
 export const AUTOMATION_KNOWN_TOOLS: string[] = [
@@ -181,6 +184,9 @@ export const CORPORATE_CARDS_SERVICES: string[] = [
   "credit line management",
   "employee card programs",
   "vendor payment cards",
+  "invoice management",
+  "accounting automation",
+  "expense management",
 ];
 
 export const CORPORATE_CARDS_VERTICALS: string[] = [
@@ -234,6 +240,8 @@ export const EXPENSE_MANAGEMENT_SERVICES: string[] = [
   "project expense tracking",
   "client billing",
   "ERP integration",
+  "accounting automation",
+  "expense management",
 ];
 
 export const EXPENSE_MANAGEMENT_VERTICALS: string[] = [
