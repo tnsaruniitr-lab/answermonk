@@ -1593,11 +1593,11 @@ export default function PromptGenerator() {
 
                         {panelScoringResult && (
                           <ResultsDashboard
-                            score={panelScoringResult}
+                            score={panelScoringResult.score}
                             brandName={panelBrand}
-                            mode="panel"
-                            promptsUsed={panelAnalysis?.prompts.length || 0}
-                            rawRuns={panelRawRuns || []}
+                            mode={panelScoringResult.mode}
+                            promptsUsed={panelScoringResult.prompts_used}
+                            rawRuns={panelScoringResult.raw_runs || panelRawRuns || []}
                             onNewAnalysis={() => {
                               setPanelAnalysis(null);
                               setPanelScoringResult(null);
@@ -1851,11 +1851,11 @@ export default function PromptGenerator() {
 
                         {quickScoringResult && (
                           <ResultsDashboard
-                            score={quickScoringResult}
+                            score={quickScoringResult.score}
                             brandName={brandName}
-                            mode="quick"
-                            promptsUsed={quickResult.prompts.length}
-                            rawRuns={[]}
+                            mode={quickScoringResult.mode}
+                            promptsUsed={quickScoringResult.prompts_used}
+                            rawRuns={quickScoringResult.raw_runs || []}
                             onNewAnalysis={() => {
                               setQuickResult(null);
                               setQuickScoringResult(null);
