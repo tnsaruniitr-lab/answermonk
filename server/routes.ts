@@ -15,7 +15,7 @@ import { z } from "zod";
 import { queryEngine } from "./engines";
 import { generatePromptSet } from "./promptgen/generator";
 import { BuyerIntentProfileSchema } from "./promptgen/types";
-import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, BUDGET_ADJECTIVES, DECISION_MAKERS } from "./promptgen/presets";
+import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, CORPORATE_CARDS_SERVICES, CORPORATE_CARDS_VERTICALS, CORPORATE_CARDS_MODIFIERS, EXPENSE_MANAGEMENT_SERVICES, EXPENSE_MANAGEMENT_VERTICALS, EXPENSE_MANAGEMENT_MODIFIERS, BUDGET_ADJECTIVES, DECISION_MAKERS } from "./promptgen/presets";
 import { selectMiniPanel, selectMicroPanel } from "./scoring/panel";
 import { runScoring } from "./scoring/runner";
 import { insertSavedProfileSchema } from "@shared/schema";
@@ -229,6 +229,22 @@ export async function registerRoutes(
         decision_makers: DECISION_MAKERS,
         budget_tiers: Object.keys(BUDGET_ADJECTIVES.automation_consultant),
       });
+    } else if (persona === "corporate_cards_provider") {
+      res.json({
+        services: CORPORATE_CARDS_SERVICES,
+        verticals: CORPORATE_CARDS_VERTICALS,
+        modifiers: CORPORATE_CARDS_MODIFIERS,
+        decision_makers: DECISION_MAKERS,
+        budget_tiers: Object.keys(BUDGET_ADJECTIVES.corporate_cards_provider),
+      });
+    } else if (persona === "expense_management_software") {
+      res.json({
+        services: EXPENSE_MANAGEMENT_SERVICES,
+        verticals: EXPENSE_MANAGEMENT_VERTICALS,
+        modifiers: EXPENSE_MANAGEMENT_MODIFIERS,
+        decision_makers: DECISION_MAKERS,
+        budget_tiers: Object.keys(BUDGET_ADJECTIVES.expense_management_software),
+      });
     } else {
       res.json({
         marketing_agency: {
@@ -241,6 +257,18 @@ export async function registerRoutes(
           services: AUTOMATION_SERVICES,
           verticals: AUTOMATION_VERTICALS,
           modifiers: AUTOMATION_KNOWN_TOOLS.slice(0, 40),
+          decision_makers: DECISION_MAKERS,
+        },
+        corporate_cards_provider: {
+          services: CORPORATE_CARDS_SERVICES,
+          verticals: CORPORATE_CARDS_VERTICALS,
+          modifiers: CORPORATE_CARDS_MODIFIERS,
+          decision_makers: DECISION_MAKERS,
+        },
+        expense_management_software: {
+          services: EXPENSE_MANAGEMENT_SERVICES,
+          verticals: EXPENSE_MANAGEMENT_VERTICALS,
+          modifiers: EXPENSE_MANAGEMENT_MODIFIERS,
           decision_makers: DECISION_MAKERS,
         },
       });

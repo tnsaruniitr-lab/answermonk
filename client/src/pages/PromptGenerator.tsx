@@ -982,6 +982,8 @@ export default function PromptGenerator() {
   const PERSONA_CATEGORY: Record<string, string> = {
     marketing_agency: "marketing agency",
     automation_consultant: "automation consultant",
+    corporate_cards_provider: "corporate cards provider",
+    expense_management_software: "expense management software",
   };
 
   const handleGenerate = (e: React.FormEvent) => {
@@ -1579,6 +1581,12 @@ export default function PromptGenerator() {
                           </SelectItem>
                           <SelectItem value="automation_consultant">
                             Automation Consultant
+                          </SelectItem>
+                          <SelectItem value="corporate_cards_provider">
+                            Corporate Cards Provider
+                          </SelectItem>
+                          <SelectItem value="expense_management_software">
+                            Expense Management Software
                           </SelectItem>
                         </SelectContent>
                       </Select>

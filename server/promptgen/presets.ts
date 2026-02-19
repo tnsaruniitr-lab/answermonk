@@ -160,6 +160,113 @@ export const AUTOMATION_VERTICALS: string[] = [
   "freelancers",
 ];
 
+export const CORPORATE_CARDS_SERVICES: string[] = [
+  "corporate credit cards",
+  "virtual cards",
+  "expense cards",
+  "team spending cards",
+  "prepaid business cards",
+  "travel cards",
+  "procurement cards",
+  "subscription management cards",
+  "departmental budgets",
+  "real-time spend tracking",
+  "card issuance",
+  "spend controls",
+  "receipt matching",
+  "approval workflows",
+  "multi-currency cards",
+  "rewards programs",
+  "cashback programs",
+  "credit line management",
+  "employee card programs",
+  "vendor payment cards",
+];
+
+export const CORPORATE_CARDS_VERTICALS: string[] = [
+  "startups",
+  "SMBs",
+  "enterprises",
+  "tech companies",
+  "ecommerce businesses",
+  "agencies",
+  "consulting firms",
+  "SaaS companies",
+  "fintech companies",
+  "remote teams",
+  "construction companies",
+  "healthcare organizations",
+  "nonprofits",
+  "law firms",
+  "accounting firms",
+  "logistics companies",
+  "real estate firms",
+  "manufacturing companies",
+  "retail businesses",
+  "hospitality companies",
+];
+
+export const CORPORATE_CARDS_MODIFIERS: string[] = [
+  "Brex", "Ramp", "Divvy", "Airbase", "Navan", "SAP Concur", "Coupa",
+  "Stripe", "Marqeta", "Lithic", "Extend", "Center", "Emburse",
+  "US Bank", "JPMorgan", "American Express", "Visa Commercial", "Mastercard",
+  "Mercury", "Relay", "Greenlight", "Wex", "Comdata", "Bill.com",
+];
+
+export const EXPENSE_MANAGEMENT_SERVICES: string[] = [
+  "expense reporting",
+  "receipt scanning",
+  "mileage tracking",
+  "per diem management",
+  "travel expense management",
+  "policy compliance",
+  "automated approvals",
+  "reimbursement processing",
+  "expense categorization",
+  "budget tracking",
+  "spend analytics",
+  "invoice management",
+  "vendor payments",
+  "accounts payable automation",
+  "tax compliance",
+  "audit trails",
+  "multi-entity management",
+  "project expense tracking",
+  "client billing",
+  "ERP integration",
+];
+
+export const EXPENSE_MANAGEMENT_VERTICALS: string[] = [
+  "startups",
+  "SMBs",
+  "enterprises",
+  "tech companies",
+  "consulting firms",
+  "professional services",
+  "accounting firms",
+  "law firms",
+  "healthcare organizations",
+  "construction companies",
+  "nonprofits",
+  "government agencies",
+  "educational institutions",
+  "manufacturing companies",
+  "logistics companies",
+  "real estate firms",
+  "agencies",
+  "remote teams",
+  "field service companies",
+  "retail chains",
+];
+
+export const EXPENSE_MANAGEMENT_MODIFIERS: string[] = [
+  "SAP Concur", "Expensify", "Brex", "Ramp", "Navan", "Emburse",
+  "Divvy", "Airbase", "Center", "Fyle", "Zoho Expense", "Certify",
+  "Abacus", "Spendesk", "Pleo", "Soldo", "Payhawk", "Yokoy",
+  "Coupa", "AppZen", "Oversight", "Chrome River", "Mesh Payments",
+  "QuickBooks", "Xero", "NetSuite", "Sage Intacct",
+];
+
 export const DECISION_MAKERS: string[] = [
   "Founder",
   "Co-Founder",
@@ -246,6 +353,16 @@ export const BUDGET_ADJECTIVES: Record<PersonaType, Record<BudgetTier, string[]>
     budget: ["freelancer-friendly", "startup-budget", "affordable"],
     mid: ["experienced", "good value", "mid-range"],
     premium: ["premium", "senior", "expert-level"],
+  },
+  corporate_cards_provider: {
+    budget: ["affordable", "low-cost", "startup-friendly"],
+    mid: ["competitive", "flexible", "scalable"],
+    premium: ["premium", "enterprise-grade", "full-featured"],
+  },
+  expense_management_software: {
+    budget: ["affordable", "budget-friendly", "cost-effective"],
+    mid: ["mid-market", "scalable", "feature-rich"],
+    premium: ["enterprise", "premium", "comprehensive"],
   },
 };
 
@@ -368,6 +485,15 @@ export function dedupeByKey<T extends { key: string }>(terms: T[]): T[] {
   });
 }
 
+function getModifierKnownList(personaType: PersonaType): string[] {
+  switch (personaType) {
+    case "marketing_agency": return MARKETING_CHANNELS;
+    case "corporate_cards_provider": return CORPORATE_CARDS_MODIFIERS;
+    case "expense_management_software": return EXPENSE_MANAGEMENT_MODIFIERS;
+    default: return AUTOMATION_KNOWN_TOOLS;
+  }
+}
+
 export function resolveModifier(
   raw: string,
   personaType: PersonaType
@@ -376,12 +502,12 @@ export function resolveModifier(
   const aliased = ALIAS_MAP[key];
 
   if (aliased) {
-    const knownList = personaType === "marketing_agency" ? MARKETING_CHANNELS : AUTOMATION_KNOWN_TOOLS;
+    const knownList = getModifierKnownList(personaType);
     const isKnown = knownList.some((p) => normalizeKey(p) === normalizeKey(aliased));
     return { display: aliased, verified: isKnown };
   }
 
-  const knownList = personaType === "marketing_agency" ? MARKETING_CHANNELS : AUTOMATION_KNOWN_TOOLS;
+  const knownList = getModifierKnownList(personaType);
   const exactMatch = knownList.find((p) => normalizeKey(p) === key);
   if (exactMatch) {
     return { display: exactMatch, verified: true };
@@ -393,6 +519,8 @@ export function resolveModifier(
 const SERVICE_VERB_PREFIXES: Record<PersonaType, string[]> = {
   marketing_agency: ["run", "manage", "handle"],
   automation_consultant: ["set up", "build", "automate"],
+  corporate_cards_provider: ["provide", "offer", "manage"],
+  expense_management_software: ["handle", "automate", "manage"],
 };
 
 export function ensureServiceVerb(service: string, personaType: PersonaType, rngPick?: <T>(arr: T[]) => T): string {
@@ -411,6 +539,18 @@ export function getPresetsForPersona(personaType: PersonaType) {
     return {
       services: MARKETING_CHANNELS,
       verticals: MARKETING_VERTICALS,
+    };
+  }
+  if (personaType === "corporate_cards_provider") {
+    return {
+      services: CORPORATE_CARDS_SERVICES,
+      verticals: CORPORATE_CARDS_VERTICALS,
+    };
+  }
+  if (personaType === "expense_management_software") {
+    return {
+      services: EXPENSE_MANAGEMENT_SERVICES,
+      verticals: EXPENSE_MANAGEMENT_VERTICALS,
     };
   }
   return {
