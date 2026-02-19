@@ -727,7 +727,13 @@ function generateQuickPrompts(
   count: number,
   location: string,
 ): Prompt[] {
-  const personaLabel = persona === "marketing_agency" ? "marketing agency" : persona.replace(/_/g, " ");
+  const PERSONA_CORE_LABELS: Record<string, string> = {
+    marketing_agency: "marketing agency",
+    automation_consultant: "automation",
+    corporate_cards_provider: "corporate cards",
+    expense_management_software: "expense management",
+  };
+  const personaLabel = PERSONA_CORE_LABELS[persona] || persona.replace(/_/g, " ");
   const prompts: Prompt[] = [];
 
   for (let i = 0; i < 10; i++) {
