@@ -18,8 +18,8 @@ import {
 import {
   buildTemplatePools,
   getFallbackTemplate,
-  ADVANCED_PREFIX,
-  ADVANCED_SUFFIX,
+  getAdvancedPrefix,
+  getAdvancedSuffix,
   type PromptTemplate,
   type TemplatePools,
 } from "./templates";
@@ -159,10 +159,14 @@ const MODIFIER_ALLOWED_CLUSTERS: Record<string, Cluster[]> = {
 interface GenerateOptions {
   seed?: number;
   nPrompts?: number;
+  resultCount?: number;
 }
 
-function wrapPromptText(coreText: string): string {
-  return `${ADVANCED_PREFIX} ${coreText}. ${ADVANCED_SUFFIX}`;
+function makeWrapPromptText(personaType: string, resultCount: number) {
+  const prefix = getAdvancedPrefix(resultCount);
+  const suffix = getAdvancedSuffix(personaType as any);
+  const suffixPart = suffix ? `. ${suffix}` : "";
+  return (coreText: string): string => `${prefix} ${coreText}${suffixPart}`;
 }
 
 export function generatePromptSet(
@@ -172,6 +176,7 @@ export function generatePromptSet(
   const validated = BuyerIntentProfileSchema.parse(profile);
   const seed = options.seed ?? Math.floor(Math.random() * 2147483646) + 1;
   const nPrompts = options.nPrompts ?? 40;
+  const wrapPromptText = makeWrapPromptText(validated.persona_type, options.resultCount ?? 10);
   const rng = seededRng(seed);
 
   const slotBank = buildSlotBank(validated);

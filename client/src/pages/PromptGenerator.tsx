@@ -803,6 +803,7 @@ export default function PromptGenerator() {
   const [brandName, setBrandName] = useState("");
   const [brandDomain, setBrandDomain] = useState("");
   const [decisionMakers, setDecisionMakers] = useState<string[]>([]);
+  const [resultCount, setResultCount] = useState<number>(10);
   const [scoringMode, setScoringMode] = useState<"micro" | "quick" | "full">("quick");
   const [filterCluster, setFilterCluster] = useState<string>("all");
   const [filterShape, setFilterShape] = useState<string>("all");
@@ -1081,13 +1082,16 @@ export default function PromptGenerator() {
     } as any);
 
     generate({
-      persona_type: persona,
-      category: PERSONA_CATEGORY[persona] || persona.replace(/_/g, " "),
-      verticals,
-      services,
-      modifiers,
-      geo: geo.trim() || undefined,
-      budget_tier: budgetTier,
+      profile: {
+        persona_type: persona,
+        category: PERSONA_CATEGORY[persona] || persona.replace(/_/g, " "),
+        verticals,
+        services,
+        modifiers,
+        geo: geo.trim() || undefined,
+        budget_tier: budgetTier,
+      },
+      result_count: resultCount,
     });
   };
 
@@ -1591,6 +1595,28 @@ export default function PromptGenerator() {
                         </SelectContent>
                       </Select>
                     </div>
+                    {!simpleMode && (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Results per prompt
+                        </label>
+                        <Select value={String(resultCount)} onValueChange={(v) => setResultCount(Number(v))}>
+                          <SelectTrigger
+                            className="bg-secondary/50"
+                            data-testid="select-result-count"
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="3">3</SelectItem>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="15">15</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     {simpleMode && (
                       <div className="space-y-1.5">
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">

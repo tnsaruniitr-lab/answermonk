@@ -9,8 +9,18 @@ export interface PromptTemplate {
   persona: PersonaType | "both";
 }
 
-export const ADVANCED_PREFIX = "Find, list and rank 10";
-export const ADVANCED_SUFFIX = "Only include independent agencies or regional consultants. Exclude global holding companies, SaaS tools, and software platforms.";
+export function getAdvancedPrefix(count: number = 10): string {
+  return `Find, list and rank ${count}`;
+}
+
+export const ADVANCED_SUFFIX: Record<string, string> = {
+  marketing_agency: "Only include independent agencies or regional consultants. Exclude global holding companies, SaaS tools, and software platforms.",
+  automation_consultant: "Only include independent agencies or regional consultants. Exclude global holding companies, SaaS tools, and software platforms.",
+};
+
+export function getAdvancedSuffix(personaType: PersonaType): string {
+  return ADVANCED_SUFFIX[personaType] ?? "";
+}
 
 const TEMPLATES: PromptTemplate[] = [
   // ========== DIRECT CLUSTER ==========

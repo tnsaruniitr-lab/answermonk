@@ -187,7 +187,10 @@ export async function registerRoutes(
     try {
       const profile = BuyerIntentProfileSchema.parse(req.body.profile ?? req.body);
       const seed = req.body.seed ? Number(req.body.seed) : undefined;
-      const result = generatePromptSet(profile, { seed });
+      const VALID_COUNTS = [3, 5, 10, 15, 20];
+      const rawCount = req.body.result_count ? Number(req.body.result_count) : undefined;
+      const resultCount = rawCount && VALID_COUNTS.includes(rawCount) ? rawCount : undefined;
+      const result = generatePromptSet(profile, { seed, resultCount });
       res.status(200).json(result);
     } catch (err) {
       if (err instanceof z.ZodError) {
