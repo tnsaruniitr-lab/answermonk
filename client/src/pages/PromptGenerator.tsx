@@ -962,7 +962,7 @@ interface PanelAnalysisResult {
   }>;
 }
 
-type GeneratorMode = "simple" | "advanced" | "quick" | "panel";
+type GeneratorMode = "simple" | "advanced" | "quick" | "quickv2" | "panel";
 
 export default function PromptGenerator() {
   const [mode, setMode] = useState<GeneratorMode>("simple");
@@ -1007,6 +1007,15 @@ export default function PromptGenerator() {
   const [quickLocation, setQuickLocation] = useState("");
   const [quickResult, setQuickResult] = useState<PromptSet | null>(null);
   const [quickScoringResult, setQuickScoringResult] = useState<ScoringResponse | null>(null);
+
+  const [v2SeedType, setV2SeedType] = useState("providers");
+  const [v2CustomerType, setV2CustomerType] = useState("");
+  const [v2Count, setV2Count] = useState(5);
+  const [v2Location, setV2Location] = useState("");
+  const [v2Result, setV2Result] = useState<PromptSet | null>(null);
+  const [v2ScoringResult, setV2ScoringResult] = useState<ScoringResponse | null>(null);
+  const [v2Persona, setV2Persona] = useState<string>("marketing_agency");
+
   const { toast } = useToast();
 
   const { data: presets } = useQuery<Presets>({
@@ -1087,6 +1096,26 @@ export default function PromptGenerator() {
     },
     onSuccess: (data) => {
       setQuickScoringResult(data);
+    },
+    onError: (err) => {
+      toast({
+        title: "Scoring failed",
+        description: err.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const {
+    mutate: runV2Scoring,
+    isPending: isV2Scoring,
+  } = useMutation<ScoringResponse, Error, { prompts: Prompt[]; brand_name: string; brand_domain?: string; mode: "micro" | "quick" | "full"; profile?: { persona: string; services: string[]; verticals: string[]; geo: string | null } }>({
+    mutationFn: async (body) => {
+      const res = await apiRequest("POST", "/api/scoring/run", body);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setV2ScoringResult(data);
     },
     onError: (err) => {
       toast({
@@ -1180,6 +1209,7 @@ export default function PromptGenerator() {
   };
 
   const currentPresets = presets?.[persona];
+  const v2Presets = presets?.[v2Persona];
 
   const PERSONA_CATEGORY: Record<string, string> = {
     marketing_agency: "marketing agency",
@@ -1413,8 +1443,8 @@ export default function PromptGenerator() {
     });
   };
 
-  const showForm = mode === "panel" || mode === "quick" || (!result && !isGenerating && !isScoring && !scoringResult);
-  const showPrompts = mode !== "panel" && mode !== "quick" && result && !isGenerating && !isScoring && !scoringResult;
+  const showForm = mode === "panel" || mode === "quick" || mode === "quickv2" || (!result && !isGenerating && !isScoring && !scoringResult);
+  const showPrompts = mode !== "panel" && mode !== "quick" && mode !== "quickv2" && result && !isGenerating && !isScoring && !scoringResult;
   const showScoring = isScoring;
   const showResults = scoringResult && !isScoring;
 
@@ -1461,6 +1491,7 @@ export default function PromptGenerator() {
                       { key: "simple" as GeneratorMode, label: "Simple", desc: "9 focused prompts", icon: Zap },
                       { key: "advanced" as GeneratorMode, label: "Advanced", desc: "4-40 prompts", icon: Sparkles },
                       { key: "quick" as GeneratorMode, label: "Quick", desc: "10 ranked prompts", icon: Target },
+                      { key: "quickv2" as GeneratorMode, label: "Quick V2", desc: "Multi-segment analysis", icon: BarChart3 },
                       { key: "panel" as GeneratorMode, label: "Panel", desc: "Website recall test", icon: Shield },
                     ]).map((m) => (
                       <button
@@ -2008,7 +2039,271 @@ export default function PromptGenerator() {
                   </div>
                 )}
 
-                {mode !== "panel" && mode !== "quick" && (<form onSubmit={handleGenerate} className="space-y-6 pb-16">
+                {mode === "quickv2" && (
+                  <div className="space-y-6 pb-16">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Brand Name
+                        </label>
+                        <Input
+                          value={brandName}
+                          onChange={(e) => setBrandName(e.target.value)}
+                          placeholder="e.g. Pemo"
+                          className="bg-secondary/50 border-border"
+                          data-testid="input-v2-brand-name"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Website
+                          <span className="text-muted-foreground/60 normal-case ml-1">(recommended)</span>
+                        </label>
+                        <Input
+                          value={brandDomain}
+                          onChange={(e) => setBrandDomain(e.target.value)}
+                          placeholder="e.g. pemo.io"
+                          className="bg-secondary/50 border-border"
+                          data-testid="input-v2-brand-domain"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Persona
+                        </label>
+                        <Select
+                          value={v2Persona}
+                          onValueChange={(v) => {
+                            setV2Persona(v);
+                            setV2CustomerType("");
+                            setV2SeedType(v === "restaurant" ? "restaurants" : "providers");
+                          }}
+                        >
+                          <SelectTrigger className="bg-secondary/50" data-testid="select-v2-persona">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="marketing_agency">Marketing Agency</SelectItem>
+                            <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
+                            <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
+                            <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
+                            <SelectItem value="restaurant">Restaurant</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Seed Type
+                        </label>
+                        <Select value={v2SeedType} onValueChange={setV2SeedType}>
+                          <SelectTrigger className="bg-secondary/50" data-testid="select-v2-seed-type">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {v2Persona === "restaurant" ? (
+                              <>
+                                <SelectItem value="restaurants">Restaurants</SelectItem>
+                                <SelectItem value="places">Places</SelectItem>
+                                <SelectItem value="spots">Spots</SelectItem>
+                                <SelectItem value="eateries">Eateries</SelectItem>
+                                <SelectItem value="dining options">Dining Options</SelectItem>
+                                <SelectItem value="cafes">Cafes</SelectItem>
+                              </>
+                            ) : (
+                              <>
+                                <SelectItem value="software">Software</SelectItem>
+                                <SelectItem value="providers">Providers</SelectItem>
+                                <SelectItem value="vendors">Vendors</SelectItem>
+                                <SelectItem value="platforms">Platforms</SelectItem>
+                                <SelectItem value="tools">Tools</SelectItem>
+                                <SelectItem value="solutions">Solutions</SelectItem>
+                                <SelectItem value="companies">Companies</SelectItem>
+                                <SelectItem value="agencies">Agencies</SelectItem>
+                              </>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          {v2Persona === "restaurant" ? "Cuisine / Style" : "Customer Type"} <span className="text-muted-foreground/60 normal-case">(optional)</span>
+                        </label>
+                        <Select value={v2CustomerType} onValueChange={setV2CustomerType}>
+                          <SelectTrigger className="bg-secondary/50" data-testid="select-v2-customer-type">
+                            <SelectValue placeholder={v2Persona === "restaurant" ? "Any cuisine..." : "Any customer type..."} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__none__">
+                              <span className="text-muted-foreground italic">{v2Persona === "restaurant" ? "Any cuisine" : "Any customer type"}</span>
+                            </SelectItem>
+                            {(v2Presets?.verticals || []).map((v) => (
+                              <SelectItem key={v} value={v}>{v}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Result Count
+                        </label>
+                        <Select value={String(v2Count)} onValueChange={(v) => setV2Count(Number(v))}>
+                          <SelectTrigger className="bg-secondary/50" data-testid="select-v2-count">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="3">3</SelectItem>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="15">15</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Location (city or country)
+                      </label>
+                      <Input
+                        value={v2Location}
+                        onChange={(e) => setV2Location(e.target.value)}
+                        placeholder="e.g. UAE, Dubai, Singapore"
+                        className="bg-secondary/50 border-border"
+                        data-testid="input-v2-location"
+                      />
+                    </div>
+
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        if (!brandName.trim()) {
+                          toast({ title: "Brand name required", description: "Enter your brand name.", variant: "destructive" });
+                          return;
+                        }
+                        if (!v2Location.trim()) {
+                          toast({ title: "Location required", description: "Enter a city or country.", variant: "destructive" });
+                          return;
+                        }
+                        setV2ScoringResult(null);
+                        setScoringResult(null);
+                        const effectiveCustomerType = v2CustomerType === "__none__" ? "" : v2CustomerType;
+                        const v2Prompts = generateQuickPrompts(v2Persona, v2SeedType, effectiveCustomerType, v2Count, v2Location.trim());
+                        setV2Result({
+                          prompt_set_id: `v2-${Date.now()}`,
+                          version: "pg_v1",
+                          seed_used: 0,
+                          counts: {
+                            by_cluster: { direct: 10 },
+                            by_shape: { open: 10 },
+                            modifier_prompts: 0,
+                            geo_prompts: 10,
+                          },
+                          prompts: v2Prompts,
+                          unverified_items: [],
+                        });
+                      }}
+                      data-testid="button-v2-generate"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Generate 10 Prompts
+                    </Button>
+
+                    {v2Result && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-4"
+                      >
+                        <Card className="p-4 space-y-3">
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-primary" />
+                              <span className="font-medium text-sm">Generated Prompts ({v2Result.prompts.length})</span>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setV2Result(null);
+                                setV2ScoringResult(null);
+                              }}
+                              data-testid="button-v2-reset"
+                            >
+                              <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+                              Reset
+                            </Button>
+                          </div>
+                          <div className="space-y-1.5 max-h-80 overflow-y-auto">
+                            {v2Result.prompts.map((p, i) => (
+                              <div key={p.id} className="flex items-start gap-2 text-sm py-1.5 border-b last:border-b-0">
+                                <span className="text-muted-foreground text-xs font-mono w-5 shrink-0 pt-0.5">{i + 1}</span>
+                                <span className="break-words flex-1">{p.text}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </Card>
+
+                        <div className="space-y-3">
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              runV2Scoring({
+                                prompts: v2Result.prompts,
+                                brand_name: brandName.trim(),
+                                brand_domain: brandDomain.trim() || undefined,
+                                mode: "full",
+                                profile: {
+                                  persona: v2Persona,
+                                  services,
+                                  verticals,
+                                  geo: geo || null,
+                                },
+                              });
+                            }}
+                            disabled={isV2Scoring}
+                            className="w-full"
+                            data-testid="button-v2-score"
+                          >
+                            {isV2Scoring ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Running across 3 AI engines...
+                              </>
+                            ) : (
+                              <>
+                                <BarChart3 className="w-4 h-4 mr-2" />
+                                Run GEO Scoring (10 prompts x 3 engines)
+                              </>
+                            )}
+                          </Button>
+                        </div>
+
+                        {v2ScoringResult && (
+                          <ResultsDashboard
+                            score={v2ScoringResult.score}
+                            brandName={brandName}
+                            mode={v2ScoringResult.mode}
+                            promptsUsed={v2ScoringResult.prompts_used}
+                            rawRuns={v2ScoringResult.raw_runs || []}
+                            onNewAnalysis={() => {
+                              setV2Result(null);
+                              setV2ScoringResult(null);
+                            }}
+                          />
+                        )}
+                      </motion.div>
+                    )}
+                  </div>
+                )}
+
+                {mode !== "panel" && mode !== "quick" && mode !== "quickv2" && (<form onSubmit={handleGenerate} className="space-y-6 pb-16">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
