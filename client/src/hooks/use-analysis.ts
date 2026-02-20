@@ -23,7 +23,7 @@ export function useRunAnalysis() {
   return useMutation({
     mutationFn: async ({ query, brand, webSearch = false }: { query: string; brand: string; webSearch?: boolean }) => {
       const enginePromises = ENGINES.map((engine) =>
-        callEvalEngine({ query, brand, engine, topN: 10, webSearch: engine === "chatgpt" ? webSearch : false })
+        callEvalEngine({ query, brand, engine, topN: 10, webSearch: (engine === "chatgpt" || engine === "gemini") ? webSearch : false })
       );
 
       const engineResults = await Promise.all(enginePromises);
