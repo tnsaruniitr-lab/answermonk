@@ -325,7 +325,7 @@ function TopSourcesList({ sources, allSourcesCount }: { sources: InsightsReport[
         <Globe className="w-4 h-4 text-muted-foreground" />
         Key Sources Analyzed
         <span className="text-[10px] text-muted-foreground font-normal">
-          ({sources.length} shown{allSourcesCount && allSourcesCount > sources.length ? ` of ${allSourcesCount} total` : ""})
+          ({sources.length} total)
         </span>
       </h4>
       <Card className="divide-y divide-border max-h-[500px] overflow-y-auto">

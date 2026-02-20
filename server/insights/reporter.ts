@@ -172,7 +172,6 @@ export function generateReport(
       if (tierDiff !== 0) return tierDiff;
       return (clsB?.crossEngineCitations || 0) - (clsA?.crossEngineCitations || 0);
     })
-    .slice(0, 25)
     .map(e => {
       const cls = classifiedMap.get(e.url);
       return {
