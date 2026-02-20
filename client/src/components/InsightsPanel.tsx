@@ -24,11 +24,12 @@ import {
   Star,
   FileText,
   RefreshCw,
+  Quote,
 } from "lucide-react";
 
 interface InsightCard {
   id: string;
-  type: "elimination" | "competitor" | "attribution" | "opportunity" | "strength";
+  type: "elimination" | "ranking_weakness" | "competitor" | "attribution" | "opportunity" | "strength";
   severity: "high" | "medium" | "low" | "info";
   title: string;
   body: string;
@@ -87,6 +88,11 @@ interface InsightsReport {
     strengthFactors: string[];
     evidenceType: string;
   }>;
+  competitorPassages?: Array<{
+    competitorName: string;
+    passage: string;
+    context: string;
+  }>;
   topSources: Array<{
     url: string;
     domain: string;
@@ -94,6 +100,7 @@ interface InsightsReport {
     brandsFound: string[];
     surfaceType?: string;
     crossEngineCitations?: number;
+    tierWeight?: number;
   }>;
   allSourcesCount?: number;
 }
@@ -107,6 +114,7 @@ const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string
 
 const TYPE_ICONS: Record<string, any> = {
   elimination: AlertTriangle,
+  ranking_weakness: TrendingUp,
   competitor: Users,
   attribution: Eye,
   opportunity: Target,
@@ -357,6 +365,11 @@ function TopSourcesList({ sources, allSourcesCount }: { sources: InsightsReport[
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               {s.surfaceType && <SurfaceTypeBadge surfaceType={s.surfaceType} />}
+              {s.tierWeight != null && s.tierWeight >= 1.5 && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" title={`Authority weight: ${s.tierWeight.toFixed(1)}x`}>
+                  {s.tierWeight >= 3 ? "T1" : "T2"}
+                </span>
+              )}
               <span className={`text-[10px] px-1.5 py-0.5 rounded ${
                 s.relevance === "high" ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400" :
                 s.relevance === "medium" ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400" :
@@ -391,11 +404,94 @@ function TopSourcesList({ sources, allSourcesCount }: { sources: InsightsReport[
   );
 }
 
+function CounterfactualSimulation({ report }: { report: InsightsReport }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const brandLower = report.brandName.toLowerCase();
+  const hasBrand = (s: { brandsFound: string[] }) =>
+    s.brandsFound.some(b => b.toLowerCase() === brandLower);
+
+  const brandSources = report.topSources.filter(hasBrand);
+  const brandSourceCount = brandSources.length;
+  const totalSources = report.topSources.length;
+
+  const highTierSources = report.topSources.filter(s => (s.tierWeight || 0) >= 1.5);
+  const brandOnHighTier = highTierSources.filter(hasBrand);
+
+  const comparisonSources = report.topSources.filter(s =>
+    s.surfaceType === "comparison" || s.surfaceType === "eligibility"
+  );
+  const brandOnComparison = comparisonSources.filter(hasBrand);
+
+  const currentRate = totalSources > 0 ? (brandSourceCount / totalSources) * 100 : 0;
+
+  const missedHighTier = highTierSources.length - brandOnHighTier.length;
+  const missedComparison = comparisonSources.length - brandOnComparison.length;
+
+  const potentialGain = missedHighTier * 3.2 + missedComparison * 1.5;
+  const currentWeighted = brandSources.reduce((sum, s) => sum + (s.tierWeight || 0.4), 0);
+  const maxWeighted = report.topSources.reduce((sum, s) => sum + (s.tierWeight || 0.4), 0);
+  const projectedRate = maxWeighted > 0 ? ((currentWeighted + potentialGain) / maxWeighted) * 100 : currentRate;
+  const clampedProjected = Math.min(projectedRate, 95);
+
+  if (missedHighTier === 0 && missedComparison === 0) return null;
+
+  return (
+    <div>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-2 text-sm font-medium w-full"
+        data-testid="button-counterfactual"
+      >
+        {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        <TrendingUp className="w-4 h-4 text-blue-500" />
+        What If Simulation
+      </button>
+      {expanded && (
+        <Card className="mt-2 p-4 space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Estimates based on getting listed on high-authority sources where your brand is currently absent.
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-lg bg-muted/30 p-3">
+              <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Current Citation Rate</div>
+              <div className="text-lg font-bold text-foreground mt-1">{currentRate.toFixed(0)}%</div>
+              <div className="text-[10px] text-muted-foreground">{brandSourceCount} of {totalSources} sources</div>
+            </div>
+            <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 p-3 border border-blue-200 dark:border-blue-900/40">
+              <div className="text-[10px] text-blue-600 dark:text-blue-400 uppercase tracking-wider">Projected Rate</div>
+              <div className="text-lg font-bold text-blue-700 dark:text-blue-300 mt-1">{clampedProjected.toFixed(0)}%</div>
+              <div className="text-[10px] text-muted-foreground">if listed on key sources</div>
+            </div>
+          </div>
+          {missedHighTier > 0 && (
+            <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Star className="w-3 h-3 text-amber-500" />
+              {missedHighTier} high-authority (Tier 1/2) source{missedHighTier !== 1 ? "s" : ""} missing your brand
+            </div>
+          )}
+          {missedComparison > 0 && (
+            <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <BarChart3 className="w-3 h-3 text-emerald-500" />
+              {missedComparison} comparison/eligibility source{missedComparison !== 1 ? "s" : ""} missing your brand
+            </div>
+          )}
+          <p className="text-[10px] text-muted-foreground italic">
+            This is an estimate. Actual impact depends on how AI engines weight each source.
+          </p>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 function InsightsDisplay({ report }: { report: InsightsReport }) {
+  const [showAllPassages, setShowAllPassages] = useState(false);
   const eliminationCards = report.cards.filter(c => c.type === "elimination");
+  const rankingWeaknessCards = report.cards.filter(c => c.type === "ranking_weakness");
   const competitorCards = report.cards.filter(c => c.type === "competitor");
   const opportunityCards = report.cards.filter(c => c.type === "opportunity");
-  const otherCards = report.cards.filter(c => !["elimination", "competitor", "opportunity"].includes(c.type));
+  const otherCards = report.cards.filter(c => !["elimination", "ranking_weakness", "competitor", "opportunity"].includes(c.type));
 
   return (
     <div className="space-y-6">
@@ -440,6 +536,20 @@ function InsightsDisplay({ report }: { report: InsightsReport }) {
         </div>
       )}
 
+      {rankingWeaknessCards.length > 0 && (
+        <div>
+          <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-amber-500" />
+            Ranking Weaknesses ({rankingWeaknessCards.length})
+          </h4>
+          <div className="space-y-2">
+            {rankingWeaknessCards.map(card => (
+              <InsightCardComponent key={card.id} card={card} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {competitorCards.length > 0 && (
         <div>
           <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
@@ -450,6 +560,35 @@ function InsightsDisplay({ report }: { report: InsightsReport }) {
             {competitorCards.map(card => (
               <InsightCardComponent key={card.id} card={card} />
             ))}
+          </div>
+        </div>
+      )}
+
+      {report.competitorPassages && report.competitorPassages.length > 0 && (
+        <div>
+          <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+            <Quote className="w-4 h-4 text-purple-500" />
+            Why Competitors Rank Higher
+          </h4>
+          <div className="space-y-2">
+            {report.competitorPassages.slice(0, showAllPassages ? undefined : 5).map((p, i) => (
+              <div key={i} className="rounded-lg border border-purple-200 dark:border-purple-900/40 bg-purple-50/50 dark:bg-purple-950/10 p-3" data-testid={`passage-${i}`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-semibold text-purple-700 dark:text-purple-400">{p.competitorName}</span>
+                  <span className="text-xs text-muted-foreground">— {p.context}</span>
+                </div>
+                <p className="text-xs text-foreground/80 italic leading-relaxed">"{p.passage}"</p>
+              </div>
+            ))}
+            {report.competitorPassages.length > 5 && (
+              <button
+                onClick={() => setShowAllPassages(!showAllPassages)}
+                className="text-xs text-purple-600 dark:text-purple-400 hover:underline"
+                data-testid="toggle-passages"
+              >
+                {showAllPassages ? "Show less" : `Show all ${report.competitorPassages.length} passages`}
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -481,6 +620,8 @@ function InsightsDisplay({ report }: { report: InsightsReport }) {
           </div>
         </div>
       )}
+
+      <CounterfactualSimulation report={report} />
 
       <TopSourcesList sources={report.topSources} allSourcesCount={report.allSourcesCount} />
     </div>

@@ -3,10 +3,12 @@ import type { QueryDimensions } from "./intentParser";
 import { getGeoSynonyms, getAudienceSynonyms, getCategorySynonyms, classifyEvidence, type SynonymMap } from "./synonyms";
 
 export type EliminationReason = "geo_mismatch" | "audience_mismatch" | "category_mismatch" | "missing_evidence" | "weak_positioning" | "no_citations";
+export type SignalType = "elimination" | "ranking_weakness";
 
 export interface EliminationSignal {
   dimension: string;
   reason: EliminationReason;
+  signalType: SignalType;
   confidence: "high" | "medium" | "low";
   evidence: string;
   suggestion: string;
@@ -39,8 +41,9 @@ export function detectEliminationSignals(
     signals.push({
       dimension: "overall",
       reason: "no_citations",
+      signalType: "elimination",
       confidence: "high",
-      evidence: `Brand "${brandName}" was not found in any of the ${totalSources} analyzed sources that mention competitors.`,
+      evidence: `Brand "${brandName}" was not found in any of the ${totalSources} analyzed sources that mention competitors. This is a true eligibility gap — the model has no citation evidence to draw from.`,
       suggestion: `Consider creating or contributing to comparison articles and review sites. Getting listed on editorial comparison pages that AI engines cite increases the probability of being included in AI recommendations.`,
     });
     return signals;
@@ -59,8 +62,9 @@ export function detectEliminationSignals(
     signals.push({
       dimension: "positioning",
       reason: "weak_positioning",
+      signalType: "ranking_weakness",
       confidence: avgPosition > 8 ? "high" : "medium",
-      evidence: `When listed, "${brandName}" appears at an average position of ${avgPosition.toFixed(1)} across comparison sources, which reduces the likelihood of being recommended by AI engines.`,
+      evidence: `When listed, "${brandName}" appears at an average position of ${avgPosition.toFixed(1)} across comparison sources. This is a ranking weakness — the brand is included but positioned below competitors, which reduces recommendation probability.`,
       suggestion: `Focus on improving brand visibility in editorial sources. Higher positions in listicles and comparison pages correlate with higher positions in AI recommendations. Consider improving reviews on G2, Capterra, and similar platforms.`,
     });
   }
@@ -70,8 +74,9 @@ export function detectEliminationSignals(
     signals.push({
       dimension: "visibility",
       reason: "missing_evidence",
+      signalType: "ranking_weakness",
       confidence: brandSourceRate < 0.15 ? "high" : "medium",
-      evidence: `Brand "${brandName}" appears in ${brandExtractions.length} of ${totalSources} analyzed sources (${(brandSourceRate * 100).toFixed(0)}%), suggesting limited citation coverage relative to competitors.`,
+      evidence: `Brand "${brandName}" appears in ${brandExtractions.length} of ${totalSources} analyzed sources (${(brandSourceRate * 100).toFixed(0)}%). This is a coverage weakness relative to competitors — the brand passes eligibility but has thinner evidence density.`,
       suggestion: `Increasing presence in editorial comparisons, industry publications, and review platforms broadens the evidence base AI engines draw from. Focus on authoritative sources that already mention competitors.`,
     });
   }
@@ -123,6 +128,7 @@ function detectBrandSitePositioningGaps(
       signals.push({
         dimension: dim,
         reason: reasonMap[dim] || "weak_positioning",
+        signalType: "ranking_weakness",
         confidence: competitorHasDimension ? "high" : "medium",
         evidence,
         suggestion: getPositioningSuggestion(dim, dimValue),
@@ -131,6 +137,7 @@ function detectBrandSitePositioningGaps(
       signals.push({
         dimension: dim,
         reason: "weak_positioning",
+        signalType: "ranking_weakness",
         confidence: "low",
         evidence: `Your website mentions "${dimValue}" but not in prominent locations (title, headings, or first 200 words). Competitors feature it more prominently: ${competitorSignals.filter(s => s.found && (s.location === "title" || s.location === "heading")).map(s => s.snippet).slice(0, 2).join("; ")}`,
         suggestion: getPositioningSuggestion(dim, dimValue),
@@ -179,7 +186,7 @@ function checkDimensionElimination(
   const total = supported + weak + contradicted;
   if (total === 0) return;
 
-  if (contradicted > 0 && contradicted >= supported) {
+  if (contradicted > 0 && contradicted >= supported && supported === 0) {
     const reasonMap: Record<string, EliminationReason> = {
       geo: "geo_mismatch",
       audience: "audience_mismatch",
@@ -188,16 +195,33 @@ function checkDimensionElimination(
     signals.push({
       dimension,
       reason: reasonMap[dimension] || "missing_evidence",
-      confidence: contradicted > supported + weak ? "high" : "medium",
-      evidence: `Sources citing "${dimension}" dimension show ${contradicted} contradictory signals vs ${supported} supportive signals for "${dimensionValue}". This may reduce the model's confidence in recommending the brand for this specific ${dimension}.`,
+      signalType: "elimination",
+      confidence: contradicted > weak ? "high" : "medium",
+      evidence: `Sources show ${contradicted} contradictory signals and no supportive signals for "${dimensionValue}". This is a potential eligibility failure — the model may filter out the brand for this ${dimension}.`,
+      suggestion: getSuggestionForDimension(dimension, dimensionValue),
+    });
+  } else if (contradicted > 0 && contradicted >= supported) {
+    const reasonMap: Record<string, EliminationReason> = {
+      geo: "geo_mismatch",
+      audience: "audience_mismatch",
+      category: "category_mismatch",
+    };
+    signals.push({
+      dimension,
+      reason: reasonMap[dimension] || "missing_evidence",
+      signalType: "ranking_weakness",
+      confidence: "medium",
+      evidence: `Sources show ${contradicted} contradictory vs ${supported} supportive signals for "${dimensionValue}". The brand passes basic eligibility but has mixed evidence, which weakens ranking confidence for this ${dimension}.`,
       suggestion: getSuggestionForDimension(dimension, dimensionValue),
     });
   } else if (supported === 0 && weak > 0) {
+    const supportRate = weak / total;
     signals.push({
       dimension,
       reason: "missing_evidence",
+      signalType: "ranking_weakness",
       confidence: "low",
-      evidence: `No strong evidence found for "${dimensionValue}" in citation sources — only ${weak} weak/indirect signals. The AI model may lack sufficient evidence to associate the brand with this ${dimension}.`,
+      evidence: `Evidence for "${dimensionValue}" is indirect (${weak} weak signals, no strong signals). LLMs often infer ${dimension} alignment from context rather than explicit keywords — this is a relative ranking weakness, not a filtering failure.`,
       suggestion: getSuggestionForDimension(dimension, dimensionValue),
     });
   }

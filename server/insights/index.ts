@@ -84,8 +84,9 @@ export async function runInsightsAnalysis(
       [
         {
           dimension: "overall",
-          reason: "no_citations",
-          confidence: "high",
+          reason: "no_citations" as const,
+          signalType: "elimination" as const,
+          confidence: "high" as const,
           evidence: "No citation URLs were available from any AI engine. Insights analysis requires citations to analyze.",
           suggestion: "Run scoring with web search enabled (ChatGPT and Gemini support web search) to generate citation URLs for analysis.",
         },

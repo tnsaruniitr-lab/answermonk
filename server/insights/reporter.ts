@@ -1,12 +1,12 @@
 import type { InsightsScore, ComparativeScore, AttributionCheck } from "./scorer";
 import type { EliminationSignal, CompetitorInsight } from "./elimination";
-import type { SourceExtraction, PositioningSignal } from "./extractor";
+import type { SourceExtraction, PositioningSignal, CompetitorPassage } from "./extractor";
 import type { ClassifiedSource, SurfaceType } from "./classifier";
 import type { QueryDimensions } from "./intentParser";
 
 export interface InsightCard {
   id: string;
-  type: "elimination" | "competitor" | "attribution" | "opportunity" | "strength";
+  type: "elimination" | "ranking_weakness" | "competitor" | "attribution" | "opportunity" | "strength";
   severity: "high" | "medium" | "low" | "info";
   title: string;
   body: string;
@@ -24,6 +24,7 @@ export interface InsightsReport {
   cards: InsightCard[];
   score: InsightsScore;
   competitorInsights: CompetitorInsight[];
+  competitorPassages: CompetitorPassage[];
   topSources: Array<{
     url: string;
     domain: string;
@@ -31,6 +32,7 @@ export interface InsightsReport {
     brandsFound: string[];
     surfaceType: string;
     crossEngineCitations: number;
+    tierWeight: number;
   }>;
   allSourcesCount: number;
 }
@@ -58,10 +60,11 @@ export function generateReport(
   const cards: InsightCard[] = [];
 
   for (const signal of eliminationSignals) {
+    const isElimination = signal.signalType === "elimination";
     cards.push({
       id: `elim-${signal.dimension}-${signal.reason}`,
-      type: "elimination",
-      severity: signal.confidence,
+      type: isElimination ? "elimination" : "ranking_weakness",
+      severity: isElimination ? signal.confidence : (signal.confidence === "high" ? "medium" : "low"),
       title: getEliminationTitle(signal),
       body: signal.evidence,
       evidence: [signal.evidence],
@@ -121,14 +124,27 @@ export function generateReport(
     }
   }
 
+  const LISTABLE_SURFACE_TYPES = new Set(["comparison", "eligibility", "authority"]);
+  const NON_LISTABLE_SURFACE_TYPES = new Set(["brand_owned", "competitor_owned", "social", "redirect_wrapper"]);
+
   const opportunitySources = extractions
-    .filter(e => e.overallRelevance === "high" && !e.targetBrandFound)
+    .filter(e => !e.targetBrandFound && e.brandsFound.length > 0)
     .filter(e => {
+      if (NON_LISTABLE_SURFACE_TYPES.has(e.surfaceType)) return false;
+      if (!LISTABLE_SURFACE_TYPES.has(e.surfaceType)) return false;
       const cls = classifiedMap.get(e.url);
       const isCitedByMultipleEngines = cls ? cls.crossEngineCitations >= 2 : false;
       const isTier1or2 = cls ? cls.tier <= 2 : false;
       const isComparisonSurface = e.surfaceType === "comparison";
       return isCitedByMultipleEngines || isTier1or2 || isComparisonSurface;
+    })
+    .sort((a, b) => {
+      const clsA = classifiedMap.get(a.url);
+      const clsB = classifiedMap.get(b.url);
+      const surfPriority: Record<string, number> = { comparison: 0, authority: 1, eligibility: 2 };
+      const surfDiff = (surfPriority[a.surfaceType] ?? 3) - (surfPriority[b.surfaceType] ?? 3);
+      if (surfDiff !== 0) return surfDiff;
+      return (clsA?.tier || 3) - (clsB?.tier || 3);
     })
     .slice(0, 3);
 
@@ -137,16 +153,24 @@ export function generateReport(
     const qualifiers: string[] = [];
     if (cls?.crossEngineCitations && cls.crossEngineCitations >= 2) qualifiers.push(`cited by ${cls.crossEngineCitations} AI engines`);
     if (cls?.tier && cls.tier <= 2) qualifiers.push(`Tier ${cls.tier} credibility`);
-    if (source.surfaceType === "comparison") qualifiers.push("comparison surface");
+    if (source.surfaceType === "comparison") qualifiers.push("comparison/directory surface");
+    else if (source.surfaceType === "authority") qualifiers.push("authority/editorial source");
+    else if (source.surfaceType === "eligibility") qualifiers.push("eligibility source");
+
+    const surfaceLabel = source.surfaceType === "comparison"
+      ? "directory, comparison, or review listing"
+      : source.surfaceType === "authority"
+      ? "news or editorial coverage"
+      : "industry publication";
 
     cards.push({
       id: `opp-${source.domain.replace(/[^a-z0-9]/gi, "-")}`,
       type: "opportunity",
       severity: "medium",
       title: `Opportunity: ${source.domain}`,
-      body: `${source.domain} is a highly relevant source (${qualifiers.join(", ")}) that mentions ${source.brandsFound.length} competitor(s) but not "${brandName}". Getting listed here could increase AI citation probability.`,
+      body: `${source.domain} is a ${surfaceLabel} (${qualifiers.join(", ")}) that mentions ${source.brandsFound.length} competitor(s) but not "${brandName}". This is a surface where multiple brands can logically appear — getting included could increase AI citation probability.`,
       evidence: [`Competitors found: ${source.brandsFound.join(", ")}`, ...qualifiers],
-      recommendation: `Reach out to ${source.domain} for inclusion in their comparison content. This source already covers the target category and is cited by AI engines.`,
+      recommendation: `Seek inclusion on ${source.domain} — this is a ${surfaceLabel} that AI engines already cite when recommending in this category. Focus on editorial outreach, not link placement.`,
       affectedDimension: null,
     });
   }
@@ -174,6 +198,8 @@ export function generateReport(
     })
     .map(e => {
       const cls = classifiedMap.get(e.url);
+      const tier = cls?.tier || 3;
+      const tierWeight = tier === 1 ? 3.2 : tier === 2 ? 1.5 : 0.4;
       return {
         url: e.url,
         domain: e.domain,
@@ -181,8 +207,21 @@ export function generateReport(
         brandsFound: e.brandsFound,
         surfaceType: e.surfaceType,
         crossEngineCitations: cls?.crossEngineCitations || 0,
+        tierWeight,
       };
     });
+
+  const allCompetitorPassages: CompetitorPassage[] = [];
+  const seenPassages = new Set<string>();
+  for (const ext of extractions) {
+    for (const cp of ext.competitorPassages) {
+      const key = `${cp.competitorName}:${cp.passage.slice(0, 50)}`;
+      if (seenPassages.has(key)) continue;
+      seenPassages.add(key);
+      allCompetitorPassages.push(cp);
+    }
+  }
+  const topPassages = allCompetitorPassages.slice(0, 15);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -193,27 +232,37 @@ export function generateReport(
     cards,
     score,
     competitorInsights,
+    competitorPassages: topPassages,
     topSources,
     allSourcesCount: extractions.length,
   };
 }
 
 function getEliminationTitle(signal: EliminationSignal): string {
+  const isElimination = signal.signalType === "elimination";
+  const prefix = isElimination ? "Eligibility risk" : "Ranking weakness";
+
   switch (signal.reason) {
     case "geo_mismatch":
-      return `Geographic mismatch may reduce recommendation probability`;
+      return isElimination
+        ? `${prefix}: Geographic mismatch may filter out recommendations`
+        : `${prefix}: Weaker geographic alignment vs competitors`;
     case "audience_mismatch":
-      return `Audience targeting gap detected in citations`;
+      return isElimination
+        ? `${prefix}: Audience mismatch may prevent recommendation`
+        : `${prefix}: Audience clarity weaker than competitors`;
     case "category_mismatch":
-      return `Category alignment issue in source evidence`;
+      return isElimination
+        ? `${prefix}: Category mismatch may prevent recommendation`
+        : `${prefix}: Category alignment weaker than competitors`;
     case "missing_evidence":
-      return `Insufficient evidence for "${signal.dimension}" dimension`;
+      return `${prefix}: Limited evidence for "${signal.dimension}" dimension`;
     case "weak_positioning":
-      return `Weak positioning detected on brand website`;
+      return `${prefix}: Brand website positioning could be stronger`;
     case "no_citations":
-      return `Brand not found in any analyzed sources`;
+      return `Eligibility risk: Brand not found in any analyzed sources`;
     default:
-      return `Potential elimination signal detected`;
+      return `${prefix}: Signal detected for "${signal.dimension}"`;
   }
 }
 

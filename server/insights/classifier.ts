@@ -124,22 +124,21 @@ export function classifySources(
 
   const competitorLowerNames = competitorNames.map(c => c.toLowerCase().replace(/\s+/g, ""));
 
-  const urlEngineCounts = new Map<string, number>();
-  for (const [, urls] of Object.entries(citationsByEngine)) {
-    const seen = new Set<string>();
+  const domainEngineCounts = new Map<string, Set<string>>();
+  for (const [engine, urls] of Object.entries(citationsByEngine)) {
     for (const u of urls) {
-      const domain = extractDomain(u);
-      if (!seen.has(domain)) {
-        seen.add(domain);
-        urlEngineCounts.set(domain, (urlEngineCounts.get(domain) || 0) + 1);
+      const rootDom = extractRootDomain(extractDomain(u));
+      if (!domainEngineCounts.has(rootDom)) {
+        domainEngineCounts.set(rootDom, new Set());
       }
+      domainEngineCounts.get(rootDom)!.add(engine);
     }
   }
 
   return pages.map(page => {
     const domain = extractDomain(page.url);
     const rootDomain = extractRootDomain(domain);
-    const crossEngineCitations = urlEngineCounts.get(domain) || 0;
+    const crossEngineCitations = domainEngineCounts.get(rootDomain)?.size || 0;
 
     let category: SourceCategory = "unknown";
     let tier: CredibilityTier = 3;

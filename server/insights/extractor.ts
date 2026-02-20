@@ -19,6 +19,12 @@ export interface QuoteEvidence {
   dimensionRelevance: Record<string, "supported" | "weak_support" | "neutral" | "contradicted">;
 }
 
+export interface CompetitorPassage {
+  competitorName: string;
+  passage: string;
+  context: string;
+}
+
 export interface SourceExtraction {
   url: string;
   domain: string;
@@ -29,6 +35,7 @@ export interface SourceExtraction {
   targetBrandPosition: number | null;
   totalBrandsListed: number;
   quotes: QuoteEvidence[];
+  competitorPassages: CompetitorPassage[];
   overallRelevance: "high" | "medium" | "low";
   positioningSignals?: PositioningSignal[];
 }
@@ -319,6 +326,20 @@ async function extractSinglePage(
 
   const quoteWindows = targetBrandFound ? extractQuoteWindows(page.cleanText, brandName) : [];
 
+  const competitorPassages: CompetitorPassage[] = [];
+  for (const comp of competitors) {
+    if (!textLower.includes(comp.toLowerCase())) continue;
+    const passages = extractQuoteWindows(page.cleanText, comp).slice(0, 2);
+    for (const p of passages) {
+      competitorPassages.push({
+        competitorName: comp,
+        passage: p,
+        context: page.title || page.url,
+      });
+    }
+    if (competitorPassages.length >= 6) break;
+  }
+
   const proximities: Record<string, { category: "same_chunk" | "nearby_chunk" | "distant"; distance: number }> = {};
   for (const [dim, keywords] of Object.entries(dimKeywords)) {
     const prox = measureDimensionProximity(page.cleanText, brandName, keywords);
@@ -390,6 +411,7 @@ async function extractSinglePage(
     targetBrandPosition,
     totalBrandsListed,
     quotes,
+    competitorPassages,
     overallRelevance,
     positioningSignals,
   };
@@ -457,7 +479,19 @@ async function llmExtractDimensionRelevance(
     messages: [
       {
         role: "system",
-        content: `You analyze source content for evidence about a brand across search intent dimensions. ${surfaceContext} Return valid JSON only.`,
+        content: `You analyze source content for evidence about a brand across search intent dimensions. ${surfaceContext}
+
+IMPORTANT for audience dimension: Do NOT require literal keyword matches. LLMs infer audience from semantic signals:
+- Pricing structure (free tier, per-seat pricing → SMB)
+- Onboarding language (self-serve, "get started" → SMB; "contact sales", "enterprise agreement" → Enterprise)
+- Integration partners (QuickBooks, Xero → SMB; SAP, Oracle → Enterprise)
+- Wording like "teams", "growing businesses", "startups" → SMB
+- Card limits, approval workflows, employee counts → indicate target audience
+- Industry terms and use cases → indicate vertical audience
+
+Classify audience as "supported" if the content semantically targets the audience, even without using the exact audience label.
+
+Return valid JSON only.`,
       },
       {
         role: "user",
@@ -476,7 +510,7 @@ Search intent dimensions:
 - Qualifier: ${dimensions.qualifier}
 
 For each dimension, classify the evidence as:
-- "supported": Clear evidence the source covers this dimension for this brand
+- "supported": Clear evidence the source covers this dimension (explicit or semantic/inferred)
 - "weak_support": Indirect or partial evidence
 - "neutral": No relevant evidence either way
 - "contradicted": Evidence that contradicts this dimension for this brand
