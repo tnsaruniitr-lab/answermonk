@@ -738,7 +738,7 @@ function generateQuickPrompts(
 
   for (let i = 0; i < 10; i++) {
     const qualifier = QUICK_QUALIFIERS[i];
-    const text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType} for ${customerType} based in ${location}. Exclude global or international providers; only include providers headquartered or primarily operating in ${location}.`;
+    const text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType} for ${customerType} based in the ${location} or GCC region. Exclude US, European, or other non-regional providers; focus on providers headquartered or primarily operating in the Middle East / GCC.`;
     prompts.push({
       id: `quick_${i + 1}`,
       cluster: "direct",
