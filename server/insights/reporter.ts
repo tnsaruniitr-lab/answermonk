@@ -1,6 +1,7 @@
 import type { InsightsScore, ComparativeScore, AttributionCheck } from "./scorer";
 import type { EliminationSignal, CompetitorInsight } from "./elimination";
-import type { SourceExtraction } from "./extractor";
+import type { SourceExtraction, PositioningSignal } from "./extractor";
+import type { ClassifiedSource, SurfaceType } from "./classifier";
 import type { QueryDimensions } from "./intentParser";
 
 export interface InsightCard {
@@ -28,8 +29,22 @@ export interface InsightsReport {
     domain: string;
     relevance: string;
     brandsFound: string[];
+    surfaceType: string;
+    crossEngineCitations: number;
   }>;
+  allSourcesCount: number;
 }
+
+const SURFACE_TYPE_PRIORITY: Record<SurfaceType, number> = {
+  comparison: 0,
+  authority: 1,
+  eligibility: 2,
+  brand_owned: 3,
+  competitor_owned: 4,
+  social: 8,
+  redirect_wrapper: 9,
+  unknown: 7,
+};
 
 export function generateReport(
   brandName: string,
@@ -38,6 +53,7 @@ export function generateReport(
   eliminationSignals: EliminationSignal[],
   competitorInsights: CompetitorInsight[],
   extractions: SourceExtraction[],
+  classified?: ClassifiedSource[],
 ): InsightsReport {
   const cards: InsightCard[] = [];
 
@@ -62,7 +78,7 @@ export function generateReport(
         type: "competitor",
         severity: comp.sourceCount > score.summary.brandFoundInSources * 2 ? "high" : "medium",
         title: `${comp.name} has stronger citation coverage`,
-        body: `${comp.name} appears in ${comp.sourceCount} comparison source(s) vs your ${score.summary.brandFoundInSources}. ${comp.strengthFactors.join(". ")}.`,
+        body: `${comp.name} appears in ${comp.sourceCount} source(s) vs your ${score.summary.brandFoundInSources}. ${comp.strengthFactors.join(". ")}.`,
         evidence: comp.strengthFactors,
         recommendation: `Analyze the sources citing ${comp.name} to identify editorial opportunities. Consider contributing to the same publications, directories, or review platforms where ${comp.name} is present.`,
         affectedDimension: null,
@@ -91,25 +107,45 @@ export function generateReport(
       type: "strength",
       severity: "info",
       title: "Strong citation coverage detected",
-      body: `"${brandName}" appears in ${(score.brandScore.sourcePresenceRate * 100).toFixed(0)}% of comparison sources, indicating strong editorial visibility. This increases the probability of being recommended by AI engines.`,
+      body: `"${brandName}" appears in ${(score.brandScore.sourcePresenceRate * 100).toFixed(0)}% of analyzed sources, indicating strong editorial visibility. This increases the probability of being recommended by AI engines.`,
       evidence: [`Presence rate: ${(score.brandScore.sourcePresenceRate * 100).toFixed(0)}%`],
       recommendation: "Maintain current editorial presence. Focus on improving position within existing listings to move from mentioned to top-recommended.",
       affectedDimension: null,
     });
   }
 
-  const highRelevanceSources = extractions
+  const classifiedMap = new Map<string, ClassifiedSource>();
+  if (classified) {
+    for (const c of classified) {
+      classifiedMap.set(c.url, c);
+    }
+  }
+
+  const opportunitySources = extractions
     .filter(e => e.overallRelevance === "high" && !e.targetBrandFound)
+    .filter(e => {
+      const cls = classifiedMap.get(e.url);
+      const isCitedByMultipleEngines = cls ? cls.crossEngineCitations >= 2 : false;
+      const isTier1or2 = cls ? cls.tier <= 2 : false;
+      const isComparisonSurface = e.surfaceType === "comparison";
+      return isCitedByMultipleEngines || isTier1or2 || isComparisonSurface;
+    })
     .slice(0, 3);
 
-  for (const source of highRelevanceSources) {
+  for (const source of opportunitySources) {
+    const cls = classifiedMap.get(source.url);
+    const qualifiers: string[] = [];
+    if (cls?.crossEngineCitations && cls.crossEngineCitations >= 2) qualifiers.push(`cited by ${cls.crossEngineCitations} AI engines`);
+    if (cls?.tier && cls.tier <= 2) qualifiers.push(`Tier ${cls.tier} credibility`);
+    if (source.surfaceType === "comparison") qualifiers.push("comparison surface");
+
     cards.push({
       id: `opp-${source.domain.replace(/[^a-z0-9]/gi, "-")}`,
       type: "opportunity",
       severity: "medium",
       title: `Opportunity: ${source.domain}`,
-      body: `${source.domain} is a highly relevant comparison source that mentions ${source.brandsFound.length} competitors but not "${brandName}". Getting listed here could increase AI citation probability.`,
-      evidence: [`Competitors found: ${source.brandsFound.join(", ")}`],
+      body: `${source.domain} is a highly relevant source (${qualifiers.join(", ")}) that mentions ${source.brandsFound.length} competitor(s) but not "${brandName}". Getting listed here could increase AI citation probability.`,
+      evidence: [`Competitors found: ${source.brandsFound.join(", ")}`, ...qualifiers],
       recommendation: `Reach out to ${source.domain} for inclusion in their comparison content. This source already covers the target category and is cited by AI engines.`,
       affectedDimension: null,
     });
@@ -124,18 +160,30 @@ export function generateReport(
   });
 
   const topSources = extractions
-    .filter(e => e.overallRelevance !== "low")
     .sort((a, b) => {
       const relOrder = { high: 0, medium: 1, low: 2 };
-      return relOrder[a.overallRelevance] - relOrder[b.overallRelevance];
+      const relDiff = relOrder[a.overallRelevance] - relOrder[b.overallRelevance];
+      if (relDiff !== 0) return relDiff;
+      const surfDiff = (SURFACE_TYPE_PRIORITY[a.surfaceType] || 7) - (SURFACE_TYPE_PRIORITY[b.surfaceType] || 7);
+      if (surfDiff !== 0) return surfDiff;
+      const clsA = classifiedMap.get(a.url);
+      const clsB = classifiedMap.get(b.url);
+      const tierDiff = ((clsA?.tier || 3) - (clsB?.tier || 3));
+      if (tierDiff !== 0) return tierDiff;
+      return (clsB?.crossEngineCitations || 0) - (clsA?.crossEngineCitations || 0);
     })
-    .slice(0, 10)
-    .map(e => ({
-      url: e.url,
-      domain: e.domain,
-      relevance: e.overallRelevance,
-      brandsFound: e.brandsFound,
-    }));
+    .slice(0, 25)
+    .map(e => {
+      const cls = classifiedMap.get(e.url);
+      return {
+        url: e.url,
+        domain: e.domain,
+        relevance: e.overallRelevance,
+        brandsFound: e.brandsFound,
+        surfaceType: e.surfaceType,
+        crossEngineCitations: cls?.crossEngineCitations || 0,
+      };
+    });
 
   return {
     generatedAt: new Date().toISOString(),
@@ -147,6 +195,7 @@ export function generateReport(
     score,
     competitorInsights,
     topSources,
+    allSourcesCount: extractions.length,
   };
 }
 
@@ -161,9 +210,9 @@ function getEliminationTitle(signal: EliminationSignal): string {
     case "missing_evidence":
       return `Insufficient evidence for "${signal.dimension}" dimension`;
     case "weak_positioning":
-      return `Low list positioning across comparison sources`;
+      return `Weak positioning detected on brand website`;
     case "no_citations":
-      return `Brand not found in any comparison sources`;
+      return `Brand not found in any analyzed sources`;
     default:
       return `Potential elimination signal detected`;
   }

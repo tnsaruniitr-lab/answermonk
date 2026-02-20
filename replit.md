@@ -67,18 +67,18 @@ Preferred communication style: Simple, everyday language.
   - Two modes: Quick (10 prompts) and Full (40 prompts), both run against all 3 engines
   - Results stored in `scoring_jobs` table with JSONB columns for flexible iteration
 - **Insights & Recommender** (`server/insights/`): Post-scoring citation analysis module
-  - `crawler.ts` — URL fetching (HTTP + Puppeteer fallback), UTM stripping, canonical URL dedup, content hash dedup (MD5 of first 500 chars)
-  - `classifier.ts` — Source classification (tier 1/2/3), categories: third_party_editorial, review_platform, listicle, brand_owned, competitor_owned, social
-  - `intentParser.ts` — Query decomposition via gpt-4o-mini into 4 dimensions (category, geo, audience, qualifier)
+  - `crawler.ts` — URL fetching (HTTP + Puppeteer fallback), UTM stripping, redirect resolution (Gemini grounding URLs → final destination), canonical URL dedup, content hash dedup (MD5 of first 500 chars)
+  - `classifier.ts` — Source classification with surface types (comparison, eligibility, authority, brand_owned, competitor_owned, social, redirect_wrapper), credibility tiers (1/2/3), authority domain detection
+  - `intentParser.ts` — Query decomposition via gpt-4o-mini into 4 dimensions (category, geo, audience, qualifier); uses stored profile metadata and actual prompt texts
   - `synonyms.ts` — Synonym/implication maps for geo, audience, category with contradiction detection and evidence strength classification
-  - `extractor.ts` — Quote extraction (15-25 token windows), proximity detection (same_chunk/nearby_chunk/distant), list position extraction, LLM dimension relevance classification
-  - `elimination.ts` — Elimination signal detection per dimension (geo_mismatch, audience_mismatch, category_mismatch, missing_evidence, weak_positioning, no_citations), competitor analysis
+  - `extractor.ts` — Surface-type-aware extraction: comparison (list position, multi-brand), eligibility (dimension confirmation), authority (funding/geo signals), brand_owned/competitor_owned (positioning signals in title/H1/first-200-words/FAQ). Per-dimension proximity scoring downgrades "supported" → "weak_support" when brand and keyword are far apart. Skips social and redirect_wrapper pages.
+  - `elimination.ts` — Elimination signal detection per dimension, brand-owned page positioning gap detection (missing geo/audience/category in prominent locations vs competitors), competitor analysis
   - `scorer.ts` — Attribution checks per engine (citation_driven vs model_knowledge), comparative scoring with dimension support rates
-  - `reporter.ts` — Insight card generation (elimination, competitor, attribution, opportunity, strength), probabilistic language throughout
-  - `index.ts` — Orchestrator tying all modules together with progress callbacks
+  - `reporter.ts` — Insight card generation with opportunity capping (only recommend "get listed on X" if cited by 2+ engines, Tier 1/2, or comparison surface). Top 25 sources sorted by relevance/surfaceType/tier/crossEngine with source type labels. Shows all relevance levels (not just high/medium).
+  - `index.ts` — Orchestrator tying all modules together with progress callbacks, passes classified data to reporter
   - API: `POST /api/insights/analyze`, `GET /api/insights/:jobId`
-  - Database: `insights_json` and `insights_status` JSONB/text columns on `scoring_jobs` table
-  - Frontend: `InsightsPanel` component with "Analyze Sources" button, confidence gauge, dimension breakdown, attribution section, insight cards
+  - Database: `insights_json` and `insights_status` JSONB/text columns on `scoring_jobs` table; profile metadata stored in `raw_data.profile`
+  - Frontend: `InsightsPanel` component with surface type badges (Brand Site, Competitor, Authority, Comparison, Eligibility), "Show all" toggle, expanded source list (25 shown), confidence gauge, dimension breakdown, attribution section, insight cards
 
 ### Database
 - **Database**: PostgreSQL (required, referenced via `DATABASE_URL` environment variable)

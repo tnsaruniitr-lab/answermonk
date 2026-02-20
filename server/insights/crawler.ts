@@ -10,6 +10,7 @@ const MAX_CONCURRENT = 5;
 
 export interface CrawledPage {
   url: string;
+  resolvedUrl: string;
   canonicalUrl: string;
   title: string;
   metaDescription: string;
@@ -177,8 +178,6 @@ async function fetchWithBrowser(url: string): Promise<{ html: string; finalUrl: 
 }
 
 async function crawlSingleUrl(url: string): Promise<CrawledPage> {
-  const canonicalUrl = canonicalizeUrl(url);
-
   let result = await fetchWithHttp(url);
   let usedBrowser = false;
 
@@ -199,7 +198,8 @@ async function crawlSingleUrl(url: string): Promise<CrawledPage> {
   if (!result) {
     return {
       url,
-      canonicalUrl,
+      resolvedUrl: url,
+      canonicalUrl: canonicalizeUrl(url),
       title: "",
       metaDescription: "",
       publishDate: null,
@@ -211,15 +211,23 @@ async function crawlSingleUrl(url: string): Promise<CrawledPage> {
     };
   }
 
+  const resolvedUrl = result.finalUrl || url;
+  const canonicalUrl = canonicalizeUrl(resolvedUrl);
+
   const cleanText = extractTextFromHTML(result.html);
   const title = extractTitle(result.html);
   const metaDescription = extractMetaDescription(result.html);
-  const publishDate = extractPublishDate(result.html, url);
+  const publishDate = extractPublishDate(result.html, resolvedUrl);
   const contentHash = computeContentHash(cleanText);
   const wordCount = cleanText.split(/\s+/).length;
 
+  if (resolvedUrl !== url) {
+    console.log(`[insights] Redirect resolved: ${url} -> ${resolvedUrl}`);
+  }
+
   return {
-    url,
+    url: resolvedUrl,
+    resolvedUrl,
     canonicalUrl,
     title,
     metaDescription,

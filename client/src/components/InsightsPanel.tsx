@@ -19,6 +19,10 @@ import {
   Eye,
   Zap,
   BarChart3,
+  Building2,
+  Newspaper,
+  Star,
+  FileText,
 } from "lucide-react";
 
 interface InsightCard {
@@ -87,7 +91,10 @@ interface InsightsReport {
     domain: string;
     relevance: string;
     brandsFound: string[];
+    surfaceType?: string;
+    crossEngineCitations?: number;
   }>;
+  allSourcesCount?: number;
 }
 
 const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string }> = {
@@ -111,9 +118,17 @@ const ENGINE_NAMES: Record<string, string> = {
   claude: "Claude",
 };
 
+const SURFACE_TYPE_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
+  comparison: { label: "Comparison", icon: BarChart3, color: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400" },
+  authority: { label: "Authority", icon: Newspaper, color: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" },
+  eligibility: { label: "Eligibility", icon: FileText, color: "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400" },
+  brand_owned: { label: "Brand Site", icon: Building2, color: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400" },
+  competitor_owned: { label: "Competitor", icon: Users, color: "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400" },
+  unknown: { label: "Other", icon: Globe, color: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400" },
+};
+
 function ConfidenceGauge({ value, label }: { value: number; label: string }) {
   const color = value >= 60 ? "text-emerald-500" : value >= 30 ? "text-amber-500" : "text-red-500";
-  const bgColor = value >= 60 ? "bg-emerald-500" : value >= 30 ? "bg-amber-500" : "bg-red-500";
   return (
     <div className="flex flex-col items-center gap-1">
       <div className="relative w-16 h-16">
@@ -202,8 +217,8 @@ function AnalysisSummary({ report }: { report: InsightsReport }) {
         <span className="text-[10px] text-muted-foreground">{s.accessibleSources} accessible</span>
       </Card>
       <Card className="p-3 space-y-1">
-        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Comparison Pages</span>
-        <div className="text-lg font-bold">{s.comparisonSurfaces}</div>
+        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Pages Analyzed</span>
+        <div className="text-lg font-bold">{report.allSourcesCount || s.comparisonSurfaces}</div>
         <span className="text-[10px] text-muted-foreground">{s.brandFoundInSources} mention you</span>
       </Card>
       <Card className="p-3 space-y-1">
@@ -285,17 +300,36 @@ function AttributionSection({ checks }: { checks: InsightsReport["score"]["attri
   );
 }
 
-function TopSourcesList({ sources }: { sources: InsightsReport["topSources"] }) {
+function SurfaceTypeBadge({ surfaceType }: { surfaceType: string }) {
+  const config = SURFACE_TYPE_CONFIG[surfaceType] || SURFACE_TYPE_CONFIG.unknown;
+  const Icon = config.icon;
+  return (
+    <span className={`text-[10px] px-1.5 py-0.5 rounded inline-flex items-center gap-1 ${config.color}`}>
+      <Icon className="w-2.5 h-2.5" />
+      {config.label}
+    </span>
+  );
+}
+
+function TopSourcesList({ sources, allSourcesCount }: { sources: InsightsReport["topSources"]; allSourcesCount?: number }) {
+  const [showAll, setShowAll] = useState(false);
   if (sources.length === 0) return null;
+
+  const initialCount = 10;
+  const displaySources = showAll ? sources : sources.slice(0, initialCount);
+  const hasMore = sources.length > initialCount;
 
   return (
     <div className="mb-6">
       <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
         <Globe className="w-4 h-4 text-muted-foreground" />
         Key Sources Analyzed
+        <span className="text-[10px] text-muted-foreground font-normal">
+          ({sources.length} shown{allSourcesCount && allSourcesCount > sources.length ? ` of ${allSourcesCount} total` : ""})
+        </span>
       </h4>
-      <Card className="divide-y divide-border max-h-[400px] overflow-y-auto">
-        {sources.map((s, idx) => (
+      <Card className="divide-y divide-border max-h-[500px] overflow-y-auto">
+        {displaySources.map((s, idx) => (
           <a
             key={idx}
             href={s.url}
@@ -309,20 +343,49 @@ function TopSourcesList({ sources }: { sources: InsightsReport["topSources"] }) 
               <span className="text-sm text-blue-600 dark:text-blue-400 group-hover:underline truncate block">
                 {s.domain}
               </span>
-              <span className="text-[10px] text-muted-foreground">
-                {s.brandsFound.length} brands found
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[10px] text-muted-foreground">
+                  {s.brandsFound.length} brand{s.brandsFound.length !== 1 ? "s" : ""} found
+                </span>
+                {s.crossEngineCitations && s.crossEngineCitations >= 2 && (
+                  <span className="text-[10px] text-muted-foreground">
+                    {s.crossEngineCitations} engines
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {s.surfaceType && <SurfaceTypeBadge surfaceType={s.surfaceType} />}
+              <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                s.relevance === "high" ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400" :
+                s.relevance === "medium" ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400" :
+                "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+              }`}>
+                {s.relevance}
               </span>
             </div>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${
-              s.relevance === "high" ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400" :
-              s.relevance === "medium" ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400" :
-              "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-            }`}>
-              {s.relevance}
-            </span>
           </a>
         ))}
       </Card>
+      {hasMore && (
+        <button
+          onClick={() => setShowAll(!showAll)}
+          className="mt-2 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mx-auto"
+          data-testid="button-show-all-sources"
+        >
+          {showAll ? (
+            <>
+              <ChevronDown className="w-3 h-3" />
+              Show less
+            </>
+          ) : (
+            <>
+              <ChevronRight className="w-3 h-3" />
+              Show all {sources.length} sources
+            </>
+          )}
+        </button>
+      )}
     </div>
   );
 }
@@ -340,7 +403,7 @@ function InsightsDisplay({ report }: { report: InsightsReport }) {
         <div className="flex-1 min-w-0">
           <h3 className="text-base font-semibold">Insights for {report.brandName}</h3>
           <p className="text-xs text-muted-foreground mt-1">
-            Analyzed {report.score.summary.totalSourcesCrawled} citation sources across {report.score.attributionChecks.length} AI engines.
+            Analyzed {report.allSourcesCount || report.score.summary.totalSourcesCrawled} citation sources across {report.score.attributionChecks.length} AI engines.
             {report.eliminationRisk !== "none" && (
               <span className={`ml-1 font-medium ${
                 report.eliminationRisk === "high" ? "text-red-500" :
@@ -418,7 +481,7 @@ function InsightsDisplay({ report }: { report: InsightsReport }) {
         </div>
       )}
 
-      <TopSourcesList sources={report.topSources} />
+      <TopSourcesList sources={report.topSources} allSourcesCount={report.allSourcesCount} />
     </div>
   );
 }
@@ -502,7 +565,7 @@ export default function InsightsPanel({ jobId, brandName, brandDomain }: Insight
         <Lightbulb className="w-8 h-8 text-muted-foreground" />
         <h3 className="text-sm font-medium">Analyze Citation Sources</h3>
         <p className="text-xs text-muted-foreground max-w-md">
-          Crawl and analyze the citation URLs from AI engine responses to understand why competitors rank higher, 
+          Crawl and analyze the citation URLs from AI engine responses to understand why competitors rank higher,
           identify elimination signals, and get actionable recommendations.
         </p>
       </div>

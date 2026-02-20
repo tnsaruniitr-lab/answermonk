@@ -92,6 +92,7 @@ export async function runInsightsAnalysis(
       ],
       [],
       [],
+      [],
     );
   }
 
@@ -109,6 +110,10 @@ export async function runInsightsAnalysis(
     competitorNames,
     citationsByEngine,
   );
+
+  console.log(`[insights] Classification summary: ${JSON.stringify(
+    classified.reduce((acc, c) => { acc[c.surfaceType] = (acc[c.surfaceType] || 0) + 1; return acc; }, {} as Record<string, number>),
+  )}`);
 
   onProgress?.({ stage: "extract", percent: 60, message: "Extracting evidence from sources..." });
   const extractions = await extractEvidenceFromPages(
@@ -153,6 +158,7 @@ export async function runInsightsAnalysis(
     eliminationSignals,
     competitorInsights,
     extractions,
+    classified,
   );
 
   onProgress?.({ stage: "complete", percent: 100, message: "Analysis complete" });

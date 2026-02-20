@@ -1,4 +1,4 @@
-import type { SourceExtraction } from "./extractor";
+import type { SourceExtraction, PositioningSignal } from "./extractor";
 import type { QueryDimensions } from "./intentParser";
 import { getGeoSynonyms, getAudienceSynonyms, getCategorySynonyms, classifyEvidence, type SynonymMap } from "./synonyms";
 
@@ -40,7 +40,7 @@ export function detectEliminationSignals(
       dimension: "overall",
       reason: "no_citations",
       confidence: "high",
-      evidence: `Brand "${brandName}" was not found in any of the ${totalSources} comparison sources that mention competitors.`,
+      evidence: `Brand "${brandName}" was not found in any of the ${totalSources} analyzed sources that mention competitors.`,
       suggestion: `Consider creating or contributing to comparison articles and review sites. Getting listed on editorial comparison pages that AI engines cite increases the probability of being included in AI recommendations.`,
     });
     return signals;
@@ -54,15 +54,6 @@ export function detectEliminationSignals(
     .filter(e => e.targetBrandPosition !== null)
     .map(e => e.targetBrandPosition!);
   const avgPosition = brandPositions.length > 0 ? brandPositions.reduce((a, b) => a + b, 0) / brandPositions.length : null;
-
-  const competitorPositions = new Map<string, number[]>();
-  for (const ext of extractions) {
-    for (const comp of competitors) {
-      if (ext.brandsFound.map(b => b.toLowerCase()).includes(comp.toLowerCase())) {
-        if (!competitorPositions.has(comp)) competitorPositions.set(comp, []);
-      }
-    }
-  }
 
   if (avgPosition !== null && avgPosition > 5) {
     signals.push({
@@ -80,12 +71,85 @@ export function detectEliminationSignals(
       dimension: "visibility",
       reason: "missing_evidence",
       confidence: brandSourceRate < 0.15 ? "high" : "medium",
-      evidence: `Brand "${brandName}" appears in ${brandExtractions.length} of ${totalSources} comparison sources (${(brandSourceRate * 100).toFixed(0)}%), suggesting limited citation coverage relative to competitors.`,
+      evidence: `Brand "${brandName}" appears in ${brandExtractions.length} of ${totalSources} analyzed sources (${(brandSourceRate * 100).toFixed(0)}%), suggesting limited citation coverage relative to competitors.`,
       suggestion: `Increasing presence in editorial comparisons, industry publications, and review platforms broadens the evidence base AI engines draw from. Focus on authoritative sources that already mention competitors.`,
     });
   }
 
+  detectBrandSitePositioningGaps(extractions, brandName, dimensions, competitors, signals);
+
   return signals;
+}
+
+function detectBrandSitePositioningGaps(
+  extractions: SourceExtraction[],
+  brandName: string,
+  dimensions: QueryDimensions,
+  competitors: string[],
+  signals: EliminationSignal[],
+): void {
+  const brandOwnedPages = extractions.filter(e => e.surfaceType === "brand_owned" && e.positioningSignals);
+  if (brandOwnedPages.length === 0) return;
+
+  const competitorPages = extractions.filter(e => e.surfaceType === "competitor_owned" && e.positioningSignals);
+
+  for (const dim of ["category", "geo", "audience"] as const) {
+    const dimValue = dimensions[dim];
+    if (!dimValue || dimValue === "global" || dimValue === "general") continue;
+
+    const brandSignals = brandOwnedPages.flatMap(p => p.positioningSignals || []).filter(s => s.dimension === dim);
+    const brandHasDimension = brandSignals.some(s => s.found);
+    const brandInProminentLocation = brandSignals.some(s =>
+      s.found && (s.location === "title" || s.location === "heading" || s.location === "first_200_words"),
+    );
+
+    const competitorSignals = competitorPages.flatMap(p => p.positioningSignals || []).filter(s => s.dimension === dim);
+    const competitorHasDimension = competitorSignals.some(s => s.found);
+    const competitorInProminentLocation = competitorSignals.some(s =>
+      s.found && (s.location === "title" || s.location === "heading" || s.location === "first_200_words"),
+    );
+
+    if (!brandHasDimension) {
+      const evidence = competitorHasDimension
+        ? `Your website does not mention "${dimValue}" while competitor sites prominently feature it. ${competitorSignals.filter(s => s.found).map(s => s.snippet).slice(0, 2).join("; ")}`
+        : `Your website does not mention "${dimValue}" in any prominent location (title, headings, or first 200 words). Buyers searching for ${dim}-specific queries may not find alignment on your site.`;
+
+      const reasonMap: Record<string, EliminationReason> = {
+        geo: "geo_mismatch",
+        audience: "audience_mismatch",
+        category: "category_mismatch",
+      };
+
+      signals.push({
+        dimension: dim,
+        reason: reasonMap[dim] || "weak_positioning",
+        confidence: competitorHasDimension ? "high" : "medium",
+        evidence,
+        suggestion: getPositioningSuggestion(dim, dimValue),
+      });
+    } else if (!brandInProminentLocation && competitorInProminentLocation) {
+      signals.push({
+        dimension: dim,
+        reason: "weak_positioning",
+        confidence: "low",
+        evidence: `Your website mentions "${dimValue}" but not in prominent locations (title, headings, or first 200 words). Competitors feature it more prominently: ${competitorSignals.filter(s => s.found && (s.location === "title" || s.location === "heading")).map(s => s.snippet).slice(0, 2).join("; ")}`,
+        suggestion: getPositioningSuggestion(dim, dimValue),
+      });
+    }
+  }
+}
+
+function getPositioningSuggestion(dimension: string, value: string): string {
+  switch (dimension) {
+    case "geo":
+      return `Add "${value}" prominently to your website — in the page title, hero section, and headings. AI engines use on-site geographic signals to determine relevance for location-specific queries. Consider adding a dedicated "${value}" landing page.`;
+    case "audience":
+      return `Make your target audience "${value}" explicit on your website — in headings, value propositions, and case studies. AI engines look for audience alignment signals when recommending providers for specific segments.`;
+    case "category":
+      return `Ensure "${value}" is prominently featured in your website's title, hero section, and primary headings. Clear category positioning on your own site strengthens the association AI engines make between your brand and this category.`;
+    default:
+      return `Improve positioning for "${dimension}: ${value}" on your website by featuring it in prominent locations (title, headings, first paragraph).`;
+  }
 }
 
 function checkDimensionElimination(

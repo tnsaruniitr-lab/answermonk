@@ -1,6 +1,6 @@
 import type { SourceExtraction } from "./extractor";
 import type { ClassifiedSource } from "./classifier";
-import type { EliminationSignal, CompetitorInsight } from "./elimination";
+import type { EliminationSignal } from "./elimination";
 import type { QueryDimensions } from "./intentParser";
 
 export interface AttributionCheck {
@@ -44,19 +44,19 @@ export function computeInsightsScore(
   citationsByEngine: Record<string, string[]>,
 ): InsightsScore {
   const brandExtractions = extractions.filter(e => e.targetBrandFound);
+  const totalAnalyzed = extractions.length || 1;
   const comparisonSources = classified.filter(c => c.isComparisonSurface);
-  const totalComparison = comparisonSources.length || 1;
 
   const brandScore = computeBrandScore(
     brandName,
     brandExtractions,
-    totalComparison,
+    totalAnalyzed,
     dimensions,
     eliminationSignals,
   );
 
   const competitorScores = competitors.slice(0, 8).map(comp =>
-    computeCompetitorScore(comp, extractions, totalComparison, dimensions),
+    computeCompetitorScore(comp, extractions, totalAnalyzed, dimensions),
   );
 
   const attributionChecks = computeAttributionChecks(citationsByEngine);
@@ -85,11 +85,11 @@ export function computeInsightsScore(
 function computeBrandScore(
   brandName: string,
   brandExtractions: SourceExtraction[],
-  totalComparison: number,
+  totalAnalyzed: number,
   dimensions: QueryDimensions,
   eliminationSignals: EliminationSignal[],
 ): ComparativeScore {
-  const sourcePresenceRate = brandExtractions.length / totalComparison;
+  const sourcePresenceRate = brandExtractions.length / totalAnalyzed;
 
   const positions = brandExtractions
     .filter(e => e.targetBrandPosition !== null)
@@ -148,7 +148,7 @@ function computeBrandScore(
 function computeCompetitorScore(
   compName: string,
   extractions: SourceExtraction[],
-  totalComparison: number,
+  totalAnalyzed: number,
   dimensions: QueryDimensions,
 ): ComparativeScore {
   const compLower = compName.toLowerCase();
@@ -156,7 +156,7 @@ function computeCompetitorScore(
     e.brandsFound.some(b => b.toLowerCase() === compLower),
   );
 
-  const sourcePresenceRate = compExtractions.length / totalComparison;
+  const sourcePresenceRate = compExtractions.length / totalAnalyzed;
 
   return {
     brandName: compName,
