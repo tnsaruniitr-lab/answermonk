@@ -91,14 +91,17 @@ export function scoreRetrievedAuthority(
     weightedScore += entry.weight;
   }
 
-  const surfaceTypes = new Set<SurfaceType>();
-  for (const [canonicalUrl, snippets] of snippetsByPage) {
-    const brandSnippets = snippets.filter(s => s.brand.toLowerCase() === brand.toLowerCase());
-    if (brandSnippets.length === 0) continue;
-    const source = classifiedSources.get(canonicalUrl);
-    if (source) surfaceTypes.add(source.surfaceType);
+  let surfaceDiversityBonus = 0;
+  if (domainMap.size > 0) {
+    const surfaceTypes = new Set<SurfaceType>();
+    for (const [canonicalUrl, snippets] of snippetsByPage) {
+      const brandSnippets = snippets.filter(s => s.brand.toLowerCase() === brand.toLowerCase());
+      if (brandSnippets.length === 0) continue;
+      const source = classifiedSources.get(canonicalUrl);
+      if (source) surfaceTypes.add(source.surfaceType);
+    }
+    surfaceDiversityBonus = Math.min(surfaceTypes.size * 0.1, 0.3);
   }
-  const surfaceDiversityBonus = Math.min(surfaceTypes.size * 0.1, 0.3);
 
   const totalScore = weightedScore + surfaceDiversityBonus;
 
