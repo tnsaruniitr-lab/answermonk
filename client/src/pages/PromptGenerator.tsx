@@ -853,6 +853,8 @@ function generateQuickPrompts(
     automation_consultant: "automation",
     corporate_cards_provider: "corporate cards",
     expense_management_software: "expense management",
+    accounting_automation: "accounting automation",
+    invoice_management: "invoice management",
     restaurant: "restaurant",
   };
   const personaLabel = PERSONA_CORE_LABELS[persona] || persona.replace(/_/g, " ");
@@ -1226,6 +1228,8 @@ export default function PromptGenerator() {
     automation_consultant: "automation consultant",
     corporate_cards_provider: "corporate cards provider",
     expense_management_software: "expense management software",
+    accounting_automation: "accounting automation",
+    invoice_management: "invoice management",
     restaurant: "restaurant",
   };
 
@@ -2141,6 +2145,8 @@ export default function PromptGenerator() {
                                     <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
                                     <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
                                     <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
+                                    <SelectItem value="accounting_automation">Accounting Automation</SelectItem>
+                                    <SelectItem value="invoice_management">Invoice Management</SelectItem>
                                     <SelectItem value="restaurant">Restaurant</SelectItem>
                                   </SelectContent>
                                 </Select>

@@ -15,7 +15,7 @@ import { z } from "zod";
 import { queryEngine } from "./engines";
 import { generatePromptSet } from "./promptgen/generator";
 import { BuyerIntentProfileSchema } from "./promptgen/types";
-import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, CORPORATE_CARDS_SERVICES, CORPORATE_CARDS_VERTICALS, CORPORATE_CARDS_MODIFIERS, EXPENSE_MANAGEMENT_SERVICES, EXPENSE_MANAGEMENT_VERTICALS, EXPENSE_MANAGEMENT_MODIFIERS, RESTAURANT_OFFERINGS, RESTAURANT_VERTICALS, RESTAURANT_MODIFIERS, BUDGET_ADJECTIVES, DECISION_MAKERS } from "./promptgen/presets";
+import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, CORPORATE_CARDS_SERVICES, CORPORATE_CARDS_VERTICALS, CORPORATE_CARDS_MODIFIERS, EXPENSE_MANAGEMENT_SERVICES, EXPENSE_MANAGEMENT_VERTICALS, EXPENSE_MANAGEMENT_MODIFIERS, ACCOUNTING_AUTOMATION_SERVICES, ACCOUNTING_AUTOMATION_VERTICALS, ACCOUNTING_AUTOMATION_MODIFIERS, INVOICE_MANAGEMENT_SERVICES, INVOICE_MANAGEMENT_VERTICALS, INVOICE_MANAGEMENT_MODIFIERS, RESTAURANT_OFFERINGS, RESTAURANT_VERTICALS, RESTAURANT_MODIFIERS, BUDGET_ADJECTIVES, DECISION_MAKERS } from "./promptgen/presets";
 import { selectMiniPanel, selectMicroPanel } from "./scoring/panel";
 import { runScoring } from "./scoring/runner";
 import { insertSavedProfileSchema } from "@shared/schema";
@@ -249,6 +249,22 @@ export async function registerRoutes(
         decision_makers: DECISION_MAKERS,
         budget_tiers: Object.keys(BUDGET_ADJECTIVES.expense_management_software),
       });
+    } else if (persona === "accounting_automation") {
+      res.json({
+        services: ACCOUNTING_AUTOMATION_SERVICES,
+        verticals: ACCOUNTING_AUTOMATION_VERTICALS,
+        modifiers: ACCOUNTING_AUTOMATION_MODIFIERS,
+        decision_makers: DECISION_MAKERS,
+        budget_tiers: Object.keys(BUDGET_ADJECTIVES.accounting_automation),
+      });
+    } else if (persona === "invoice_management") {
+      res.json({
+        services: INVOICE_MANAGEMENT_SERVICES,
+        verticals: INVOICE_MANAGEMENT_VERTICALS,
+        modifiers: INVOICE_MANAGEMENT_MODIFIERS,
+        decision_makers: DECISION_MAKERS,
+        budget_tiers: Object.keys(BUDGET_ADJECTIVES.invoice_management),
+      });
     } else if (persona === "restaurant") {
       res.json({
         services: RESTAURANT_OFFERINGS,
@@ -281,6 +297,18 @@ export async function registerRoutes(
           services: EXPENSE_MANAGEMENT_SERVICES,
           verticals: EXPENSE_MANAGEMENT_VERTICALS,
           modifiers: EXPENSE_MANAGEMENT_MODIFIERS,
+          decision_makers: DECISION_MAKERS,
+        },
+        accounting_automation: {
+          services: ACCOUNTING_AUTOMATION_SERVICES,
+          verticals: ACCOUNTING_AUTOMATION_VERTICALS,
+          modifiers: ACCOUNTING_AUTOMATION_MODIFIERS,
+          decision_makers: DECISION_MAKERS,
+        },
+        invoice_management: {
+          services: INVOICE_MANAGEMENT_SERVICES,
+          verticals: INVOICE_MANAGEMENT_VERTICALS,
+          modifiers: INVOICE_MANAGEMENT_MODIFIERS,
           decision_makers: DECISION_MAKERS,
         },
         restaurant: {

@@ -275,6 +275,118 @@ export const EXPENSE_MANAGEMENT_MODIFIERS: string[] = [
   "QuickBooks", "Xero", "NetSuite", "Sage Intacct",
 ];
 
+export const ACCOUNTING_AUTOMATION_SERVICES: string[] = [
+  "bookkeeping automation",
+  "bank reconciliation",
+  "accounts payable",
+  "accounts receivable",
+  "general ledger management",
+  "financial reporting",
+  "tax preparation",
+  "payroll processing",
+  "multi-entity consolidation",
+  "revenue recognition",
+  "fixed asset management",
+  "budgeting & forecasting",
+  "cash flow management",
+  "journal entry automation",
+  "intercompany transactions",
+  "audit preparation",
+  "compliance management",
+  "chart of accounts setup",
+  "financial close automation",
+  "expense categorization",
+  "vendor management",
+  "client accounting",
+];
+
+export const ACCOUNTING_AUTOMATION_VERTICALS: string[] = [
+  "startups",
+  "SMBs",
+  "enterprises",
+  "accounting firms",
+  "bookkeeping firms",
+  "CFO services",
+  "tax firms",
+  "professional services",
+  "SaaS companies",
+  "ecommerce businesses",
+  "real estate firms",
+  "construction companies",
+  "nonprofits",
+  "healthcare organizations",
+  "law firms",
+  "agencies",
+  "manufacturing companies",
+  "retail businesses",
+  "franchise businesses",
+  "remote teams",
+];
+
+export const ACCOUNTING_AUTOMATION_MODIFIERS: string[] = [
+  "QuickBooks", "Xero", "NetSuite", "Sage Intacct", "FreshBooks",
+  "Wave", "Zoho Books", "MYOB", "Kashoo", "ZipBooks",
+  "Bench", "Pilot", "Botkeeper", "Vic.ai", "BlackLine",
+  "FloQast", "Trintech", "Dext", "Hubdoc", "AutoEntry",
+  "Bill.com", "Tipalti", "Stampli", "Ramp", "Brex",
+];
+
+export const INVOICE_MANAGEMENT_SERVICES: string[] = [
+  "invoice generation",
+  "invoice tracking",
+  "automated invoicing",
+  "recurring invoices",
+  "invoice approval workflows",
+  "payment collection",
+  "overdue reminders",
+  "multi-currency invoicing",
+  "invoice templates",
+  "e-invoicing compliance",
+  "credit note management",
+  "purchase order matching",
+  "vendor invoice processing",
+  "invoice scanning & OCR",
+  "payment gateway integration",
+  "dunning management",
+  "subscription billing",
+  "time-based billing",
+  "project billing",
+  "client portal",
+  "invoice analytics",
+  "batch invoicing",
+];
+
+export const INVOICE_MANAGEMENT_VERTICALS: string[] = [
+  "freelancers",
+  "SMBs",
+  "enterprises",
+  "agencies",
+  "consulting firms",
+  "accounting firms",
+  "law firms",
+  "construction companies",
+  "professional services",
+  "SaaS companies",
+  "ecommerce businesses",
+  "healthcare providers",
+  "IT services",
+  "creative studios",
+  "engineering firms",
+  "logistics companies",
+  "manufacturing companies",
+  "real estate firms",
+  "field service companies",
+  "staffing agencies",
+];
+
+export const INVOICE_MANAGEMENT_MODIFIERS: string[] = [
+  "FreshBooks", "QuickBooks", "Xero", "Zoho Invoice", "Wave",
+  "Bill.com", "Tipalti", "Stampli", "Coupa", "SAP Concur",
+  "Stripe Invoicing", "Square Invoices", "PayPal Invoicing", "HoneyBook", "Bonsai",
+  "Harvest", "Invoicely", "Invoice Ninja", "Hiveage", "AND.CO",
+  "Melio", "Payoneer", "Wise Business", "Chargebee", "Recurly",
+];
+
 export const RESTAURANT_OFFERINGS: string[] = [
   "fine dining",
   "casual dining",
@@ -448,6 +560,16 @@ export const BUDGET_ADJECTIVES: Record<PersonaType, Record<BudgetTier, string[]>
     mid: ["mid-market", "scalable", "feature-rich"],
     premium: ["enterprise", "premium", "comprehensive"],
   },
+  accounting_automation: {
+    budget: ["affordable", "budget-friendly", "low-cost"],
+    mid: ["mid-market", "scalable", "feature-rich"],
+    premium: ["enterprise", "premium", "comprehensive"],
+  },
+  invoice_management: {
+    budget: ["affordable", "budget-friendly", "free-tier"],
+    mid: ["mid-market", "scalable", "professional"],
+    premium: ["enterprise", "premium", "full-featured"],
+  },
   restaurant: {
     budget: ["affordable", "budget-friendly", "cheap eats"],
     mid: ["mid-range", "good value", "reasonably priced"],
@@ -579,6 +701,8 @@ function getModifierKnownList(personaType: PersonaType): string[] {
     case "marketing_agency": return MARKETING_CHANNELS;
     case "corporate_cards_provider": return CORPORATE_CARDS_MODIFIERS;
     case "expense_management_software": return EXPENSE_MANAGEMENT_MODIFIERS;
+    case "accounting_automation": return ACCOUNTING_AUTOMATION_MODIFIERS;
+    case "invoice_management": return INVOICE_MANAGEMENT_MODIFIERS;
     case "restaurant": return RESTAURANT_MODIFIERS;
     default: return AUTOMATION_KNOWN_TOOLS;
   }
@@ -611,6 +735,8 @@ const SERVICE_VERB_PREFIXES: Record<PersonaType, string[]> = {
   automation_consultant: ["set up", "build", "automate"],
   corporate_cards_provider: ["provide", "offer", "manage"],
   expense_management_software: ["handle", "automate", "manage"],
+  accounting_automation: ["automate", "streamline", "manage"],
+  invoice_management: ["automate", "handle", "manage"],
   restaurant: ["serve", "offer", "feature"],
 };
 
@@ -642,6 +768,18 @@ export function getPresetsForPersona(personaType: PersonaType) {
     return {
       services: EXPENSE_MANAGEMENT_SERVICES,
       verticals: EXPENSE_MANAGEMENT_VERTICALS,
+    };
+  }
+  if (personaType === "accounting_automation") {
+    return {
+      services: ACCOUNTING_AUTOMATION_SERVICES,
+      verticals: ACCOUNTING_AUTOMATION_VERTICALS,
+    };
+  }
+  if (personaType === "invoice_management") {
+    return {
+      services: INVOICE_MANAGEMENT_SERVICES,
+      verticals: INVOICE_MANAGEMENT_VERTICALS,
     };
   }
   if (personaType === "restaurant") {
