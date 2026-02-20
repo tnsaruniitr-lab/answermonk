@@ -67,9 +67,9 @@ export async function registerRoutes(
   app.post(api.eval.run.path, async (req, res) => {
     try {
       const parsed = EvalRequestSchema.parse(req.body);
-      const { query, brand, engine } = parsed;
+      const { query, brand, engine, webSearch } = parsed;
 
-      const result = await queryEngine(engine, query, brand);
+      const result = await queryEngine(engine, query, brand, webSearch);
 
       const response = {
         engine,

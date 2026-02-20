@@ -3,6 +3,7 @@ import { useRunAnalysis } from "@/hooks/use-analysis";
 import { AnalysisResults } from "@/components/AnalysisResults";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, ArrowRight, History, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +14,7 @@ const ENGINE_LABELS = ["ChatGPT", "Claude", "Gemini", "DeepSeek"];
 export default function Analyzer() {
   const [query, setQuery] = useState("");
   const [brand, setBrand] = useState("");
+  const [webSearch, setWebSearch] = useState(false);
   const { mutate: analyze, isPending, data: result, reset } = useRunAnalysis();
   const { toast } = useToast();
 
@@ -27,7 +29,7 @@ export default function Analyzer() {
       return;
     }
     reset();
-    analyze({ query, brand }, {
+    analyze({ query, brand, webSearch }, {
       onError: (err) => {
         toast({
           title: "Analysis Failed",
@@ -126,6 +128,18 @@ export default function Analyzer() {
                   )}
                 </Button>
               </div>
+            </div>
+            <div className="flex items-center gap-2 mt-3">
+              <Checkbox
+                id="webSearch"
+                data-testid="checkbox-web-search"
+                checked={webSearch}
+                onCheckedChange={(checked) => setWebSearch(checked === true)}
+                disabled={isPending}
+              />
+              <label htmlFor="webSearch" className="text-xs text-muted-foreground cursor-pointer select-none">
+                Enable web search for ChatGPT (uses real-time internet data)
+              </label>
             </div>
           </form>
 

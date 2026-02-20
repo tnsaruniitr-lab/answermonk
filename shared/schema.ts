@@ -67,6 +67,7 @@ export const EvalRequestSchema = z.object({
   brand: z.string().min(2),
   engine: EngineEnum,
   topN: z.number().int().min(1).max(20).default(10),
+  webSearch: z.boolean().default(false),
 });
 export type EvalRequest = z.infer<typeof EvalRequestSchema>;
 

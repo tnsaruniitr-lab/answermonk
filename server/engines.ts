@@ -74,7 +74,29 @@ async function parseBrandsFromResponse(text: string, targetBrand: string, query?
   };
 }
 
-async function queryChatGPT(query: string, brand: string): Promise<EngineResult> {
+async function queryChatGPTWithWebSearch(query: string, brand: string): Promise<EngineResult> {
+  try {
+    const directOpenai = new OpenAI({
+      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+    });
+
+    const response = await directOpenai.responses.create({
+      model: "gpt-5.2",
+      tools: [{ type: "web_search" as any }],
+      input: query,
+      temperature: 0.2,
+    });
+
+    const rawText = (response as any).output_text ?? "";
+    const parsed = await parseBrandsFromResponse(rawText, brand, query);
+    return { rawText, ...parsed };
+  } catch (err) {
+    console.error("Web search failed, falling back to standard query:", err);
+    return queryChatGPTStandard(query, brand);
+  }
+}
+
+async function queryChatGPTStandard(query: string, brand: string): Promise<EngineResult> {
   const completion = await openai.chat.completions.create({
     model: "gpt-5.2",
     messages: [
@@ -87,6 +109,13 @@ async function queryChatGPT(query: string, brand: string): Promise<EngineResult>
   const rawText = completion.choices[0]?.message?.content ?? "";
   const parsed = await parseBrandsFromResponse(rawText, brand, query);
   return { rawText, ...parsed };
+}
+
+async function queryChatGPT(query: string, brand: string, webSearch: boolean = false): Promise<EngineResult> {
+  if (webSearch) {
+    return queryChatGPTWithWebSearch(query, brand);
+  }
+  return queryChatGPTStandard(query, brand);
 }
 
 async function queryClaude(query: string, brand: string): Promise<EngineResult> {
@@ -146,12 +175,13 @@ function stubEngine(query: string, brand: string, engine: Engine): EngineResult 
 export async function queryEngine(
   engine: Engine,
   query: string,
-  brand: string
+  brand: string,
+  webSearch: boolean = false
 ): Promise<EngineResult> {
   try {
     switch (engine) {
       case "chatgpt":
-        return await queryChatGPT(query, brand);
+        return await queryChatGPT(query, brand, webSearch);
       case "claude":
         return await queryClaude(query, brand);
       case "gemini":
