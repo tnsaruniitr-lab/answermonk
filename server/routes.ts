@@ -845,7 +845,26 @@ export async function registerRoutes(
         return;
       }
 
-      const report = await runSegmentAnalysis(brandName, segments, (step, detail, pct) => {
+      const normalizedSegments = segments.map((seg: any) => ({
+        id: seg.id,
+        seedType: seg.seedType,
+        customerType: seg.customerType,
+        location: seg.location,
+        scoringResult: seg.scoringResult ? {
+          score: seg.scoringResult.score,
+          raw_runs: (seg.scoringResult.raw_runs || []).map((run: any) => ({
+            prompt: run.prompt || run.prompt_text || run.prompt_id || "",
+            engine: run.engine,
+            response: run.response || run.raw_text || "",
+            brands_found: run.brands_found || (run.candidates ? run.candidates.map((c: any) => typeof c === "string" ? c : c.name_raw || c.name || c) : []),
+            rank: run.rank ?? run.brand_rank ?? null,
+            citations: run.citations || [],
+            cluster: run.cluster,
+          })),
+        } : undefined,
+      }));
+
+      const report = await runSegmentAnalysis(brandName, normalizedSegments, (step, detail, pct) => {
         console.log(`[segment-analysis] ${step}: ${detail} (${pct}%)`);
       });
 

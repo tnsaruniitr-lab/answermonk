@@ -116,3 +116,35 @@ export function useScoringResult(id: number | null) {
     enabled: id !== null,
   });
 }
+
+export interface MultiSegmentSessionItem {
+  id: number;
+  brandName: string;
+  brandDomain: string | null;
+  promptsPerSegment: number;
+  segments: any;
+  createdAt: string;
+}
+
+export function useMultiSegmentSessions() {
+  return useQuery<MultiSegmentSessionItem[]>({
+    queryKey: ["/api/multisegment/sessions"],
+    queryFn: async () => {
+      const res = await fetch("/api/multisegment/sessions");
+      if (!res.ok) throw new Error("Failed to fetch multi-segment sessions");
+      return res.json();
+    },
+  });
+}
+
+export function useMultiSegmentSession(id: number | null) {
+  return useQuery<MultiSegmentSessionItem>({
+    queryKey: ["/api/multisegment/sessions", id],
+    queryFn: async () => {
+      const res = await fetch(`/api/multisegment/sessions/${id}`);
+      if (!res.ok) throw new Error("Failed to fetch session");
+      return res.json();
+    },
+    enabled: id !== null,
+  });
+}

@@ -8,6 +8,7 @@ import Analyzer from "@/pages/Analyzer";
 import HistoryPage from "@/pages/History";
 import PromptGenerator from "@/pages/PromptGenerator";
 import ScoringDetail from "@/pages/ScoringDetail";
+import V2SessionDetail from "@/pages/V2SessionDetail";
 
 function Router() {
   return (
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/history" component={HistoryPage} />
       <Route path="/prompts" component={PromptGenerator} />
       <Route path="/scoring/:id" component={ScoringDetail} />
+      <Route path="/v2/:id" component={V2SessionDetail} />
       <Route component={NotFound} />
     </Switch>
   );

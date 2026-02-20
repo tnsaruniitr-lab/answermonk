@@ -1,7 +1,7 @@
-import { useHistory, useScoringHistory } from "@/hooks/use-analysis";
+import { useHistory, useScoringHistory, useMultiSegmentSessions } from "@/hooks/use-analysis";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { ArrowLeft, Calendar, Zap, Search } from "lucide-react";
+import { ArrowLeft, Calendar, Zap, Search, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -9,12 +9,14 @@ import { Badge } from "@/components/ui/badge";
 export default function HistoryPage() {
   const { data: history, isLoading: historyLoading } = useHistory();
   const { data: scoringHistory, isLoading: scoringLoading } = useScoringHistory();
+  const { data: v2Sessions, isLoading: v2Loading } = useMultiSegmentSessions();
 
-  const isLoading = historyLoading || scoringLoading;
+  const isLoading = historyLoading || scoringLoading || v2Loading;
 
   type UnifiedItem =
     | { type: "analyzer"; data: NonNullable<typeof history>[number] }
-    | { type: "scoring"; data: NonNullable<typeof scoringHistory>[number] };
+    | { type: "scoring"; data: NonNullable<typeof scoringHistory>[number] }
+    | { type: "v2session"; data: NonNullable<typeof v2Sessions>[number] };
 
   const unified: UnifiedItem[] = [];
   if (history) {
@@ -25,6 +27,11 @@ export default function HistoryPage() {
   if (scoringHistory) {
     for (const s of scoringHistory) {
       unified.push({ type: "scoring", data: s });
+    }
+  }
+  if (v2Sessions) {
+    for (const v of v2Sessions) {
+      unified.push({ type: "v2session", data: v });
     }
   }
   unified.sort((a, b) => {
@@ -107,6 +114,56 @@ export default function HistoryPage() {
                       </div>
                     </div>
                   </div>
+                );
+              } else if (item.type === "v2session") {
+                const d = item.data;
+                const segs = Array.isArray(d.segments) ? d.segments : [];
+                const segCount = segs.length;
+                const scored = segs.filter((s: any) => s.scoringResult).length;
+
+                return (
+                  <Link
+                    key={`v2-${d.id}`}
+                    href={`/v2/${d.id}`}
+                    data-testid={`link-v2-${d.id}`}
+                    className="block"
+                  >
+                  <div
+                    className="px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap cursor-pointer hover:bg-secondary/30 transition-colors"
+                    data-testid={`row-v2-${d.id}`}
+                  >
+                    <div className="space-y-1.5 min-w-0 flex-1">
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <Badge variant="secondary" className="text-[10px]">
+                          <BarChart3 className="w-2.5 h-2.5 mr-1" />
+                          Quick V2
+                        </Badge>
+                        <span className="font-medium text-sm">{d.brandName}</span>
+                        <span className="text-xs text-muted-foreground">{segCount} segment{segCount !== 1 ? "s" : ""}</span>
+                      </div>
+                      {d.createdAt && (
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Calendar className="w-3 h-3" />
+                          {format(new Date(d.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                        </div>
+                      )}
+                      <div className="flex gap-2 flex-wrap">
+                        {segs.slice(0, 3).map((seg: any, i: number) => (
+                          <span key={i} className="text-[10px] text-muted-foreground">
+                            {seg.seedType}{seg.customerType ? ` → ${seg.customerType}` : ""}
+                          </span>
+                        ))}
+                        {segs.length > 3 && <span className="text-[10px] text-muted-foreground">+{segs.length - 3} more</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="text-center">
+                        <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Scored</div>
+                        <div className="text-lg font-semibold tabular-nums">{scored}/{segCount}</div>
+                      </div>
+                    </div>
+                  </div>
+                  </Link>
                 );
               } else {
                 const d = item.data;
