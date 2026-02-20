@@ -136,7 +136,27 @@ async function queryClaude(query: string, brand: string): Promise<EngineResult> 
   return { rawText, ...parsed };
 }
 
-async function queryGemini(query: string, brand: string): Promise<EngineResult> {
+async function queryGeminiWithWebSearch(query: string, brand: string): Promise<EngineResult> {
+  try {
+    const response = await gemini.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: query,
+      config: {
+        maxOutputTokens: 8192,
+        tools: [{ googleSearch: {} }],
+      },
+    });
+
+    const rawText = response.text ?? "";
+    const parsed = await parseBrandsFromResponse(rawText, brand, query);
+    return { rawText, ...parsed };
+  } catch (err) {
+    console.error("Gemini web search failed, falling back to standard query:", err);
+    return queryGeminiStandard(query, brand);
+  }
+}
+
+async function queryGeminiStandard(query: string, brand: string): Promise<EngineResult> {
   const response = await gemini.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: query,
@@ -146,6 +166,13 @@ async function queryGemini(query: string, brand: string): Promise<EngineResult> 
   const rawText = response.text ?? "";
   const parsed = await parseBrandsFromResponse(rawText, brand, query);
   return { rawText, ...parsed };
+}
+
+async function queryGemini(query: string, brand: string, webSearch: boolean = false): Promise<EngineResult> {
+  if (webSearch) {
+    return queryGeminiWithWebSearch(query, brand);
+  }
+  return queryGeminiStandard(query, brand);
 }
 
 function stubEngine(query: string, brand: string, engine: Engine): EngineResult {
@@ -185,7 +212,7 @@ export async function queryEngine(
       case "claude":
         return await queryClaude(query, brand);
       case "gemini":
-        return await queryGemini(query, brand);
+        return await queryGemini(query, brand, webSearch);
       case "deepseek":
         return stubEngine(query, brand, engine);
       default:
