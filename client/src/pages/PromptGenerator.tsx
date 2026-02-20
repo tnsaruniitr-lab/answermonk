@@ -830,6 +830,155 @@ function ResultsDashboard({ score, brandName, mode, promptsUsed, rawRuns, onNewA
   );
 }
 
+function SegmentResultsDashboard({ score, brandName, rawRuns, segmentLabel }: {
+  score: GEOScore;
+  brandName: string;
+  rawRuns?: RawRun[];
+  segmentLabel: string;
+}) {
+  const [showSources, setShowSources] = useState(false);
+  const [showRawRuns, setShowRawRuns] = useState(false);
+
+  return (
+    <div className="space-y-4" data-testid={`segment-results-${segmentLabel}`}>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-secondary/50 rounded-md p-2.5 text-center">
+          <div className="text-lg font-bold">{Math.round(score.appearance_rate * 100)}%</div>
+          <div className="text-[10px] text-muted-foreground">Appearance</div>
+        </div>
+        <div className="bg-secondary/50 rounded-md p-2.5 text-center">
+          <div className="text-lg font-bold">{Math.round(score.primary_rate * 100)}%</div>
+          <div className="text-[10px] text-muted-foreground">Top 3</div>
+        </div>
+        <div className="bg-secondary/50 rounded-md p-2.5 text-center">
+          <div className="text-lg font-bold">{score.avg_rank !== null ? `#${score.avg_rank}` : "—"}</div>
+          <div className="text-[10px] text-muted-foreground">Avg Rank</div>
+        </div>
+      </div>
+
+      {Object.keys(score.engine_breakdown).length > 0 && (
+        <div>
+          <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+            <BarChart3 className="w-3 h-3" />
+            By Engine
+          </h4>
+          <div className="grid grid-cols-3 gap-2">
+            {Object.entries(score.engine_breakdown).map(([engine, data]) => {
+              const hasErrors = (data.error_runs ?? 0) > 0;
+              const allFailed = data.valid_runs === 0 && hasErrors;
+              return (
+                <div key={engine} className={`bg-secondary/30 rounded-md p-2 space-y-0.5 ${allFailed ? "opacity-60" : ""}`}>
+                  <span className="text-[10px] font-medium text-muted-foreground block">
+                    {ENGINE_LABELS[engine] || engine}
+                  </span>
+                  {allFailed ? (
+                    <div className="text-xs text-destructive font-medium">Failed</div>
+                  ) : (
+                    <>
+                      <div className="text-sm font-semibold">{Math.round(data.appearance_rate * 100)}%</div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-muted-foreground">Top 3</span>
+                        <span className="text-[10px] font-medium">{Math.round(data.primary_rate * 100)}%</span>
+                      </div>
+                      {hasErrors && (
+                        <div className="text-[10px] text-destructive">{data.error_runs}/{data.total_runs} failed</div>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {(() => {
+        const brandEntry = {
+          name: brandName,
+          share: score.appearance_rate,
+          appearances: 0,
+          isBrand: true as const,
+        };
+        const allEntries = [brandEntry, ...score.competitors.map(c => ({ ...c, isBrand: false as const }))]
+          .sort((a, b) => b.share - a.share);
+        return allEntries.length > 0 && (
+          <div>
+            <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+              <Globe className="w-3 h-3" />
+              Rankings
+            </h4>
+            <div className="divide-y divide-border/50 border border-border/50 rounded-md overflow-hidden">
+              {allEntries.slice(0, 10).map((entry, i) => (
+                <div
+                  key={entry.name}
+                  className={`flex items-center justify-between gap-3 px-3 py-1.5 ${entry.isBrand ? "bg-primary/10" : ""}`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-[10px] text-muted-foreground font-mono w-4 text-right shrink-0">{i + 1}</span>
+                    <span className={`text-xs truncate ${entry.isBrand ? "font-semibold text-primary" : ""}`}>
+                      {entry.name}
+                      {entry.isBrand && <span className="ml-1 text-[9px] uppercase tracking-wider text-primary/70">You</span>}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="w-16 h-1 bg-secondary rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${entry.isBrand ? "bg-primary" : "bg-foreground/40"}`}
+                        style={{ width: `${Math.round(entry.share * 100)}%` }}
+                      />
+                    </div>
+                    <span className={`text-[10px] font-medium w-8 text-right ${entry.isBrand ? "text-primary" : ""}`}>
+                      {Math.round(entry.share * 100)}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
+      {rawRuns && rawRuns.length > 0 && (
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setShowSources(!showSources)}
+            className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {showSources ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+            <ExternalLink className="w-3 h-3" />
+            Sources & Citations ({rawRuns.reduce((acc, r) => acc + (r.citations?.length || 0), 0)})
+          </button>
+          {showSources && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
+              <AllSourcesSection runs={rawRuns} />
+            </motion.div>
+          )}
+        </div>
+      )}
+
+      {rawRuns && rawRuns.length > 0 && (
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setShowRawRuns(!showRawRuns)}
+            className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {showRawRuns ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+            <FileText className="w-3 h-3" />
+            Raw AI Responses ({rawRuns.length})
+          </button>
+          {showRawRuns && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
+              <RawRunsSection runs={rawRuns} />
+            </motion.div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const PROMPT_STYLE_PREFIXES: Record<string, string> = {
   find_best: "Find me best",
   top5: "Find, list and rank 5 top",
@@ -2345,31 +2494,13 @@ export default function PromptGenerator() {
                                 )}
 
                                 {seg.scoringResult && (
-                                  <div className="pt-3 border-t space-y-2">
-                                    <div className="flex items-center gap-2">
-                                      <BarChart3 className="w-3.5 h-3.5 text-primary" />
-                                      <span className="text-xs font-medium">Results</span>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2">
-                                      <div className="bg-secondary/50 rounded-md p-2 text-center">
-                                        <div className="text-lg font-bold">{Math.round((seg.scoringResult.score.appearance_rate || 0) * 100)}%</div>
-                                        <div className="text-[10px] text-muted-foreground">Appearance</div>
-                                      </div>
-                                      <div className="bg-secondary/50 rounded-md p-2 text-center">
-                                        <div className="text-lg font-bold">{Math.round((seg.scoringResult.score.primary_rate || 0) * 100)}%</div>
-                                        <div className="text-[10px] text-muted-foreground">Primary</div>
-                                      </div>
-                                      <div className="bg-secondary/50 rounded-md p-2 text-center">
-                                        <div className="text-lg font-bold">{seg.scoringResult.score.avg_rank ? seg.scoringResult.score.avg_rank.toFixed(1) : "—"}</div>
-                                        <div className="text-[10px] text-muted-foreground">Avg Rank</div>
-                                      </div>
-                                    </div>
-                                    {seg.scoringResult.score.top_competitors && seg.scoringResult.score.top_competitors.length > 0 && (
-                                      <div className="text-xs text-muted-foreground">
-                                        <span className="font-medium">Top competitors: </span>
-                                        {seg.scoringResult.score.top_competitors.slice(0, 5).map((c) => c.name).join(", ")}
-                                      </div>
-                                    )}
+                                  <div className="pt-3 border-t">
+                                    <SegmentResultsDashboard
+                                      score={seg.scoringResult.score}
+                                      brandName={brandName}
+                                      rawRuns={seg.scoringResult.raw_runs || []}
+                                      segmentLabel={`${idx + 1}`}
+                                    />
                                   </div>
                                 )}
                               </motion.div>
