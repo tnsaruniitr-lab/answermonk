@@ -1,0 +1,138 @@
+1) Synonym & implicit evidence handling (critical)
+
+Your elimination logic currently relies on literal matches:
+
+no quote mentions “UAE” → Missing
+
+Real pages almost never use the exact same wording as the query.
+
+Examples you will constantly hit:
+
+Page text	Meaning	Your current result
+“operates across the GCC”	UAE included	Missing
+“Middle East fintech”	UAE likely	Missing
+“Dubai-based startup”	UAE confirmed	Missing
+“available internationally”	geo unclear	Supported (wrong)
+
+So the elimination engine will falsely filter brands — the worst possible error because it produces very strong conclusions.
+
+Fix (small but mandatory)
+
+Create a dimension synonym map + implication rules
+
+Example:
+
+geo:
+  UAE:
+    direct: ["uae","united arab emirates","dubai","abu dhabi"]
+    regional: ["gcc","middle east","mena"]
+    implied_support: ["dubai-based","licensed in DIFC"]
+    ambiguous: ["global","international"]
+
+Then classify:
+
+direct → supported
+
+regional/implied → weak support
+
+ambiguous → neutral
+
+contradictory → contradicted
+
+You don’t need ML here — just curated expansions + fallback LLM for unclear cases.
+
+Without this, elimination detection will look impressive but be wrong.
+
+2) List ranking bias (LLM behavior quirk)
+
+Listicles heavily bias AI answers even when descriptions are weak.
+
+Example:
+
+Top Corporate Cards UAE
+1. Qashio
+2. X
+3. X
+4. Pemo
+
+The model often prefers higher-ordered entities even if descriptions are identical.
+
+Your system currently treats all mentions equally.
+
+Add: positional weight
+
+When extracting brand mentions from list pages:
+
+detect ordered lists / ranking tables
+
+store position index
+
+boost confidence for earlier placements
+
+Otherwise your report will say:
+
+descriptions are similar, unclear why competitor wins
+
+while the real reason is list prominence.
+
+3) Retrieval chunking mismatch (subtle but important)
+
+AI systems don’t read whole pages — they read chunks.
+
+A brand can appear on a page but never in the same chunk as the query terms → effectively invisible.
+
+Your pipeline analyzes at page level.
+
+Add lightweight proximity check
+
+Within extracted text:
+
+Measure distance between:
+
+brand mention
+
+query dimension terms
+
+If far apart → weak evidence
+If close → strong evidence
+
+Example:
+
+page mentions UAE in intro and brand in footer → weak retrieval signal
+
+This dramatically improves explanation accuracy without simulating full vector search.
+
+What changes in output quality
+
+Without these:
+
+impressive reports
+
+occasional inexplicable contradictions
+
+With them:
+
+explanations consistently match observed AI behavior
+
+This matters because users will test your tool against real queries repeatedly.
+
+Everything else in your design
+
+Your lifecycle separation (score → analyze) is correct
+Your modules are sufficient
+Your cost model is realistic
+Your reasoning framework is now sound
+
+You don’t need more features.
+
+Final verdict
+
+Yes — this is launch-ready after adding only:
+
+synonym/implication handling in elimination
+
+positional weighting for ranked lists
+
+proximity (same-chunk) relevance check
+
+These are not enhancements — they prevent systematic misdiagnosis.
