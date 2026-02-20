@@ -1,0 +1,178 @@
+Everything else you added improves reliability.
+These two determine whether the product actually explains AI behavior vs just correlates it.
+
+1) Missing: Query decomposition (the most important gap)
+
+Right now the system treats the query as one thing:
+
+“best corporate cards for startups UAE”
+
+But LLM answers are assembled from sub-questions, not a single retrieval step.
+
+Internally the model resolves something like:
+
+what products qualify as corporate cards?
+
+which operate in UAE?
+
+which target startups/SMEs?
+
+which have credibility?
+
+which have differentiating features?
+
+Different sources satisfy different sub-questions.
+
+So a competitor may rank higher even if:
+
+they are mentioned less overall
+
+they have weaker descriptions
+
+they appear on fewer Tier-1 sites
+
+because they dominate a critical sub-question.
+
+Your current analysis would mis-diagnose this.
+
+Add: Sub-intent attribution layer (small implementation, huge accuracy gain)
+
+Before scoring brands, split the query into intent dimensions.
+
+Example:
+
+{
+  "category": "corporate cards",
+  "geo": "UAE",
+  "audience": "startups",
+  "evaluation": "best"
+}
+
+Then map each citation to which dimension it supports.
+
+Now your reasoning changes from:
+
+Brand X appears more often
+
+to
+
+Brand X is consistently cited for the geo + audience constraints, which are decisive filters, so it survives narrowing while others drop out
+
+This dramatically improves correctness and makes reports feel “intelligent” instead of statistical.
+
+Implementation cost: one lightweight LLM call per query.
+
+2) Missing: Negative evidence handling
+
+Currently you analyze presence.
+LLMs are heavily influenced by absence and contradiction.
+
+Examples that break your system:
+
+A source says competitor supports UAE → yours doesn’t mention location
+
+A review lists competitor pricing → yours missing pricing entirely
+
+A comparison excludes your brand category
+
+The model eliminates candidates during reasoning.
+You need to detect why a brand gets filtered out, not just why another gets boosted.
+
+Add: Candidate elimination detection
+
+For each brand per sub-intent dimension:
+
+Detect:
+
+Case	Meaning
+Explicit support	boosts confidence
+Neutral / missing	weakens confidence
+Explicit contradiction	eliminates candidate
+
+Then your report can say:
+
+You are not mentioned as operating in UAE in any cited source. The model therefore filters you out during geographic narrowing.
+
+This is often the real reason rankings differ.
+
+Implementation: simple rule layer after quote extraction.
+
+Why these two matter
+
+Without them the system explains correlation.
+With them it explains reasoning.
+
+Users won’t consciously notice — but they’ll feel the difference:
+
+Correlation tools feel like SEO dashboards
+
+Reasoning tools feel like debugging AI
+
+You are trying to build the second.
+
+Everything else in your plan
+
+All seven safeguards you added are correct and sufficient:
+
+attribution check
+
+fragment extraction
+
+comparative scoring
+
+dedup evidence
+
+conditional drift
+
+probabilistic language
+
+content dedup
+
+Keep them exactly as written.
+
+Minimal final additions (only what’s truly needed)
+
+Add two modules:
+
+intentParser.ts
+
+Extract query dimensions → category, geo, audience, qualifier
+
+elimination.ts
+
+For each brand:
+
+supported
+
+missing
+
+contradicted
+per dimension
+
+Feed both into reporter.
+
+Resulting product behavior
+
+Your report stops saying:
+
+Competitor ranks higher because stronger description
+
+and starts saying:
+
+The model filters you out at the geographic step because no cited source confirms UAE availability. Competitor survives narrowing and therefore dominates the final answer.
+
+That’s the difference between:
+analytics vs AI reasoning reconstruction
+
+Verdict
+
+Your system is launchable.
+
+But add:
+
+query decomposition
+
+elimination detection
+
+These are not “nice to have”.
+They prevent incorrect diagnoses — the single biggest thing that kills trust in this category of tools.
