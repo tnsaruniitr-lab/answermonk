@@ -166,7 +166,7 @@ async function queryChatGPT(prompt: string): Promise<string> {
     model: "gpt-5.2",
     messages: [{ role: "user", content: prompt }],
     max_completion_tokens: 1024,
-    temperature: 0.7,
+    temperature: 0.2,
   });
   return completion.choices[0]?.message?.content ?? "";
 }

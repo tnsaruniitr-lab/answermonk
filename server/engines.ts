@@ -82,7 +82,7 @@ async function queryChatGPT(query: string, brand: string): Promise<EngineResult>
       { role: "user", content: buildUserPrompt(query) },
     ],
     max_completion_tokens: 1024,
-    temperature: 0.7,
+    temperature: 0.2,
   });
 
   const rawText = completion.choices[0]?.message?.content ?? "";
