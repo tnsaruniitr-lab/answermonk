@@ -78,8 +78,7 @@ async function queryChatGPT(query: string, brand: string): Promise<EngineResult>
   const completion = await openai.chat.completions.create({
     model: "gpt-5.2",
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: buildUserPrompt(query) },
+      { role: "user", content: query },
     ],
     max_completion_tokens: 1024,
     temperature: 0.2,
@@ -95,7 +94,7 @@ async function queryClaude(query: string, brand: string): Promise<EngineResult> 
     model: "claude-sonnet-4-5",
     max_tokens: 1024,
     messages: [
-      { role: "user", content: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(query)}` },
+      { role: "user", content: query },
     ],
   });
 
@@ -111,7 +110,7 @@ async function queryClaude(query: string, brand: string): Promise<EngineResult> 
 async function queryGemini(query: string, brand: string): Promise<EngineResult> {
   const response = await gemini.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(query)}`,
+    contents: query,
     config: { maxOutputTokens: 8192 },
   });
 
