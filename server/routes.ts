@@ -596,6 +596,7 @@ export async function registerRoutes(
   const InsightsRequestSchema = z.object({
     jobId: z.number().int().positive(),
     competitorNames: z.array(z.string()).default([]),
+    force: z.boolean().default(false),
   });
 
   app.post("/api/insights/analyze", async (req, res) => {
@@ -609,6 +610,10 @@ export async function registerRoutes(
       if (job.status !== "completed") {
         res.status(400).json({ message: "Scoring job must be completed before running insights" });
         return;
+      }
+
+      if (parsed.force) {
+        await storage.updateScoringJob(parsed.jobId, { insightsJson: null, insightsStatus: null } as any);
       }
 
       await storage.updateScoringJob(parsed.jobId, { insightsStatus: "running" } as any);

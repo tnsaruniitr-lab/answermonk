@@ -23,6 +23,7 @@ import {
   Newspaper,
   Star,
   FileText,
+  RefreshCw,
 } from "lucide-react";
 
 interface InsightCard {
@@ -519,10 +520,11 @@ export default function InsightsPanel({ jobId, brandName, brandDomain }: Insight
   });
 
   const analyzeMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (force: boolean = false) => {
       const res = await apiRequest("POST", "/api/insights/analyze", {
         jobId,
         competitorNames: [],
+        force,
       });
       return res.json();
     },
@@ -556,7 +558,33 @@ export default function InsightsPanel({ jobId, brandName, brandDomain }: Insight
   }
 
   if (existingReport && !reportData?._status) {
-    return <InsightsDisplay report={existingReport} />;
+    return (
+      <div>
+        <div className="flex justify-end mb-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => analyzeMutation.mutate(true)}
+            disabled={analyzeMutation.isPending}
+            className="gap-2"
+            data-testid="button-reanalyze-sources"
+          >
+            {analyzeMutation.isPending ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Re-analyzing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-3.5 h-3.5" />
+                Re-analyze
+              </>
+            )}
+          </Button>
+        </div>
+        <InsightsDisplay report={existingReport} />
+      </div>
+    );
   }
 
   return (
@@ -570,7 +598,7 @@ export default function InsightsPanel({ jobId, brandName, brandDomain }: Insight
         </p>
       </div>
       <Button
-        onClick={() => analyzeMutation.mutate()}
+        onClick={() => analyzeMutation.mutate(false)}
         disabled={analyzeMutation.isPending}
         className="gap-2"
         data-testid="button-analyze-sources"
