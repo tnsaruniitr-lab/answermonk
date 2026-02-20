@@ -45,6 +45,8 @@ import {
   Tag,
   Code,
   ExternalLink,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -844,6 +846,7 @@ function generateQuickPrompts(
   customerType: string,
   count: number,
   location: string,
+  promptCount: number = 10,
 ): Prompt[] {
   const PERSONA_CORE_LABELS: Record<string, string> = {
     marketing_agency: "marketing agency",
@@ -857,7 +860,8 @@ function generateQuickPrompts(
   const isRestaurant = persona === "restaurant";
   const customerSuffix = customerType ? ` for ${customerType}` : "";
 
-  for (let i = 0; i < 10; i++) {
+  const numPrompts = Math.min(promptCount, QUICK_QUALIFIERS.length);
+  for (let i = 0; i < numPrompts; i++) {
     const qualifier = QUICK_QUALIFIERS[i];
     let text: string;
     if (isRestaurant) {
@@ -1008,13 +1012,40 @@ export default function PromptGenerator() {
   const [quickResult, setQuickResult] = useState<PromptSet | null>(null);
   const [quickScoringResult, setQuickScoringResult] = useState<ScoringResponse | null>(null);
 
-  const [v2SeedType, setV2SeedType] = useState("providers");
-  const [v2CustomerType, setV2CustomerType] = useState("");
-  const [v2Count, setV2Count] = useState(5);
-  const [v2Location, setV2Location] = useState("");
-  const [v2Result, setV2Result] = useState<PromptSet | null>(null);
-  const [v2ScoringResult, setV2ScoringResult] = useState<ScoringResponse | null>(null);
-  const [v2Persona, setV2Persona] = useState<string>("marketing_agency");
+  interface V2Segment {
+    id: string;
+    persona: string;
+    seedType: string;
+    customerType: string;
+    location: string;
+    resultCount: number;
+    prompts: Prompt[] | null;
+  }
+
+  const makeSegment = (): V2Segment => ({
+    id: `seg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    persona: "marketing_agency",
+    seedType: "providers",
+    customerType: "",
+    location: "",
+    resultCount: 5,
+    prompts: null,
+  });
+
+  const [v2Segments, setV2Segments] = useState<V2Segment[]>([makeSegment()]);
+  const [v2PromptsPerSegment, setV2PromptsPerSegment] = useState(3);
+
+  const updateSegment = (id: string, patch: Partial<V2Segment>) => {
+    setV2Segments((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  };
+
+  const addSegment = () => {
+    setV2Segments((prev) => [...prev, makeSegment()]);
+  };
+
+  const removeSegment = (id: string) => {
+    setV2Segments((prev) => prev.filter((s) => s.id !== id));
+  };
 
   const { toast } = useToast();
 
@@ -1096,26 +1127,6 @@ export default function PromptGenerator() {
     },
     onSuccess: (data) => {
       setQuickScoringResult(data);
-    },
-    onError: (err) => {
-      toast({
-        title: "Scoring failed",
-        description: err.message || "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const {
-    mutate: runV2Scoring,
-    isPending: isV2Scoring,
-  } = useMutation<ScoringResponse, Error, { prompts: Prompt[]; brand_name: string; brand_domain?: string; mode: "micro" | "quick" | "full"; profile?: { persona: string; services: string[]; verticals: string[]; geo: string | null } }>({
-    mutationFn: async (body) => {
-      const res = await apiRequest("POST", "/api/scoring/run", body);
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setV2ScoringResult(data);
     },
     onError: (err) => {
       toast({
@@ -1209,7 +1220,6 @@ export default function PromptGenerator() {
   };
 
   const currentPresets = presets?.[persona];
-  const v2Presets = presets?.[v2Persona];
 
   const PERSONA_CATEGORY: Record<string, string> = {
     marketing_agency: "marketing agency",
@@ -2041,7 +2051,7 @@ export default function PromptGenerator() {
 
                 {mode === "quickv2" && (
                   <div className="space-y-6 pb-16">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                           Brand Name
@@ -2067,239 +2077,240 @@ export default function PromptGenerator() {
                           data-testid="input-v2-brand-domain"
                         />
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Persona
+                          Prompts per Segment
                         </label>
-                        <Select
-                          value={v2Persona}
-                          onValueChange={(v) => {
-                            setV2Persona(v);
-                            setV2CustomerType("");
-                            setV2SeedType(v === "restaurant" ? "restaurants" : "providers");
-                          }}
-                        >
-                          <SelectTrigger className="bg-secondary/50" data-testid="select-v2-persona">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="marketing_agency">Marketing Agency</SelectItem>
-                            <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
-                            <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
-                            <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
-                            <SelectItem value="restaurant">Restaurant</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Seed Type
-                        </label>
-                        <Select value={v2SeedType} onValueChange={setV2SeedType}>
-                          <SelectTrigger className="bg-secondary/50" data-testid="select-v2-seed-type">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {v2Persona === "restaurant" ? (
-                              <>
-                                <SelectItem value="restaurants">Restaurants</SelectItem>
-                                <SelectItem value="places">Places</SelectItem>
-                                <SelectItem value="spots">Spots</SelectItem>
-                                <SelectItem value="eateries">Eateries</SelectItem>
-                                <SelectItem value="dining options">Dining Options</SelectItem>
-                                <SelectItem value="cafes">Cafes</SelectItem>
-                              </>
-                            ) : (
-                              <>
-                                <SelectItem value="software">Software</SelectItem>
-                                <SelectItem value="providers">Providers</SelectItem>
-                                <SelectItem value="vendors">Vendors</SelectItem>
-                                <SelectItem value="platforms">Platforms</SelectItem>
-                                <SelectItem value="tools">Tools</SelectItem>
-                                <SelectItem value="solutions">Solutions</SelectItem>
-                                <SelectItem value="companies">Companies</SelectItem>
-                                <SelectItem value="agencies">Agencies</SelectItem>
-                              </>
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          {v2Persona === "restaurant" ? "Cuisine / Style" : "Customer Type"} <span className="text-muted-foreground/60 normal-case">(optional)</span>
-                        </label>
-                        <Select value={v2CustomerType} onValueChange={setV2CustomerType}>
-                          <SelectTrigger className="bg-secondary/50" data-testid="select-v2-customer-type">
-                            <SelectValue placeholder={v2Persona === "restaurant" ? "Any cuisine..." : "Any customer type..."} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__none__">
-                              <span className="text-muted-foreground italic">{v2Persona === "restaurant" ? "Any cuisine" : "Any customer type"}</span>
-                            </SelectItem>
-                            {(v2Presets?.verticals || []).map((v) => (
-                              <SelectItem key={v} value={v}>{v}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Result Count
-                        </label>
-                        <Select value={String(v2Count)} onValueChange={(v) => setV2Count(Number(v))}>
-                          <SelectTrigger className="bg-secondary/50" data-testid="select-v2-count">
+                        <Select value={String(v2PromptsPerSegment)} onValueChange={(v) => setV2PromptsPerSegment(Number(v))}>
+                          <SelectTrigger className="bg-secondary/50" data-testid="select-v2-prompts-per-segment">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="3">3</SelectItem>
                             <SelectItem value="5">5</SelectItem>
                             <SelectItem value="10">10</SelectItem>
-                            <SelectItem value="15">15</SelectItem>
-                            <SelectItem value="20">20</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Location (city or country)
-                      </label>
-                      <Input
-                        value={v2Location}
-                        onChange={(e) => setV2Location(e.target.value)}
-                        placeholder="e.g. UAE, Dubai, Singapore"
-                        className="bg-secondary/50 border-border"
-                        data-testid="input-v2-location"
-                      />
+                    <div className="border-t pt-4 space-y-4">
+                      {v2Segments.map((seg, idx) => {
+                        const segPresets = presets?.[seg.persona];
+                        return (
+                          <Card key={seg.id} className="p-4 space-y-4 relative" data-testid={`v2-segment-${idx}`}>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="text-xs font-mono">Segment {idx + 1}</Badge>
+                              </div>
+                              {v2Segments.length > 1 && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeSegment(seg.id)}
+                                  className="text-muted-foreground hover:text-destructive h-7 w-7 p-0"
+                                  data-testid={`button-v2-remove-segment-${idx}`}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                  Persona
+                                </label>
+                                <Select
+                                  value={seg.persona}
+                                  onValueChange={(v) => {
+                                    updateSegment(seg.id, {
+                                      persona: v,
+                                      customerType: "",
+                                      seedType: v === "restaurant" ? "restaurants" : "providers",
+                                      prompts: null,
+                                    });
+                                  }}
+                                >
+                                  <SelectTrigger className="bg-secondary/50" data-testid={`select-v2-persona-${idx}`}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="marketing_agency">Marketing Agency</SelectItem>
+                                    <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
+                                    <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
+                                    <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
+                                    <SelectItem value="restaurant">Restaurant</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                  Seed Type
+                                </label>
+                                <Select value={seg.seedType} onValueChange={(v) => updateSegment(seg.id, { seedType: v, prompts: null })}>
+                                  <SelectTrigger className="bg-secondary/50" data-testid={`select-v2-seed-type-${idx}`}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {seg.persona === "restaurant" ? (
+                                      <>
+                                        <SelectItem value="restaurants">Restaurants</SelectItem>
+                                        <SelectItem value="places">Places</SelectItem>
+                                        <SelectItem value="spots">Spots</SelectItem>
+                                        <SelectItem value="eateries">Eateries</SelectItem>
+                                        <SelectItem value="dining options">Dining Options</SelectItem>
+                                        <SelectItem value="cafes">Cafes</SelectItem>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <SelectItem value="software">Software</SelectItem>
+                                        <SelectItem value="providers">Providers</SelectItem>
+                                        <SelectItem value="vendors">Vendors</SelectItem>
+                                        <SelectItem value="platforms">Platforms</SelectItem>
+                                        <SelectItem value="tools">Tools</SelectItem>
+                                        <SelectItem value="solutions">Solutions</SelectItem>
+                                        <SelectItem value="companies">Companies</SelectItem>
+                                        <SelectItem value="agencies">Agencies</SelectItem>
+                                      </>
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                  {seg.persona === "restaurant" ? "Cuisine / Style" : "Customer Type"} <span className="text-muted-foreground/60 normal-case">(optional)</span>
+                                </label>
+                                <Select value={seg.customerType || "__none__"} onValueChange={(v) => updateSegment(seg.id, { customerType: v === "__none__" ? "" : v, prompts: null })}>
+                                  <SelectTrigger className="bg-secondary/50" data-testid={`select-v2-customer-type-${idx}`}>
+                                    <SelectValue placeholder={seg.persona === "restaurant" ? "Any cuisine..." : "Any customer type..."} />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="__none__">
+                                      <span className="text-muted-foreground italic">{seg.persona === "restaurant" ? "Any cuisine" : "Any customer type"}</span>
+                                    </SelectItem>
+                                    {(segPresets?.verticals || []).map((v) => (
+                                      <SelectItem key={v} value={v}>{v}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                  Location (city or country)
+                                </label>
+                                <Input
+                                  value={seg.location}
+                                  onChange={(e) => updateSegment(seg.id, { location: e.target.value })}
+                                  placeholder="e.g. UAE, Dubai, Singapore"
+                                  className="bg-secondary/50 border-border"
+                                  data-testid={`input-v2-location-${idx}`}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                Result Count (find top N)
+                              </label>
+                              <Select value={String(seg.resultCount)} onValueChange={(v) => updateSegment(seg.id, { resultCount: Number(v), prompts: null })}>
+                                <SelectTrigger className="bg-secondary/50 w-24" data-testid={`select-v2-result-count-${idx}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="3">3</SelectItem>
+                                  <SelectItem value="5">5</SelectItem>
+                                  <SelectItem value="10">10</SelectItem>
+                                  <SelectItem value="15">15</SelectItem>
+                                  <SelectItem value="20">20</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {seg.prompts && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                className="border-t pt-3"
+                              >
+                                <div className="flex items-center gap-2 mb-2">
+                                  <FileText className="w-3.5 h-3.5 text-primary" />
+                                  <span className="text-xs font-medium text-muted-foreground">
+                                    {seg.prompts.length} prompts generated
+                                  </span>
+                                </div>
+                                <div className="space-y-1 max-h-48 overflow-y-auto">
+                                  {seg.prompts.map((p, pi) => (
+                                    <div key={p.id} className="flex items-start gap-2 text-xs py-1 border-b last:border-b-0 border-border/50">
+                                      <span className="text-muted-foreground font-mono w-4 shrink-0 pt-0.5">{pi + 1}</span>
+                                      <span className="break-words flex-1">{p.text}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </motion.div>
+                            )}
+                          </Card>
+                        );
+                      })}
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addSegment}
+                        className="w-full border-dashed"
+                        data-testid="button-v2-add-segment"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Segment
+                      </Button>
                     </div>
 
-                    <Button
-                      type="button"
-                      onClick={() => {
-                        if (!brandName.trim()) {
-                          toast({ title: "Brand name required", description: "Enter your brand name.", variant: "destructive" });
-                          return;
-                        }
-                        if (!v2Location.trim()) {
-                          toast({ title: "Location required", description: "Enter a city or country.", variant: "destructive" });
-                          return;
-                        }
-                        setV2ScoringResult(null);
-                        setScoringResult(null);
-                        const effectiveCustomerType = v2CustomerType === "__none__" ? "" : v2CustomerType;
-                        const v2Prompts = generateQuickPrompts(v2Persona, v2SeedType, effectiveCustomerType, v2Count, v2Location.trim());
-                        setV2Result({
-                          prompt_set_id: `v2-${Date.now()}`,
-                          version: "pg_v1",
-                          seed_used: 0,
-                          counts: {
-                            by_cluster: { direct: 10 },
-                            by_shape: { open: 10 },
-                            modifier_prompts: 0,
-                            geo_prompts: 10,
-                          },
-                          prompts: v2Prompts,
-                          unverified_items: [],
-                        });
-                      }}
-                      data-testid="button-v2-generate"
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate 10 Prompts
-                    </Button>
-
-                    {v2Result && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="space-y-4"
+                    <div className="flex gap-3">
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          if (!brandName.trim()) {
+                            toast({ title: "Brand name required", description: "Enter your brand name.", variant: "destructive" });
+                            return;
+                          }
+                          const emptyLocation = v2Segments.find((s) => !s.location.trim());
+                          if (emptyLocation) {
+                            const idx = v2Segments.indexOf(emptyLocation) + 1;
+                            toast({ title: `Segment ${idx} missing location`, description: "Enter a location for each segment.", variant: "destructive" });
+                            return;
+                          }
+                          setV2Segments((prev) =>
+                            prev.map((seg) => {
+                              const effectiveCustomerType = seg.customerType === "__none__" ? "" : seg.customerType;
+                              const prompts = generateQuickPrompts(seg.persona, seg.seedType, effectiveCustomerType, seg.resultCount, seg.location.trim(), v2PromptsPerSegment);
+                              return { ...seg, prompts };
+                            })
+                          );
+                        }}
+                        className="flex-1"
+                        data-testid="button-v2-generate-all"
                       >
-                        <Card className="p-4 space-y-3">
-                          <div className="flex items-center justify-between gap-2 mb-2">
-                            <div className="flex items-center gap-2">
-                              <FileText className="w-4 h-4 text-primary" />
-                              <span className="font-medium text-sm">Generated Prompts ({v2Result.prompts.length})</span>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setV2Result(null);
-                                setV2ScoringResult(null);
-                              }}
-                              data-testid="button-v2-reset"
-                            >
-                              <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-                              Reset
-                            </Button>
-                          </div>
-                          <div className="space-y-1.5 max-h-80 overflow-y-auto">
-                            {v2Result.prompts.map((p, i) => (
-                              <div key={p.id} className="flex items-start gap-2 text-sm py-1.5 border-b last:border-b-0">
-                                <span className="text-muted-foreground text-xs font-mono w-5 shrink-0 pt-0.5">{i + 1}</span>
-                                <span className="break-words flex-1">{p.text}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </Card>
-
-                        <div className="space-y-3">
-                          <Button
-                            type="button"
-                            onClick={() => {
-                              runV2Scoring({
-                                prompts: v2Result.prompts,
-                                brand_name: brandName.trim(),
-                                brand_domain: brandDomain.trim() || undefined,
-                                mode: "full",
-                                profile: {
-                                  persona: v2Persona,
-                                  services,
-                                  verticals,
-                                  geo: geo || null,
-                                },
-                              });
-                            }}
-                            disabled={isV2Scoring}
-                            className="w-full"
-                            data-testid="button-v2-score"
-                          >
-                            {isV2Scoring ? (
-                              <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Running across 3 AI engines...
-                              </>
-                            ) : (
-                              <>
-                                <BarChart3 className="w-4 h-4 mr-2" />
-                                Run GEO Scoring (10 prompts x 3 engines)
-                              </>
-                            )}
-                          </Button>
-                        </div>
-
-                        {v2ScoringResult && (
-                          <ResultsDashboard
-                            score={v2ScoringResult.score}
-                            brandName={brandName}
-                            mode={v2ScoringResult.mode}
-                            promptsUsed={v2ScoringResult.prompts_used}
-                            rawRuns={v2ScoringResult.raw_runs || []}
-                            onNewAnalysis={() => {
-                              setV2Result(null);
-                              setV2ScoringResult(null);
-                            }}
-                          />
-                        )}
-                      </motion.div>
-                    )}
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Generate Prompts ({v2Segments.length} segment{v2Segments.length > 1 ? "s" : ""} x {v2PromptsPerSegment} prompts)
+                      </Button>
+                      {v2Segments.some((s) => s.prompts) && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setV2Segments((prev) => prev.map((s) => ({ ...s, prompts: null })));
+                          }}
+                          data-testid="button-v2-clear-all"
+                        >
+                          <ArrowLeft className="w-4 h-4 mr-1" />
+                          Clear
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 )}
 
