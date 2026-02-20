@@ -1,5 +1,6 @@
 import type { SegmentInput } from "./citation-crawler";
 import { crawlCitations, extractCitationUrlsPerSegment } from "./citation-crawler";
+import { canonicalizeUrl } from "../crawler";
 import { selectAllComparisonTargets, type SegmentComparison } from "./comparison-targets";
 import { extractAllSnippets, type PageSnippets, type BrandSnippet } from "./snippet-extractor";
 import { classifyAllSources, type ClassifiedSource } from "./source-classifier";
@@ -101,9 +102,14 @@ export async function runSegmentAnalysis(
     const intentDict = intentDicts.get(seg.id);
     if (!intentDict) continue;
 
-    const segCitationUrls = new Set((citationUrlsPerSegment.get(seg.id) || []).map(u => u.toLowerCase()));
+    const rawCitationUrls = citationUrlsPerSegment.get(seg.id) || [];
+    const segCitationUrls = new Set(rawCitationUrls.map(u => u.toLowerCase()));
+    const segCitationCanonical = new Set(rawCitationUrls.map(u => canonicalizeUrl(u)));
     const segPageSnippets = pageSnippetsList.filter(ps =>
-      segCitationUrls.has(ps.page.url.toLowerCase()) || segCitationUrls.has(ps.page.resolvedUrl.toLowerCase())
+      segCitationUrls.has(ps.page.url.toLowerCase()) ||
+      segCitationUrls.has(ps.page.resolvedUrl.toLowerCase()) ||
+      segCitationCanonical.has(ps.page.canonicalUrl) ||
+      segCitationCanonical.has(canonicalizeUrl(ps.page.url))
     );
 
     const allSegSnippets = segPageSnippets.flatMap(ps => ps.snippets);
