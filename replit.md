@@ -59,7 +59,7 @@ Preferred communication style: Simple, everyday language.
 - **Validation**: Zod schemas for all request/response validation, shared between client and server
 - **GEO Scoring Service** (`server/scoring/`): Separate probabilistic scoring pipeline
   - `panel.ts` — Deterministic mini-panel selector (10-from-40: 3 direct, 3 task, 2 persona, 2 budget)
-  - `runner.ts` — Batched parallel LLM executor (ChatGPT, Gemini, Claude), rate-limited
+  - `runner.ts` — Batched parallel LLM executor (ChatGPT, Gemini, Claude), rate-limited, with web search enabled for ChatGPT (via direct API key + Responses API) and Gemini (via Google Search grounding). Citations captured from ChatGPT url_citation annotations and Gemini groundingMetadata.groundingChunks, with markdown link fallback parsing.
   - `llm-extractor.ts` — LLM-based brand extraction using gpt-4o-mini; replaces regex-based extraction for both Analyzer and Scoring pipelines
   - `extractor.ts` — Legacy regex-based extraction (kept for reference, no longer primary)
   - `matcher.ts` — Tiered brand matching (exact name, domain root, alias), false-positive protection for short names

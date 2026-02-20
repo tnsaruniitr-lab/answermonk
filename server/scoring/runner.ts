@@ -33,11 +33,17 @@ const BATCH_DELAY_MS = 500;
 const MAX_RETRIES = 3;
 const RETRY_BASE_MS = 2000;
 
+export interface Citation {
+  url: string;
+  title?: string;
+}
+
 export interface RawRunResult {
   prompt_id: string;
   cluster: string;
   engine: ScoringEngine;
   raw_text: string;
+  citations: Citation[];
   extraction: ExtractionResult;
   match: RunMatchResult;
 }
@@ -76,8 +82,8 @@ export async function runScoring(
                   console.log(`Retry ${attempt}/${MAX_RETRIES} for ${engine} prompt ${prompt.id} after ${delay}ms`);
                   await sleep(delay);
                 }
-                const rawText = await queryEngine(engine, prompt.text);
-                const llmResult = await extractBrandsWithLLM(rawText, prompt.text);
+                const engineResponse = await queryEngine(engine, prompt.text);
+                const llmResult = await extractBrandsWithLLM(engineResponse.text, prompt.text);
                 const extraction = llmResultToExtractedCandidates(llmResult);
                 const match = matchRun(extraction.candidates, brand);
 
@@ -88,7 +94,8 @@ export async function runScoring(
                   prompt_id: prompt.id,
                   cluster: prompt.cluster,
                   engine,
-                  raw_text: rawText,
+                  raw_text: engineResponse.text,
+                  citations: engineResponse.citations,
                   extraction,
                   match,
                 } as RawRunResult;
@@ -109,6 +116,7 @@ export async function runScoring(
               cluster: prompt.cluster,
               engine,
               raw_text: `[Error: ${engine} unavailable]`,
+              citations: [],
               extraction: { candidates: [], valid: false },
               match: {
                 brand: { brand_found: false, brand_rank: null, match_tier: null },
@@ -150,7 +158,12 @@ export async function runScoring(
   };
 }
 
-async function queryEngine(engine: ScoringEngine, promptText: string): Promise<string> {
+interface EngineResponse {
+  text: string;
+  citations: Citation[];
+}
+
+async function queryEngine(engine: ScoringEngine, promptText: string): Promise<EngineResponse> {
   switch (engine) {
     case "chatgpt":
       return queryChatGPT(promptText);
@@ -161,7 +174,22 @@ async function queryEngine(engine: ScoringEngine, promptText: string): Promise<s
   }
 }
 
-async function queryChatGPT(prompt: string): Promise<string> {
+function parseCitationsFromMarkdown(text: string): Citation[] {
+  const citations: Citation[] = [];
+  const seen = new Set<string>();
+  const urlRegex = /\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g;
+  let match;
+  while ((match = urlRegex.exec(text)) !== null) {
+    const url = match[2];
+    if (!seen.has(url)) {
+      seen.add(url);
+      citations.push({ url, title: match[1] || undefined });
+    }
+  }
+  return citations;
+}
+
+async function queryChatGPT(prompt: string): Promise<EngineResponse> {
   try {
     const directOpenai = new OpenAI({
       apiKey: process.env.OPENAI_DIRECT_API_KEY,
@@ -174,7 +202,30 @@ async function queryChatGPT(prompt: string): Promise<string> {
       temperature: 0.2,
     });
 
-    return (response as any).output_text ?? "";
+    const text = (response as any).output_text ?? "";
+    const citations: Citation[] = [];
+    const seen = new Set<string>();
+    const output = (response as any).output;
+    if (Array.isArray(output)) {
+      for (const item of output) {
+        if (item.type === "message" && Array.isArray(item.content)) {
+          for (const part of item.content) {
+            if (part.type === "output_text" && Array.isArray(part.annotations)) {
+              for (const ann of part.annotations) {
+                if (ann.type === "url_citation" && ann.url && !seen.has(ann.url)) {
+                  seen.add(ann.url);
+                  citations.push({ url: ann.url, title: ann.title || undefined });
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    if (citations.length === 0) {
+      citations.push(...parseCitationsFromMarkdown(text));
+    }
+    return { text, citations };
   } catch (err) {
     console.error("Quick mode ChatGPT web search failed, falling back to standard:", err);
     const completion = await openai.chat.completions.create({
@@ -183,23 +234,24 @@ async function queryChatGPT(prompt: string): Promise<string> {
       max_completion_tokens: 1024,
       temperature: 0.2,
     });
-    return completion.choices[0]?.message?.content ?? "";
+    return { text: completion.choices[0]?.message?.content ?? "", citations: [] };
   }
 }
 
-async function queryClaude(prompt: string): Promise<string> {
+async function queryClaude(prompt: string): Promise<EngineResponse> {
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-5",
     max_tokens: 1024,
     messages: [{ role: "user", content: prompt }],
   });
-  return message.content
+  const text = message.content
     .filter((b): b is Anthropic.TextBlock => b.type === "text")
     .map((b) => b.text)
     .join("\n");
+  return { text, citations: [] };
 }
 
-async function queryGemini(prompt: string): Promise<string> {
+async function queryGemini(prompt: string): Promise<EngineResponse> {
   try {
     const response = await gemini.models.generateContent({
       model: "gemini-3-flash-preview",
@@ -209,7 +261,23 @@ async function queryGemini(prompt: string): Promise<string> {
         tools: [{ googleSearch: {} }],
       },
     });
-    return response.text ?? "";
+    const text = response.text ?? "";
+    const groundingMeta = (response as any).candidates?.[0]?.groundingMetadata;
+    const citations: Citation[] = [];
+    const seen = new Set<string>();
+    if (groundingMeta?.groundingChunks) {
+      for (const chunk of groundingMeta.groundingChunks) {
+        const url = chunk?.web?.uri;
+        if (url && !seen.has(url)) {
+          seen.add(url);
+          citations.push({ url, title: chunk?.web?.title || undefined });
+        }
+      }
+    }
+    if (citations.length === 0) {
+      citations.push(...parseCitationsFromMarkdown(text));
+    }
+    return { text, citations };
   } catch (err) {
     console.error("Quick mode Gemini web search failed, falling back to standard:", err);
     const response = await gemini.models.generateContent({
@@ -217,7 +285,7 @@ async function queryGemini(prompt: string): Promise<string> {
       contents: prompt,
       config: { maxOutputTokens: 1024 },
     });
-    return response.text ?? "";
+    return { text: response.text ?? "", citations: [] };
   }
 }
 

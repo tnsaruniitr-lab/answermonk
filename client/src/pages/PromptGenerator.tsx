@@ -119,12 +119,18 @@ interface GEOScore {
   engine_breakdown: Record<string, { appearance_rate: number; primary_rate: number; valid_runs: number; total_runs?: number; error_runs?: number }>;
 }
 
+interface RawRunCitation {
+  url: string;
+  title?: string;
+}
+
 interface RawRun {
   prompt_id: string;
   prompt_text: string;
   cluster: string;
   engine: string;
   raw_text: string;
+  citations?: RawRunCitation[];
   candidates: string[];
   brand_found: boolean;
   brand_rank: number | null;
@@ -491,6 +497,31 @@ function RawRunsSection({ runs }: { runs: RawRun[] }) {
                       <pre className="text-xs text-muted-foreground bg-secondary/50 rounded-md p-3 whitespace-pre-wrap font-[inherit] leading-relaxed max-h-48 overflow-y-auto" data-testid={`text-raw-run-${r.prompt_id}-${r.engine}`}>
                         {r.raw_text}
                       </pre>
+                      {r.citations && r.citations.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          <span className="text-[10px] text-muted-foreground font-medium">Sources:</span>
+                          {r.citations.map((c, idx) => {
+                            let displayUrl = c.title || c.url;
+                            try {
+                              const parsed = new URL(c.url);
+                              displayUrl = c.title || parsed.hostname.replace(/^www\./, '');
+                            } catch {}
+                            return (
+                              <a
+                                key={idx}
+                                href={c.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-0.5 text-[10px] text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-950/30 px-1.5 py-0.5 rounded"
+                                data-testid={`link-citation-${r.prompt_id}-${r.engine}-${idx}`}
+                              >
+                                <Globe className="w-2.5 h-2.5 flex-shrink-0" />
+                                <span className="truncate max-w-[160px]">{displayUrl}</span>
+                              </a>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
