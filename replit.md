@@ -66,6 +66,19 @@ Preferred communication style: Simple, everyday language.
   - `scorer.ts` — Pure frequency math: appearance_rate, primary_rate, avg_rank, competitor shares, cluster/engine breakdowns
   - Two modes: Quick (10 prompts) and Full (40 prompts), both run against all 3 engines
   - Results stored in `scoring_jobs` table with JSONB columns for flexible iteration
+- **Insights & Recommender** (`server/insights/`): Post-scoring citation analysis module
+  - `crawler.ts` — URL fetching (HTTP + Puppeteer fallback), UTM stripping, canonical URL dedup, content hash dedup (MD5 of first 500 chars)
+  - `classifier.ts` — Source classification (tier 1/2/3), categories: third_party_editorial, review_platform, listicle, brand_owned, competitor_owned, social
+  - `intentParser.ts` — Query decomposition via gpt-4o-mini into 4 dimensions (category, geo, audience, qualifier)
+  - `synonyms.ts` — Synonym/implication maps for geo, audience, category with contradiction detection and evidence strength classification
+  - `extractor.ts` — Quote extraction (15-25 token windows), proximity detection (same_chunk/nearby_chunk/distant), list position extraction, LLM dimension relevance classification
+  - `elimination.ts` — Elimination signal detection per dimension (geo_mismatch, audience_mismatch, category_mismatch, missing_evidence, weak_positioning, no_citations), competitor analysis
+  - `scorer.ts` — Attribution checks per engine (citation_driven vs model_knowledge), comparative scoring with dimension support rates
+  - `reporter.ts` — Insight card generation (elimination, competitor, attribution, opportunity, strength), probabilistic language throughout
+  - `index.ts` — Orchestrator tying all modules together with progress callbacks
+  - API: `POST /api/insights/analyze`, `GET /api/insights/:jobId`
+  - Database: `insights_json` and `insights_status` JSONB/text columns on `scoring_jobs` table
+  - Frontend: `InsightsPanel` component with "Analyze Sources" button, confidence gauge, dimension breakdown, attribution section, insight cards
 
 ### Database
 - **Database**: PostgreSQL (required, referenced via `DATABASE_URL` environment variable)

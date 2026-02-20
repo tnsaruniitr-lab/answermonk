@@ -15,6 +15,8 @@ export const scoringJobs = pgTable("scoring_jobs", {
   engineCount: integer("engine_count").notNull().default(3),
   resultJson: jsonb("result_json"),
   rawData: jsonb("raw_data"),
+  insightsJson: jsonb("insights_json"),
+  insightsStatus: text("insights_status"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

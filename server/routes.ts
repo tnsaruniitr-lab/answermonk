@@ -20,6 +20,7 @@ import { selectMiniPanel, selectMicroPanel } from "./scoring/panel";
 import { runScoring } from "./scoring/runner";
 import { insertSavedProfileSchema } from "@shared/schema";
 import { analyzePanelWebsite } from "./panel/generator";
+import { runInsightsAnalysis, type InsightsInput } from "./insights";
 
 /** ------------------------
  * Scoring helpers (From user provided logic)
@@ -578,6 +579,133 @@ export async function registerRoutes(
       }
     }
   });
+
+  const InsightsRequestSchema = z.object({
+    jobId: z.number().int().positive(),
+    persona: z.string().default("marketing_agency"),
+    services: z.array(z.string()).default([]),
+    verticals: z.array(z.string()).default([]),
+    geo: z.string().nullable().default(null),
+    competitorNames: z.array(z.string()).default([]),
+  });
+
+  app.post("/api/insights/analyze", async (req, res) => {
+    try {
+      const parsed = InsightsRequestSchema.parse(req.body);
+      const job = await storage.getScoringJob(parsed.jobId);
+      if (!job) {
+        res.status(404).json({ message: "Scoring job not found" });
+        return;
+      }
+      if (job.status !== "completed") {
+        res.status(400).json({ message: "Scoring job must be completed before running insights" });
+        return;
+      }
+
+      await storage.updateScoringJob(parsed.jobId, { insightsStatus: "running" } as any);
+
+      const rawData = job.rawData as any;
+      const runs = rawData?.runs || [];
+
+      const citationsByEngine: Record<string, string[]> = {};
+      const aiResponses: Record<string, string[]> = {};
+
+      for (const run of runs) {
+        const engine = run.engine as string;
+        if (!citationsByEngine[engine]) citationsByEngine[engine] = [];
+        if (!aiResponses[engine]) aiResponses[engine] = [];
+
+        if (run.citations && Array.isArray(run.citations)) {
+          for (const c of run.citations) {
+            const url = typeof c === "string" ? c : c.url;
+            if (url && typeof url === "string") {
+              citationsByEngine[engine].push(url);
+            }
+          }
+        }
+        if (run.raw_text) {
+          aiResponses[engine].push(run.raw_text);
+        }
+      }
+
+      const competitorNames = parsed.competitorNames.length > 0
+        ? parsed.competitorNames
+        : extractCompetitorsFromRuns(runs, job.brandName);
+
+      const input: InsightsInput = {
+        jobId: parsed.jobId,
+        brandName: job.brandName,
+        brandDomain: job.brandDomain || null,
+        persona: parsed.persona,
+        services: parsed.services,
+        verticals: parsed.verticals,
+        geo: parsed.geo,
+        citationsByEngine,
+        competitorNames,
+        aiResponses,
+      };
+
+      const report = await runInsightsAnalysis(input, (progress) => {
+        console.log(`[insights] Job ${parsed.jobId}: ${progress.stage} - ${progress.percent}% - ${progress.message}`);
+      });
+
+      await storage.updateScoringJob(parsed.jobId, {
+        insightsJson: report as any,
+        insightsStatus: "completed",
+      } as any);
+
+      res.json(report);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors.map((e) => e.message).join(", ") });
+      } else {
+        console.error("Insights analysis error:", err);
+        const jobId = req.body?.jobId;
+        if (jobId) {
+          await storage.updateScoringJob(jobId, { insightsStatus: "failed" } as any).catch(() => {});
+        }
+        res.status(500).json({ message: "Insights analysis failed. Please try again." });
+      }
+    }
+  });
+
+  app.get("/api/insights/:jobId", async (req, res) => {
+    const jobId = parseInt(req.params.jobId, 10);
+    if (isNaN(jobId)) {
+      res.status(400).json({ message: "Invalid job ID" });
+      return;
+    }
+    const job = await storage.getScoringJob(jobId);
+    if (!job) {
+      res.status(404).json({ message: "Scoring job not found" });
+      return;
+    }
+    if (!job.insightsJson) {
+      res.status(404).json({ message: "No insights available for this job", insightsStatus: job.insightsStatus || null });
+      return;
+    }
+    res.json(job.insightsJson);
+  });
+
+  function extractCompetitorsFromRuns(runs: any[], brandName: string): string[] {
+    const brandLower = brandName.toLowerCase();
+    const competitorCounts = new Map<string, number>();
+
+    for (const run of runs) {
+      const candidates = run.candidates || [];
+      for (const c of candidates) {
+        const name = typeof c === "string" ? c : c.name || c;
+        if (typeof name === "string" && name.toLowerCase() !== brandLower) {
+          competitorCounts.set(name, (competitorCounts.get(name) || 0) + 1);
+        }
+      }
+    }
+
+    return Array.from(competitorCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 15)
+      .map(([name]) => name);
+  }
 
   return httpServer;
 }

@@ -19,7 +19,9 @@ import {
   TrendingUp,
   Zap,
   Filter,
+  Lightbulb,
 } from "lucide-react";
+import InsightsPanel from "@/components/InsightsPanel";
 import { format } from "date-fns";
 import {
   Select,
@@ -571,6 +573,22 @@ export default function ScoringDetail() {
         )}
 
         {rawRuns.length > 0 && <AllSourcesSection runs={rawRuns} />}
+
+        {score && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-3">
+              <Lightbulb className="w-4 h-4 text-muted-foreground" />
+              <h3 className="text-sm font-medium">Insights & Recommendations</h3>
+            </div>
+            <Card className="p-6">
+              <InsightsPanel
+                jobId={id!}
+                brandName={job.brandName}
+                brandDomain={job.brandDomain}
+              />
+            </Card>
+          </div>
+        )}
 
         {rawRuns.length > 0 && (
           <div className="mb-8">
