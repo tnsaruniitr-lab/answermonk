@@ -20,6 +20,8 @@ import {
   Lightbulb,
   AlertTriangle,
   CheckCircle2,
+  Medal,
+  Crown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest } from "@/lib/queryClient";
@@ -179,19 +181,36 @@ interface SegmentCitationAnalyzerProps {
   }[];
 }
 
-const strengthColor: Record<string, string> = {
-  strong: "text-green-600 dark:text-green-400",
-  medium: "text-yellow-600 dark:text-yellow-400",
-  weak: "text-orange-500 dark:text-orange-400",
-  absent: "text-red-500 dark:text-red-400",
+const strengthValue: Record<string, number> = {
+  strong: 4,
+  medium: 3,
+  weak: 2,
+  absent: 1,
 };
 
-const strengthBadge: Record<string, string> = {
-  strong: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  medium: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-  weak: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  absent: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+function getRanks(brandLabel: string, compALabel: string, compBLabel: string) {
+  const vals = [
+    { key: "brand", val: strengthValue[brandLabel] || 0 },
+    { key: "compA", val: strengthValue[compALabel] || 0 },
+    { key: "compB", val: strengthValue[compBLabel] || 0 },
+  ];
+  vals.sort((a, b) => b.val - a.val);
+  const ranks: Record<string, number> = {};
+  let pos = 1;
+  for (let i = 0; i < vals.length; i++) {
+    if (i > 0 && vals[i].val < vals[i - 1].val) pos = i + 1;
+    ranks[vals[i].key] = pos;
+  }
+  return ranks;
+}
+
+const medalStyles: Record<number, { bg: string; text: string; border: string; icon: string }> = {
+  1: { bg: "bg-amber-50 dark:bg-amber-900/20", text: "text-amber-700 dark:text-amber-400", border: "border-amber-300 dark:border-amber-700", icon: "text-amber-500" },
+  2: { bg: "bg-slate-50 dark:bg-slate-800/40", text: "text-slate-600 dark:text-slate-300", border: "border-slate-300 dark:border-slate-600", icon: "text-slate-400" },
+  3: { bg: "bg-orange-50 dark:bg-orange-900/15", text: "text-orange-700 dark:text-orange-400", border: "border-orange-300 dark:border-orange-700", icon: "text-orange-600 dark:text-orange-500" },
 };
+
+const rankLabel: Record<number, string> = { 1: "1st", 2: "2nd", 3: "3rd" };
 
 const factorIcons: Record<string, typeof Shield> = {
   authority: Shield,
@@ -414,11 +433,13 @@ function SegmentCard({
               </Badge>
             )}
             {seg.evidence.factors.map(f => {
-              const Icon = factorIcons[f.factor] || Target;
+              const ranks = getRanks(f.brandLabel, f.competitorALabel, f.competitorBLabel);
+              const rank = ranks.brand;
+              const style = medalStyles[rank] || medalStyles[3];
               return (
-                <span key={f.factor} className={`inline-flex items-center gap-0.5 text-[10px] ${strengthColor[f.brandLabel]}`}>
-                  <Icon className="w-3 h-3" />
-                  {f.brandLabel}
+                <span key={f.factor} className={`inline-flex items-center gap-0.5 text-[10px] font-semibold ${style.text}`}>
+                  {rank === 1 ? <Crown className={`w-3 h-3 ${style.icon}`} /> : <Medal className={`w-3 h-3 ${style.icon}`} />}
+                  {rankLabel[rank]}
                 </span>
               );
             })}
@@ -558,9 +579,16 @@ function FactorRow({
         </div>
       </div>
 
-      <StrengthCell label={factor.brandLabel} summary={factor.summary} />
-      <StrengthCell label={factor.competitorALabel} />
-      <StrengthCell label={factor.competitorBLabel} />
+      {(() => {
+        const ranks = getRanks(factor.brandLabel, factor.competitorALabel, factor.competitorBLabel);
+        return (
+          <>
+            <RankCell rank={ranks.brand} summary={factor.summary} isYou />
+            <RankCell rank={ranks.compA} />
+            <RankCell rank={ranks.compB} />
+          </>
+        );
+      })()}
 
       {showEvidence && (
         <div className="col-span-4 bg-muted/30 rounded-lg p-3 space-y-3">
@@ -588,12 +616,23 @@ function FactorRow({
   );
 }
 
-function StrengthCell({ label, summary }: { label: string; summary?: string }) {
+function RankCell({ rank, summary, isYou }: { rank: number; summary?: string; isYou?: boolean }) {
+  const style = medalStyles[rank] || medalStyles[3];
   return (
     <div className="text-center pt-2">
-      <Badge className={`${strengthBadge[label] || strengthBadge.absent} text-[10px] px-1.5 py-0`}>
-        {label}
-      </Badge>
+      <div className={`inline-flex flex-col items-center gap-0.5 rounded-lg border px-2.5 py-1.5 ${style.bg} ${style.border}`}>
+        {rank === 1 ? (
+          <Crown className={`w-4 h-4 ${style.icon}`} />
+        ) : (
+          <Medal className={`w-4 h-4 ${style.icon}`} />
+        )}
+        <span className={`text-xs font-bold ${style.text}`}>{rankLabel[rank]}</span>
+        {rank === 1 && (
+          <span className="text-[8px] font-bold uppercase tracking-wider bg-amber-500 text-white rounded-full px-1.5 py-0">
+            Winner
+          </span>
+        )}
+      </div>
       {summary && (
         <div className="text-[10px] text-muted-foreground mt-1 leading-tight">{summary}</div>
       )}
