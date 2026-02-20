@@ -44,6 +44,7 @@ import {
   Shield,
   Tag,
   Code,
+  ExternalLink,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -537,6 +538,88 @@ function RawRunsSection({ runs }: { runs: RawRun[] }) {
   );
 }
 
+function AllSourcesSection({ runs }: { runs: RawRun[] }) {
+  const [copied, setCopied] = useState(false);
+
+  const allCitations = useMemo(() => {
+    const seen = new Set<string>();
+    const result: { url: string; title?: string; engine: string }[] = [];
+    for (const r of runs) {
+      if (r.citations) {
+        for (const c of r.citations) {
+          if (c.url && !seen.has(c.url)) {
+            seen.add(c.url);
+            result.push({ url: c.url, title: c.title, engine: r.engine });
+          }
+        }
+      }
+    }
+    return result;
+  }, [runs]);
+
+  if (allCitations.length === 0) return null;
+
+  const handleCopy = () => {
+    const text = allCitations.map(c => c.url).join("\n");
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div className="mb-8">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-medium flex items-center gap-2">
+          <Globe className="w-4 h-4 text-muted-foreground" />
+          All Sources ({allCitations.length})
+        </h3>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleCopy}
+          className="h-7 text-xs gap-1.5"
+          data-testid="button-copy-all-sources"
+        >
+          {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+          {copied ? "Copied!" : "Copy All URLs"}
+        </Button>
+      </div>
+      <Card className="divide-y divide-border">
+        {allCitations.map((c, idx) => {
+          let hostname = c.url;
+          try {
+            hostname = new URL(c.url).hostname.replace(/^www\./, "");
+          } catch {}
+          return (
+            <a
+              key={idx}
+              href={c.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 px-4 py-2.5 hover:bg-secondary/50 transition-colors group"
+              data-testid={`link-all-source-${idx}`}
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground shrink-0 group-hover:text-blue-500" />
+              <div className="min-w-0 flex-1">
+                <span className="text-sm text-blue-600 dark:text-blue-400 group-hover:underline truncate block">
+                  {c.title || hostname}
+                </span>
+                <span className="text-[10px] text-muted-foreground truncate block">
+                  {c.url}
+                </span>
+              </div>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-secondary text-muted-foreground shrink-0">
+                {(ENGINE_LABELS[c.engine] || c.engine).slice(0, 3)}
+              </span>
+            </a>
+          );
+        })}
+      </Card>
+    </div>
+  );
+}
+
 function ResultsDashboard({ score, brandName, mode, promptsUsed, rawRuns, onNewAnalysis }: {
   score: GEOScore;
   brandName: string;
@@ -720,6 +803,10 @@ function ResultsDashboard({ score, brandName, mode, promptsUsed, rawRuns, onNewA
           </div>
         );
       })()}
+
+      {rawRuns && rawRuns.length > 0 && (
+        <AllSourcesSection runs={rawRuns} />
+      )}
 
       {rawRuns && rawRuns.length > 0 && (
         <div className="mb-8">
