@@ -1,0 +1,111 @@
+Gemini
+Find, list and rank most used 5 expense management software for SMBs based in the UAE or GCC region. Exclude US, European, or other non-regional providers; focus on providers headquartered or primarily operating in the Middle East / GCC.
+Based on market presence, user ratings (e.g., G2, Forbes Fintech 50), and localization for regional regulations (VAT/ZATCA), the following are the top 5 expense management software providers headquartered in the UAE or GCC region.
+
+### **1. Alaan**
+*   **Headquarters:** Dubai, UAE
+*   **Primary Region:** UAE and Saudi Arabia (GCC)
+*   **Overview:** Alaan is currently the top-rated expense management platform in the Middle East. It combines corporate cards (physical and virtual) with an AI-powered software suite that automates the entire expense cycle.
+*   **Key Features:** Unlimited corporate cards with 2% cashback, automated receipt matching via WhatsApp or email, and seamless integration with major accounting tools like Oracle NetSuite, Odoo, and Zoho Books.
+*   **Why it Ranks #1:** It holds the #1 spot on G2's Middle East Regional Grid for Expense Management. It is specifically designed to handle UAE VAT and Saudi ZATCA compliance, making it the most trusted "regional first" solution.
+
+### **2. Pemo**
+*   **Headquarters:** Dubai, UAE
+*   **Primary Region:** UAE, Saudi Arabia, Kuwait, and Bahrain
+*   **Overview:** Pemo is an "all-in-one" spend management platform tailored specifically for SMEs. It focuses heavily on removing the need for petty cash and manual reimbursements through its card-and-software combo.
+*   **Key Features:** Automated expense reports, real-time budget controls for managers, and a highly-rated mobile app for employees to snap receipts instantly.
+*   **Why it Ranks #2:** Featured in the *Forbes Middle East Fintech 50*, Pemo is often cited by users as having the best customer support and easiest setup process among regional competitors. It currently serves over 4,000+ businesses across the region.
+
+### **3. Qashio**
+*   **Headquarters:** Dubai, UAE
+*   **Primary Region:** UAE and Saudi Arabia
+*   **Overview:** Qashio is an award-winning platform known for being the first to offer corporate cards that reward businesses with airline miles (Emirates Skywards) and other lifestyle perks.
+*   **Key Features:** Multi-currency corporate cards to reduce FX fees on international spend, advanced project-based tracking, and a robust "Approval Workflow" engine that mimics complex corporate hierarchies.
+*   **Why it Ranks #3:** It is recognized for its unique reward structures and was named the *Gulf Capital Fintech of the Year*. It is favored by businesses that have significant international travel or procurement needs.
+
+### **4. Xpence**
+*   **Headquarters:** Dubai, UAE (with operations in Bahrain)
+*   **Primary Region:** GCC (Early mover in the region)
+*   **Overview:** Xpence claims to be the region’s first smart business spend platform. It targets a wide range of users, from solo freelancers to large corporate teams, providing them with integrated Visa payment cards.
+*   **Key Features:** Real-time transaction categorization, custom spending limits on a per-card basis, and a dedicated portal for freelancers to manage business vs. personal expenses.
+*   **Why it Ranks #4:** As one of the earliest regional players, it has a stable presence and is highly popular among micro-SMEs and freelancers who find traditional banking corporate cards difficult to obtain.
+
+### **5. Wafeq**
+*   **Headquarters:** Dubai, UAE
+*   **Primary Region:** UAE, Saudi Arabia, and Bahrain
+*   **Overview:** While Wafeq is primarily a cloud accounting software, its **Expense Management module** is one of the most widely used in the GCC due to its deep integration with its payroll and VAT filing systems.
+*   **Key Features:** Employee reimbursement flows directly linked to payroll, bilingual interface (Arabic/English), and automatic generation of ZATCA-compliant e-invoices.
+*   **Why it Ranks #5:** With over 15,000 businesses using the platform, it is arguably the "most used" by volume for general accounting and expense tracking. It is the best choice for businesses that want their expense management to be natively built into their core accounting software rather than using a separate third-party card provider.
+
+---
+
+### **Summary Table**
+
+| Rank | Provider | Focus Area | Key USP |
+| :--- | :--- | :--- | :--- |
+| **1** | **Alaan** | Spend Management | #1 Ranked on G2; AI-powered automation |
+| **2** | **Pemo** | All-in-One SME Tool | High user satisfaction; Forbes-recognized |
+| **3** | **Qashio** | Rewards & Perks | Earn Skywards Miles on corporate spend |
+| **4** | **Xpence** | Micro-SME/Freelance | Pioneer in regional smart spend cards |
+| **5** | **Wafeq** | Integrated Accounting | Native VAT/ZATCA compliance and payroll sync |
+Gemini
+Find, list and rank most popular 5 expense management software for SMBs based in the UAE or GCC region. Exclude US, European, or other non-regional providers; focus on providers headquartered or primarily operating in the Middle East / GCC.
+Based on market presence, feature depth for regional compliance (VAT/ZATCA), and recent popularity rankings (such as G2 and regional fintech reports), here are the top 5 expense management software providers headquartered in the UAE or GCC region specifically for SMBs.
+
+### **1. Alaan (UAE)**
+*   **Headquarters:** Dubai, UAE
+*   **Best For:** SMBs and mid-market companies seeking AI-powered automation.
+*   **Key Features:** Unlimited corporate cards (virtual and physical), automated receipt matching using AI, and real-time spend controls. It offers up to 2% cashback on business spending.
+*   **Regional Strength:** Highly localized for UAE VAT compliance. It was recently ranked **#1 globally for Expense Management** on G2 (Spring 2024), beating many global providers in ease of use and support.
+*   **Ranking Logic:** Its recent global recognition and high user satisfaction scores make it the current market leader for regional spend management.
+
+### **2. Pemo (UAE)**
+*   **Headquarters:** Dubai, UAE
+*   **Best For:** Small to medium businesses looking for an all-in-one finance platform.
+*   **Key Features:** Integrated corporate cards, invoice management, and automated approval workflows. It specializes in "one-click" reimbursements for out-of-pocket expenses and provides deep integration with regional accounting tools like Wafeq.
+*   **Regional Strength:** Heavily focused on the "all-in-one" experience for SMEs, making it easier to manage petty cash and payroll reimbursements in a single dashboard.
+*   **Ranking Logic:** Widely considered the most user-friendly for very small teams and has high adoption rates across UAE startups.
+
+### **3. Pluto (UAE)**
+*   **Headquarters:** Dubai, UAE
+*   **Best For:** Fast-growing SMBs and enterprises with complex approval hierarchies.
+*   **Key Features:** Advanced multi-layer approval workflows, zero-balance cards (funded only upon approval), and robust ERP integrations (e.g., Oracle NetSuite, Microsoft Dynamics). 
+*   **Regional Strength:** Known for handling more complex organizational structures than its competitors, making it a favorite for mid-sized businesses with multiple departments or branches.
+*   **Ranking Logic:** Ranked third due to its focus on slightly more mature SMBs and its high-tier integration capabilities, which are essential for businesses scaling out of the "startup" phase.
+
+### **4. Qashio (UAE & KSA)**
+*   **Headquarters:** Dubai, UAE (with a massive footprint in Saudi Arabia)
+*   **Best For:** GCC businesses operating across both UAE and Saudi markets.
+*   **Key Features:** Strong corporate card issuance in both AED and SAR, employee benefit cards, and a partnership with Alinma Bank in KSA to provide localized banking features.
+*   **Regional Strength:** One of the most successful at bridging the UAE and Saudi markets. It is highly compliant with Saudi ZATCA e-invoicing and VAT regulations.
+*   **Ranking Logic:** Essential for regional businesses that require a "dual-market" approach (UAE/KSA) with local currency support in both.
+
+### **5. Xpence (UAE)**
+*   **Headquarters:** Dubai, UAE
+*   **Best For:** Freelancers, micro-SMEs, and entrepreneurs.
+*   **Key Features:** The region's first financial management platform to focus specifically on the "unbanked" or underserved micro-SME sector. It provides integrated Visa cards and simplified digital bookkeeping.
+*   **Regional Strength:** Excellent for very small teams or sole proprietors who find larger platforms like Pluto or Alaan too "corporate" for their needs.
+*   **Ranking Logic:** While it lacks the advanced AI features of Alaan or the enterprise depth of Pluto, it remains a popular and essential regional pioneer for the smallest business segment.
+
+---
+
+### **Summary Table & Regional Compliance**
+
+| Software | Country | Primary Focus | Compliance Focus |
+| :--- | :--- | :--- | :--- |
+| **Alaan** | UAE | AI-Driven Spend | UAE VAT / AI OCR |
+| **Pemo** | UAE | All-in-One SME | UAE VAT / Reimbursements |
+| **Pluto** | UAE | Mid-Market/Enterprise | Complex Workflows / ERP Sync |
+| **Qashio** | UAE/KSA | Cross-Border GCC | ZATCA (KSA) / UAE VAT |
+| **Xpence** | UAE | Micro-SME/Freelance | Digital Bookkeeping |
+
+**Note on non-regional providers:** Popular tools like **Zoho Expense** (India), **SAP Concur** (USA), and **Rydoo** (Europe) were excluded per your request, as they are not headquartered in the Middle East, despite their heavy usage in the region. For local accounting software that includes expense modules, **Wafeq** and **Qoyod** are the leading homegrown alternatives.
+Gemini
+Find, list and rank most recommended 5 expense management software for SMBs based in the UAE or GCC region. Exclude US, European, or other non-regional providers; focus on providers headquartered or primarily operating in the Middle East / GCC.
+For SMBs in the UAE and wider GCC, the expense management landscape is currently dominated by a new wave of "spend management" platforms. These providers are headquartered in the region and offer localized features—such as **UAE FTA and Saudi ZATCA VAT compliance**, **Arabic language support**, and **local corporate card issuance**—which global competitors like SAP Concur or Expensify often lack.
+
+Based on regional adoption, feature depth for SMBs, and compliance reliability, here are the top 5 most recommended expense management software providers headquartered in the Middle East.
+
+### 1. Alaan (UAE)
+**Best Overall for UAE-based SMBs**
+Alaan is widely considered the market leader for spend management i
