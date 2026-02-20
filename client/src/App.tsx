@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Analyzer from "@/pages/Analyzer";
 import HistoryPage from "@/pages/History";
 import PromptGenerator from "@/pages/PromptGenerator";
+import ScoringDetail from "@/pages/ScoringDetail";
 
 function Router() {
   return (
@@ -14,6 +15,7 @@ function Router() {
       <Route path="/" component={Analyzer} />
       <Route path="/history" component={HistoryPage} />
       <Route path="/prompts" component={PromptGenerator} />
+      <Route path="/scoring/:id" component={ScoringDetail} />
       <Route component={NotFound} />
     </Switch>
   );

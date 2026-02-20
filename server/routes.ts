@@ -327,6 +327,7 @@ export async function registerRoutes(
           rawData: {
             runs: result.raw_runs.map((r) => ({
               prompt_id: r.prompt_id,
+              prompt_text: (promptsToRun as any[]).find((p: any) => p.id === r.prompt_id)?.text || "",
               cluster: r.cluster,
               engine: r.engine,
               raw_text: r.raw_text,
@@ -530,6 +531,7 @@ export async function registerRoutes(
           rawData: {
             runs: result.raw_runs.map((r) => ({
               prompt_id: r.prompt_id,
+              prompt_text: promptsForRunner.find((p) => p.id === r.prompt_id)?.text || "",
               cluster: r.cluster,
               engine: r.engine,
               raw_text: r.raw_text,

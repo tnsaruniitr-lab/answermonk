@@ -91,3 +91,28 @@ export function useScoringHistory() {
     },
   });
 }
+
+export interface ScoringJobDetail {
+  id: number;
+  brandName: string;
+  brandDomain: string | null;
+  mode: string;
+  status: string;
+  promptCount: number;
+  engineCount: number;
+  resultJson: any;
+  rawData: any;
+  createdAt: string;
+}
+
+export function useScoringResult(id: number | null) {
+  return useQuery<ScoringJobDetail>({
+    queryKey: ["/api/scoring/results", id],
+    queryFn: async () => {
+      const res = await fetch(`/api/scoring/results/${id}`);
+      if (!res.ok) throw new Error("Failed to fetch scoring result");
+      return res.json();
+    },
+    enabled: id !== null,
+  });
+}

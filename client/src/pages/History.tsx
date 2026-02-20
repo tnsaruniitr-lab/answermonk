@@ -116,9 +116,14 @@ export default function HistoryPage() {
                 const engineBreakdown = result?.engine_breakdown ?? {};
 
                 return (
-                  <div
+                  <Link
                     key={`s-${d.id}`}
-                    className="px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap"
+                    href={`/scoring/${d.id}`}
+                    data-testid={`link-scoring-${d.id}`}
+                    className="block"
+                  >
+                  <div
+                    className="px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap cursor-pointer hover:bg-secondary/30 transition-colors"
                     data-testid={`row-scoring-${d.id}`}
                   >
                     <div className="space-y-1.5 min-w-0 flex-1">
@@ -167,6 +172,7 @@ export default function HistoryPage() {
                       )}
                     </div>
                   </div>
+                  </Link>
                 );
               }
             })}
