@@ -12,7 +12,7 @@ export interface RetrievedAuthorityScore {
   weightedScore: number;
   surfaceDiversityBonus: number;
   totalScore: number;
-  topDomains: { domain: string; tier: SourceTier; snippet: string }[];
+  topDomains: { domain: string; tier: SourceTier; snippet: string; pageUrl: string; pageTitle: string }[];
 }
 
 export interface ContextConsistencyScore {
@@ -63,7 +63,7 @@ export function scoreRetrievedAuthority(
   classifiedSources: Map<string, ClassifiedSource>,
   intentDict: IntentDictionary,
 ): RetrievedAuthorityScore {
-  const domainMap = new Map<string, { tier: SourceTier; snippet: string; weight: number }>();
+  const domainMap = new Map<string, { tier: SourceTier; snippet: string; weight: number; pageUrl: string; pageTitle: string }>();
 
   for (const [canonicalUrl, snippets] of snippetsByPage) {
     const source = classifiedSources.get(canonicalUrl);
@@ -85,6 +85,8 @@ export function scoreRetrievedAuthority(
         tier: source.tier,
         snippet: brandSnippets[0].text,
         weight: source.tierWeight,
+        pageUrl: brandSnippets[0].pageUrl,
+        pageTitle: brandSnippets[0].pageTitle,
       });
     }
   }
@@ -111,7 +113,7 @@ export function scoreRetrievedAuthority(
   const topDomains = [...domainMap.entries()]
     .sort((a, b) => b[1].weight - a[1].weight)
     .slice(0, 3)
-    .map(([domain, data]) => ({ domain, tier: data.tier, snippet: data.snippet }));
+    .map(([domain, data]) => ({ domain, tier: data.tier, snippet: data.snippet, pageUrl: data.pageUrl, pageTitle: data.pageTitle }));
 
   return {
     label: labelFromScore(totalScore, [2.0, 1.0, 0]),

@@ -41,7 +41,25 @@ export interface SegmentAnalysisResult {
   evidence: SegmentEvidence;
   action: ActionRecommendation;
   modelUnderstanding?: string;
-  differential?: string;
+  differential?: DifferentialAnalysis;
+}
+
+export interface DifferentialEvidence {
+  quote: string;
+  sourceUrl: string;
+  sourceDomain: string;
+  sourceTitle: string;
+}
+
+export interface DifferentialPoint {
+  statement: string;
+  competitorExamples: DifferentialEvidence[];
+  brandExamples: DifferentialEvidence[];
+}
+
+export interface DifferentialAnalysis {
+  summary: string;
+  points: DifferentialPoint[];
 }
 
 export interface GlobalAuthority {
@@ -290,14 +308,24 @@ function deriveModelUnderstanding(
   return topTerms.join(" + ");
 }
 
+function snippetToEvidence(s: { text: string; pageUrl: string; pageDomain: string; pageTitle: string }): DifferentialEvidence {
+  const quote = s.text.length > 160 ? s.text.slice(0, 157) + "..." : s.text;
+  return { quote, sourceUrl: s.pageUrl, sourceDomain: s.pageDomain, sourceTitle: s.pageTitle };
+}
+
+function domainToEvidence(d: { domain: string; tier: string; snippet: string; pageUrl?: string; pageTitle?: string }): DifferentialEvidence {
+  const quote = d.snippet.length > 160 ? d.snippet.slice(0, 157) + "..." : d.snippet;
+  return { quote, sourceUrl: d.pageUrl || "", sourceDomain: d.domain, sourceTitle: d.pageTitle || d.domain };
+}
+
 function buildDifferential(
   brandName: string,
   brandScore: BrandSegmentScore,
   compAScore: BrandSegmentScore,
   compBScore: BrandSegmentScore,
-  intentDict: IntentDictionary,
-): string {
-  const parts: string[] = [];
+  _intentDict: IntentDictionary,
+): DifferentialAnalysis {
+  const points: DifferentialPoint[] = [];
 
   const brandCatSnippets = brandScore.context.explicitCategory + brandScore.context.weakCategory;
   const brandAudSnippets = brandScore.context.explicitAudience + brandScore.context.weakAudience + brandScore.context.adjacentAudience;
@@ -314,23 +342,44 @@ function buildDifferential(
     const compAudSnippets = strongestComp.context.explicitAudience + strongestComp.context.weakAudience + (strongestComp.context.adjacentAudience || 0);
 
     if (compCatSnippets > brandCatSnippets) {
-      parts.push(`${compCatSnippets} sources describe ${strongestComp.brand} in category terms vs ${brandCatSnippets} for ${brandName}`);
+      const compExamples = [...strongestComp.context.explicitSnippets, ...strongestComp.context.weakSnippets]
+        .slice(0, 2).map(snippetToEvidence);
+      const brandExamples = [...brandScore.context.explicitSnippets, ...brandScore.context.weakSnippets]
+        .slice(0, 2).map(snippetToEvidence);
+      points.push({
+        statement: `${compCatSnippets} sources describe ${strongestComp.brand} in category terms vs ${brandCatSnippets} for ${brandName}`,
+        competitorExamples: compExamples,
+        brandExamples,
+      });
     }
     if (compAudSnippets > brandAudSnippets) {
-      parts.push(`${compAudSnippets} sources associate ${strongestComp.brand} with this audience vs ${brandAudSnippets} for ${brandName}`);
+      const compAudExplicit = [...strongestComp.context.explicitSnippets].filter(s => true).slice(0, 2);
+      const brandAudExplicit = [...brandScore.context.explicitSnippets].slice(0, 2);
+      points.push({
+        statement: `${compAudSnippets} sources associate ${strongestComp.brand} with this audience vs ${brandAudSnippets} for ${brandName}`,
+        competitorExamples: compAudExplicit.map(snippetToEvidence),
+        brandExamples: brandAudExplicit.map(snippetToEvidence),
+      });
     }
 
     if (strongestComp.authority.supportingDomains > brandScore.authority.supportingDomains) {
-      parts.push(`${strongestComp.brand} appears on ${strongestComp.authority.supportingDomains} third-party sources vs ${brandScore.authority.supportingDomains} for ${brandName}`);
+      points.push({
+        statement: `${strongestComp.brand} appears on ${strongestComp.authority.supportingDomains} third-party sources vs ${brandScore.authority.supportingDomains} for ${brandName}`,
+        competitorExamples: strongestComp.authority.topDomains.slice(0, 2).map(domainToEvidence),
+        brandExamples: brandScore.authority.topDomains.slice(0, 2).map(domainToEvidence),
+      });
     }
   }
 
-  if (parts.length === 0) {
-    if (brandScore.context.label === "strong" || brandScore.context.label === "medium") {
-      return `${brandName} has competitive positioning in this segment`;
-    }
-    return `Insufficient citation data for differential analysis`;
+  if (points.length === 0) {
+    const summary = (brandScore.context.label === "strong" || brandScore.context.label === "medium")
+      ? `${brandName} has competitive positioning in this segment`
+      : `Insufficient citation data for differential analysis`;
+    return { summary, points: [] };
   }
 
-  return parts.join(". ") + ".";
+  return {
+    summary: points.map(p => p.statement).join(". ") + ".",
+    points,
+  };
 }

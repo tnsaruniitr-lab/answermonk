@@ -110,7 +110,14 @@ interface SegmentAnalysisResult {
     gapType: string;
   };
   modelUnderstanding?: string;
-  differential?: string;
+  differential?: {
+    summary: string;
+    points: {
+      statement: string;
+      competitorExamples: { quote: string; sourceUrl: string; sourceDomain: string; sourceTitle: string }[];
+      brandExamples: { quote: string; sourceUrl: string; sourceDomain: string; sourceTitle: string }[];
+    }[];
+  };
 }
 
 interface BrandScore {
@@ -119,7 +126,7 @@ interface BrandScore {
     label: string;
     totalScore: number;
     supportingDomains: number;
-    topDomains: { domain: string; tier: string; snippet: string }[];
+    topDomains: { domain: string; tier: string; snippet: string; pageUrl?: string; pageTitle?: string }[];
   };
   context: {
     label: string;
@@ -438,10 +445,46 @@ function SegmentCard({
               </div>
             )}
 
-            {seg.differential && seg.differential !== `${brandName} has competitive positioning in this segment` && seg.differential !== "Insufficient citation data for differential analysis" && (
-              <div className="bg-orange-50 dark:bg-orange-900/10 rounded-lg p-3" data-testid={`differential-${seg.segmentId}`}>
-                <div className="text-[10px] uppercase tracking-wide text-orange-700 dark:text-orange-400 mb-1">Why competitors rank higher</div>
-                <p className="text-xs leading-relaxed text-orange-800 dark:text-orange-300">{seg.differential}</p>
+            {seg.differential && seg.differential.summary !== `${brandName} has competitive positioning in this segment` && seg.differential.summary !== "Insufficient citation data for differential analysis" && (
+              <div className="bg-orange-50 dark:bg-orange-900/10 rounded-lg p-3 space-y-3" data-testid={`differential-${seg.segmentId}`}>
+                <div className="text-[10px] uppercase tracking-wide text-orange-700 dark:text-orange-400">Why competitors rank higher</div>
+                {seg.differential.points.length === 0 && (
+                  <p className="text-xs leading-relaxed text-orange-800 dark:text-orange-300">{seg.differential.summary}</p>
+                )}
+                {seg.differential.points.map((pt, pi) => (
+                  <div key={pi} className="space-y-1.5">
+                    <p className="text-xs font-medium text-orange-800 dark:text-orange-300">{pt.statement}</p>
+                    {pt.competitorExamples.length > 0 && (
+                      <div className="pl-2 border-l-2 border-orange-200 dark:border-orange-800 space-y-1">
+                        {pt.competitorExamples.map((ex, ei) => (
+                          <div key={ei} className="text-[11px] text-orange-700 dark:text-orange-400">
+                            <span className="italic">"{ex.quote}"</span>
+                            <span className="text-[10px] ml-1 text-orange-500 dark:text-orange-500">
+                              — {ex.sourceUrl ? (
+                                <a href={ex.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-orange-700 dark:hover:text-orange-300" data-testid={`link-diff-comp-${pi}-${ei}`}>{ex.sourceDomain}</a>
+                              ) : ex.sourceDomain}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {pt.brandExamples.length > 0 && (
+                      <div className="pl-2 border-l-2 border-orange-100 dark:border-orange-900 space-y-1">
+                        <div className="text-[10px] text-orange-500 dark:text-orange-600">{brandName}'s mentions:</div>
+                        {pt.brandExamples.map((ex, ei) => (
+                          <div key={ei} className="text-[11px] text-orange-600 dark:text-orange-500">
+                            <span className="italic">"{ex.quote}"</span>
+                            <span className="text-[10px] ml-1 text-orange-400 dark:text-orange-600">
+                              — {ex.sourceUrl ? (
+                                <a href={ex.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-orange-600 dark:hover:text-orange-400" data-testid={`link-diff-brand-${pi}-${ei}`}>{ex.sourceDomain}</a>
+                              ) : ex.sourceDomain}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
 
