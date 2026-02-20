@@ -434,6 +434,16 @@ function CounterfactualSimulation({ report }: { report: InsightsReport }) {
   const projectedRate = maxWeighted > 0 ? ((currentWeighted + potentialGain) / maxWeighted) * 100 : currentRate;
   const clampedProjected = Math.min(projectedRate, 95);
 
+  const missedHighTierSources = highTierSources.filter(s => !hasBrand(s));
+  const missedComparisonSources = comparisonSources.filter(s => !hasBrand(s));
+
+  const allMissedSources = [
+    ...missedHighTierSources.map(s => ({ ...s, missType: "authority" as const })),
+    ...missedComparisonSources
+      .filter(s => !missedHighTierSources.some(h => h.url === s.url))
+      .map(s => ({ ...s, missType: "comparison" as const })),
+  ];
+
   if (missedHighTier === 0 && missedComparison === 0) return null;
 
   return (
@@ -464,18 +474,53 @@ function CounterfactualSimulation({ report }: { report: InsightsReport }) {
               <div className="text-[10px] text-muted-foreground">if listed on key sources</div>
             </div>
           </div>
-          {missedHighTier > 0 && (
-            <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <Star className="w-3 h-3 text-amber-500" />
-              {missedHighTier} high-authority (Tier 1/2) source{missedHighTier !== 1 ? "s" : ""} missing your brand
+
+          {allMissedSources.length > 0 && (
+            <div>
+              <div className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                <Star className="w-3 h-3 text-amber-500" />
+                Sources missing your brand ({allMissedSources.length})
+              </div>
+              <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
+                {allMissedSources.map((s, i) => {
+                  const competitorsOnSource = s.brandsFound.filter(
+                    b => b.toLowerCase() !== brandLower
+                  );
+                  return (
+                    <a
+                      key={i}
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-start gap-2 px-3 py-2 rounded-md bg-muted/30 hover:bg-muted/50 transition-colors group"
+                      data-testid={`missed-source-${i}`}
+                    >
+                      <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0 mt-0.5 group-hover:text-blue-500" />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs text-blue-600 dark:text-blue-400 group-hover:underline truncate block">
+                          {s.domain}
+                        </span>
+                        {competitorsOnSource.length > 0 && (
+                          <span className="text-[10px] text-amber-600 dark:text-amber-400">
+                            {competitorsOnSource.slice(0, 4).join(", ")}{competitorsOnSource.length > 4 ? ` +${competitorsOnSource.length - 4} more` : ""} listed here
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {s.tierWeight != null && s.tierWeight >= 1.5 && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                            {s.tierWeight >= 3 ? "T1" : "T2"}
+                          </span>
+                        )}
+                        {s.surfaceType && <SurfaceTypeBadge surfaceType={s.surfaceType} />}
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
             </div>
           )}
-          {missedComparison > 0 && (
-            <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <BarChart3 className="w-3 h-3 text-emerald-500" />
-              {missedComparison} comparison/eligibility source{missedComparison !== 1 ? "s" : ""} missing your brand
-            </div>
-          )}
+
           <p className="text-[10px] text-muted-foreground italic">
             This is an estimate. Actual impact depends on how AI engines weight each source.
           </p>
