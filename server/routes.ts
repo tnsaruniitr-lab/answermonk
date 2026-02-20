@@ -350,6 +350,24 @@ export async function registerRoutes(
           } as any,
         });
 
+        if (parsed.profile) {
+          try {
+            await storage.upsertSavedProfile({
+              brandName: parsed.brand_name,
+              brandDomain: parsed.brand_domain || null,
+              persona: parsed.profile.persona,
+              verticals: parsed.profile.verticals,
+              services: parsed.profile.services,
+              modifiers: [],
+              geo: parsed.profile.geo || null,
+              budgetTier: "mid",
+              decisionMakers: [],
+            });
+          } catch (profileErr) {
+            console.warn("[scoring] Auto-save profile failed (non-fatal):", profileErr);
+          }
+        }
+
         res.status(200).json({
           job_id: job.id,
           score: result.score,
