@@ -449,6 +449,16 @@ export async function registerRoutes(
     res.json(history);
   });
 
+  app.get("/api/scoring/v2-groups", async (_req, res) => {
+    try {
+      const groups = await storage.getV2SegmentGroups();
+      res.json(groups);
+    } catch (err) {
+      console.error("Error fetching V2 segment groups:", err);
+      res.status(500).json({ message: "Failed to load V2 segment groups" });
+    }
+  });
+
   app.get("/api/profiles", async (_req, res) => {
     try {
       const profiles = await storage.listSavedProfiles();

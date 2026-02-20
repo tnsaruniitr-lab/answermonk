@@ -1,4 +1,4 @@
-import { useHistory, useScoringHistory, useMultiSegmentSessions } from "@/hooks/use-analysis";
+import { useHistory, useScoringHistory, useMultiSegmentSessions, useV2SegmentGroups } from "@/hooks/use-analysis";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { ArrowLeft, Calendar, Zap, Search, BarChart3 } from "lucide-react";
@@ -10,13 +10,15 @@ export default function HistoryPage() {
   const { data: history, isLoading: historyLoading } = useHistory();
   const { data: scoringHistory, isLoading: scoringLoading } = useScoringHistory();
   const { data: v2Sessions, isLoading: v2Loading } = useMultiSegmentSessions();
+  const { data: v2Groups, isLoading: v2GroupsLoading } = useV2SegmentGroups();
 
-  const isLoading = historyLoading || scoringLoading || v2Loading;
+  const isLoading = historyLoading || scoringLoading || v2Loading || v2GroupsLoading;
 
   type UnifiedItem =
     | { type: "analyzer"; data: NonNullable<typeof history>[number] }
     | { type: "scoring"; data: NonNullable<typeof scoringHistory>[number] }
-    | { type: "v2session"; data: NonNullable<typeof v2Sessions>[number] };
+    | { type: "v2session"; data: NonNullable<typeof v2Sessions>[number] }
+    | { type: "v2group"; data: NonNullable<typeof v2Groups>[number] };
 
   const unified: UnifiedItem[] = [];
   if (history) {
@@ -32,6 +34,11 @@ export default function HistoryPage() {
   if (v2Sessions) {
     for (const v of v2Sessions) {
       unified.push({ type: "v2session", data: v });
+    }
+  }
+  if (v2Groups) {
+    for (const g of v2Groups) {
+      unified.push({ type: "v2group", data: g });
     }
   }
   unified.sort((a, b) => {
@@ -164,6 +171,56 @@ export default function HistoryPage() {
                     </div>
                   </div>
                   </Link>
+                );
+              } else if (item.type === "v2group") {
+                const d = item.data;
+                const segCount = d.segments.length;
+                const completedCount = d.segments.filter((s: any) => s.status === "completed").length;
+                const segmentLabels = d.segments.map((s: any) => {
+                  const profile = s.rawData?.profile;
+                  if (profile) {
+                    const vertical = profile.verticals?.[0] || "";
+                    const geo = profile.geo || "";
+                    return [vertical, geo].filter(Boolean).join(", ") || profile.persona || "segment";
+                  }
+                  return "segment";
+                });
+
+                return (
+                  <div
+                    key={`v2g-${d.groupKey}`}
+                    className="px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap"
+                    data-testid={`row-v2group-${d.groupKey}`}
+                  >
+                    <div className="space-y-1.5 min-w-0 flex-1">
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <Badge variant="secondary" className="text-[10px]">
+                          <BarChart3 className="w-2.5 h-2.5 mr-1" />
+                          Quick V2
+                        </Badge>
+                        <span className="font-medium text-sm">{d.brandName}</span>
+                        <span className="text-xs text-muted-foreground">{segCount} segment{segCount !== 1 ? "s" : ""}</span>
+                      </div>
+                      {d.createdAt && (
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Calendar className="w-3 h-3" />
+                          {format(new Date(d.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                        </div>
+                      )}
+                      <div className="flex gap-2 flex-wrap">
+                        {segmentLabels.slice(0, 4).map((label: string, i: number) => (
+                          <span key={i} className="text-[10px] text-muted-foreground">{label}</span>
+                        ))}
+                        {segmentLabels.length > 4 && <span className="text-[10px] text-muted-foreground">+{segmentLabels.length - 4} more</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="text-center">
+                        <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Scored</div>
+                        <div className="text-lg font-semibold tabular-nums">{completedCount}/{segCount}</div>
+                      </div>
+                    </div>
+                  </div>
                 );
               } else {
                 const d = item.data;

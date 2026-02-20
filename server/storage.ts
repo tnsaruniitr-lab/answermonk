@@ -34,6 +34,14 @@ export interface IStorage {
   createV2Config(config: InsertSavedV2Config): Promise<SavedV2Config>;
   listV2Configs(): Promise<SavedV2Config[]>;
   deleteV2Config(id: number): Promise<void>;
+  getV2SegmentGroups(): Promise<Array<{
+    groupKey: string;
+    brandName: string;
+    brandDomain: string | null;
+    segmentJobIds: number[];
+    segments: ScoringJob[];
+    createdAt: Date;
+  }>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -151,6 +159,62 @@ export class DatabaseStorage implements IStorage {
 
   async deleteV2Config(id: number): Promise<void> {
     await db.delete(savedV2Configs).where(eq(savedV2Configs.id, id));
+  }
+
+  async getV2SegmentGroups(): Promise<Array<{
+    groupKey: string;
+    brandName: string;
+    brandDomain: string | null;
+    segmentJobIds: number[];
+    segments: ScoringJob[];
+    createdAt: Date;
+  }>> {
+    const v2Jobs = await db
+      .select()
+      .from(scoringJobs)
+      .where(eq(scoringJobs.source, "v2segment"))
+      .orderBy(desc(scoringJobs.createdAt));
+
+    if (v2Jobs.length === 0) return [];
+
+    const groups: Array<{
+      groupKey: string;
+      brandName: string;
+      brandDomain: string | null;
+      segmentJobIds: number[];
+      segments: ScoringJob[];
+      createdAt: Date;
+    }> = [];
+
+    let currentGroup: typeof groups[number] | null = null;
+
+    for (const job of v2Jobs) {
+      const jobTime = job.createdAt ? new Date(job.createdAt).getTime() : 0;
+
+      const lastJobInGroup = currentGroup ? currentGroup.segments[currentGroup.segments.length - 1] : null;
+      const lastJobTime = lastJobInGroup?.createdAt ? new Date(lastJobInGroup.createdAt).getTime() : 0;
+
+      if (
+        currentGroup &&
+        currentGroup.brandName.toLowerCase() === job.brandName.toLowerCase() &&
+        Math.abs(jobTime - lastJobTime) < 10 * 60 * 1000
+      ) {
+        currentGroup.segmentJobIds.push(job.id);
+        currentGroup.segments.push(job);
+      } else {
+        currentGroup = {
+          groupKey: `v2auto-${job.id}`,
+          brandName: job.brandName,
+          brandDomain: job.brandDomain,
+          segmentJobIds: [job.id],
+          segments: [job],
+          createdAt: job.createdAt ? new Date(job.createdAt) : new Date(),
+        };
+        groups.push(currentGroup);
+      }
+    }
+
+    return groups;
   }
 }
 

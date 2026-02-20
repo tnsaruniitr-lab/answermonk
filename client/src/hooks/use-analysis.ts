@@ -137,6 +137,26 @@ export function useMultiSegmentSessions() {
   });
 }
 
+export interface V2SegmentGroup {
+  groupKey: string;
+  brandName: string;
+  brandDomain: string | null;
+  segmentJobIds: number[];
+  segments: any[];
+  createdAt: string;
+}
+
+export function useV2SegmentGroups() {
+  return useQuery<V2SegmentGroup[]>({
+    queryKey: ["/api/scoring/v2-groups"],
+    queryFn: async () => {
+      const res = await fetch("/api/scoring/v2-groups");
+      if (!res.ok) throw new Error("Failed to fetch V2 segment groups");
+      return res.json();
+    },
+  });
+}
+
 export function useMultiSegmentSession(id: number | null) {
   return useQuery<MultiSegmentSessionItem>({
     queryKey: ["/api/multisegment/sessions", id],
