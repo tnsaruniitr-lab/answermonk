@@ -77,7 +77,7 @@ async function parseBrandsFromResponse(text: string, targetBrand: string, query?
 async function queryChatGPTWithWebSearch(query: string, brand: string): Promise<EngineResult> {
   try {
     const directOpenai = new OpenAI({
-      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+      apiKey: process.env.OPENAI_DIRECT_API_KEY,
     });
 
     const response = await directOpenai.responses.create({
