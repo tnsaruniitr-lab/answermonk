@@ -1,0 +1,86 @@
+Project and Design Management
+1 Pre-sales CRM
+Pre-sales / CRM
+Manage leads, send quotations, convert to project
+
+2 Activity Schedule
+Activity Schedule
+Schedule activities, set deadlines and highlight dependencies
+
+3 Design Management
+Design Management
+Version control and contextual collaboration on design files
+
+4 BOQ & Change Orders
+BOQ & Change Orders
+Create and Share BOQ with clients, Document and approve Changes
+
+5 DPR-Progress Report
+DPR/Progress Report
+Automate 360° daily progress reporting - in real time
+
+6 Site Survey
+Site Survey
+Smart site diligence and technical survey with mobile app
+
+7 Snag Management
+Snag Management
+Tag quality snags to supplier orders
+
+Procurement and Finance Management
+1 Rate Contracts
+Rate Contracts
+Linked to Element Master, automates procurement workflows
+
+2 Vendor Orders & Invoice
+Vendor Orders & Invoice
+Automate PO creation, Configure country specific tax rules
+
+3 Material Management
+Material Management
+Material GRN and Issuance at site store
+
+4 Bill of materials
+Bill of materials
+Break scope items into standard materials
+
+5 Installed progress Tracking
+Installed progress Tracking
+Precise cashflow control by measuring installed value of work
+
+6 Site Expanse Tracking
+Site Expanse Tracking
+Capture and control site expanse via mobile app
+
+7 Purchase Requests
+Purchase Requests
+Initiate Material Purchase Requests from site with Approval controls
+
+AI and Power Features
+1 RDash AI Co-pilot
+RDash AI Co-pilot
+Get advance analytics and get things done with Prompts
+
+2 Task Manager
+Task Manager
+Turns contexts into collaborative Work Space
+
+3 Approval Hierarchy
+Approval Hierarchy
+Makes your PO, Invoicing, Payment, and Expanse processes robust
+
+4 Element Libraries
+Element Libraries
+Spec control with interactive element master
+
+5 Third Party Collaborators
+Third Party Collaborators
+Create supplier/client logins to update documentation and provide approvals
+
+6 Analytics
+Analytics
+50+ ready to plug dashboards, customised reports and MIS
+
+7 Integrations
+Integrations
+Integrate with ERP, Accounting, and Business Applications
