@@ -38,6 +38,8 @@ export interface Citation {
   title?: string;
 }
 
+export type WebSearchStatus = "grounded" | "ungrounded" | "fallback" | "not_applicable";
+
 export interface RawRunResult {
   prompt_id: string;
   cluster: string;
@@ -46,6 +48,8 @@ export interface RawRunResult {
   citations: Citation[];
   extraction: ExtractionResult;
   match: RunMatchResult;
+  webSearchStatus: WebSearchStatus;
+  fallbackReason?: string;
 }
 
 export interface ScoringRunResult {
@@ -98,6 +102,8 @@ export async function runScoring(
                   citations: engineResponse.citations,
                   extraction,
                   match,
+                  webSearchStatus: engineResponse.webSearchStatus,
+                  fallbackReason: engineResponse.fallbackReason,
                 } as RawRunResult;
               } catch (err) {
                 const isRetryErr = isRetryableError(err);
@@ -122,6 +128,8 @@ export async function runScoring(
                 brand: { brand_found: false, brand_rank: null, match_tier: null },
                 competitors: [],
               },
+              webSearchStatus: "fallback" as WebSearchStatus,
+              fallbackReason: "Engine completely unavailable after all retries",
             } as RawRunResult;
           }),
         );
@@ -161,6 +169,8 @@ export async function runScoring(
 interface EngineResponse {
   text: string;
   citations: Citation[];
+  webSearchStatus: WebSearchStatus;
+  fallbackReason?: string;
 }
 
 async function queryEngine(engine: ScoringEngine, promptText: string): Promise<EngineResponse> {
@@ -206,8 +216,12 @@ async function queryChatGPT(prompt: string): Promise<EngineResponse> {
     const citations: Citation[] = [];
     const seen = new Set<string>();
     const output = (response as any).output;
+    let webSearchToolUsed = false;
     if (Array.isArray(output)) {
       for (const item of output) {
+        if (item.type === "web_search_call") {
+          webSearchToolUsed = true;
+        }
         if (item.type === "message" && Array.isArray(item.content)) {
           for (const part of item.content) {
             if (part.type === "output_text" && Array.isArray(part.annotations)) {
@@ -225,8 +239,16 @@ async function queryChatGPT(prompt: string): Promise<EngineResponse> {
     if (citations.length === 0) {
       citations.push(...parseCitationsFromMarkdown(text));
     }
-    return { text, citations };
+
+    const webSearchStatus: WebSearchStatus = citations.length > 0
+      ? "grounded"
+      : webSearchToolUsed
+        ? "ungrounded"
+        : "ungrounded";
+
+    return { text, citations, webSearchStatus };
   } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
     console.error("Quick mode ChatGPT web search failed, falling back to standard:", err);
     const completion = await openai.chat.completions.create({
       model: "gpt-5.2",
@@ -234,7 +256,12 @@ async function queryChatGPT(prompt: string): Promise<EngineResponse> {
       max_completion_tokens: 1024,
       temperature: 0.2,
     });
-    return { text: completion.choices[0]?.message?.content ?? "", citations: [] };
+    return {
+      text: completion.choices[0]?.message?.content ?? "",
+      citations: [],
+      webSearchStatus: "fallback",
+      fallbackReason: reason,
+    };
   }
 }
 
@@ -248,7 +275,7 @@ async function queryClaude(prompt: string): Promise<EngineResponse> {
     .filter((b): b is Anthropic.TextBlock => b.type === "text")
     .map((b) => b.text)
     .join("\n");
-  return { text, citations: [] };
+  return { text, citations: [], webSearchStatus: "not_applicable" };
 }
 
 async function queryGemini(prompt: string): Promise<EngineResponse> {
@@ -265,6 +292,7 @@ async function queryGemini(prompt: string): Promise<EngineResponse> {
     const groundingMeta = (response as any).candidates?.[0]?.groundingMetadata;
     const citations: Citation[] = [];
     const seen = new Set<string>();
+    const hasGroundingMetadata = !!(groundingMeta?.groundingChunks?.length > 0 || groundingMeta?.searchEntryPoint);
     if (groundingMeta?.groundingChunks) {
       for (const chunk of groundingMeta.groundingChunks) {
         const url = chunk?.web?.uri;
@@ -277,15 +305,28 @@ async function queryGemini(prompt: string): Promise<EngineResponse> {
     if (citations.length === 0) {
       citations.push(...parseCitationsFromMarkdown(text));
     }
-    return { text, citations };
+
+    const webSearchStatus: WebSearchStatus = citations.length > 0
+      ? "grounded"
+      : hasGroundingMetadata
+        ? "grounded"
+        : "ungrounded";
+
+    return { text, citations, webSearchStatus };
   } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
     console.error("Quick mode Gemini web search failed, falling back to standard:", err);
     const response = await gemini.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
       config: { maxOutputTokens: 1024 },
     });
-    return { text: response.text ?? "", citations: [] };
+    return {
+      text: response.text ?? "",
+      citations: [],
+      webSearchStatus: "fallback",
+      fallbackReason: reason,
+    };
   }
 }
 
