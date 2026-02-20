@@ -89,6 +89,15 @@ interface SavedProfile {
   budgetTier: string;
 }
 
+interface MultiSegmentSession {
+  id: number;
+  brandName: string;
+  brandDomain: string | null;
+  promptsPerSegment: number;
+  segments: any;
+  createdAt: string;
+}
+
 interface Presets {
   [persona: string]: {
     verticals: string[];
@@ -1073,6 +1082,43 @@ export default function PromptGenerator() {
       queryClient.invalidateQueries({ queryKey: ["/api/profiles"] });
     },
   });
+
+  const { data: v2Sessions } = useQuery<MultiSegmentSession[]>({
+    queryKey: ["/api/multisegment/sessions"],
+  });
+
+  const { mutate: saveV2Session } = useMutation({
+    mutationFn: async (session: { brandName: string; brandDomain: string | null; promptsPerSegment: number; segments: any }) => {
+      const res = await apiRequest("POST", "/api/multisegment/sessions", session);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/multisegment/sessions"] });
+    },
+  });
+
+  const loadV2Session = (session: MultiSegmentSession) => {
+    setBrandName(session.brandName);
+    setBrandDomain(session.brandDomain || "");
+    setV2PromptsPerSegment(session.promptsPerSegment || 3);
+    const rawSegments = Array.isArray(session.segments) ? session.segments : [];
+    if (rawSegments.length === 0) {
+      setV2Segments([makeSegment()]);
+      return;
+    }
+    const segs = rawSegments.map((s: any) => ({
+      id: `seg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      persona: s.persona || "marketing_agency",
+      seedType: s.seedType || "providers",
+      customerType: s.customerType || "",
+      location: s.location || "",
+      resultCount: s.resultCount || 5,
+      prompts: s.prompts || null,
+      scoringResult: s.scoringResult || null,
+      isScoring: false,
+    }));
+    setV2Segments(segs);
+  };
 
   const loadProfile = (profile: SavedProfile) => {
     setBrandName(profile.brandName);
@@ -2060,6 +2106,34 @@ export default function PromptGenerator() {
 
                 {mode === "quickv2" && (
                   <div className="space-y-6 pb-16">
+                    {v2Sessions && v2Sessions.length > 0 && (
+                      <div>
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide block mb-1.5">
+                          Load a saved analysis
+                        </label>
+                        <Select
+                          onValueChange={(v) => {
+                            const session = v2Sessions.find((s) => String(s.id) === v);
+                            if (session) loadV2Session(session);
+                          }}
+                        >
+                          <SelectTrigger className="bg-secondary/50" data-testid="select-v2-session">
+                            <SelectValue placeholder="Choose a previous analysis..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {v2Sessions.map((s) => {
+                              const segCount = Array.isArray(s.segments) ? s.segments.length : 0;
+                              const dateStr = new Date(s.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+                              return (
+                                <SelectItem key={s.id} value={String(s.id)} data-testid={`v2-session-option-${s.id}`}>
+                                  {s.brandName} — {segCount} segment{segCount !== 1 ? "s" : ""} — {dateStr}
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -2351,8 +2425,18 @@ export default function PromptGenerator() {
                           onClick={async () => {
                             if (!brandName.trim()) return;
                             setV2IsAnalysing(true);
-                            for (let i = 0; i < v2Segments.length; i++) {
-                              const seg = v2Segments[i];
+                            const segSnapshot = v2Segments.map((seg) => ({
+                              id: seg.id,
+                              persona: seg.persona,
+                              seedType: seg.seedType,
+                              customerType: seg.customerType,
+                              location: seg.location,
+                              resultCount: seg.resultCount,
+                              prompts: seg.prompts,
+                              scoringResult: null as ScoringResponse | null,
+                            }));
+                            for (let i = 0; i < segSnapshot.length; i++) {
+                              const seg = segSnapshot[i];
                               if (!seg.prompts) continue;
                               setV2Segments((prev) => prev.map((s) => s.id === seg.id ? { ...s, isScoring: true } : s));
                               try {
@@ -2369,6 +2453,7 @@ export default function PromptGenerator() {
                                   },
                                 });
                                 const data = await res.json() as ScoringResponse;
+                                segSnapshot[i].scoringResult = data;
                                 setV2Segments((prev) => prev.map((s) => s.id === seg.id ? { ...s, scoringResult: data, isScoring: false } : s));
                               } catch (err: any) {
                                 toast({ title: `Segment ${i + 1} scoring failed`, description: err.message || "Something went wrong.", variant: "destructive" });
@@ -2376,6 +2461,25 @@ export default function PromptGenerator() {
                               }
                             }
                             setV2IsAnalysing(false);
+                            const hasResults = segSnapshot.some((s) => s.scoringResult !== null);
+                            if (hasResults) {
+                              const segmentsToSave = segSnapshot.map((seg) => ({
+                                persona: seg.persona,
+                                seedType: seg.seedType,
+                                customerType: seg.customerType,
+                                location: seg.location,
+                                resultCount: seg.resultCount,
+                                prompts: seg.prompts,
+                                scoringResult: seg.scoringResult,
+                              }));
+                              saveV2Session({
+                                brandName: brandName.trim(),
+                                brandDomain: brandDomain.trim() || null,
+                                promptsPerSegment: v2PromptsPerSegment,
+                                segments: segmentsToSave,
+                              });
+                              toast({ title: "Session saved", description: `Multi-segment analysis saved for ${brandName.trim()}.` });
+                            }
                           }}
                           disabled={v2IsAnalysing}
                           className="flex-1"

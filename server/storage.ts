@@ -5,12 +5,15 @@ import {
   analysisResults,
   scoringJobs,
   savedProfiles,
+  multiSegmentSessions,
   type InsertAnalysisResult,
   type AnalysisResult,
   type InsertScoringJob,
   type ScoringJob,
   type InsertSavedProfile,
   type SavedProfile,
+  type InsertMultiSegmentSession,
+  type MultiSegmentSession,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -22,6 +25,9 @@ export interface IStorage {
   getScoringHistory(): Promise<ScoringJob[]>;
   listSavedProfiles(): Promise<SavedProfile[]>;
   upsertSavedProfile(profile: InsertSavedProfile): Promise<SavedProfile>;
+  createMultiSegmentSession(session: InsertMultiSegmentSession): Promise<MultiSegmentSession>;
+  listMultiSegmentSessions(): Promise<MultiSegmentSession[]>;
+  getMultiSegmentSession(id: number): Promise<MultiSegmentSession | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -90,6 +96,30 @@ export class DatabaseStorage implements IStorage {
       .from(savedProfiles)
       .where(eq(savedProfiles.brandName, profile.brandName));
     return existing;
+  }
+
+  async createMultiSegmentSession(session: InsertMultiSegmentSession): Promise<MultiSegmentSession> {
+    const [result] = await db
+      .insert(multiSegmentSessions)
+      .values(session)
+      .returning();
+    return result;
+  }
+
+  async listMultiSegmentSessions(): Promise<MultiSegmentSession[]> {
+    return await db
+      .select()
+      .from(multiSegmentSessions)
+      .orderBy(desc(multiSegmentSessions.createdAt))
+      .limit(50);
+  }
+
+  async getMultiSegmentSession(id: number): Promise<MultiSegmentSession | undefined> {
+    const [result] = await db
+      .select()
+      .from(multiSegmentSessions)
+      .where(eq(multiSegmentSessions.id, id));
+    return result;
   }
 }
 

@@ -18,7 +18,7 @@ import { BuyerIntentProfileSchema } from "./promptgen/types";
 import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, CORPORATE_CARDS_SERVICES, CORPORATE_CARDS_VERTICALS, CORPORATE_CARDS_MODIFIERS, EXPENSE_MANAGEMENT_SERVICES, EXPENSE_MANAGEMENT_VERTICALS, EXPENSE_MANAGEMENT_MODIFIERS, ACCOUNTING_AUTOMATION_SERVICES, ACCOUNTING_AUTOMATION_VERTICALS, ACCOUNTING_AUTOMATION_MODIFIERS, INVOICE_MANAGEMENT_SERVICES, INVOICE_MANAGEMENT_VERTICALS, INVOICE_MANAGEMENT_MODIFIERS, RESTAURANT_OFFERINGS, RESTAURANT_VERTICALS, RESTAURANT_MODIFIERS, BUDGET_ADJECTIVES, DECISION_MAKERS } from "./promptgen/presets";
 import { selectMiniPanel, selectMicroPanel } from "./scoring/panel";
 import { runScoring } from "./scoring/runner";
-import { insertSavedProfileSchema } from "@shared/schema";
+import { insertSavedProfileSchema, insertMultiSegmentSessionSchema } from "@shared/schema";
 import { analyzePanelWebsite } from "./panel/generator";
 import { runInsightsAnalysis, type InsightsInput } from "./insights";
 
@@ -468,6 +468,50 @@ export async function registerRoutes(
         console.error("Error saving profile:", err);
         res.status(500).json({ message: "Failed to save profile" });
       }
+    }
+  });
+
+  app.post("/api/multisegment/sessions", async (req, res) => {
+    try {
+      const parsed = insertMultiSegmentSessionSchema.parse(req.body);
+      const session = await storage.createMultiSegmentSession(parsed);
+      res.status(201).json(session);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors.map((e) => e.message).join(", ") });
+      } else {
+        console.error("Error saving multi-segment session:", err);
+        res.status(500).json({ message: "Failed to save session" });
+      }
+    }
+  });
+
+  app.get("/api/multisegment/sessions", async (_req, res) => {
+    try {
+      const sessions = await storage.listMultiSegmentSessions();
+      res.json(sessions);
+    } catch (err) {
+      console.error("Error listing multi-segment sessions:", err);
+      res.status(500).json({ message: "Failed to load sessions" });
+    }
+  });
+
+  app.get("/api/multisegment/sessions/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid session ID" });
+        return;
+      }
+      const session = await storage.getMultiSegmentSession(id);
+      if (!session) {
+        res.status(404).json({ message: "Session not found" });
+        return;
+      }
+      res.json(session);
+    } catch (err) {
+      console.error("Error getting multi-segment session:", err);
+      res.status(500).json({ message: "Failed to load session" });
     }
   });
 

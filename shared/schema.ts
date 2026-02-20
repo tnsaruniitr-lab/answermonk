@@ -42,6 +42,19 @@ export const insertSavedProfileSchema = createInsertSchema(savedProfiles).omit({
 export type SavedProfile = typeof savedProfiles.$inferSelect;
 export type InsertSavedProfile = z.infer<typeof insertSavedProfileSchema>;
 
+export const multiSegmentSessions = pgTable("multi_segment_sessions", {
+  id: serial("id").primaryKey(),
+  brandName: text("brand_name").notNull(),
+  brandDomain: text("brand_domain"),
+  promptsPerSegment: integer("prompts_per_segment").notNull().default(3),
+  segments: jsonb("segments").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertMultiSegmentSessionSchema = createInsertSchema(multiSegmentSessions).omit({ id: true, createdAt: true });
+export type MultiSegmentSession = typeof multiSegmentSessions.$inferSelect;
+export type InsertMultiSegmentSession = z.infer<typeof insertMultiSegmentSessionSchema>;
+
 // We'll store search history/results here
 export const analysisResults = pgTable("analysis_results", {
   id: serial("id").primaryKey(),
