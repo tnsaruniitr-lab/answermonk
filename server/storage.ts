@@ -42,6 +42,14 @@ export interface IStorage {
     segments: ScoringJob[];
     createdAt: Date;
   }>>;
+  getV2SegmentGroup(groupKey: string): Promise<{
+    groupKey: string;
+    brandName: string;
+    brandDomain: string | null;
+    segmentJobIds: number[];
+    segments: ScoringJob[];
+    createdAt: Date;
+  } | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -215,6 +223,18 @@ export class DatabaseStorage implements IStorage {
     }
 
     return groups;
+  }
+
+  async getV2SegmentGroup(groupKey: string): Promise<{
+    groupKey: string;
+    brandName: string;
+    brandDomain: string | null;
+    segmentJobIds: number[];
+    segments: ScoringJob[];
+    createdAt: Date;
+  } | undefined> {
+    const groups = await this.getV2SegmentGroups();
+    return groups.find(g => g.groupKey === groupKey);
   }
 }
 

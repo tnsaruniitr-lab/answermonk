@@ -168,3 +168,15 @@ export function useMultiSegmentSession(id: number | null) {
     enabled: id !== null,
   });
 }
+
+export function useV2GroupDetail(groupKey: string | null) {
+  return useQuery<MultiSegmentSessionItem>({
+    queryKey: ["/api/scoring/v2-groups", groupKey],
+    queryFn: async () => {
+      const res = await fetch(`/api/scoring/v2-groups/${groupKey}`);
+      if (!res.ok) throw new Error("Failed to fetch V2 group");
+      return res.json();
+    },
+    enabled: groupKey !== null,
+  });
+}

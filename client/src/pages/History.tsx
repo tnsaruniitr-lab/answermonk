@@ -187,9 +187,14 @@ export default function HistoryPage() {
                 });
 
                 return (
-                  <div
+                  <Link
                     key={`v2g-${d.groupKey}`}
-                    className="px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap"
+                    href={`/v2/${d.groupKey}`}
+                    data-testid={`link-v2group-${d.groupKey}`}
+                    className="block"
+                  >
+                  <div
+                    className="px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap cursor-pointer hover:bg-secondary/30 transition-colors"
                     data-testid={`row-v2group-${d.groupKey}`}
                   >
                     <div className="space-y-1.5 min-w-0 flex-1">
@@ -221,6 +226,7 @@ export default function HistoryPage() {
                       </div>
                     </div>
                   </div>
+                  </Link>
                 );
               } else {
                 const d = item.data;

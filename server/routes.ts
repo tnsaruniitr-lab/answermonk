@@ -459,6 +459,46 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/scoring/v2-groups/:groupKey", async (req, res) => {
+    try {
+      const group = await storage.getV2SegmentGroup(req.params.groupKey);
+      if (!group) {
+        return res.status(404).json({ message: "V2 group not found" });
+      }
+
+      const segments = group.segments.map((job) => {
+        const profile = (job.rawData as any)?.profile;
+        const result = job.resultJson as any;
+        const rawRuns = (job.rawData as any)?.runs;
+        return {
+          persona: profile?.persona || "",
+          seedType: profile?.verticals?.[0] || profile?.persona || "",
+          customerType: profile?.verticals?.[0] || "",
+          location: profile?.geo || "",
+          resultCount: job.promptCount,
+          prompts: null,
+          scoringResult: result ? {
+            score: result,
+            raw_runs: rawRuns || [],
+          } : null,
+          jobId: job.id,
+        };
+      });
+
+      res.json({
+        id: group.groupKey,
+        brandName: group.brandName,
+        brandDomain: group.brandDomain,
+        promptsPerSegment: group.segments[0]?.promptCount || 0,
+        segments,
+        createdAt: group.createdAt,
+      });
+    } catch (err) {
+      console.error("Error fetching V2 group:", err);
+      res.status(500).json({ message: "Failed to load V2 group" });
+    }
+  });
+
   app.get("/api/profiles", async (_req, res) => {
     try {
       const profiles = await storage.listSavedProfiles();

@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useRoute, Link } from "wouter";
-import { useMultiSegmentSession } from "@/hooks/use-analysis";
+import { useMultiSegmentSession, useV2GroupDetail } from "@/hooks/use-analysis";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -69,8 +69,16 @@ interface SegmentData {
 
 export default function V2SessionDetail() {
   const [, params] = useRoute("/v2/:id");
-  const id = params?.id ? parseInt(params.id, 10) : null;
-  const { data: session, isLoading, error } = useMultiSegmentSession(id);
+  const rawId = params?.id || null;
+  const isGroupKey = rawId ? rawId.startsWith("v2auto-") : false;
+  const numericId = rawId && !isGroupKey ? parseInt(rawId, 10) : null;
+
+  const { data: sessionData, isLoading: sessionLoading, error: sessionError } = useMultiSegmentSession(numericId);
+  const { data: groupData, isLoading: groupLoading, error: groupError } = useV2GroupDetail(isGroupKey ? rawId : null);
+
+  const session = isGroupKey ? groupData : sessionData;
+  const isLoading = isGroupKey ? groupLoading : sessionLoading;
+  const error = isGroupKey ? groupError : sessionError;
 
   if (isLoading) {
     return (
@@ -132,7 +140,7 @@ export default function V2SessionDetail() {
             segments={segments
               .filter(s => s.scoringResult)
               .map((s, i) => ({
-                id: `hist-seg-${id}-${i}`,
+                id: `hist-seg-${rawId}-${i}`,
                 seedType: s.seedType,
                 customerType: s.customerType,
                 location: s.location,
