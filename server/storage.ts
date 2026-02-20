@@ -6,6 +6,7 @@ import {
   scoringJobs,
   savedProfiles,
   multiSegmentSessions,
+  savedV2Configs,
   type InsertAnalysisResult,
   type AnalysisResult,
   type InsertScoringJob,
@@ -14,6 +15,8 @@ import {
   type SavedProfile,
   type InsertMultiSegmentSession,
   type MultiSegmentSession,
+  type InsertSavedV2Config,
+  type SavedV2Config,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -28,6 +31,9 @@ export interface IStorage {
   createMultiSegmentSession(session: InsertMultiSegmentSession): Promise<MultiSegmentSession>;
   listMultiSegmentSessions(): Promise<MultiSegmentSession[]>;
   getMultiSegmentSession(id: number): Promise<MultiSegmentSession | undefined>;
+  createV2Config(config: InsertSavedV2Config): Promise<SavedV2Config>;
+  listV2Configs(): Promise<SavedV2Config[]>;
+  deleteV2Config(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -120,6 +126,26 @@ export class DatabaseStorage implements IStorage {
       .from(multiSegmentSessions)
       .where(eq(multiSegmentSessions.id, id));
     return result;
+  }
+
+  async createV2Config(config: InsertSavedV2Config): Promise<SavedV2Config> {
+    const [result] = await db
+      .insert(savedV2Configs)
+      .values(config)
+      .returning();
+    return result;
+  }
+
+  async listV2Configs(): Promise<SavedV2Config[]> {
+    return await db
+      .select()
+      .from(savedV2Configs)
+      .orderBy(desc(savedV2Configs.createdAt))
+      .limit(50);
+  }
+
+  async deleteV2Config(id: number): Promise<void> {
+    await db.delete(savedV2Configs).where(eq(savedV2Configs.id, id));
   }
 }
 

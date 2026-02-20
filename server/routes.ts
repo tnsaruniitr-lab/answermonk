@@ -18,7 +18,7 @@ import { BuyerIntentProfileSchema } from "./promptgen/types";
 import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, CORPORATE_CARDS_SERVICES, CORPORATE_CARDS_VERTICALS, CORPORATE_CARDS_MODIFIERS, EXPENSE_MANAGEMENT_SERVICES, EXPENSE_MANAGEMENT_VERTICALS, EXPENSE_MANAGEMENT_MODIFIERS, ACCOUNTING_AUTOMATION_SERVICES, ACCOUNTING_AUTOMATION_VERTICALS, ACCOUNTING_AUTOMATION_MODIFIERS, INVOICE_MANAGEMENT_SERVICES, INVOICE_MANAGEMENT_VERTICALS, INVOICE_MANAGEMENT_MODIFIERS, RESTAURANT_OFFERINGS, RESTAURANT_VERTICALS, RESTAURANT_MODIFIERS, BUDGET_ADJECTIVES, DECISION_MAKERS } from "./promptgen/presets";
 import { selectMiniPanel, selectMicroPanel } from "./scoring/panel";
 import { runScoring } from "./scoring/runner";
-import { insertSavedProfileSchema, insertMultiSegmentSessionSchema } from "@shared/schema";
+import { insertSavedProfileSchema, insertMultiSegmentSessionSchema, insertSavedV2ConfigSchema } from "@shared/schema";
 import { analyzePanelWebsite } from "./panel/generator";
 import { runInsightsAnalysis, type InsightsInput } from "./insights";
 import { runSegmentAnalysis } from "./segment-analysis";
@@ -513,6 +513,46 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Error getting multi-segment session:", err);
       res.status(500).json({ message: "Failed to load session" });
+    }
+  });
+
+  app.post("/api/v2configs", async (req, res) => {
+    try {
+      const parsed = insertSavedV2ConfigSchema.parse(req.body);
+      const config = await storage.createV2Config(parsed);
+      res.status(201).json(config);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors.map((e) => e.message).join(", ") });
+      } else {
+        console.error("Error saving V2 config:", err);
+        res.status(500).json({ message: "Failed to save config" });
+      }
+    }
+  });
+
+  app.get("/api/v2configs", async (_req, res) => {
+    try {
+      const configs = await storage.listV2Configs();
+      res.json(configs);
+    } catch (err) {
+      console.error("Error listing V2 configs:", err);
+      res.status(500).json({ message: "Failed to load configs" });
+    }
+  });
+
+  app.delete("/api/v2configs/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid config ID" });
+        return;
+      }
+      await storage.deleteV2Config(id);
+      res.status(204).end();
+    } catch (err) {
+      console.error("Error deleting V2 config:", err);
+      res.status(500).json({ message: "Failed to delete config" });
     }
   });
 

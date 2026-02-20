@@ -55,6 +55,20 @@ export const insertMultiSegmentSessionSchema = createInsertSchema(multiSegmentSe
 export type MultiSegmentSession = typeof multiSegmentSessions.$inferSelect;
 export type InsertMultiSegmentSession = z.infer<typeof insertMultiSegmentSessionSchema>;
 
+export const savedV2Configs = pgTable("saved_v2_configs", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  brandName: text("brand_name").notNull(),
+  brandDomain: text("brand_domain"),
+  promptsPerSegment: integer("prompts_per_segment").notNull().default(3),
+  segments: jsonb("segments").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertSavedV2ConfigSchema = createInsertSchema(savedV2Configs).omit({ id: true, createdAt: true });
+export type SavedV2Config = typeof savedV2Configs.$inferSelect;
+export type InsertSavedV2Config = z.infer<typeof insertSavedV2ConfigSchema>;
+
 // We'll store search history/results here
 export const analysisResults = pgTable("analysis_results", {
   id: serial("id").primaryKey(),

@@ -99,6 +99,16 @@ interface MultiSegmentSession {
   createdAt: string;
 }
 
+interface SavedV2Config {
+  id: number;
+  name: string;
+  brandName: string;
+  brandDomain: string | null;
+  promptsPerSegment: number;
+  segments: any;
+  createdAt: string;
+}
+
 interface Presets {
   [persona: string]: {
     verticals: string[];
@@ -1247,6 +1257,57 @@ export default function PromptGenerator() {
     },
   });
 
+  const { data: v2Configs } = useQuery<SavedV2Config[]>({
+    queryKey: ["/api/v2configs"],
+  });
+
+  const { mutate: saveV2Config } = useMutation({
+    mutationFn: async (config: { name: string; brandName: string; brandDomain: string | null; promptsPerSegment: number; segments: any }) => {
+      const res = await apiRequest("POST", "/api/v2configs", config);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v2configs"] });
+      toast({ title: "Config saved", description: "You can reload this segment setup anytime." });
+    },
+  });
+
+  const { mutate: deleteV2Config } = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/v2configs/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v2configs"] });
+    },
+  });
+
+  const loadV2Config = (config: SavedV2Config) => {
+    setBrandName(config.brandName);
+    setBrandDomain(config.brandDomain || "");
+    setV2PromptsPerSegment(config.promptsPerSegment || 3);
+    const rawSegments = Array.isArray(config.segments) ? config.segments : [];
+    if (rawSegments.length === 0) {
+      setV2Segments([makeSegment()]);
+      return;
+    }
+    const segs = rawSegments.map((s: any) => ({
+      id: `seg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      persona: s.persona || "marketing_agency",
+      seedType: s.seedType || "providers",
+      customerType: s.customerType || "",
+      location: s.location || "",
+      resultCount: s.resultCount || 5,
+      prompts: null,
+      scoringResult: null,
+      isScoring: false,
+    }));
+    setV2Segments(segs);
+    toast({ title: "Config loaded", description: `Loaded "${config.name}" — ${segs.length} segment${segs.length !== 1 ? "s" : ""}.` });
+  };
+
+  const [showSaveConfigDialog, setShowSaveConfigDialog] = useState(false);
+  const [configName, setConfigName] = useState("");
+
   const loadV2Session = (session: MultiSegmentSession) => {
     setBrandName(session.brandName);
     setBrandDomain(session.brandDomain || "");
@@ -2256,32 +2317,76 @@ export default function PromptGenerator() {
 
                 {mode === "quickv2" && (
                   <div className="space-y-6 pb-16">
-                    {v2Sessions && v2Sessions.length > 0 && (
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide block mb-1.5">
-                          Load a saved analysis
-                        </label>
-                        <Select
-                          onValueChange={(v) => {
-                            const session = v2Sessions.find((s) => String(s.id) === v);
-                            if (session) loadV2Session(session);
-                          }}
-                        >
-                          <SelectTrigger className="bg-secondary/50" data-testid="select-v2-session">
-                            <SelectValue placeholder="Choose a previous analysis..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {v2Sessions.map((s) => {
-                              const segCount = Array.isArray(s.segments) ? s.segments.length : 0;
-                              const dateStr = new Date(s.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-                              return (
-                                <SelectItem key={s.id} value={String(s.id)} data-testid={`v2-session-option-${s.id}`}>
-                                  {s.brandName} — {segCount} segment{segCount !== 1 ? "s" : ""} — {dateStr}
-                                </SelectItem>
-                              );
-                            })}
-                          </SelectContent>
-                        </Select>
+                    {((v2Configs && v2Configs.length > 0) || (v2Sessions && v2Sessions.length > 0)) && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {v2Configs && v2Configs.length > 0 && (
+                          <div>
+                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide block mb-1.5">
+                              Saved Configs
+                            </label>
+                            <div className="space-y-1">
+                              {v2Configs.map((cfg) => {
+                                const segCount = Array.isArray(cfg.segments) ? cfg.segments.length : 0;
+                                return (
+                                  <div key={cfg.id} className="flex items-center gap-2 group" data-testid={`v2-config-${cfg.id}`}>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="flex-1 justify-start text-left h-auto py-1.5 px-2 text-xs"
+                                      onClick={() => loadV2Config(cfg)}
+                                      data-testid={`button-load-config-${cfg.id}`}
+                                    >
+                                      <Tag className="w-3 h-3 mr-1.5 shrink-0 text-muted-foreground" />
+                                      <span className="truncate font-medium">{cfg.name}</span>
+                                      <Badge variant="secondary" className="ml-auto text-[9px] shrink-0">
+                                        {segCount} seg{segCount !== 1 ? "s" : ""}
+                                      </Badge>
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                                      onClick={() => deleteV2Config(cfg.id)}
+                                      data-testid={`button-delete-config-${cfg.id}`}
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                        {v2Sessions && v2Sessions.length > 0 && (
+                          <div>
+                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide block mb-1.5">
+                              Past Results
+                            </label>
+                            <Select
+                              onValueChange={(v) => {
+                                const session = v2Sessions.find((s) => String(s.id) === v);
+                                if (session) loadV2Session(session);
+                              }}
+                            >
+                              <SelectTrigger className="bg-secondary/50" data-testid="select-v2-session">
+                                <SelectValue placeholder="Load a previous analysis..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {v2Sessions.map((s) => {
+                                  const segCount = Array.isArray(s.segments) ? s.segments.length : 0;
+                                  const dateStr = new Date(s.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+                                  return (
+                                    <SelectItem key={s.id} value={String(s.id)} data-testid={`v2-session-option-${s.id}`}>
+                                      {s.brandName} — {segCount} seg{segCount !== 1 ? "s" : ""} — {dateStr}
+                                    </SelectItem>
+                                  );
+                                })}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
                       </div>
                     )}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -2510,16 +2615,90 @@ export default function PromptGenerator() {
                         );
                       })}
 
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={addSegment}
-                        className="w-full border-dashed"
-                        data-testid="button-v2-add-segment"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Segment
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={addSegment}
+                          className="flex-1 border-dashed"
+                          data-testid="button-v2-add-segment"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Segment
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            if (!brandName.trim()) {
+                              toast({ title: "Brand name required", description: "Enter your brand name first.", variant: "destructive" });
+                              return;
+                            }
+                            if (v2Segments.length === 0) {
+                              toast({ title: "No segments", description: "Add at least one segment.", variant: "destructive" });
+                              return;
+                            }
+                            setConfigName(`${brandName.trim()} — ${v2Segments.length} seg`);
+                            setShowSaveConfigDialog(true);
+                          }}
+                          data-testid="button-v2-save-config"
+                        >
+                          <Tag className="w-4 h-4 mr-2" />
+                          Save Config
+                        </Button>
+                      </div>
+
+                      {showSaveConfigDialog && (
+                        <Card className="p-3 flex items-end gap-2">
+                          <div className="flex-1 space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">Config Name</label>
+                            <Input
+                              value={configName}
+                              onChange={(e) => setConfigName(e.target.value)}
+                              placeholder="e.g. Pemo — UAE segments"
+                              className="h-8 text-sm"
+                              autoFocus
+                              data-testid="input-config-name"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="h-8"
+                            disabled={!configName.trim()}
+                            onClick={() => {
+                              saveV2Config({
+                                name: configName.trim(),
+                                brandName: brandName.trim(),
+                                brandDomain: brandDomain.trim() || null,
+                                promptsPerSegment: v2PromptsPerSegment,
+                                segments: v2Segments.map((seg) => ({
+                                  persona: seg.persona,
+                                  seedType: seg.seedType,
+                                  customerType: seg.customerType,
+                                  location: seg.location,
+                                  resultCount: seg.resultCount,
+                                })),
+                              });
+                              setShowSaveConfigDialog(false);
+                              setConfigName("");
+                            }}
+                            data-testid="button-confirm-save-config"
+                          >
+                            Save
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8"
+                            onClick={() => { setShowSaveConfigDialog(false); setConfigName(""); }}
+                            data-testid="button-cancel-save-config"
+                          >
+                            Cancel
+                          </Button>
+                        </Card>
+                      )}
                     </div>
 
                     <div className="flex gap-3">
