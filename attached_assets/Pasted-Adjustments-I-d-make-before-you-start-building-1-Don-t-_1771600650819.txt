@@ -1,0 +1,218 @@
+Adjustments I’d make before you start building
+1) Don’t deduplicate “by domain” in the citation crawler
+
+You wrote: “deduplicate by domain”. That will throw away useful pages (e.g., multiple Forbes pages; multiple G2 pages; competitor product pages vs blog pages).
+
+Do:
+
+Canonicalize URL (strip tracking params, resolve redirects)
+
+Dedup by canonical URL
+
+Then dedup by content hash (syndicated duplicates)
+Keep domain as a feature, not a dedup key.
+
+Why: domain-level dedup will create false “authority” gaps and starve the evidence collector.
+
+2) Comparison targets should be selected per segment with a stable tie-breaker
+
+Your selector is mostly right, but add one rule:
+
+If two competitors are close, prefer:
+
+higher presence in that segment
+
+tie-breaker: higher retrieved authority within that segment
+
+This makes the “vs A vs B” feel consistent and not random.
+
+Also store:
+
+segmentTopK (top 5 brands) in the report payload so you can later expand without reruns.
+
+3) ContextConsistency needs a segment “intent dictionary” generator
+
+Since you’re only doing category + audience (ignoring geo), make it deterministic:
+
+For each segment, derive:
+
+category_terms[]
+
+audience_terms[]
+from the prompt template / segment metadata (not from GPT).
+
+Example:
+
+Segment “Corporate cards for SMBs”
+
+category terms: ["corporate card", "virtual card", "business card", "spend card"]
+
+audience terms: ["SMB", "SME", "small business"]
+
+Keep it a config map. This is MVP-safe and avoids LLM drift.
+
+4) Snippet extraction: use variable window + structural capture
+
+±25 tokens works for paragraphs but fails on:
+
+listicles (bullet items)
+
+tables (rows/cells)
+
+headings
+
+Do:
+
+if mention is inside a list item → extract full list item
+
+if inside a table row → extract row text
+
+else fallback to ±25–40 tokens
+
+This single change massively improves evidence quality.
+
+5) ComparativePresence: don’t require multi-brand to be valuable
+
+Your scoring already treats it as bonus, but your evidence collector must handle:
+
+“comparison surfaces where you are absent”
+
+“directories/listicles with only 1 tracked brand detected” (often because your competitor list is incomplete)
+
+So for a comparison surface:
+
+always extract top N entities even if they aren’t in your tracked set (basic NER-lite / capitalization heuristic is enough for MVP)
+
+then show: “This page lists many providers; you are absent.”
+
+Otherwise the feature often produces “0 brands found” which feels broken.
+
+6) RetrievedAuthority should be computed from “unique domains with supporting snippets”
+
+Not just “brand mentioned”.
+
+Define “supporting snippet” as:
+
+category match ≥ 1 OR audience match ≥ 1
+
+Then authority counts “domains that reinforce the segment claim”, not random mentions.
+
+This prevents garbage authority inflation.
+
+7) Evidence collector: show 2 snippets per factor, not 1–3
+
+Pick a consistent display rule:
+
+2 snippets per factor per brand max (winner + you)
+
+1 snippet if only one exists
+
+Why: 3 becomes noisy; 1 feels cherry-picked.
+
+8) Action recommender: keep it templated, not LLM-generated (MVP)
+
+For MVP, make recommendations deterministic by gap type:
+
+If category gap:
+
+“Add explicit category phrase to: homepage H1 + first 200 words + G2/Crunchbase description”
+
+If audience gap:
+
+“Add explicit audience phrase: ‘for SMBs/startups’ in same sentence as category”
+
+If comparative presence gap:
+
+“Get listed on X comparison surface(s) where competitors appear; prioritize Tier1/2 domains in your retrieved set”
+
+You can add LLM later for phrasing polish, but deterministic actions reduce hallucinations and support load.
+
+Updated task breakdown (tight MVP version)
+
+Extract reusable crawler module
+
+Move fetch + clean extraction into server/crawler.ts
+
+Add URL canonicalization + redirect resolution
+
+Add content hash generation
+
+Build citation crawler service
+
+Input: list of URLs
+
+Output: Page{canonicalUrl, domain, text, title, headings, lists, tables, metadata, contentHash, surfaceHints}
+
+Dedup: canonical URL + content hash (not domain)
+
+Build comparison target selector
+
+Per segment: pick You + top2 rivals using presence, tie-break by retrieved authority
+
+Persist segment top 5 for future expansion
+
+Build snippet extractor (structure-aware)
+
+Extract list item / table row when applicable
+
+Else ±25–40 tokens window
+
+Dedup snippet hashes per page
+
+Build source classifier
+
+Tier lookup list + heuristics
+
+Surface type: editorial / directory / listicle / product / press / profile / social
+
+Comparison surface scoring (+2 multi-brand, +1 directory/listicle)
+
+Build scoring (per segment, per brand)
+
+RetrievedAuthority: unique domains with supporting snippets × tier weights + surface diversity
+
+ContextConsistency: distribution of explicit/weak/none matches on snippets
+
+ComparativePresence: presence on comparison surfaces + prominence
+
+Build evidence collector
+
+For each factor: pick top 2 snippets (by tier weight × match strength)
+
+Must include both “winner evidence” and “your evidence (or absence)”
+
+Build action recommender (templated)
+
+One primary action based on dominant gap
+
+Optional secondary action if absence on comparison surfaces is severe
+
+Orchestrator + API
+
+POST /api/segment-analysis/analyze?sessionId=...
+
+Store output JSON per session
+
+Frontend
+
+Segment cards: Winner + Why + 2 snippets + One action
+
+Comparison table: Factor | You | A | B | Evidence
+
+“Show more sources” collapsible list (optional)
+
+Wire into Quick V2
+
+Button, loading, caching results
+
+Final review + docs
+
+Validate with 3–5 real sessions, ensure no “0 brands found” nonsense dominates
+
+Quick answers to your questions
+
+Scoring weights: keep simple: Tier1=1.0, Tier2=0.7, Tier3=0.4; surface bonus small (+0.1 per unique surface type up to +0.3). Don’t overfit weights now.
+
+# snippets shown: 2 per factor is ideal for trust + brevity.
+
+Comparison targets selection: per-segment selection with presence-first tie-breaker; store top 5.
