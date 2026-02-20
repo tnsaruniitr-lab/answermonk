@@ -131,7 +131,7 @@ export default function V2SessionDetail() {
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-2.5">
           {segments.map((seg, idx) => (
             <SegmentCard key={idx} seg={seg} idx={idx} brandName={session.brandName} />
           ))}
@@ -228,20 +228,23 @@ function SegmentCard({ seg, idx, brandName }: { seg: SegmentData; idx: number; b
                   : rank === 2
                   ? "bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-600"
                   : "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/15 dark:text-orange-400 dark:border-orange-700";
-                const posLabel = rank === 1 ? "1st" : rank === 2 ? "2nd" : "3rd";
+                const posLabel = rank === 1 ? "1st" : rank === 2 ? "2nd" : rank === 3 ? "3rd" : `${rank}th`;
                 return (
-                  <Badge className={`${badgeStyle} text-[10px] border gap-1`}>
-                    <Trophy className={`w-3 h-3 ${trophyColor}`} />
-                    {posLabel}
-                  </Badge>
+                  <>
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <span className="tabular-nums font-medium text-foreground">{Math.round(score.appearance_rate * 100)}%</span>
+                      <span>vis</span>
+                      <span className="text-border">·</span>
+                      <span className="tabular-nums font-medium text-foreground">#{score.avg_rank ?? "—"}</span>
+                      <span>rank</span>
+                    </div>
+                    <Badge className={`${badgeStyle} text-[10px] border gap-1 ml-1`}>
+                      <Trophy className={`w-3 h-3 ${trophyColor}`} />
+                      {posLabel}
+                    </Badge>
+                  </>
                 );
               })()}
-              <div className="flex flex-col items-end">
-                <span className="text-xs font-semibold">{Math.round(score.appearance_rate * 100)}% <span className="text-muted-foreground font-normal">visibility</span></span>
-                {score.avg_rank !== null && (
-                  <span className="text-[10px] text-muted-foreground">avg rank <span className="font-semibold text-foreground">#{score.avg_rank}</span></span>
-                )}
-              </div>
             </div>
           )}
         </CollapsibleTrigger>
