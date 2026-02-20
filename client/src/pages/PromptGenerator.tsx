@@ -2761,6 +2761,7 @@ export default function PromptGenerator() {
                                   brand_name: brandName.trim(),
                                   brand_domain: brandDomain.trim() || undefined,
                                   mode: "full",
+                                  source: "v2segment",
                                   profile: {
                                     persona: seg.persona,
                                     services: [],

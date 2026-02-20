@@ -1,6 +1,6 @@
 
 import { db } from "./db";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull, ne, or } from "drizzle-orm";
 import {
   analysisResults,
   scoringJobs,
@@ -78,7 +78,12 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(scoringJobs)
-      .where(eq(scoringJobs.status, "completed"))
+      .where(
+        and(
+          eq(scoringJobs.status, "completed"),
+          or(isNull(scoringJobs.source), ne(scoringJobs.source, "v2segment"))
+        )
+      )
       .orderBy(desc(scoringJobs.createdAt))
       .limit(50);
   }

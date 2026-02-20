@@ -96,7 +96,7 @@ Preferred communication style: Simple, everyday language.
 ### Database
 - **Database**: PostgreSQL (required, referenced via `DATABASE_URL` environment variable)
 - **ORM**: Drizzle ORM with PostgreSQL dialect
-- **Schema** (`shared/schema.ts`): Tables include `analysis_results` (single-query analyzer), `scoring_jobs` (GEO scoring runs with JSONB result/raw data), `saved_v2_configs` (reusable multi-segment configurations with name, brand, segments JSONB)
+- **Schema** (`shared/schema.ts`): Tables include `analysis_results` (single-query analyzer), `scoring_jobs` (GEO scoring runs with JSONB result/raw data, `source` column tags V2 segment runs as "v2segment" to filter from History), `saved_v2_configs` (reusable multi-segment configurations with name, brand, segments JSONB)
 - **Additional tables** (`shared/models/chat.ts`): `conversations` and `messages` tables exist for Replit AI integration features (chat/voice)
 - **Migrations**: Managed via `drizzle-kit push` (schema push approach, not migration files)
 - **Storage layer** (`server/storage.ts`): `DatabaseStorage` class implementing `IStorage` interface for data access

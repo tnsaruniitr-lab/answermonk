@@ -342,6 +342,7 @@ export async function registerRoutes(
       verticals: z.array(z.string()),
       geo: z.string().nullable(),
     }).optional(),
+    source: z.string().optional(),
   });
 
   app.post("/api/scoring/run", async (req, res) => {
@@ -362,6 +363,7 @@ export async function registerRoutes(
         status: "running",
         promptCount: promptsToRun.length,
         engineCount: 3,
+        source: parsed.source || null,
       });
 
       try {
