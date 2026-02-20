@@ -216,9 +216,31 @@ function SegmentCard({ seg, idx, brandName }: { seg: SegmentData; idx: number; b
             </div>
           </div>
           {score && (
-            <div className="flex items-center gap-3 shrink-0">
-              <span className="text-xs font-semibold">{Math.round(score.appearance_rate * 100)}%</span>
-              <span className="text-[10px] text-muted-foreground">appear</span>
+            <div className="flex items-center gap-2 shrink-0">
+              {(() => {
+                const brandShare = score.appearance_rate;
+                const compShares = score.competitors.map((c: any) => c.share);
+                const rank = 1 + compShares.filter((s: number) => s > brandShare).length;
+                const trophyColor = rank === 1 ? "text-amber-500" : rank === 2 ? "text-slate-400" : "text-orange-500";
+                const badgeStyle = rank === 1
+                  ? "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700"
+                  : rank === 2
+                  ? "bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-600"
+                  : "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/15 dark:text-orange-400 dark:border-orange-700";
+                const posLabel = rank === 1 ? "1st" : rank === 2 ? "2nd" : "3rd";
+                return (
+                  <Badge className={`${badgeStyle} text-[10px] border gap-1`}>
+                    <Trophy className={`w-3 h-3 ${trophyColor}`} />
+                    {posLabel}
+                  </Badge>
+                );
+              })()}
+              <div className="flex flex-col items-end">
+                <span className="text-xs font-semibold">{Math.round(score.appearance_rate * 100)}% <span className="text-muted-foreground font-normal">visibility</span></span>
+                {score.avg_rank !== null && (
+                  <span className="text-[10px] text-muted-foreground">avg rank <span className="font-semibold text-foreground">#{score.avg_rank}</span></span>
+                )}
+              </div>
             </div>
           )}
         </CollapsibleTrigger>
