@@ -854,11 +854,18 @@ function generateQuickPrompts(
   };
   const personaLabel = PERSONA_CORE_LABELS[persona] || persona.replace(/_/g, " ");
   const prompts: Prompt[] = [];
+  const isRestaurant = persona === "restaurant";
   const customerSuffix = customerType ? ` for ${customerType}` : "";
 
   for (let i = 0; i < 10; i++) {
     const qualifier = QUICK_QUALIFIERS[i];
-    const text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType}${customerSuffix} based in the ${location} or GCC region. Exclude US, European, or other non-regional providers; focus on providers headquartered or primarily operating in the Middle East / GCC.`;
+    let text: string;
+    if (isRestaurant) {
+      const cuisinePhrase = customerType ? `${customerType} ` : "";
+      text = `Recommend the ${qualifier} ${count} ${cuisinePhrase}${seedType} in ${location}. Focus on local favorites, quality, and atmosphere.`;
+    } else {
+      text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType}${customerSuffix} based in the ${location} or GCC region. Exclude US, European, or other non-regional providers; focus on providers headquartered or primarily operating in the Middle East / GCC.`;
+    }
     prompts.push({
       id: `quick_${i + 1}`,
       cluster: "direct",
