@@ -275,6 +275,80 @@ export const EXPENSE_MANAGEMENT_MODIFIERS: string[] = [
   "QuickBooks", "Xero", "NetSuite", "Sage Intacct",
 ];
 
+export const RESTAURANT_OFFERINGS: string[] = [
+  "fine dining",
+  "casual dining",
+  "fast casual",
+  "QSR / quick service",
+  "cloud kitchen",
+  "café / coffee shop",
+  "bakery",
+  "pizzeria",
+  "steakhouse",
+  "sushi bar",
+  "seafood restaurant",
+  "brunch spot",
+  "rooftop dining",
+  "family restaurant",
+  "buffet",
+  "food truck",
+  "pop-up restaurant",
+  "catering service",
+  "private dining",
+  "bar & grill",
+  "gastropub",
+  "wine bar",
+  "cocktail lounge",
+  "tasting menu",
+  "farm-to-table",
+  "vegan / plant-based",
+  "organic restaurant",
+  "halal restaurant",
+  "kosher restaurant",
+  "gluten-free friendly",
+];
+
+export const RESTAURANT_VERTICALS: string[] = [
+  "Italian cuisine",
+  "Japanese cuisine",
+  "Chinese cuisine",
+  "Mexican cuisine",
+  "Indian cuisine",
+  "Thai cuisine",
+  "French cuisine",
+  "Mediterranean cuisine",
+  "Middle Eastern cuisine",
+  "Korean cuisine",
+  "Vietnamese cuisine",
+  "Greek cuisine",
+  "Turkish cuisine",
+  "Lebanese cuisine",
+  "American cuisine",
+  "Spanish cuisine",
+  "Peruvian cuisine",
+  "Ethiopian cuisine",
+  "Brazilian cuisine",
+  "Filipino cuisine",
+  "fusion cuisine",
+  "seafood",
+  "BBQ / smokehouse",
+  "vegetarian",
+  "breakfast & brunch",
+  "desserts & sweets",
+  "healthy / wellness",
+  "comfort food",
+  "street food",
+  "international",
+];
+
+export const RESTAURANT_MODIFIERS: string[] = [
+  "Yelp", "Google Maps", "TripAdvisor", "OpenTable", "Resy",
+  "DoorDash", "Uber Eats", "Grubhub", "Deliveroo", "Talabat",
+  "Zomato", "TheFork", "Toast POS", "Square for Restaurants",
+  "Lightspeed", "Clover", "SevenRooms", "Olo", "ChowNow",
+  "MenuDrive", "BentoBox", "Popmenu", "TouchBistro", "Upserve",
+];
+
 export const DECISION_MAKERS: string[] = [
   "Founder",
   "Co-Founder",
@@ -371,6 +445,11 @@ export const BUDGET_ADJECTIVES: Record<PersonaType, Record<BudgetTier, string[]>
     budget: ["affordable", "budget-friendly", "cost-effective"],
     mid: ["mid-market", "scalable", "feature-rich"],
     premium: ["enterprise", "premium", "comprehensive"],
+  },
+  restaurant: {
+    budget: ["affordable", "budget-friendly", "cheap eats"],
+    mid: ["mid-range", "good value", "reasonably priced"],
+    premium: ["upscale", "fine dining", "luxury"],
   },
 };
 
@@ -498,6 +577,7 @@ function getModifierKnownList(personaType: PersonaType): string[] {
     case "marketing_agency": return MARKETING_CHANNELS;
     case "corporate_cards_provider": return CORPORATE_CARDS_MODIFIERS;
     case "expense_management_software": return EXPENSE_MANAGEMENT_MODIFIERS;
+    case "restaurant": return RESTAURANT_MODIFIERS;
     default: return AUTOMATION_KNOWN_TOOLS;
   }
 }
@@ -529,6 +609,7 @@ const SERVICE_VERB_PREFIXES: Record<PersonaType, string[]> = {
   automation_consultant: ["set up", "build", "automate"],
   corporate_cards_provider: ["provide", "offer", "manage"],
   expense_management_software: ["handle", "automate", "manage"],
+  restaurant: ["serve", "offer", "feature"],
 };
 
 export function ensureServiceVerb(service: string, personaType: PersonaType, rngPick?: <T>(arr: T[]) => T): string {
@@ -559,6 +640,12 @@ export function getPresetsForPersona(personaType: PersonaType) {
     return {
       services: EXPENSE_MANAGEMENT_SERVICES,
       verticals: EXPENSE_MANAGEMENT_VERTICALS,
+    };
+  }
+  if (personaType === "restaurant") {
+    return {
+      services: RESTAURANT_OFFERINGS,
+      verticals: RESTAURANT_VERTICALS,
     };
   }
   return {

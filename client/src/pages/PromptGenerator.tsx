@@ -850,13 +850,15 @@ function generateQuickPrompts(
     automation_consultant: "automation",
     corporate_cards_provider: "corporate cards",
     expense_management_software: "expense management",
+    restaurant: "restaurant",
   };
   const personaLabel = PERSONA_CORE_LABELS[persona] || persona.replace(/_/g, " ");
   const prompts: Prompt[] = [];
+  const customerSuffix = customerType ? ` for ${customerType}` : "";
 
   for (let i = 0; i < 10; i++) {
     const qualifier = QUICK_QUALIFIERS[i];
-    const text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType} for ${customerType} based in the ${location} or GCC region. Exclude US, European, or other non-regional providers; focus on providers headquartered or primarily operating in the Middle East / GCC.`;
+    const text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType}${customerSuffix} based in the ${location} or GCC region. Exclude US, European, or other non-regional providers; focus on providers headquartered or primarily operating in the Middle East / GCC.`;
     prompts.push({
       id: `quick_${i + 1}`,
       cluster: "direct",
@@ -1774,6 +1776,7 @@ export default function PromptGenerator() {
                           onValueChange={(v) => {
                             setPersona(v);
                             setQuickCustomerType("");
+                            setQuickSeedType(v === "restaurant" ? "restaurants" : "providers");
                           }}
                         >
                           <SelectTrigger className="bg-secondary/50" data-testid="select-quick-persona">
@@ -1784,6 +1787,7 @@ export default function PromptGenerator() {
                             <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
                             <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
                             <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
+                            <SelectItem value="restaurant">Restaurant</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1796,14 +1800,27 @@ export default function PromptGenerator() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="software">Software</SelectItem>
-                            <SelectItem value="providers">Providers</SelectItem>
-                            <SelectItem value="vendors">Vendors</SelectItem>
-                            <SelectItem value="platforms">Platforms</SelectItem>
-                            <SelectItem value="tools">Tools</SelectItem>
-                            <SelectItem value="solutions">Solutions</SelectItem>
-                            <SelectItem value="companies">Companies</SelectItem>
-                            <SelectItem value="agencies">Agencies</SelectItem>
+                            {persona === "restaurant" ? (
+                              <>
+                                <SelectItem value="restaurants">Restaurants</SelectItem>
+                                <SelectItem value="places">Places</SelectItem>
+                                <SelectItem value="spots">Spots</SelectItem>
+                                <SelectItem value="eateries">Eateries</SelectItem>
+                                <SelectItem value="dining options">Dining Options</SelectItem>
+                                <SelectItem value="cafes">Cafes</SelectItem>
+                              </>
+                            ) : (
+                              <>
+                                <SelectItem value="software">Software</SelectItem>
+                                <SelectItem value="providers">Providers</SelectItem>
+                                <SelectItem value="vendors">Vendors</SelectItem>
+                                <SelectItem value="platforms">Platforms</SelectItem>
+                                <SelectItem value="tools">Tools</SelectItem>
+                                <SelectItem value="solutions">Solutions</SelectItem>
+                                <SelectItem value="companies">Companies</SelectItem>
+                                <SelectItem value="agencies">Agencies</SelectItem>
+                              </>
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
@@ -1812,13 +1829,16 @@ export default function PromptGenerator() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Customer Type
+                          {persona === "restaurant" ? "Cuisine / Style" : "Customer Type"} <span className="text-muted-foreground/60 normal-case">(optional)</span>
                         </label>
                         <Select value={quickCustomerType} onValueChange={setQuickCustomerType}>
                           <SelectTrigger className="bg-secondary/50" data-testid="select-quick-customer-type">
-                            <SelectValue placeholder="Select customer type..." />
+                            <SelectValue placeholder={persona === "restaurant" ? "Any cuisine..." : "Any customer type..."} />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="__none__">
+                              <span className="text-muted-foreground italic">{persona === "restaurant" ? "Any cuisine" : "Any customer type"}</span>
+                            </SelectItem>
                             {(currentPresets?.verticals || []).map((v) => (
                               <SelectItem key={v} value={v}>{v}</SelectItem>
                             ))}
@@ -1864,17 +1884,14 @@ export default function PromptGenerator() {
                           toast({ title: "Brand name required", description: "Enter your brand name.", variant: "destructive" });
                           return;
                         }
-                        if (!quickCustomerType) {
-                          toast({ title: "Customer type required", description: "Select a customer type.", variant: "destructive" });
-                          return;
-                        }
                         if (!quickLocation.trim()) {
                           toast({ title: "Location required", description: "Enter a city or country.", variant: "destructive" });
                           return;
                         }
                         setQuickScoringResult(null);
                         setScoringResult(null);
-                        const quickPrompts = generateQuickPrompts(persona, quickSeedType, quickCustomerType, quickCount, quickLocation.trim());
+                        const effectiveCustomerType = quickCustomerType === "__none__" ? "" : quickCustomerType;
+                        const quickPrompts = generateQuickPrompts(persona, quickSeedType, effectiveCustomerType, quickCount, quickLocation.trim());
                         setQuickResult({
                           prompt_set_id: `quick-${Date.now()}`,
                           version: "pg_v1",
@@ -2044,6 +2061,9 @@ export default function PromptGenerator() {
                           </SelectItem>
                           <SelectItem value="expense_management_software">
                             Expense Management Software
+                          </SelectItem>
+                          <SelectItem value="restaurant">
+                            Restaurant
                           </SelectItem>
                         </SelectContent>
                       </Select>

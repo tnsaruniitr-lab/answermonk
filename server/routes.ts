@@ -15,7 +15,7 @@ import { z } from "zod";
 import { queryEngine } from "./engines";
 import { generatePromptSet } from "./promptgen/generator";
 import { BuyerIntentProfileSchema } from "./promptgen/types";
-import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, CORPORATE_CARDS_SERVICES, CORPORATE_CARDS_VERTICALS, CORPORATE_CARDS_MODIFIERS, EXPENSE_MANAGEMENT_SERVICES, EXPENSE_MANAGEMENT_VERTICALS, EXPENSE_MANAGEMENT_MODIFIERS, BUDGET_ADJECTIVES, DECISION_MAKERS } from "./promptgen/presets";
+import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, CORPORATE_CARDS_SERVICES, CORPORATE_CARDS_VERTICALS, CORPORATE_CARDS_MODIFIERS, EXPENSE_MANAGEMENT_SERVICES, EXPENSE_MANAGEMENT_VERTICALS, EXPENSE_MANAGEMENT_MODIFIERS, RESTAURANT_OFFERINGS, RESTAURANT_VERTICALS, RESTAURANT_MODIFIERS, BUDGET_ADJECTIVES, DECISION_MAKERS } from "./promptgen/presets";
 import { selectMiniPanel, selectMicroPanel } from "./scoring/panel";
 import { runScoring } from "./scoring/runner";
 import { insertSavedProfileSchema } from "@shared/schema";
@@ -248,6 +248,14 @@ export async function registerRoutes(
         modifiers: EXPENSE_MANAGEMENT_MODIFIERS,
         decision_makers: DECISION_MAKERS,
         budget_tiers: Object.keys(BUDGET_ADJECTIVES.expense_management_software),
+      });
+    } else if (persona === "restaurant") {
+      res.json({
+        services: RESTAURANT_OFFERINGS,
+        verticals: RESTAURANT_VERTICALS,
+        modifiers: RESTAURANT_MODIFIERS,
+        decision_makers: DECISION_MAKERS,
+        budget_tiers: Object.keys(BUDGET_ADJECTIVES.restaurant),
       });
     } else {
       res.json({
