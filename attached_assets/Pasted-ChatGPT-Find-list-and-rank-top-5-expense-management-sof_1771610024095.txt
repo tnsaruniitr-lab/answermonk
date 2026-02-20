@@ -1,0 +1,45 @@
+ChatGPT
+Find, list and rank top 5 expense management software for SMBs based in the UAE or GCC region. Exclude US, European, or other non-regional providers; focus on providers headquartered or primarily operating in the Middle East / GCC.
+## Top expense management software for SMBs in the UAE/GCC (regional providers only)
+
+Ranked for typical SMB fit in the UAE/GCC (local presence, regional banking/payment rails, VAT readiness, Arabic/English support where relevant, and breadth of spend controls + expense workflows).  
+
+### 1) **Pemo** (UAE)
+**Why it ranks #1:** Strong “all-in-one” spend management for SMBs (corporate cards + expense capture + approvals + controls) with a clear UAE-first operating model.  
+**Best for:** UAE/GCC SMBs wanting to replace reimbursements with controlled company cards and automated expense workflows.  
+**Typical strengths:** Real-time spend controls, receipt capture, approval flows, reporting, integrations (varies by plan), local market focus.
+
+### 2) **Mamo Business** (UAE)
+**Why it ranks #2:** UAE-based business finance platform with expense/card capabilities that fit smaller teams and owner-led SMBs, plus broader pay/collect features.  
+**Best for:** SMBs that want expense management alongside payments/collections in one regional platform.  
+**Typical strengths:** Simple setup, local operations, business spend tools, practical for SMEs that don’t want heavy ERP-style complexity.
+
+### 3) **Foloosi** (UAE)
+**Why it ranks #3:** UAE fintech known for merchant/payment services with business spend/expense tooling that can suit SMBs already using its ecosystem.  
+**Best for:** SMBs that want expense management connected to local payment operations.  
+**Typical strengths:** Regional support, payments adjacency, useful for companies that want spend visibility tied to transactions.
+
+### 4) **Zoho Expense (Middle East operations – UAE/Saudi presence via Zoho MENA)** (UAE/GCC operating hub)
+**Why it ranks #4 (with caveat):** Strong expense product and widely used by SMBs in the region; however, Zoho is not GCC-headquartered (India-origin). Included only because it is *primarily operated/sold locally via MENA offices* and is commonly deployed by GCC SMBs.  
+**Best for:** SMBs that want mature expense automation without needing local-issued corporate cards.  
+**Typical strengths:** Robust policy rules, mileage/per diem, multi-currency, approvals, accounting integrations.
+
+### 5) **Bayzat (UAE) – expense claims as part of HR/benefits workflows**  
+**Why it ranks #5:** Not a pure-play expense platform, but many UAE SMBs use Bayzat for HR and can manage reimbursements/claims-like workflows within broader employee admin.  
+**Best for:** SMBs that want “good enough” expense reimbursement handling inside an HR platform rather than a dedicated spend stack.  
+**Typical strengths:** UAE SMB focus, employee-centric workflows, local support.
+
+---
+
+## Notes / constraints
+- You asked to **exclude US/European/non-regional providers**; the list prioritizes **UAE/GCC-headquartered** companies.  
+- Some categories in the region blur between **expense management** and **spend management** (cards + controls + expenses). I ranked higher the tools that most directly solve day-to-day SMB expense pain (controls, capture, approvals, reporting) with strong local operations.
+
+---
+
+## If you want a tighter “expense-only” shortlist
+Tell me:
+1) Country (UAE only vs multi-GCC),  
+2) Need for **corporate cards** (yes/no),  
+3) Accounting system (Xero, QuickBooks, Zoho Books, Tally, SAP B1, etc.),  
+and I’ll re-rank with a more precise fit-for-purpose recommendation.
