@@ -1252,8 +1252,13 @@ export default function PromptGenerator() {
       const res = await apiRequest("POST", "/api/multisegment/sessions", session);
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/multisegment/sessions"] });
+      toast({ title: "Session saved", description: `Multi-segment analysis saved for ${variables.brandName}.` });
+    },
+    onError: (err: any) => {
+      console.error("Failed to save V2 session:", err);
+      toast({ title: "Save failed", description: "Results are visible but couldn't be saved to history. Try again.", variant: "destructive" });
     },
   });
 
@@ -2789,7 +2794,6 @@ export default function PromptGenerator() {
                                 promptsPerSegment: v2PromptsPerSegment,
                                 segments: segmentsToSave,
                               });
-                              toast({ title: "Session saved", description: `Multi-segment analysis saved for ${brandName.trim()}.` });
                             }
                           }}
                           disabled={v2IsAnalysing}
