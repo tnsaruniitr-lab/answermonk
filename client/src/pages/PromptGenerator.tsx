@@ -1022,6 +1022,8 @@ export default function PromptGenerator() {
     location: string;
     resultCount: number;
     prompts: Prompt[] | null;
+    scoringResult: ScoringResponse | null;
+    isScoring: boolean;
   }
 
   const makeSegment = (): V2Segment => ({
@@ -1032,10 +1034,13 @@ export default function PromptGenerator() {
     location: "",
     resultCount: 5,
     prompts: null,
+    scoringResult: null,
+    isScoring: false,
   });
 
   const [v2Segments, setV2Segments] = useState<V2Segment[]>([makeSegment()]);
   const [v2PromptsPerSegment, setV2PromptsPerSegment] = useState(3);
+  const [v2IsAnalysing, setV2IsAnalysing] = useState(false);
 
   const updateSegment = (id: string, patch: Partial<V2Segment>) => {
     setV2Segments((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -2257,6 +2262,42 @@ export default function PromptGenerator() {
                                     </div>
                                   ))}
                                 </div>
+
+                                {seg.isScoring && (
+                                  <div className="flex items-center gap-2 pt-2 text-xs text-muted-foreground">
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                                    <span>Scoring across 3 AI engines...</span>
+                                  </div>
+                                )}
+
+                                {seg.scoringResult && (
+                                  <div className="pt-3 border-t space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <BarChart3 className="w-3.5 h-3.5 text-primary" />
+                                      <span className="text-xs font-medium">Results</span>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2">
+                                      <div className="bg-secondary/50 rounded-md p-2 text-center">
+                                        <div className="text-lg font-bold">{Math.round((seg.scoringResult.score.appearance_rate || 0) * 100)}%</div>
+                                        <div className="text-[10px] text-muted-foreground">Appearance</div>
+                                      </div>
+                                      <div className="bg-secondary/50 rounded-md p-2 text-center">
+                                        <div className="text-lg font-bold">{Math.round((seg.scoringResult.score.primary_rate || 0) * 100)}%</div>
+                                        <div className="text-[10px] text-muted-foreground">Primary</div>
+                                      </div>
+                                      <div className="bg-secondary/50 rounded-md p-2 text-center">
+                                        <div className="text-lg font-bold">{seg.scoringResult.score.avg_rank ? seg.scoringResult.score.avg_rank.toFixed(1) : "—"}</div>
+                                        <div className="text-[10px] text-muted-foreground">Avg Rank</div>
+                                      </div>
+                                    </div>
+                                    {seg.scoringResult.score.top_competitors && seg.scoringResult.score.top_competitors.length > 0 && (
+                                      <div className="text-xs text-muted-foreground">
+                                        <span className="font-medium">Top competitors: </span>
+                                        {seg.scoringResult.score.top_competitors.slice(0, 5).map((c) => c.name).join(", ")}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
                               </motion.div>
                             )}
                           </Card>
@@ -2276,39 +2317,90 @@ export default function PromptGenerator() {
                     </div>
 
                     <div className="flex gap-3">
-                      <Button
-                        type="button"
-                        onClick={() => {
-                          if (!brandName.trim()) {
-                            toast({ title: "Brand name required", description: "Enter your brand name.", variant: "destructive" });
-                            return;
-                          }
-                          const emptyLocation = v2Segments.find((s) => !s.location.trim());
-                          if (emptyLocation) {
-                            const idx = v2Segments.indexOf(emptyLocation) + 1;
-                            toast({ title: `Segment ${idx} missing location`, description: "Enter a location for each segment.", variant: "destructive" });
-                            return;
-                          }
-                          setV2Segments((prev) =>
-                            prev.map((seg) => {
-                              const effectiveCustomerType = seg.customerType === "__none__" ? "" : seg.customerType;
-                              const prompts = generateQuickPrompts(seg.persona, seg.seedType, effectiveCustomerType, seg.resultCount, seg.location.trim(), v2PromptsPerSegment);
-                              return { ...seg, prompts };
-                            })
-                          );
-                        }}
-                        className="flex-1"
-                        data-testid="button-v2-generate-all"
-                      >
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Generate Prompts ({v2Segments.length} segment{v2Segments.length > 1 ? "s" : ""} x {v2PromptsPerSegment} prompts)
-                      </Button>
+                      {!v2Segments.every((s) => s.prompts) ? (
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            if (!brandName.trim()) {
+                              toast({ title: "Brand name required", description: "Enter your brand name.", variant: "destructive" });
+                              return;
+                            }
+                            const emptyLocation = v2Segments.find((s) => !s.location.trim());
+                            if (emptyLocation) {
+                              const idx = v2Segments.indexOf(emptyLocation) + 1;
+                              toast({ title: `Segment ${idx} missing location`, description: "Enter a location for each segment.", variant: "destructive" });
+                              return;
+                            }
+                            setV2Segments((prev) =>
+                              prev.map((seg) => {
+                                const effectiveCustomerType = seg.customerType === "__none__" ? "" : seg.customerType;
+                                const prompts = generateQuickPrompts(seg.persona, seg.seedType, effectiveCustomerType, seg.resultCount, seg.location.trim(), v2PromptsPerSegment);
+                                return { ...seg, prompts, scoringResult: null, isScoring: false };
+                              })
+                            );
+                          }}
+                          className="flex-1"
+                          data-testid="button-v2-generate-all"
+                        >
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Generate Prompts ({v2Segments.length} segment{v2Segments.length > 1 ? "s" : ""} x {v2PromptsPerSegment} prompts)
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          onClick={async () => {
+                            if (!brandName.trim()) return;
+                            setV2IsAnalysing(true);
+                            for (let i = 0; i < v2Segments.length; i++) {
+                              const seg = v2Segments[i];
+                              if (!seg.prompts) continue;
+                              setV2Segments((prev) => prev.map((s) => s.id === seg.id ? { ...s, isScoring: true } : s));
+                              try {
+                                const res = await apiRequest("POST", "/api/scoring/run", {
+                                  prompts: seg.prompts,
+                                  brand_name: brandName.trim(),
+                                  brand_domain: brandDomain.trim() || undefined,
+                                  mode: "quick",
+                                  profile: {
+                                    persona: seg.persona,
+                                    services: [],
+                                    verticals: [seg.customerType].filter(Boolean),
+                                    geo: seg.location.trim() || null,
+                                  },
+                                });
+                                const data = await res.json() as ScoringResponse;
+                                setV2Segments((prev) => prev.map((s) => s.id === seg.id ? { ...s, scoringResult: data, isScoring: false } : s));
+                              } catch (err: any) {
+                                toast({ title: `Segment ${i + 1} scoring failed`, description: err.message || "Something went wrong.", variant: "destructive" });
+                                setV2Segments((prev) => prev.map((s) => s.id === seg.id ? { ...s, isScoring: false } : s));
+                              }
+                            }
+                            setV2IsAnalysing(false);
+                          }}
+                          disabled={v2IsAnalysing}
+                          className="flex-1"
+                          data-testid="button-v2-analyse-all"
+                        >
+                          {v2IsAnalysing ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Analysing {v2Segments.length} segment{v2Segments.length > 1 ? "s" : ""} across 3 AI engines...
+                            </>
+                          ) : (
+                            <>
+                              <BarChart3 className="w-4 h-4 mr-2" />
+                              Analyse ({v2Segments.length} segment{v2Segments.length > 1 ? "s" : ""} x {v2PromptsPerSegment} prompts x 3 engines)
+                            </>
+                          )}
+                        </Button>
+                      )}
                       {v2Segments.some((s) => s.prompts) && (
                         <Button
                           type="button"
                           variant="outline"
+                          disabled={v2IsAnalysing}
                           onClick={() => {
-                            setV2Segments((prev) => prev.map((s) => ({ ...s, prompts: null })));
+                            setV2Segments((prev) => prev.map((s) => ({ ...s, prompts: null, scoringResult: null, isScoring: false })));
                           }}
                           data-testid="button-v2-clear-all"
                         >
