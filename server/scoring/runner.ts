@@ -240,11 +240,9 @@ async function queryChatGPT(prompt: string): Promise<EngineResponse> {
       citations.push(...parseCitationsFromMarkdown(text));
     }
 
-    const webSearchStatus: WebSearchStatus = citations.length > 0
+    const webSearchStatus: WebSearchStatus = webSearchToolUsed
       ? "grounded"
-      : webSearchToolUsed
-        ? "ungrounded"
-        : "ungrounded";
+      : "ungrounded";
 
     return { text, citations, webSearchStatus };
   } catch (err) {

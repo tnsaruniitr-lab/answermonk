@@ -22,6 +22,7 @@ import {
   Eye,
   Target,
   TrendingUp,
+  AlertTriangle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
@@ -43,6 +44,8 @@ interface RawRun {
   candidates: string[];
   brand_found: boolean;
   brand_rank: number | null;
+  webSearchStatus?: "grounded" | "ungrounded" | "fallback" | "not_applicable";
+  fallbackReason?: string;
 }
 
 interface SegmentData {
@@ -251,6 +254,40 @@ function SegmentCard({ seg, idx, brandName }: { seg: SegmentData; idx: number; b
                   </div>
                 )}
 
+                {rawRuns.length > 0 && (() => {
+                  const groundingSummary = new Map<string, { grounded: number; ungrounded: number; fallback: number; total: number }>();
+                  for (const r of rawRuns) {
+                    if (r.engine === "claude") continue;
+                    const entry = groundingSummary.get(r.engine) || { grounded: 0, ungrounded: 0, fallback: 0, total: 0 };
+                    entry.total++;
+                    if (r.webSearchStatus === "grounded") entry.grounded++;
+                    else if (r.webSearchStatus === "fallback") entry.fallback++;
+                    else if (r.webSearchStatus === "ungrounded") entry.ungrounded++;
+                    groundingSummary.set(r.engine, entry);
+                  }
+                  const hasIssues = [...groundingSummary.values()].some(e => e.ungrounded > 0 || e.fallback > 0);
+                  if (!hasIssues) return null;
+                  return (
+                    <div className="bg-orange-50 dark:bg-orange-900/10 rounded-lg p-2.5 space-y-1" data-testid="grounding-summary">
+                      <div className="text-[10px] uppercase tracking-wide text-orange-700 dark:text-orange-400 font-medium flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        Web Search Grounding
+                      </div>
+                      <div className="flex gap-3">
+                        {[...groundingSummary.entries()].map(([engine, s]) => (
+                          <div key={engine} className="text-[11px]">
+                            <span className="font-medium">{ENGINE_LABELS[engine] || engine}: </span>
+                            {s.grounded > 0 && <span className="text-green-700 dark:text-green-400">{s.grounded} grounded</span>}
+                            {s.ungrounded > 0 && <span className="text-orange-700 dark:text-orange-400">{s.grounded > 0 ? ", " : ""}{s.ungrounded} ungrounded</span>}
+                            {s.fallback > 0 && <span className="text-red-700 dark:text-red-400">{(s.grounded > 0 || s.ungrounded > 0) ? ", " : ""}{s.fallback} fallback</span>}
+                            <span className="text-muted-foreground"> / {s.total}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {(() => {
                   const brandEntry = { name: brandName, share: score.appearance_rate, isBrand: true as const };
                   const allEntries = [brandEntry, ...score.competitors.map(c => ({ ...c, isBrand: false as const }))]
@@ -331,8 +368,27 @@ function SegmentCard({ seg, idx, brandName }: { seg: SegmentData; idx: number; b
                             <Card key={i} className="p-3 text-xs space-y-1">
                               <div className="flex items-center gap-2">
                                 <Badge variant="outline" className="text-[9px]">{ENGINE_LABELS[r.engine] || r.engine}</Badge>
+                                {r.webSearchStatus && r.webSearchStatus !== "not_applicable" && (
+                                  <Badge
+                                    className={`text-[8px] px-1 py-0 ${
+                                      r.webSearchStatus === "grounded"
+                                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                        : r.webSearchStatus === "fallback"
+                                          ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                          : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                                    }`}
+                                    data-testid={`badge-search-status-${i}`}
+                                  >
+                                    {r.webSearchStatus === "grounded" ? "Web Search" : r.webSearchStatus === "fallback" ? "Fallback" : "No Search"}
+                                  </Badge>
+                                )}
                                 <span className="text-muted-foreground truncate">{r.prompt_text || r.prompt_id}</span>
                               </div>
+                              {r.webSearchStatus === "fallback" && r.fallbackReason && (
+                                <div className="text-[10px] text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 rounded px-2 py-0.5">
+                                  Fallback reason: {r.fallbackReason}
+                                </div>
+                              )}
                               <pre className="whitespace-pre-wrap text-[11px] text-muted-foreground leading-relaxed max-h-[200px] overflow-y-auto">
                                 {r.raw_text}
                               </pre>

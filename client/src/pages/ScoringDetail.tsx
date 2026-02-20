@@ -69,6 +69,8 @@ interface RawRun {
   candidates: string[];
   brand_found: boolean;
   brand_rank: number | null;
+  webSearchStatus?: "grounded" | "ungrounded" | "fallback" | "not_applicable";
+  fallbackReason?: string;
 }
 
 const ENGINE_LABELS: Record<string, string> = {
@@ -283,7 +285,22 @@ function RawRunsSection({ runs }: { runs: RawRun[] }) {
                   {promptRuns.map((r) => (
                     <div key={r.engine} className="space-y-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-medium">{ENGINE_LABELS[r.engine] || r.engine}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-medium">{ENGINE_LABELS[r.engine] || r.engine}</span>
+                          {r.webSearchStatus && r.webSearchStatus !== "not_applicable" && (
+                            <span
+                              className={`text-[8px] px-1 py-0 rounded ${
+                                r.webSearchStatus === "grounded"
+                                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                  : r.webSearchStatus === "fallback"
+                                    ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                    : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                              }`}
+                            >
+                              {r.webSearchStatus === "grounded" ? "Web Search" : r.webSearchStatus === "fallback" ? "Fallback" : "No Search"}
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2">
                           {r.brand_found && (
                             <span className="text-[10px] text-emerald-600 dark:text-emerald-400">
