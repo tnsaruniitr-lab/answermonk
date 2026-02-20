@@ -19,16 +19,23 @@ export async function decomposeQuery(
   services: string[],
   geo: string | null,
   verticals: string[],
+  promptTexts?: string[],
 ): Promise<QueryDimensions> {
   const contextParts = [
     `Brand: ${brandName}`,
-    `Persona/Industry: ${persona}`,
-    `Services: ${services.join(", ")}`,
+    persona && persona !== "general" ? `Persona/Industry: ${persona}` : null,
+    services.length > 0 ? `Services: ${services.join(", ")}` : null,
     geo ? `Location: ${geo}` : null,
     verticals.length > 0 ? `Target verticals: ${verticals.join(", ")}` : null,
   ].filter(Boolean).join("\n");
 
-  const rawQuery = `best ${services[0] || persona.replace(/_/g, " ")} ${verticals[0] ? `for ${verticals[0]}` : ""} ${geo || ""}`.trim();
+  const samplePrompts = promptTexts && promptTexts.length > 0
+    ? [...new Set(promptTexts)].slice(0, 5).join("\n- ")
+    : null;
+
+  const rawQuery = samplePrompts
+    ? promptTexts![0]
+    : `best ${services[0] || persona.replace(/_/g, " ")} ${verticals[0] ? `for ${verticals[0]}` : ""} ${geo || ""}`.trim();
 
   try {
     const response = await openai.chat.completions.create({
@@ -43,9 +50,10 @@ export async function decomposeQuery(
           role: "user",
           content: `Given this brand context:
 ${contextParts}
+${samplePrompts ? `\nSample search prompts used in this analysis:\n- ${samplePrompts}` : ""}
 
 Decompose the implicit search intent into exactly 4 dimensions:
-1. category: The product/service category being searched (e.g., "corporate cards", "marketing agency", "SEO services")
+1. category: The product/service category being searched (e.g., "corporate cards", "marketing agency", "SEO services"). Infer from the actual prompts if available.
 2. geo: The geographic constraint (e.g., "UAE", "Dubai", "global"). Use "global" if no specific location.
 3. audience: The target audience/customer type (e.g., "startups", "SMEs", "medical clinics"). Use "general" if not specific.
 4. qualifier: The evaluation criterion (e.g., "best", "top-rated", "affordable"). Default to "best".

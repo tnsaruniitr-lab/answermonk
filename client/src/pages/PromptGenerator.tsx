@@ -1051,7 +1051,7 @@ export default function PromptGenerator() {
   const {
     mutate: runScoring,
     isPending: isScoring,
-  } = useMutation<ScoringResponse, Error, { prompts: Prompt[]; brand_name: string; brand_domain?: string; mode: "micro" | "quick" | "full" }>({
+  } = useMutation<ScoringResponse, Error, { prompts: Prompt[]; brand_name: string; brand_domain?: string; mode: "micro" | "quick" | "full"; profile?: { persona: string; services: string[]; verticals: string[]; geo: string | null } }>({
     mutationFn: async (body) => {
       const res = await apiRequest("POST", "/api/scoring/run", body);
       return res.json();
@@ -1071,7 +1071,7 @@ export default function PromptGenerator() {
   const {
     mutate: runQuickScoring,
     isPending: isQuickScoring,
-  } = useMutation<ScoringResponse, Error, { prompts: Prompt[]; brand_name: string; brand_domain?: string; mode: "micro" | "quick" | "full" }>({
+  } = useMutation<ScoringResponse, Error, { prompts: Prompt[]; brand_name: string; brand_domain?: string; mode: "micro" | "quick" | "full"; profile?: { persona: string; services: string[]; verticals: string[]; geo: string | null } }>({
     mutationFn: async (body) => {
       const res = await apiRequest("POST", "/api/scoring/run", body);
       return res.json();
@@ -1309,6 +1309,12 @@ export default function PromptGenerator() {
       brand_name: brandName.trim(),
       brand_domain: brandDomain.trim() || undefined,
       mode: simpleMode ? "full" : scoringMode,
+      profile: {
+        persona,
+        services,
+        verticals,
+        geo: geo || null,
+      },
     });
   };
 
@@ -1933,6 +1939,12 @@ export default function PromptGenerator() {
                                 brand_name: brandName.trim(),
                                 brand_domain: brandDomain.trim() || undefined,
                                 mode: "full",
+                                profile: {
+                                  persona,
+                                  services,
+                                  verticals,
+                                  geo: geo || null,
+                                },
                               });
                             }}
                             disabled={isQuickScoring}

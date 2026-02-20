@@ -17,6 +17,7 @@ export interface InsightsInput {
   citationsByEngine: Record<string, string[]>;
   competitorNames: string[];
   aiResponses: Record<string, string[]>;
+  promptTexts?: string[];
 }
 
 export interface InsightsProgress {
@@ -39,10 +40,11 @@ export async function runInsightsAnalysis(
     citationsByEngine,
     competitorNames,
     aiResponses,
+    promptTexts,
   } = input;
 
   onProgress?.({ stage: "decompose", percent: 5, message: "Decomposing search intent..." });
-  const dimensions = await decomposeQuery(brandName, persona, services, geo, verticals);
+  const dimensions = await decomposeQuery(brandName, persona, services, geo, verticals, promptTexts);
   console.log(`[insights] Dimensions: ${JSON.stringify(dimensions)}`);
 
   const allCitationUrls = Object.values(citationsByEngine).flat();

@@ -293,6 +293,12 @@ export async function registerRoutes(
       modifier_included: z.boolean(),
       geo_included: z.boolean(),
     })),
+    profile: z.object({
+      persona: z.string(),
+      services: z.array(z.string()),
+      verticals: z.array(z.string()),
+      geo: z.string().nullable(),
+    }).optional(),
   });
 
   app.post("/api/scoring/run", async (req, res) => {
@@ -340,6 +346,7 @@ export async function registerRoutes(
               match_tier: r.match.brand.match_tier,
             })),
             brand_identity: result.brand_identity,
+            profile: parsed.profile || null,
           } as any,
         });
 
@@ -546,6 +553,12 @@ export async function registerRoutes(
             brand_identity: result.brand_identity,
             panel_context: parsed.panel_context,
             aliases: parsed.aliases,
+            profile: {
+              persona: "panel",
+              services: (parsed.panel_context as any)?.service_keywords || [],
+              verticals: [(parsed.panel_context as any)?.industry || ""],
+              geo: parsed.city || null,
+            },
           } as any,
         });
 
@@ -582,10 +595,6 @@ export async function registerRoutes(
 
   const InsightsRequestSchema = z.object({
     jobId: z.number().int().positive(),
-    persona: z.string().default("marketing_agency"),
-    services: z.array(z.string()).default([]),
-    verticals: z.array(z.string()).default([]),
-    geo: z.string().nullable().default(null),
     competitorNames: z.array(z.string()).default([]),
   });
 
@@ -606,6 +615,16 @@ export async function registerRoutes(
 
       const rawData = job.rawData as any;
       const runs = rawData?.runs || [];
+
+      const storedProfile = rawData?.profile || {};
+      const persona = storedProfile.persona || "general";
+      const services: string[] = storedProfile.services || [];
+      const verticals: string[] = storedProfile.verticals || [];
+      const geo: string | null = storedProfile.geo || null;
+
+      const promptTexts: string[] = runs
+        .map((r: any) => r.prompt_text)
+        .filter((t: string) => t && t.length > 0);
 
       const citationsByEngine: Record<string, string[]> = {};
       const aiResponses: Record<string, string[]> = {};
@@ -636,13 +655,14 @@ export async function registerRoutes(
         jobId: parsed.jobId,
         brandName: job.brandName,
         brandDomain: job.brandDomain || null,
-        persona: parsed.persona,
-        services: parsed.services,
-        verticals: parsed.verticals,
-        geo: parsed.geo,
+        persona,
+        services,
+        verticals,
+        geo,
         citationsByEngine,
         competitorNames,
         aiResponses,
+        promptTexts,
       };
 
       const report = await runInsightsAnalysis(input, (progress) => {
