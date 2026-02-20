@@ -432,17 +432,20 @@ function SegmentCard({
                 Behind
               </Badge>
             )}
-            {seg.evidence.factors.map(f => {
-              const ranks = getRanks(f.brandLabel, f.competitorALabel, f.competitorBLabel);
-              const rank = ranks.brand;
-              const style = medalStyles[rank] || medalStyles[3];
-              return (
-                <span key={f.factor} className={`inline-flex items-center gap-0.5 text-[10px] font-semibold ${style.text}`}>
-                  {rank === 1 ? <Crown className={`w-3 h-3 ${style.icon}`} /> : <Medal className={`w-3 h-3 ${style.icon}`} />}
-                  {rankLabel[rank]}
-                </span>
-              );
-            })}
+            <div className="flex items-center gap-1.5 ml-1">
+              {seg.evidence.factors.map(f => {
+                const ranks = getRanks(f.brandLabel, f.competitorALabel, f.competitorBLabel);
+                const rank = ranks.brand;
+                const Icon = factorIcons[f.factor] || Target;
+                const dotColor = rank === 1 ? "bg-amber-400" : rank === 2 ? "bg-slate-400" : "bg-orange-400";
+                return (
+                  <span key={f.factor} className="inline-flex items-center gap-0.5 text-muted-foreground" title={`${f.factorLabel}: ${rankLabel[rank]}`}>
+                    <Icon className="w-3 h-3" />
+                    <span className={`w-2 h-2 rounded-full ${dotColor}`} />
+                  </span>
+                );
+              })}
+            </div>
           </div>
         </CollapsibleTrigger>
 
