@@ -1,0 +1,102 @@
+What will work
+✅ Removing the hard “comparison surface” gate
+
+Yes. This is the main cause of the collapse. If you process only isComparisonSurface, you’ll always drop most citations because many citations are single-brand eligibility/authority pages.
+
+So: process all accessible pages (or at least all non-social pages) and classify them into surface types.
+
+✅ Showing “low relevance” sources (but sorted down)
+
+Yes. Surfacing them makes the analysis auditable and stops the report from hiding 95% of data. Display 25 with type labels: good.
+
+✅ Brand-owned analysis (positioning gap detection)
+
+Yes. This is high-value and cheap.
+
+What will NOT work as stated (direly needed correction)
+❌ “Process ALL accessible pages regardless of category”
+
+If you literally include everything, you’ll pull in a lot of garbage that will:
+
+inflate crawl time
+
+dilute relevance
+
+confuse users (random pages with 0 brands)
+
+generate wrong action items (“get listed on X”) from irrelevant pages
+
+The worst offenders are:
+
+social profiles (LinkedIn/Twitter)
+
+wrapper/redirect URLs (Vertex grounding redirects)
+
+generic directories that don’t mention your category
+
+pages that are not in the same topic space (because LLM citations can be noisy)
+
+Better rule (minimal):
+Process all pages except:
+
+redirect wrappers (resolve to final URL first)
+
+pure social/profile pages (skip crawl, just record as “social mention exists”)
+
+inaccessible / non-textual pages
+
+That still gives you ~60–70 pages analyzed, but avoids trash.
+
+The key change you’re missing
+
+You’ve fixed filtering, but you still need surface-type-specific extraction, otherwise you’ll analyze 60–70 pages with the wrong lens and end up with noise.
+
+Required: categorize into surface types and run different extraction
+
+Comparison: multi-brand mentions, position in list, pros/cons, pricing mentions
+
+Eligibility (single-brand product pages): category/geo/audience confirmation, feature specificity, onboarding/pricing signals
+
+Authority (news, Crunchbase/CBInsights): funding, partnerships, licensing, “based in Dubai/UAE”, customer count
+
+Brand-owned / competitor-owned: positioning, keyword clarity, proof, geo claims, structured FAQs
+
+If you don’t do this, your “relevance” will still misfire and you’ll still see many “0 brands found”.
+
+Your “Net Effect” table — with one adjustment
+Stage	Before	After (recommended)
+URLs collected	138	138
+After URL dedup	~70	~70
+Pages analyzed	~10–15	~45–70 (depending on skip rules)
+Sources shown in UI	6	25 (+ “Show all”)
+Brand site analyzed	No	Yes
+
+The only change is: don’t promise “all 60–70” if you’re skipping social + wrappers. But you’ll still be in the right range and the UI won’t look broken.
+
+Concrete implementation changes (quick)
+
+Replace isComparisonSurface filter with:
+
+surfaceType in {comparison, eligibility, authority, brand_owned, competitor_owned}
+
+skip social and redirect_wrapper (after redirect resolution)
+
+Reporter
+
+don’t filter out overallRelevance === "low"
+
+instead: sort by (tier, relevance, surfaceType priority, cross-engine) and show top 25
+
+add “Show all sources” expandable list
+
+Brand-owned analysis
+
+check presence + prominence for {category, geo, audience} in:
+
+title/H1/H2
+
+first 200 words
+
+FAQs/pricing sections
+
+output evidence snippets
