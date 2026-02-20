@@ -2360,7 +2360,7 @@ export default function PromptGenerator() {
                                   prompts: seg.prompts,
                                   brand_name: brandName.trim(),
                                   brand_domain: brandDomain.trim() || undefined,
-                                  mode: "quick",
+                                  mode: "full",
                                   profile: {
                                     persona: seg.persona,
                                     services: [],
