@@ -1025,6 +1025,7 @@ function generateQuickPrompts(
     accounting_automation: "accounting automation",
     invoice_management: "invoice management",
     restaurant: "restaurant",
+    construction_management: "construction management software",
   };
   const personaLabel = PERSONA_CORE_LABELS[persona] || persona.replace(/_/g, " ");
   const prompts: Prompt[] = [];
@@ -2107,7 +2108,10 @@ export default function PromptGenerator() {
                             <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
                             <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
                             <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
+                            <SelectItem value="accounting_automation">Accounting Automation</SelectItem>
+                            <SelectItem value="invoice_management">Invoice Management</SelectItem>
                             <SelectItem value="restaurant">Restaurant</SelectItem>
+                            <SelectItem value="construction_management">Construction Management Software</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -2487,6 +2491,7 @@ export default function PromptGenerator() {
                                     <SelectItem value="accounting_automation">Accounting Automation</SelectItem>
                                     <SelectItem value="invoice_management">Invoice Management</SelectItem>
                                     <SelectItem value="restaurant">Restaurant</SelectItem>
+                                    <SelectItem value="construction_management">Construction Management Software</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>

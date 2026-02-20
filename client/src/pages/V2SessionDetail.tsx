@@ -191,6 +191,7 @@ function SegmentCard({ seg, idx, brandName }: { seg: SegmentData; idx: number; b
     accounting_automation: "accounting automation",
     invoice_management: "invoice management",
     restaurant: "restaurant",
+    construction_management: "construction management software",
   };
   const formatSeedType = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
   const personaLabel = seg.persona ? (PERSONA_CORE_LABELS[seg.persona] || seg.persona.replace(/_/g, " ")) : "";

@@ -15,7 +15,7 @@ import { z } from "zod";
 import { queryEngine } from "./engines";
 import { generatePromptSet } from "./promptgen/generator";
 import { BuyerIntentProfileSchema } from "./promptgen/types";
-import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, CORPORATE_CARDS_SERVICES, CORPORATE_CARDS_VERTICALS, CORPORATE_CARDS_MODIFIERS, EXPENSE_MANAGEMENT_SERVICES, EXPENSE_MANAGEMENT_VERTICALS, EXPENSE_MANAGEMENT_MODIFIERS, ACCOUNTING_AUTOMATION_SERVICES, ACCOUNTING_AUTOMATION_VERTICALS, ACCOUNTING_AUTOMATION_MODIFIERS, INVOICE_MANAGEMENT_SERVICES, INVOICE_MANAGEMENT_VERTICALS, INVOICE_MANAGEMENT_MODIFIERS, RESTAURANT_OFFERINGS, RESTAURANT_VERTICALS, RESTAURANT_MODIFIERS, BUDGET_ADJECTIVES, DECISION_MAKERS } from "./promptgen/presets";
+import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, CORPORATE_CARDS_SERVICES, CORPORATE_CARDS_VERTICALS, CORPORATE_CARDS_MODIFIERS, EXPENSE_MANAGEMENT_SERVICES, EXPENSE_MANAGEMENT_VERTICALS, EXPENSE_MANAGEMENT_MODIFIERS, ACCOUNTING_AUTOMATION_SERVICES, ACCOUNTING_AUTOMATION_VERTICALS, ACCOUNTING_AUTOMATION_MODIFIERS, INVOICE_MANAGEMENT_SERVICES, INVOICE_MANAGEMENT_VERTICALS, INVOICE_MANAGEMENT_MODIFIERS, RESTAURANT_OFFERINGS, RESTAURANT_VERTICALS, RESTAURANT_MODIFIERS, CONSTRUCTION_MANAGEMENT_SERVICES, CONSTRUCTION_MANAGEMENT_VERTICALS, CONSTRUCTION_MANAGEMENT_MODIFIERS, BUDGET_ADJECTIVES, DECISION_MAKERS } from "./promptgen/presets";
 import { selectMiniPanel, selectMicroPanel } from "./scoring/panel";
 import { runScoring } from "./scoring/runner";
 import { insertSavedProfileSchema, insertMultiSegmentSessionSchema, insertSavedV2ConfigSchema } from "@shared/schema";
@@ -274,6 +274,14 @@ export async function registerRoutes(
         decision_makers: DECISION_MAKERS,
         budget_tiers: Object.keys(BUDGET_ADJECTIVES.restaurant),
       });
+    } else if (persona === "construction_management") {
+      res.json({
+        services: CONSTRUCTION_MANAGEMENT_SERVICES,
+        verticals: CONSTRUCTION_MANAGEMENT_VERTICALS,
+        modifiers: CONSTRUCTION_MANAGEMENT_MODIFIERS,
+        decision_makers: DECISION_MAKERS,
+        budget_tiers: Object.keys(BUDGET_ADJECTIVES.construction_management),
+      });
     } else {
       res.json({
         marketing_agency: {
@@ -316,6 +324,12 @@ export async function registerRoutes(
           services: RESTAURANT_OFFERINGS,
           verticals: RESTAURANT_VERTICALS,
           modifiers: RESTAURANT_MODIFIERS,
+          decision_makers: DECISION_MAKERS,
+        },
+        construction_management: {
+          services: CONSTRUCTION_MANAGEMENT_SERVICES,
+          verticals: CONSTRUCTION_MANAGEMENT_VERTICALS,
+          modifiers: CONSTRUCTION_MANAGEMENT_MODIFIERS,
           decision_makers: DECISION_MAKERS,
         },
       });

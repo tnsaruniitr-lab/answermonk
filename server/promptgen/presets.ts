@@ -463,6 +463,59 @@ export const RESTAURANT_MODIFIERS: string[] = [
   "MenuDrive", "BentoBox", "Popmenu", "TouchBistro", "Upserve",
 ];
 
+export const CONSTRUCTION_MANAGEMENT_SERVICES: string[] = [
+  "project management",
+  "construction scheduling",
+  "BOQ management",
+  "change order management",
+  "daily progress reporting",
+  "snag management",
+  "procurement management",
+  "vendor order management",
+  "material management",
+  "site survey",
+  "design management",
+  "pre-sales CRM",
+  "bill of materials",
+  "installed progress tracking",
+  "site expense tracking",
+  "purchase requests",
+  "rate contracts",
+  "invoice management",
+  "approval workflows",
+  "analytics & dashboards",
+  "task management",
+  "element libraries",
+  "third-party collaboration",
+  "ERP integration",
+];
+
+export const CONSTRUCTION_MANAGEMENT_VERTICALS: string[] = [
+  "Interior design firms",
+  "General contractors",
+  "Construction companies",
+  "Real estate developers",
+  "Fit-out contractors",
+  "Architecture firms",
+  "MEP contractors",
+  "Civil engineering firms",
+  "Renovation companies",
+  "Commercial builders",
+  "Residential builders",
+  "Infrastructure companies",
+  "Turnkey project firms",
+  "Design-build firms",
+  "Facility management companies",
+];
+
+export const CONSTRUCTION_MANAGEMENT_MODIFIERS: string[] = [
+  "Procore", "Buildertrend", "PlanGrid", "Fieldwire", "Autodesk Construction Cloud",
+  "CoConstruct", "BuilderStorm", "Aconex", "Oracle Primavera", "Microsoft Project",
+  "Smartsheet", "Monday.com", "Asana", "ClickUp", "Zoho Projects",
+  "SAP S/4HANA", "Tally", "QuickBooks", "Xero", "Sage",
+  "RDash", "Powerplay", "Infurnia", "SiteSupervisor", "Katerra",
+];
+
 export const DECISION_MAKERS: string[] = [
   "Founder",
   "Co-Founder",
@@ -574,6 +627,11 @@ export const BUDGET_ADJECTIVES: Record<PersonaType, Record<BudgetTier, string[]>
     budget: ["affordable", "budget-friendly", "cheap eats"],
     mid: ["mid-range", "good value", "reasonably priced"],
     premium: ["upscale", "fine dining", "luxury"],
+  },
+  construction_management: {
+    budget: ["affordable", "budget-friendly", "cost-effective"],
+    mid: ["mid-market", "scalable", "feature-rich"],
+    premium: ["enterprise", "premium", "comprehensive"],
   },
 };
 
@@ -704,6 +762,7 @@ function getModifierKnownList(personaType: PersonaType): string[] {
     case "accounting_automation": return ACCOUNTING_AUTOMATION_MODIFIERS;
     case "invoice_management": return INVOICE_MANAGEMENT_MODIFIERS;
     case "restaurant": return RESTAURANT_MODIFIERS;
+    case "construction_management": return CONSTRUCTION_MANAGEMENT_MODIFIERS;
     default: return AUTOMATION_KNOWN_TOOLS;
   }
 }
@@ -786,6 +845,12 @@ export function getPresetsForPersona(personaType: PersonaType) {
     return {
       services: RESTAURANT_OFFERINGS,
       verticals: RESTAURANT_VERTICALS,
+    };
+  }
+  if (personaType === "construction_management") {
+    return {
+      services: CONSTRUCTION_MANAGEMENT_SERVICES,
+      verticals: CONSTRUCTION_MANAGEMENT_VERTICALS,
     };
   }
   return {
