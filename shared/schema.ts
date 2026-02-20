@@ -49,6 +49,7 @@ export const multiSegmentSessions = pgTable("multi_segment_sessions", {
   brandDomain: text("brand_domain"),
   promptsPerSegment: integer("prompts_per_segment").notNull().default(3),
   segments: jsonb("segments").notNull(),
+  citationReport: jsonb("citation_report"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
