@@ -1179,6 +1179,7 @@ export default function PromptGenerator() {
     automation_consultant: "automation consultant",
     corporate_cards_provider: "corporate cards provider",
     expense_management_software: "expense management software",
+    restaurant: "restaurant",
   };
 
   const handleGenerate = (e: React.FormEvent) => {

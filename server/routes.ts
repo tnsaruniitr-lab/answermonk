@@ -283,6 +283,12 @@ export async function registerRoutes(
           modifiers: EXPENSE_MANAGEMENT_MODIFIERS,
           decision_makers: DECISION_MAKERS,
         },
+        restaurant: {
+          services: RESTAURANT_OFFERINGS,
+          verticals: RESTAURANT_VERTICALS,
+          modifiers: RESTAURANT_MODIFIERS,
+          decision_makers: DECISION_MAKERS,
+        },
       });
     }
   });
