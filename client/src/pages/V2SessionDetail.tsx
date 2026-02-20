@@ -140,6 +140,7 @@ export default function V2SessionDetail() {
         {scored > 0 && (
           <SegmentCitationAnalyzer
             brandName={session.brandName}
+            sessionId={numericId}
             segments={segments
               .filter(s => s.scoringResult)
               .map((s, i) => ({

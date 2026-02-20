@@ -933,7 +933,7 @@ export async function registerRoutes(
 
   app.post("/api/segment-analysis/analyze", async (req, res) => {
     try {
-      const { brandName, segments, brandDomain } = req.body;
+      const { brandName, segments, brandDomain, sessionId } = req.body;
       if (!brandName || !segments || !Array.isArray(segments)) {
         res.status(400).json({ message: "brandName and segments array required" });
         return;
@@ -963,10 +963,37 @@ export async function registerRoutes(
         console.log(`[segment-analysis] ${step}: ${detail} (${pct}%)`);
       }, brandDomain || undefined);
 
+      if (sessionId && typeof sessionId === "number") {
+        try {
+          await storage.updateCitationReport(sessionId, report);
+          console.log(`[segment-analysis] Persisted citation report for session ${sessionId}`);
+        } catch (persistErr) {
+          console.error("Failed to persist citation report:", persistErr);
+        }
+      }
+
       res.json(report);
     } catch (err) {
       console.error("Segment analysis error:", err);
       res.status(500).json({ message: "Analysis failed", error: String(err) });
+    }
+  });
+
+  app.get("/api/multi-segment-sessions/:id/citation-report", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid session ID" });
+        return;
+      }
+      const session = await storage.getMultiSegmentSession(id);
+      if (!session) {
+        res.status(404).json({ message: "Session not found" });
+        return;
+      }
+      res.json({ report: session.citationReport || null });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to load citation report", error: String(err) });
     }
   });
 

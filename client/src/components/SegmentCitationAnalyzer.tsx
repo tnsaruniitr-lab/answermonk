@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -169,6 +169,7 @@ interface FullAnalysisReport {
 
 interface SegmentCitationAnalyzerProps {
   brandName: string;
+  sessionId?: number | null;
   segments: {
     id: string;
     persona?: string;
@@ -243,13 +244,33 @@ const factorIcons: Record<string, typeof Shield> = {
   comparative: BarChart3,
 };
 
-export function SegmentCitationAnalyzer({ brandName, segments }: SegmentCitationAnalyzerProps) {
+export function SegmentCitationAnalyzer({ brandName, sessionId, segments }: SegmentCitationAnalyzerProps) {
   const [report, setReport] = useState<FullAnalysisReport | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingPersisted, setLoadingPersisted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedSegments, setExpandedSegments] = useState<Set<string>>(new Set());
 
   const segmentsWithScores = segments.filter(s => s.scoringResult);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    let cancelled = false;
+    setLoadingPersisted(true);
+    fetch(`/api/multi-segment-sessions/${sessionId}/citation-report`)
+      .then(r => r.json())
+      .then(data => {
+        if (cancelled) return;
+        if (data.report) {
+          setReport(data.report);
+          const allIds = new Set((data.report.segments || []).map((s: SegmentAnalysisResult) => s.segmentId));
+          setExpandedSegments(allIds);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoadingPersisted(false); });
+    return () => { cancelled = true; };
+  }, [sessionId]);
 
   const runAnalysis = async () => {
     setLoading(true);
@@ -267,6 +288,7 @@ export function SegmentCitationAnalyzer({ brandName, segments }: SegmentCitation
       const res = await apiRequest("POST", "/api/segment-analysis/analyze", {
         brandName,
         segments: payload,
+        sessionId: sessionId || undefined,
       });
       const data = await res.json();
       setReport(data);
@@ -287,6 +309,17 @@ export function SegmentCitationAnalyzer({ brandName, segments }: SegmentCitation
       return next;
     });
   };
+
+  if (loadingPersisted) {
+    return (
+      <Card className="p-6 mt-4">
+        <div className="flex items-center justify-center gap-2 py-4 text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="text-sm">Loading saved citation analysis...</span>
+        </div>
+      </Card>
+    );
+  }
 
   if (!report && !loading) {
     return (
