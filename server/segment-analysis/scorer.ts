@@ -23,6 +23,7 @@ export interface ContextConsistencyScore {
   noCategory: number;
   explicitAudience: number;
   weakAudience: number;
+  adjacentAudience: number;
   noAudience: number;
   categoryRate: number;
   audienceRate: number;
@@ -37,7 +38,8 @@ export interface ComparativePresenceScore {
   presentOnSurfaces: number;
   absentFromSurfaces: number;
   avgProminence: number | null;
-  comparisonPages: { url: string; domain: string; present: boolean; position: number | null; title: string }[];
+  weightedScore: number;
+  comparisonPages: { url: string; domain: string; present: boolean; position: number | null; title: string; comparisonTier: string | null }[];
 }
 
 export interface BrandSegmentScore {
@@ -133,6 +135,7 @@ export function scoreContextConsistency(
   let noCategory = 0;
   let explicitAudience = 0;
   let weakAudience = 0;
+  let adjacentAudience = 0;
   let noAudience = 0;
 
   const explicitSnippets: BrandSnippet[] = [];
@@ -154,13 +157,15 @@ export function scoreContextConsistency(
       explicitAudience++;
     } else if (match.audienceMatch === "weak") {
       weakAudience++;
+    } else if (match.audienceMatch === "adjacent") {
+      adjacentAudience++;
     } else {
       noAudience++;
     }
 
     if (match.categoryMatch === "explicit" || match.audienceMatch === "explicit") {
       explicitSnippets.push(snippet);
-    } else if (match.categoryMatch === "weak" || match.audienceMatch === "weak") {
+    } else if (match.categoryMatch === "weak" || match.audienceMatch === "weak" || match.audienceMatch === "adjacent") {
       weakSnippetsList.push(snippet);
     } else {
       genericSnippets.push(snippet);
@@ -169,8 +174,9 @@ export function scoreContextConsistency(
 
   const total = brandSnippets.length;
   const categoryRate = total > 0 ? (explicitCategory + weakCategory * 0.5) / total : 0;
-  const audienceRate = total > 0 && intentDict.audience_terms.length > 0
-    ? (explicitAudience + weakAudience * 0.5) / total : -1;
+  const hasAudience = intentDict.audience_terms.length > 0;
+  const audienceRate = total > 0 && hasAudience
+    ? (explicitAudience * 1.0 + weakAudience * 0.5 + adjacentAudience * 0.3) / total : -1;
 
   const overallRate = audienceRate >= 0 ? (categoryRate + audienceRate) / 2 : categoryRate;
 
@@ -182,6 +188,7 @@ export function scoreContextConsistency(
     noCategory,
     explicitAudience,
     weakAudience,
+    adjacentAudience,
     noAudience,
     categoryRate,
     audienceRate,
@@ -196,7 +203,7 @@ export function scoreComparativePresence(
   pageSnippetsList: PageSnippets[],
   classifiedSources: Map<string, ClassifiedSource>,
 ): ComparativePresenceScore {
-  const comparisonPages: { url: string; domain: string; present: boolean; position: number | null; title: string }[] = [];
+  const comparisonPages: { url: string; domain: string; present: boolean; position: number | null; title: string; comparisonTier: string | null }[] = [];
 
   for (const ps of pageSnippetsList) {
     const source = classifiedSources.get(ps.page.canonicalUrl);
@@ -233,14 +240,23 @@ export function scoreComparativePresence(
       present: isPresent,
       position,
       title: ps.page.title,
+      comparisonTier: source.comparisonTier,
     });
   }
 
-  const totalComparisonSurfaces = comparisonPages.length;
-  const presentOnSurfaces = comparisonPages.filter(p => p.present).length;
+  const tierAB = comparisonPages.filter(p => p.comparisonTier === "A" || p.comparisonTier === "B");
+  const totalComparisonSurfaces = tierAB.length;
+  const presentOnSurfaces = tierAB.filter(p => p.present).length;
   const absentFromSurfaces = totalComparisonSurfaces - presentOnSurfaces;
 
-  const positions = comparisonPages
+  let weightedScore = 0;
+  for (const p of comparisonPages) {
+    if (!p.present) continue;
+    const w = p.comparisonTier === "A" ? 3.0 : p.comparisonTier === "B" ? 1.0 : 0.2;
+    weightedScore += w;
+  }
+
+  const positions = tierAB
     .filter(p => p.present && p.position !== null)
     .map(p => p.position!);
   const avgProminence = positions.length > 0
@@ -253,8 +269,7 @@ export function scoreComparativePresence(
   } else if (presentOnSurfaces === 0) {
     label = "absent";
   } else {
-    const presenceRate = presentOnSurfaces / totalComparisonSurfaces;
-    label = labelFromScore(presenceRate, [0.7, 0.3, 0]);
+    label = labelFromScore(weightedScore, [6.0, 2.0, 0]);
   }
 
   return {
@@ -263,7 +278,8 @@ export function scoreComparativePresence(
     presentOnSurfaces,
     absentFromSurfaces,
     avgProminence,
-    comparisonPages: comparisonPages.slice(0, 5),
+    weightedScore,
+    comparisonPages: comparisonPages.filter(p => p.comparisonTier === "A" || p.comparisonTier === "B").slice(0, 8),
   };
 }
 

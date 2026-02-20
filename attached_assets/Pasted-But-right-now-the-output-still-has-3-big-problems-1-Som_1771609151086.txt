@@ -1,0 +1,221 @@
+But right now the output still has 3 big problems:
+
+1) Some numbers are still logically impossible
+
+Example:
+
+83% category match, 0% audience match
+Snippet: “...for small and medium-sized enterprises (SMEs)”
+
+That is a direct audience match for SMBs or startups-adjacent.
+So your audience classifier is still too literal.
+
+What’s happening
+
+Your audience dictionary is probably:
+
+startup, startups, early-stage
+
+But real sources say:
+
+SMEs
+
+businesses
+
+companies
+
+founders
+
+growing companies
+
+finance teams
+
+emerging businesses
+
+LLMs consider those semantically equivalent.
+Your system doesn’t → therefore conclusions look arbitrary.
+
+Fix (critical)
+
+Switch audience scoring from keyword matching → semantic bucket matching.
+
+Do NOT use embeddings. Keep it simple rule-based:
+
+Audience buckets
+SMB bucket
+
+SME, SMB, small business, small and medium enterprises, businesses, companies, finance teams, growing companies
+
+Startup bucket
+
+startup, startups, early-stage, founders, seed, venture-backed, scaleups
+
+Now score like this:
+
+explicit match = 2
+
+adjacent match = 1
+
+none = 0
+
+Then compute % of snippets with ≥1.
+
+That alone will remove most “0% but clearly present” credibility breaks.
+
+2) Authority is currently misleading (and hurting trust)
+
+You’re showing:
+
+Not found on any third-party supporting sources
+
+But you literally cite funding/press snippets in the evidence panel in other segments.
+
+The problem:
+You’re computing authority per segment independently, but retrieval is shared across prompts.
+
+So the same Forbes/VC article appears in corporate_cards but not expense_management — even though the AI model absolutely uses it globally to understand the company.
+
+Why this matters
+
+Users think:
+
+“This tool is hallucinating. I know we have press coverage.”
+
+They don’t understand segment-scoped retrieval.
+
+Fix — split authority into 2 layers
+Segment Authority (keep)
+
+Used for ranking explanation
+
+Global Retrieval Authority (add)
+
+Used for trust
+
+Compute once across all segments:
+
+unique high-tier domains mentioning brand
+
+Show it at top:
+
+Global model familiarity: High (mentioned across 7 authority domains)
+
+Now segment authority becomes believable instead of contradictory.
+
+3) Comparative Presence is half-correct but confusing
+
+You currently treat any multi-brand surface equally:
+
+Example:
+
+Listed on Qashio LinkedIn (position 30)
+
+This is technically true but useless insight.
+
+To a user, LinkedIn ≠ comparison article.
+
+Fix: classify comparison surfaces into 3 tiers
+Tier A — decision surfaces (high impact)
+
+Top/Best lists
+Alternatives pages
+Review platforms
+Directories
+Buyer guides
+
+Tier B — contextual surfaces (medium impact)
+
+News articles mentioning multiple brands
+Industry reports
+Funding round comparisons
+
+Tier C — incidental co-mentions (low impact)
+
+LinkedIn posts
+Investor portfolios
+Aggregators
+
+Then compute:
+
+Comparison Strength =
+3 × TierA +
+1 × TierB +
+0.2 × TierC
+
+And only show Tier A + B in UI.
+
+Now the insight becomes meaningful.
+
+What is already working well (keep this)
+
+These parts are now strong:
+
+Segment-based comparisons
+
+3-way comparison format
+
+Evidence snippets
+
+Single recommended action
+
+Distinguishing category vs audience
+
+Not showing raw scores
+
+This is the correct foundation.
+
+Now the real improvement — make insights non-generic
+
+Right now actions still look like:
+
+Add explicit phrasing
+Get listed on authority sources
+
+These are accurate but generic.
+
+You already have the data to be sharper.
+
+Replace generic actions with differential actions
+
+Instead of:
+
+“Add startup wording”
+
+Say:
+
+5 sources describe Alaan as “corporate card for growing companies”
+0 sources describe Pemo using startup-adjacent terms
+→ Models associate Alaan with early-stage companies
+
+That is a persuasive insight. Not advice — explanation.
+
+Even stronger — add “Model mental model” sentence
+
+For each segment output one line:
+
+The model currently understands you as:
+“SME spend platform”
+
+It understands Alaan as:
+“Corporate card for growing businesses”
+
+That is the “aha” moment customers pay for.
+
+What the product becomes after these fixes
+
+Right now: analytics dashboard
+After fixes: AI perception mirror
+
+Users won’t read tables — they read identity.
+
+Summary of what to implement next (in order)
+
+Audience semantic buckets (fix false negatives)
+
+Global authority layer (remove contradictions)
+
+Comparison tier weighting (remove noise)
+
+Replace advice → differential explanation sentence
+
+Add “model understanding of your brand” line

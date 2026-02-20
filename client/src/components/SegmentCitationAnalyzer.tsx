@@ -108,6 +108,8 @@ interface SegmentAnalysisResult {
     secondary: string | null;
     gapType: string;
   };
+  modelUnderstanding?: string;
+  differential?: string;
 }
 
 interface BrandScore {
@@ -123,6 +125,11 @@ interface BrandScore {
     categoryRate: number;
     audienceRate: number;
     totalSnippets: number;
+    explicitCategory: number;
+    weakCategory: number;
+    explicitAudience: number;
+    weakAudience: number;
+    adjacentAudience: number;
     explicitSnippets: any[];
     weakSnippets: any[];
     genericSnippets: any[];
@@ -131,13 +138,22 @@ interface BrandScore {
     label: string;
     presentOnSurfaces: number;
     totalComparisonSurfaces: number;
+    weightedScore: number;
     comparisonPages: { domain: string; url: string; title: string; present: boolean; position: number | null }[];
   };
+}
+
+interface GlobalAuthority {
+  label: string;
+  uniqueDomains: number;
+  highTierDomains: { domain: string; tier: string }[];
+  totalMentions: number;
 }
 
 interface FullAnalysisReport {
   brandName: string;
   segments: SegmentAnalysisResult[];
+  globalAuthority: GlobalAuthority;
   totalCitationsCrawled: number;
   totalAccessible: number;
   analyzedAt: string;
@@ -281,6 +297,8 @@ export function SegmentCitationAnalyzer({ brandName, segments }: SegmentCitation
     );
   }
 
+  const ga = report.globalAuthority;
+
   return (
     <div className="mt-4 space-y-4" data-testid="segment-citation-results">
       <div className="flex items-center justify-between">
@@ -296,6 +314,33 @@ export function SegmentCitationAnalyzer({ brandName, segments }: SegmentCitation
           </Button>
         </div>
       </div>
+
+      {ga && (
+        <Card className="p-3 bg-muted/30" data-testid="card-global-authority">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs font-medium">Global Model Familiarity</span>
+              <Badge className={`${ga.label === "High" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : ga.label === "Moderate" ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"} text-[10px]`}>
+                {ga.label}
+              </Badge>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              Mentioned across {ga.uniqueDomains} third-party domain{ga.uniqueDomains !== 1 ? "s" : ""}
+            </span>
+          </div>
+          {ga.highTierDomains.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {ga.highTierDomains.map((d, i) => (
+                <Badge key={i} variant="outline" className="text-[10px] px-1.5 py-0">
+                  {d.domain}
+                  <span className="ml-1 opacity-60">{d.tier}</span>
+                </Badge>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
 
       <AnimatePresence mode="popLayout">
         {report.segments.map((seg) => (
@@ -382,6 +427,20 @@ function SegmentCard({
                 <FactorRow key={f.factor} factor={f} brandName={brandName} compAName={compAName} compBName={compBName} />
               ))}
             </div>
+
+            {seg.modelUnderstanding && (
+              <div className="bg-muted/40 rounded-lg p-3" data-testid={`model-understanding-${seg.segmentId}`}>
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">The model understands {brandName} as</div>
+                <div className="text-xs font-semibold italic">"{seg.modelUnderstanding}"</div>
+              </div>
+            )}
+
+            {seg.differential && seg.differential !== `${brandName} has competitive positioning in this segment` && seg.differential !== "Insufficient citation data for differential analysis" && (
+              <div className="bg-orange-50 dark:bg-orange-900/10 rounded-lg p-3" data-testid={`differential-${seg.segmentId}`}>
+                <div className="text-[10px] uppercase tracking-wide text-orange-700 dark:text-orange-400 mb-1">Why competitors rank higher</div>
+                <p className="text-xs leading-relaxed text-orange-800 dark:text-orange-300">{seg.differential}</p>
+              </div>
+            )}
 
             {seg.action.gapType !== "none" && (
               <div className="bg-primary/5 rounded-lg p-3 space-y-2">

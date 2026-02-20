@@ -2,6 +2,7 @@ import type { CrawledPage } from "../crawler";
 
 export type SourceTier = "T1" | "T2" | "T3";
 export type SurfaceType = "editorial" | "directory" | "listicle" | "product" | "press" | "profile" | "social" | "unknown";
+export type ComparisonTier = "A" | "B" | "C" | null;
 
 export const TIER_WEIGHTS: Record<SourceTier, number> = {
   T1: 1.0,
@@ -16,8 +17,41 @@ export interface ClassifiedSource {
   tierWeight: number;
   surfaceType: SurfaceType;
   comparisonSurfaceScore: number;
+  comparisonTier: ComparisonTier;
   title: string;
   isBrandOwned: boolean;
+}
+
+const COMPARISON_TIER_WEIGHTS: Record<string, number> = {
+  A: 3.0,
+  B: 1.0,
+  C: 0.2,
+};
+
+const SOCIAL_DOMAINS = new Set(["linkedin.com", "twitter.com", "x.com", "facebook.com", "instagram.com", "reddit.com"]);
+const INVESTOR_DOMAINS = new Set(["crunchbase.com", "pitchbook.com", "angel.co", "wellfound.com", "dealroom.co"]);
+
+function classifyComparisonTier(page: CrawledPage, surfaceType: SurfaceType, isBrandOwned: boolean): ComparisonTier {
+  if (isBrandOwned) return null;
+  if (surfaceType === "product") return null;
+
+  const d = page.domain.toLowerCase().replace(/^www\./, "");
+
+  if (surfaceType === "listicle" || surfaceType === "directory") return "A";
+
+  const reviewDomains = ["g2.com", "capterra.com", "trustpilot.com", "gartner.com", "forrester.com", "yelp.com", "tripadvisor.com", "goodfirms.co", "clutch.co", "sortlist.com"];
+  if (reviewDomains.some(rd => d === rd || d.endsWith(`.${rd}`))) return "A";
+
+  const url = page.url.toLowerCase();
+  if (url.includes("alternatives") || url.includes("vs-") || url.includes("compare") || url.includes("best-") || url.includes("top-")) return "A";
+
+  if (surfaceType === "press" || surfaceType === "editorial") return "B";
+
+  if (SOCIAL_DOMAINS.has(d)) return "C";
+  if (INVESTOR_DOMAINS.has(d)) return "C";
+  if (surfaceType === "profile") return "C";
+
+  return null;
 }
 
 const T1_DOMAINS = new Set([
@@ -145,16 +179,13 @@ export function classifySource(
   const tier = classifyTier(page.domain);
   const surfaceType = classifySurfaceType(page);
   const isBrandOwned = isDomainOwnedByBrand(page.domain, brandDomains);
+  const compTier = classifyComparisonTier(page, surfaceType, isBrandOwned);
 
   let comparisonSurfaceScore = 0;
-  if (isBrandOwned) {
-    comparisonSurfaceScore = 0;
-  } else if (surfaceType === "product") {
-    comparisonSurfaceScore = 0;
-  } else if (trackedBrandsOnPage >= 2) {
-    comparisonSurfaceScore = 2;
-  } else if (surfaceType === "listicle" || surfaceType === "directory") {
-    comparisonSurfaceScore = 1;
+  if (compTier) {
+    comparisonSurfaceScore = COMPARISON_TIER_WEIGHTS[compTier] || 0;
+  } else if (!isBrandOwned && surfaceType !== "product" && trackedBrandsOnPage >= 2) {
+    comparisonSurfaceScore = COMPARISON_TIER_WEIGHTS["B"];
   }
 
   return {
@@ -164,6 +195,7 @@ export function classifySource(
     tierWeight: TIER_WEIGHTS[tier],
     surfaceType,
     comparisonSurfaceScore,
+    comparisonTier: compTier || (trackedBrandsOnPage >= 2 && !isBrandOwned ? "B" : null),
     title: page.title,
     isBrandOwned,
   };

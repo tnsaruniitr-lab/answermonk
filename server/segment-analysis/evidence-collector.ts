@@ -156,9 +156,9 @@ export function collectEvidence(
         url: p.url,
       })),
     (b) => {
-      if (b.comparative.totalComparisonSurfaces === 0) return `No comparison surfaces found`;
-      if (b.comparative.presentOnSurfaces === 0) return `Absent from all ${b.comparative.totalComparisonSurfaces} comparison surfaces`;
-      return `Present on ${b.comparative.presentOnSurfaces}/${b.comparative.totalComparisonSurfaces} comparison surfaces`;
+      if (b.comparative.totalComparisonSurfaces === 0) return `No decision-grade comparison surfaces found`;
+      if (b.comparative.presentOnSurfaces === 0) return `Absent from all ${b.comparative.totalComparisonSurfaces} decision surfaces`;
+      return `On ${b.comparative.presentOnSurfaces}/${b.comparative.totalComparisonSurfaces} decision surfaces (score: ${b.comparative.weightedScore.toFixed(1)})`;
     },
   );
 

@@ -4,7 +4,9 @@ export interface IntentDictionary {
   category_terms_weak: string[];
   audience_terms: string[];
   audience_terms_weak: string[];
+  audience_terms_adjacent: string[];
   service_terms: string[];
+  audienceBucket: string;
 }
 
 interface SegmentTerms {
@@ -270,6 +272,22 @@ const AUDIENCE_DICTIONARY: Record<string, SegmentTerms> = {
   },
 };
 
+const AUDIENCE_ADJACENCY: Record<string, string[]> = {
+  "startups": ["smbs", "freelancer"],
+  "smbs": ["startups", "mid-market"],
+  "enterprise": ["mid-market"],
+  "mid-market": ["smbs", "enterprise"],
+  "freelancer": ["startups", "smbs"],
+  "agency": ["smbs"],
+  "ecommerce": ["smbs"],
+  "families": ["couples"],
+  "couples": ["families"],
+  "business_dining": ["professionals"],
+  "professionals": ["business_dining", "enterprise"],
+  "students": [],
+  "developers": ["professionals"],
+};
+
 function lookupSegmentTerms(value: string, dictionary: Record<string, SegmentTerms>): { explicit: string[]; weak: string[] } {
   const lower = value.toLowerCase().trim().replace(/\s+/g, "_");
 
@@ -291,6 +309,18 @@ function lookupSegmentTerms(value: string, dictionary: Record<string, SegmentTer
   return { explicit: [withoutUnderscores], weak: [] };
 }
 
+function resolveAudienceBucketKey(customerType: string): string {
+  const lower = customerType.toLowerCase().trim().replace(/\s+/g, "_");
+  if (AUDIENCE_DICTIONARY[lower]) return lower;
+  const withoutUnderscores = lower.replace(/_/g, " ");
+  for (const [key, terms] of Object.entries(AUDIENCE_DICTIONARY)) {
+    const keyNorm = key.replace(/_/g, " ");
+    if (keyNorm === withoutUnderscores) return key;
+    if (terms.explicit.some(t => t === withoutUnderscores) || terms.weak.some(t => t === withoutUnderscores)) return key;
+  }
+  return lower;
+}
+
 export function buildIntentDictionary(
   segmentId: string,
   seedType: string,
@@ -301,13 +331,25 @@ export function buildIntentDictionary(
   const audTerms = customerType ? lookupSegmentTerms(customerType, AUDIENCE_DICTIONARY) : { explicit: [], weak: [] };
   const svcTerms = service ? lookupSegmentTerms(service, SEGMENT_CATEGORY_DICTIONARY) : { explicit: [], weak: [] };
 
+  const bucketKey = customerType ? resolveAudienceBucketKey(customerType) : "";
+  const adjacentBuckets = AUDIENCE_ADJACENCY[bucketKey] || [];
+  const adjacentTerms: string[] = [];
+  for (const adjKey of adjacentBuckets) {
+    const adjTerms = AUDIENCE_DICTIONARY[adjKey];
+    if (adjTerms) {
+      adjacentTerms.push(...adjTerms.explicit, ...adjTerms.weak);
+    }
+  }
+
   return {
     segmentId,
     category_terms: catTerms.explicit,
     category_terms_weak: catTerms.weak,
     audience_terms: audTerms.explicit,
     audience_terms_weak: audTerms.weak,
+    audience_terms_adjacent: adjacentTerms,
     service_terms: [...svcTerms.explicit, ...svcTerms.weak],
+    audienceBucket: bucketKey,
   };
 }
 
@@ -321,7 +363,7 @@ export function buildAllIntentDictionaries(
   return map;
 }
 
-export type SnippetMatchLevel = "explicit" | "weak" | "none";
+export type SnippetMatchLevel = "explicit" | "weak" | "adjacent" | "none";
 
 export function classifySnippetMatch(
   snippetText: string,
@@ -347,7 +389,8 @@ export function classifySnippetMatch(
   }
 
   let audienceMatch: SnippetMatchLevel = "none";
-  if (dict.audience_terms.length > 0 || dict.audience_terms_weak.length > 0) {
+  const hasAudienceTerms = dict.audience_terms.length > 0 || dict.audience_terms_weak.length > 0;
+  if (hasAudienceTerms) {
     for (const term of dict.audience_terms) {
       if (lower.includes(term)) {
         audienceMatch = "explicit";
@@ -358,6 +401,14 @@ export function classifySnippetMatch(
       for (const term of dict.audience_terms_weak) {
         if (lower.includes(term)) {
           audienceMatch = "weak";
+          break;
+        }
+      }
+    }
+    if (audienceMatch === "none" && dict.audience_terms_adjacent.length > 0) {
+      for (const term of dict.audience_terms_adjacent) {
+        if (lower.includes(term)) {
+          audienceMatch = "adjacent";
           break;
         }
       }
