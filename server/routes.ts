@@ -389,6 +389,8 @@ export async function registerRoutes(
               brand_found: r.match.brand.brand_found,
               brand_rank: r.match.brand.brand_rank,
               match_tier: r.match.brand.match_tier,
+              webSearchStatus: r.webSearchStatus,
+              fallbackReason: r.fallbackReason,
             })),
             brand_identity: result.brand_identity,
             profile: parsed.profile || null,
@@ -472,7 +474,7 @@ export async function registerRoutes(
         const rawRuns = (job.rawData as any)?.runs;
         return {
           persona: profile?.persona || "",
-          seedType: profile?.persona || "",
+          seedType: profile?.seedType || (profile?.persona === "restaurant" ? "restaurants" : "providers"),
           customerType: profile?.verticals?.[0] || "",
           location: profile?.geo || "",
           resultCount: job.promptCount,
@@ -939,6 +941,7 @@ export async function registerRoutes(
 
       const normalizedSegments = segments.map((seg: any) => ({
         id: seg.id,
+        persona: seg.persona,
         seedType: seg.seedType,
         customerType: seg.customerType,
         location: seg.location,

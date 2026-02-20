@@ -144,6 +144,7 @@ export default function V2SessionDetail() {
               .filter(s => s.scoringResult)
               .map((s, i) => ({
                 id: `hist-seg-${rawId}-${i}`,
+                persona: s.persona,
                 seedType: s.seedType,
                 customerType: s.customerType,
                 location: s.location,
@@ -181,8 +182,22 @@ function SegmentCard({ seg, idx, brandName }: { seg: SegmentData; idx: number; b
   const [showRaw, setShowRaw] = useState(false);
   const score = seg.scoringResult?.score;
   const rawRuns = seg.scoringResult?.raw_runs || [];
+  const PERSONA_CORE_LABELS: Record<string, string> = {
+    marketing_agency: "marketing agency",
+    automation_consultant: "automation",
+    corporate_cards_provider: "corporate cards",
+    expense_management_software: "expense management",
+    accounting_automation: "accounting automation",
+    invoice_management: "invoice management",
+    restaurant: "restaurant",
+  };
   const formatSeedType = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-  const segLabel = [seg.seedType ? formatSeedType(seg.seedType) : "", seg.customerType].filter(Boolean).join(" for ");
+  const personaLabel = seg.persona ? (PERSONA_CORE_LABELS[seg.persona] || seg.persona.replace(/_/g, " ")) : "";
+  const seedLabel = seg.seedType ? formatSeedType(seg.seedType) : "";
+  const category = personaLabel
+    ? `${personaLabel.charAt(0).toUpperCase() + personaLabel.slice(1)} ${seedLabel}`
+    : seedLabel;
+  const segLabel = [category, seg.customerType].filter(Boolean).join(" for ");
 
   return (
     <Card className="overflow-hidden" data-testid={`card-v2-segment-${idx}`}>

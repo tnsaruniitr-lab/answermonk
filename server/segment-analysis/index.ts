@@ -10,6 +10,25 @@ import { collectEvidence, type SegmentEvidence } from "./evidence-collector";
 import { recommendActions, type ActionRecommendation } from "./action-recommender";
 import type { CrawledPage } from "../crawler";
 
+const PERSONA_CORE_LABELS: Record<string, string> = {
+  marketing_agency: "marketing agency",
+  automation_consultant: "automation",
+  corporate_cards_provider: "corporate cards",
+  expense_management_software: "expense management",
+  accounting_automation: "accounting automation",
+  invoice_management: "invoice management",
+  restaurant: "restaurant",
+};
+
+function buildSegmentLabel(seg: { persona?: string; seedType: string; customerType: string }): string {
+  const personaLabel = seg.persona ? (PERSONA_CORE_LABELS[seg.persona] || seg.persona.replace(/_/g, " ")) : "";
+  const seedLabel = seg.seedType ? seg.seedType.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "";
+  const category = personaLabel
+    ? `${personaLabel.charAt(0).toUpperCase() + personaLabel.slice(1)} ${seedLabel}`
+    : seedLabel;
+  return [category, seg.customerType].filter(Boolean).join(" for ");
+}
+
 export interface SegmentAnalysisResult {
   segmentId: string;
   segmentLabel: string;
@@ -156,7 +175,7 @@ export async function runSegmentAnalysis(
     const evidence = collectEvidence(seg.id, brandScore, compAScore, compBScore);
     const action = recommendActions(evidence, brandScore, intentDict);
 
-    const segmentLabel = [seg.seedType, seg.customerType].filter(Boolean).join(" for ");
+    const segmentLabel = buildSegmentLabel(seg);
 
     const modelUnderstanding = deriveModelUnderstanding(brandName, allSegSnippets, intentDict);
     const differential = buildDifferential(brandName, brandScore, compAScore, compBScore, intentDict);

@@ -36,6 +36,7 @@ interface RawRunInput {
 
 interface SegmentInput {
   id: string;
+  persona?: string;
   seedType: string;
   customerType: string;
   location?: string;
@@ -163,6 +164,7 @@ interface SegmentCitationAnalyzerProps {
   brandName: string;
   segments: {
     id: string;
+    persona?: string;
     seedType: string;
     customerType: string;
     location?: string;
@@ -204,6 +206,7 @@ export function SegmentCitationAnalyzer({ brandName, segments }: SegmentCitation
     try {
       const payload: SegmentInput[] = segmentsWithScores.map(s => ({
         id: s.id,
+        persona: s.persona,
         seedType: s.seedType,
         customerType: s.customerType,
         location: s.location,

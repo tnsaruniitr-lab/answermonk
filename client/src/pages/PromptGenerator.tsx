@@ -2764,6 +2764,7 @@ export default function PromptGenerator() {
                                   source: "v2segment",
                                   profile: {
                                     persona: seg.persona,
+                                    seedType: seg.seedType,
                                     services: [],
                                     verticals: [seg.customerType].filter(Boolean),
                                     geo: seg.location.trim() || null,

@@ -12,6 +12,7 @@ export interface RawRunInput {
 
 export interface SegmentInput {
   id: string;
+  persona?: string;
   seedType: string;
   customerType: string;
   location?: string;

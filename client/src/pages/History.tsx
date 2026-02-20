@@ -155,11 +155,25 @@ export default function HistoryPage() {
                         </div>
                       )}
                       <div className="flex gap-2 flex-wrap">
-                        {segs.slice(0, 3).map((seg: any, i: number) => (
-                          <span key={i} className="text-[10px] text-muted-foreground">
-                            {seg.seedType}{seg.customerType ? ` → ${seg.customerType}` : ""}
-                          </span>
-                        ))}
+                        {segs.slice(0, 3).map((seg: any, i: number) => {
+                          const PERSONA_LABELS: Record<string, string> = {
+                            marketing_agency: "Marketing Agency",
+                            automation_consultant: "Automation",
+                            corporate_cards_provider: "Corporate Cards",
+                            expense_management_software: "Expense Management",
+                            accounting_automation: "Accounting Automation",
+                            invoice_management: "Invoice Management",
+                            restaurant: "Restaurant",
+                          };
+                          const pLabel = seg.persona ? (PERSONA_LABELS[seg.persona] || seg.persona.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())) : "";
+                          const sLabel = seg.seedType ? seg.seedType.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) : "";
+                          const label = pLabel ? `${pLabel} ${sLabel}` : sLabel;
+                          return (
+                            <span key={i} className="text-[10px] text-muted-foreground">
+                              {label}{seg.customerType ? ` → ${seg.customerType}` : ""}
+                            </span>
+                          );
+                        })}
                         {segs.length > 3 && <span className="text-[10px] text-muted-foreground">+{segs.length - 3} more</span>}
                       </div>
                     </div>
