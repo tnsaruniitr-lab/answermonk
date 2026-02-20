@@ -1,0 +1,213 @@
+The “0% category match” is obviously wrong
+
+Your own evidence snippets for Pemo literally contain:
+
+“expense management”
+
+“spend management platform”
+
+“smart corporate cards”
+
+“for SMEs”
+
+Yet the system says:
+
+Context Consistency: 0% category match across 89 snippets
+
+That can’t be true unless your matcher is looking for the wrong tokens (e.g., expense_management_software literal string) instead of real phrases like “expense management”, “spend management”, etc.
+
+Root cause
+
+Your “category match” appears to be using the internal segment key (expense_management_software, corporate_cards_provider) as the keyword to match, rather than an intent dictionary of natural synonyms.
+
+So it’s failing even when the page clearly matches.
+
+✅ Fix this first. Everything else is downstream noise until this is corrected.
+
+What to change (minimal + reliable)
+1) Replace literal label matching with a segment dictionary
+
+For each segment key define:
+
+expense_management_software
+
+Primary terms (explicit=2):
+
+“expense management”
+
+“expense management software”
+
+“expense tracking”
+
+“expense platform”
+
+“expense automation”
+
+Secondary terms (weak=1):
+
+“spend management”
+
+“spend controls”
+
+“receipt capture”
+
+“reimbursements”
+
+“approval workflows”
+
+“invoice management” (optional, but careful)
+
+corporate_cards_provider
+
+Primary:
+
+“corporate card”
+
+“business card”
+
+“company card”
+
+“virtual cards”
+
+“physical and virtual cards”
+
+Secondary:
+
+“spend card”
+
+“cards for employees”
+
+“prepaid cards” (careful)
+
+“card issuance” (rare)
+
+Then match snippets against these phrase lists, not the label.
+
+2) Improve snippet extraction quality (you have junk)
+
+Your snippet shows CSS:
+.block-cover-bg { background-image: ... }
+
+That’s a cleaning bug. It will pollute both matching and evidence.
+
+✅ Fix: strip <style>, <script>, inline CSS and class dumps before text extraction.
+Also drop any snippet where >30% tokens are non-alphabetic or look like CSS.
+
+3) “Supporting domains” must require category match
+
+Right now you count a domain as supporting even if context match is 0%. That’s inconsistent.
+
+Define:
+
+A domain counts as “supporting” for a segment if it has ≥1 snippet with category match ≥1.
+
+Otherwise it’s just “mention domain”.
+
+The next biggest issue: you’re mixing “audience” into the segment but not scoring it
+
+Your segments are “for SMBs” and “for startups”, but the table shows only category matching.
+
+You need a separate Audience match line (or fold it into Context Consistency).
+
+Audience match dictionary
+
+SMBs:
+
+explicit: SME, SMB, small business, small and medium(-sized) enterprises
+
+weak: businesses, companies (weak)
+
+Startups:
+
+explicit: startup(s), early-stage, seed, series A, founders
+
+weak: fast-growing (weak)
+
+Then compute:
+
+% snippets with audience match (explicit/weak)
+And in UI show:
+
+Category match
+
+Audience match
+(or a combined “Context Consistency” with two sub-badges)
+
+Otherwise “for SMBs” vs “for startups” will look identical and vague.
+
+Why “Retrieved Authority” currently feels weird
+
+Example: you show Pemo evidence from pemo.io and careers.pemo.io (both T3) and then say “2 supporting domains”.
+
+But those are brand-owned surfaces; they’re weak authority. They should not drive “authority”.
+
+✅ Fix:
+Split Retrieved Authority into two internal buckets:
+
+Third-party Retrieved Authority (editorial/directory/profile/review) — main one
+
+Owned Presence (brand/competitor sites) — supporting only
+
+And in UI show only the third-party authority metric, plus a note if it’s mostly owned.
+
+That removes the “authority inflation from your own site.”
+
+Comparative Presence looks promising but needs one tweak
+
+You’re saying:
+
+Present on 3/13 comparison surfaces
+
+Good. But then you cite “Alaan | Smart Corporate Card” as a comparison surface with a “position 1”.
+
+That’s a brand page, not a comparison surface. Your classifier is mislabeling.
+
+✅ Fix comparison surface detection:
+
+multi-brand page: contains ≥2 tracked brands OR has listicle/directory schema signals (like “Top”, “Best”, “alternatives”, “compare”, “vs”) AND has multiple entities detected (even if not tracked)
+
+exclude brand-owned product pages from being treated as comparison surfaces by default
+
+Brand pages should instead contribute to “Context consistency” and “Proof”, not “Comparison presence”.
+
+What I think of the output overall
+
+Structure is right
+
+Evidence-based is right
+
+But your matching/classification bugs make the conclusions unreliable right now.
+
+Once you fix:
+
+dictionary-based category/audience matching
+
+HTML/CSS cleaning
+
+supporting domain definition
+
+comparison-surface misclassification
+
+…this becomes a genuinely useful MVP.
+
+One concrete example of what the corrected result would say (from your own snippet)
+
+For expense_management_software for SMBs Pemo should NOT be “0% match”.
+
+It should read something like:
+
+Category match: explicit (expense/spend management)
+
+Audience match: explicit (SMEs)
+
+Proof: medium (funding/region/feature list)
+
+Authority: weak third-party, strong owned
+
+And the action becomes sharper:
+
+“You already say expense management + SMEs. Your problem is third-party authority surfaces: you’re not present on [directories/listicles] where Alaan appears.”
+
+That’s materially different from “add explicit phrase”.
+
+If you want the fastest win: implement the segment dictionaries + CSS stripping first. That alone will flip most of these “0%” errors and make the analysis believable.

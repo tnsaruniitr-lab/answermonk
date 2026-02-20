@@ -931,7 +931,7 @@ export async function registerRoutes(
 
   app.post("/api/segment-analysis/analyze", async (req, res) => {
     try {
-      const { brandName, segments } = req.body;
+      const { brandName, segments, brandDomain } = req.body;
       if (!brandName || !segments || !Array.isArray(segments)) {
         res.status(400).json({ message: "brandName and segments array required" });
         return;
@@ -958,7 +958,7 @@ export async function registerRoutes(
 
       const report = await runSegmentAnalysis(brandName, normalizedSegments, (step, detail, pct) => {
         console.log(`[segment-analysis] ${step}: ${detail} (${pct}%)`);
-      });
+      }, brandDomain || undefined);
 
       res.json(report);
     } catch (err) {

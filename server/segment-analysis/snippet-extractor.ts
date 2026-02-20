@@ -50,6 +50,17 @@ function snippetHash(text: string): string {
   return crypto.createHash("md5").update(text.toLowerCase().replace(/\s+/g, " ").trim()).digest("hex");
 }
 
+function isJunkSnippet(text: string): boolean {
+  if (text.includes("{") && text.includes("}")) return true;
+  if (text.includes("background-image") || text.includes("font-size") || text.includes("margin:")) return true;
+  if (/\.[\w-]+\s*\{/.test(text)) return true;
+  const tokens = text.split(/\s+/);
+  if (tokens.length === 0) return true;
+  const nonAlpha = tokens.filter(t => !/[a-zA-Z]{2,}/.test(t)).length;
+  if (nonAlpha / tokens.length > 0.5) return true;
+  return false;
+}
+
 function findBrandInItems(
   brand: string,
   items: string[],
@@ -63,6 +74,7 @@ function findBrandInItems(
   const brandRegex = new RegExp(`\\b${brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi");
 
   for (const item of items) {
+    if (isJunkSnippet(item)) continue;
     if (brandRegex.test(item) || item.toLowerCase().includes(brandLower)) {
       results.push({
         brand,
@@ -93,6 +105,7 @@ function findBrandInText(
 
   while ((match = brandRegex.exec(text)) !== null) {
     const snippet = tokenWindow(text, match.index, match.index + match[0].length, 35);
+    if (isJunkSnippet(snippet)) continue;
     results.push({
       brand,
       text: snippet.trim(),

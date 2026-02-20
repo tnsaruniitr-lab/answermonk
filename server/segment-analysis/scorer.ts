@@ -66,13 +66,14 @@ export function scoreRetrievedAuthority(
   for (const [canonicalUrl, snippets] of snippetsByPage) {
     const source = classifiedSources.get(canonicalUrl);
     if (!source) continue;
+    if (source.isBrandOwned) continue;
 
     const brandSnippets = snippets.filter(s => s.brand.toLowerCase() === brand.toLowerCase());
     if (brandSnippets.length === 0) continue;
 
     const hasSupporting = brandSnippets.some(s => {
       const match = classifySnippetMatch(s.text, intentDict);
-      return match.categoryMatch !== "none" || match.audienceMatch !== "none";
+      return match.categoryMatch !== "none";
     });
     if (!hasSupporting) continue;
 
@@ -98,7 +99,7 @@ export function scoreRetrievedAuthority(
       const brandSnippets = snippets.filter(s => s.brand.toLowerCase() === brand.toLowerCase());
       if (brandSnippets.length === 0) continue;
       const source = classifiedSources.get(canonicalUrl);
-      if (source) surfaceTypes.add(source.surfaceType);
+      if (source && !source.isBrandOwned) surfaceTypes.add(source.surfaceType);
     }
     surfaceDiversityBonus = Math.min(surfaceTypes.size * 0.1, 0.3);
   }

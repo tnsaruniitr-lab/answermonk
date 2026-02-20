@@ -17,6 +17,7 @@ export interface ClassifiedSource {
   surfaceType: SurfaceType;
   comparisonSurfaceScore: number;
   title: string;
+  isBrandOwned: boolean;
 }
 
 const T1_DOMAINS = new Set([
@@ -128,15 +129,29 @@ function classifySurfaceType(page: CrawledPage): SurfaceType {
   return "unknown";
 }
 
+function isDomainOwnedByBrand(pageDomain: string, brandDomains: Set<string>): boolean {
+  const d = pageDomain.toLowerCase().replace(/^www\./, "");
+  for (const bd of brandDomains) {
+    if (d === bd || d.endsWith(`.${bd}`)) return true;
+  }
+  return false;
+}
+
 export function classifySource(
   page: CrawledPage,
   trackedBrandsOnPage: number,
+  brandDomains: Set<string> = new Set(),
 ): ClassifiedSource {
   const tier = classifyTier(page.domain);
   const surfaceType = classifySurfaceType(page);
+  const isBrandOwned = isDomainOwnedByBrand(page.domain, brandDomains);
 
   let comparisonSurfaceScore = 0;
-  if (trackedBrandsOnPage >= 2) {
+  if (isBrandOwned) {
+    comparisonSurfaceScore = 0;
+  } else if (surfaceType === "product") {
+    comparisonSurfaceScore = 0;
+  } else if (trackedBrandsOnPage >= 2) {
     comparisonSurfaceScore = 2;
   } else if (surfaceType === "listicle" || surfaceType === "directory") {
     comparisonSurfaceScore = 1;
@@ -150,18 +165,20 @@ export function classifySource(
     surfaceType,
     comparisonSurfaceScore,
     title: page.title,
+    isBrandOwned,
   };
 }
 
 export function classifyAllSources(
   pages: CrawledPage[],
   brandCountPerPage: Map<string, number>,
+  brandDomains: Set<string> = new Set(),
 ): Map<string, ClassifiedSource> {
   const result = new Map<string, ClassifiedSource>();
   for (const page of pages) {
     if (!page.accessible) continue;
     const brandsOnPage = brandCountPerPage.get(page.canonicalUrl) || 0;
-    result.set(page.canonicalUrl, classifySource(page, brandsOnPage));
+    result.set(page.canonicalUrl, classifySource(page, brandsOnPage, brandDomains));
   }
   return result;
 }

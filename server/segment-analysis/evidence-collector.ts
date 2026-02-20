@@ -124,8 +124,8 @@ export function collectEvidence(
       tier: d.tier,
     })),
     (b) => {
-      if (b.authority.label === "absent") return `Not found on any supporting sources`;
-      return `${b.authority.supportingDomains} supporting domain(s), weighted score ${b.authority.totalScore.toFixed(1)}`;
+      if (b.authority.label === "absent") return `Not found on any third-party supporting sources`;
+      return `${b.authority.supportingDomains} third-party domain(s), weighted score ${b.authority.totalScore.toFixed(1)}`;
     },
   );
 
@@ -136,8 +136,9 @@ export function collectEvidence(
     b => pickTopSnippets([...b.context.explicitSnippets, ...b.context.weakSnippets, ...b.context.genericSnippets], 2),
     (b) => {
       if (b.context.totalSnippets === 0) return `No mentions found`;
-      const rate = Math.round(b.context.categoryRate * 100);
-      return `${rate}% category match across ${b.context.totalSnippets} snippets`;
+      const catRate = Math.round(b.context.categoryRate * 100);
+      const audRate = Math.round(b.context.audienceRate * 100);
+      return `${catRate}% category match, ${audRate}% audience match across ${b.context.totalSnippets} snippets`;
     },
   );
 

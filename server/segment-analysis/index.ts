@@ -37,6 +37,7 @@ export async function runSegmentAnalysis(
   brandName: string,
   segments: SegmentInput[],
   onProgress?: ProgressCallback,
+  brandDomain?: string,
 ): Promise<FullAnalysisReport> {
   const validSegments = segments.filter(s => s.scoringResult);
   if (validSegments.length === 0) {
@@ -87,7 +88,24 @@ export async function runSegmentAnalysis(
     const brandsOnPage = new Set(ps.snippets.map(s => s.brand.toLowerCase()));
     brandCountPerPage.set(ps.page.canonicalUrl, brandsOnPage.size);
   }
-  const classifiedSources = classifyAllSources(pages, brandCountPerPage);
+  const allBrandDomains = new Set<string>();
+  if (brandDomain) {
+    const d = brandDomain.toLowerCase().replace(/^www\./, "").replace(/^https?:\/\//, "");
+    allBrandDomains.add(d);
+  }
+  for (const comp of comparisons) {
+    for (const c of comp.competitors) {
+      const cLower = c.name.toLowerCase().replace(/\s+/g, "");
+      allBrandDomains.add(`${cLower}.com`);
+      allBrandDomains.add(`${cLower}.io`);
+      allBrandDomains.add(`${cLower}.co`);
+    }
+  }
+  const brandNameDomain = brandName.toLowerCase().replace(/\s+/g, "");
+  allBrandDomains.add(`${brandNameDomain}.com`);
+  allBrandDomains.add(`${brandNameDomain}.io`);
+  allBrandDomains.add(`${brandNameDomain}.co`);
+  const classifiedSources = classifyAllSources(pages, brandCountPerPage, allBrandDomains);
 
   onProgress?.("scoring", "Scoring brands per segment...", 80);
   const segmentResults: SegmentAnalysisResult[] = [];

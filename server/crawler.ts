@@ -83,13 +83,19 @@ export function extractTextFromHTML(html: string): string {
   let text = html;
   text = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, " ");
   text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, " ");
+  text = text.replace(/<noscript[^>]*>[\s\S]*?<\/noscript>/gi, " ");
+  text = text.replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, " ");
   text = text.replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, " ");
   text = text.replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, " ");
   text = text.replace(/<header[^>]*>[\s\S]*?<\/header>/gi, " ");
   text = text.replace(/<aside[^>]*>[\s\S]*?<\/aside>/gi, " ");
+  text = text.replace(/style="[^"]*"/gi, "");
+  text = text.replace(/class="[^"]*"/gi, "");
   text = text.replace(/<[^>]+>/g, " ");
   text = text.replace(/&[a-z]+;/gi, " ");
   text = text.replace(/&#?\w+;/gi, " ");
+  text = text.replace(/\{[^}]*\}/g, " ");
+  text = text.replace(/\.[a-zA-Z_][\w-]*\s*\{/g, " ");
   text = text.replace(/\s+/g, " ").trim();
   return text;
 }
