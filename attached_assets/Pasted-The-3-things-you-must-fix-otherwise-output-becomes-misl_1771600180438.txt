@@ -1,0 +1,121 @@
+The 3 things you must fix (otherwise output becomes misleading)
+Fix A — “Authority score” must be framed as “authority within retrieved evidence”
+
+Because your URLs are selected by the engines for the segment prompt, the authority count is biased.
+
+So don’t say:
+
+“Brex is authoritative globally”
+
+Say:
+
+“Within the sources the engines retrieved for this segment, Brex appears on higher-tier surfaces more often.”
+
+Implementation change (minimal):
+
+call it RetrievedAuthority
+
+compute it from unique domains weighted by tier (not raw mention count)
+
+Output style:
+
+“In retrieved citations for corporate cards for startups, Ramp appears across 6 unique Tier-1/2 domains; you appear on 1.”
+
+That’s credible and not circular.
+
+Fix B — Context matching must be per segment and based on “claim snippets”
+
+If you just keyword-scan whole pages, it’ll be noisy.
+
+Do this instead:
+
+Only score context on the brand mention snippets (±25 tokens, list row, table cell).
+
+For each segment, build a small dictionary:
+
+category terms (e.g., corporate card, virtual cards)
+
+audience terms (startup/SMB/enterprise)
+
+Then classify each snippet as:
+
+explicit match / weak match / no match
+
+This gives you stable “context consistency.”
+
+Fix C — Comparative mentions will be sparse; treat it as a bonus signal
+
+Most cited pages are single-brand (product pages, press releases). If you expect listicles, you’ll often get nothing.
+
+So define “comparative mention score” like this:
+
+ComparativeSurfaceScore =
+
++2 if page contains 2+ tracked brands (true comparison surface)
+
++1 if page is a directory/listicle even with 1 tracked brand (still a comparison surface; you may be absent)
+
+0 otherwise
+
+And “prominence” inside comparison surfaces:
+
+list position if detectable
+
+otherwise, first-mention ordering + snippet richness
+
+This prevents the system from collapsing when there aren’t multi-brand pages.
+
+How the scoring should work in practice (simple + explainable)
+
+For each segment S and each of the 3 brands (You, CompA, CompB):
+
+1) RetrievedAuthority (segment-level)
+
+Count unique domains where brand is mentioned in retrieved sources
+
+Weight by tier (T1=1, T2=0.7, T3=0.4)
+
+Add “surface diversity” bonus (editorial + directory + profile)
+
+Evidence you show:
+Top 3 domains + one snippet from each.
+
+2) ContextConsistency (segment-level)
+
+From all snippets mentioning the brand:
+
+% explicit category match
+
+% explicit audience match (if segment includes audience)
+
+% generic/unclear
+
+Evidence you show:
+2 snippets that match + 1 snippet that is generic/weak (if relevant).
+
+3) ComparativePresence (segment-level)
+comparison surfaces retrieved (listicle/directory/review/editorial “top X”)
+of those where brand appears
+
+if appears: average prominence (position/first mention)
+
+Evidence you show:
+1–2 listicle/directory snippets where competitor appears and you don’t.
+
+What the UI should show (so it feels non-vague)
+Segment Summary Card (per segment)
+
+Winner: Qashio
+Why (single reason): Higher context consistency for “corporate cards”
+Proof: show the winning snippet and your weak snippet side by side
+Action (single): “Add ‘corporate cards’ statement to [G2 + homepage H1]”
+
+Do not show raw scores.
+
+Comparison Table (per segment)
+Factor	You	CompA	CompB	Evidence
+Retrieved Authority	Weak	Strong	Medium	“3 Tier-1/2 domains vs 1” + links
+Context Match	Generic	Explicit	Explicit	2 quotes each
+Comparison Presence	Absent	Present	Present	1 listicle example
+
+The “Evidence” column is the key: 1–2 clickable quotes.
