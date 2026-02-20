@@ -162,13 +162,29 @@ async function queryEngine(engine: ScoringEngine, promptText: string): Promise<s
 }
 
 async function queryChatGPT(prompt: string): Promise<string> {
-  const completion = await openai.chat.completions.create({
-    model: "gpt-5.2",
-    messages: [{ role: "user", content: prompt }],
-    max_completion_tokens: 1024,
-    temperature: 0.2,
-  });
-  return completion.choices[0]?.message?.content ?? "";
+  try {
+    const directOpenai = new OpenAI({
+      apiKey: process.env.OPENAI_DIRECT_API_KEY,
+    });
+
+    const response = await directOpenai.responses.create({
+      model: "gpt-5.2",
+      tools: [{ type: "web_search" as any }],
+      input: prompt,
+      temperature: 0.2,
+    });
+
+    return (response as any).output_text ?? "";
+  } catch (err) {
+    console.error("Quick mode ChatGPT web search failed, falling back to standard:", err);
+    const completion = await openai.chat.completions.create({
+      model: "gpt-5.2",
+      messages: [{ role: "user", content: prompt }],
+      max_completion_tokens: 1024,
+      temperature: 0.2,
+    });
+    return completion.choices[0]?.message?.content ?? "";
+  }
 }
 
 async function queryClaude(prompt: string): Promise<string> {
@@ -184,12 +200,25 @@ async function queryClaude(prompt: string): Promise<string> {
 }
 
 async function queryGemini(prompt: string): Promise<string> {
-  const response = await gemini.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt,
-    config: { maxOutputTokens: 1024 },
-  });
-  return response.text ?? "";
+  try {
+    const response = await gemini.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        maxOutputTokens: 8192,
+        tools: [{ googleSearch: {} }],
+      },
+    });
+    return response.text ?? "";
+  } catch (err) {
+    console.error("Quick mode Gemini web search failed, falling back to standard:", err);
+    const response = await gemini.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: { maxOutputTokens: 1024 },
+    });
+    return response.text ?? "";
+  }
 }
 
 function isRetryableError(err: unknown): boolean {
