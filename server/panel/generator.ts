@@ -1,78 +1,22 @@
 import OpenAI from "openai";
-import puppeteer from "puppeteer-core";
-import * as fs from "fs";
 import { selectTopTerritories, type TerritoryScore } from "./territories";
 import { generatePanelPrompts, type PanelPrompt } from "./templates";
 import { extractAliasesFromHTML, expandAliasesWithLLM, buildAliasSet, type AliasEntry } from "./aliases";
+import {
+  fetchWithHttp,
+  fetchWithBrowser,
+  extractTextFromHTML,
+  extractMetadata,
+  extractSmartContent,
+  canonicalizeDomain,
+} from "../crawler";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
-const FETCH_TIMEOUT = 10000;
-const BROWSER_TIMEOUT = 20000;
-const MAX_HTML_SIZE = 500000;
 const MIN_TEXT_LENGTH = 200;
-
-function findChromiumPath(): string {
-  try {
-    const { execSync } = require("child_process");
-    const whichResult = execSync("which chromium 2>/dev/null", { encoding: "utf-8" }).trim();
-    if (whichResult && fs.existsSync(whichResult)) return whichResult;
-  } catch {}
-  const fallbacks = [
-    process.env.CHROMIUM_PATH,
-    "/nix/var/nix/profiles/default/bin/chromium",
-  ];
-  for (const p of fallbacks) {
-    if (p && fs.existsSync(p)) return p;
-  }
-  return "chromium";
-}
-
-const CHROMIUM_PATH = findChromiumPath();
-console.log(`[panel] Chromium path: ${CHROMIUM_PATH}`);
-
-async function fetchPageWithBrowser(url: string): Promise<{ html: string; finalUrl: string } | null> {
-  let browser;
-  try {
-    browser = await puppeteer.launch({
-      executablePath: CHROMIUM_PATH,
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--no-first-run",
-        "--no-zygote",
-        "--single-process",
-      ],
-    });
-    const page = await browser.newPage();
-    await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-    await page.goto(url, { waitUntil: "networkidle2", timeout: BROWSER_TIMEOUT });
-    await page.waitForSelector("body", { timeout: 5000 }).catch(() => {});
-
-    await page.evaluate(async () => {
-      for (let i = 0; i < 8; i++) {
-        window.scrollBy(0, 600);
-        await new Promise(r => setTimeout(r, 300));
-      }
-    });
-    await new Promise(r => setTimeout(r, 1500));
-
-    const html = await page.content();
-    const finalUrl = page.url();
-    return { html: html.slice(0, MAX_HTML_SIZE), finalUrl };
-  } catch (err) {
-    console.error(`Browser fetch failed for ${url}:`, err);
-    return null;
-  } finally {
-    if (browser) await browser.close().catch(() => {});
-  }
-}
 
 export interface ExtractionResult {
   primary_services: string[];
@@ -97,156 +41,6 @@ export interface PanelAnalysisResult {
 
 const SECOND_PAGE_PATHS = ["/services", "/service", "/about"];
 
-async function fetchPage(url: string): Promise<{ html: string; finalUrl: string } | null> {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-
-    const response = await fetch(url, {
-      signal: controller.signal,
-      redirect: "follow",
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; BrandSense/1.0)",
-        "Accept": "text/html,application/xhtml+xml",
-      },
-    });
-    clearTimeout(timeout);
-
-    if (!response.ok) return null;
-
-    const contentType = response.headers.get("content-type") || "";
-    if (!contentType.includes("text/html") && !contentType.includes("application/xhtml")) {
-      return null;
-    }
-
-    const buffer = await response.arrayBuffer();
-    if (buffer.byteLength > MAX_HTML_SIZE) {
-      const html = new TextDecoder().decode(buffer.slice(0, MAX_HTML_SIZE));
-      return { html, finalUrl: response.url };
-    }
-
-    const html = new TextDecoder().decode(buffer);
-    return { html, finalUrl: response.url };
-  } catch (err) {
-    console.error(`Failed to fetch ${url}:`, err);
-    return null;
-  }
-}
-
-function extractTextFromHTML(html: string): string {
-  let text = html;
-  text = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, " ");
-  text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, " ");
-  text = text.replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, " ");
-  text = text.replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, " ");
-  text = text.replace(/<header[^>]*>[\s\S]*?<\/header>/gi, " ");
-  text = text.replace(/<[^>]+>/g, " ");
-  text = text.replace(/&[a-z]+;/gi, " ");
-  text = text.replace(/&#?\w+;/gi, " ");
-  text = text.replace(/\s+/g, " ").trim();
-  return text;
-}
-
-function extractMetadata(html: string): string {
-  const parts: string[] = [];
-
-  const metaDesc = html.match(/<meta\s+name="description"\s+content="([^"]+)"/i)
-    || html.match(/<meta\s+content="([^"]+)"\s+name="description"/i);
-  if (metaDesc) parts.push(metaDesc[1]);
-
-  const ogDesc = html.match(/<meta\s+property="og:description"\s+content="([^"]+)"/i)
-    || html.match(/<meta\s+content="([^"]+)"\s+property="og:description"/i);
-  if (ogDesc) parts.push(ogDesc[1]);
-
-  const ogTitle = html.match(/<meta\s+property="og:title"\s+content="([^"]+)"/i)
-    || html.match(/<meta\s+content="([^"]+)"\s+property="og:title"/i);
-  if (ogTitle) parts.push(ogTitle[1]);
-
-  const ldMatches = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi);
-  if (ldMatches) {
-    for (const match of ldMatches) {
-      try {
-        const jsonContent = match.replace(/<script[^>]*>|<\/script>/gi, "");
-        const data = JSON.parse(jsonContent);
-        if (data.description) parts.push(data.description);
-        if (data.name) parts.push(data.name);
-        if (data.knowsAbout) parts.push(Array.isArray(data.knowsAbout) ? data.knowsAbout.join(", ") : data.knowsAbout);
-      } catch {}
-    }
-  }
-
-  return parts.join(". ");
-}
-
-const SECTION_KEYWORDS = [
-  "services", "solutions", "what we do", "our work", "capabilities",
-  "expertise", "about", "industries", "sectors", "clients",
-  "offerings", "specialties", "approach", "methodology",
-];
-
-function extractSmartContent(fullText: string, maxLength: number): string {
-  if (fullText.length <= maxLength) return fullText;
-
-  const headBudget = Math.floor(maxLength * 0.4);
-  const windowBudget = maxLength - headBudget;
-  const head = fullText.slice(0, headBudget);
-
-  const lowerText = fullText.toLowerCase();
-  const windows: { start: number; end: number; keyword: string }[] = [];
-  const windowRadius = 500;
-
-  for (const keyword of SECTION_KEYWORDS) {
-    let searchFrom = headBudget;
-    while (searchFrom < lowerText.length) {
-      const idx = lowerText.indexOf(keyword, searchFrom);
-      if (idx === -1) break;
-      const start = Math.max(headBudget, idx - windowRadius);
-      const end = Math.min(fullText.length, idx + keyword.length + windowRadius);
-      windows.push({ start, end, keyword });
-      searchFrom = idx + keyword.length;
-    }
-  }
-
-  if (windows.length === 0) {
-    return fullText.slice(0, maxLength);
-  }
-
-  windows.sort((a, b) => a.start - b.start);
-
-  const merged: { start: number; end: number }[] = [];
-  for (const w of windows) {
-    if (merged.length > 0 && w.start <= merged[merged.length - 1].end) {
-      merged[merged.length - 1].end = Math.max(merged[merged.length - 1].end, w.end);
-    } else {
-      merged.push({ start: w.start, end: w.end });
-    }
-  }
-
-  let windowText = "";
-  let budgetLeft = windowBudget;
-  for (const m of merged) {
-    const chunk = fullText.slice(m.start, m.end);
-    if (chunk.length <= budgetLeft) {
-      windowText += " ... " + chunk;
-      budgetLeft -= chunk.length;
-    } else {
-      windowText += " ... " + chunk.slice(0, budgetLeft);
-      break;
-    }
-  }
-
-  return head + windowText;
-}
-
-function canonicalizeDomain(url: string): string {
-  try {
-    const parsed = new URL(url);
-    return parsed.hostname.replace(/^www\./, "");
-  } catch {
-    return url.replace(/^(https?:\/\/)?(www\.)?/, "").replace(/\/.*$/, "");
-  }
-}
-
 export async function analyzePanelWebsite(
   brandName: string,
   websiteUrl: string,
@@ -259,12 +53,12 @@ export async function analyzePanelWebsite(
   }
 
   console.log(`[panel] Attempting browser render for ${normalizedUrl}...`);
-  let homePage = await fetchPageWithBrowser(normalizedUrl);
+  let homePage = await fetchWithBrowser(normalizedUrl);
   let usedBrowser = !!homePage;
 
   if (!homePage) {
     console.log(`[panel] Browser render failed, falling back to simple fetch...`);
-    homePage = await fetchPage(normalizedUrl);
+    homePage = await fetchWithHttp(normalizedUrl);
   }
 
   if (!homePage) {
@@ -274,7 +68,7 @@ export async function analyzePanelWebsite(
   let homeText = extractTextFromHTML(homePage.html);
   if (usedBrowser && homeText.length < MIN_TEXT_LENGTH) {
     console.log(`[panel] Browser returned thin content (${homeText.length} chars), trying simple fetch...`);
-    const fallback = await fetchPage(normalizedUrl);
+    const fallback = await fetchWithHttp(normalizedUrl);
     if (fallback) {
       const fallbackText = extractTextFromHTML(fallback.html);
       if (fallbackText.length > homeText.length) {
@@ -297,10 +91,10 @@ export async function analyzePanelWebsite(
   for (const path of SECOND_PAGE_PATHS) {
     const secondUrl = `${baseOrigin}${path}`;
     const secondPage = usedBrowser
-      ? await fetchPageWithBrowser(secondUrl)
-      : await fetchPage(secondUrl);
+      ? await fetchWithBrowser(secondUrl)
+      : await fetchWithHttp(secondUrl);
     if (!secondPage && usedBrowser) {
-      const fallbackSecond = await fetchPage(secondUrl);
+      const fallbackSecond = await fetchWithHttp(secondUrl);
       if (fallbackSecond) {
         pagesUsed.push(fallbackSecond.finalUrl);
         combinedHTML += "\n" + fallbackSecond.html;

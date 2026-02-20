@@ -79,6 +79,19 @@ Preferred communication style: Simple, everyday language.
   - API: `POST /api/insights/analyze`, `GET /api/insights/:jobId`
   - Database: `insights_json` and `insights_status` JSONB/text columns on `scoring_jobs` table; profile metadata stored in `raw_data.profile`
   - Frontend: `InsightsPanel` component with surface type badges (Brand Site, Competitor, Authority, Comparison, Eligibility), "Show all" toggle, expanded source list (25 shown), confidence gauge, dimension breakdown, attribution section, insight cards, competitor passage snippets ("Why Competitors Rank Higher"), authority tier badges (T1/T2) on sources, counterfactual "What If" simulation panel, separate elimination vs ranking weakness card sections
+- **Segment Citation Analyzer** (`server/segment-analysis/`): Post-Quick-V2 citation analysis explaining why brands rank differently across segments
+  - `citation-crawler.ts` — Extracts citation URLs per segment from raw runs, deduplicates, crawls via shared crawler module
+  - `comparison-targets.ts` — Per-segment competitor selection: top 2 by appearance rate, retrieved authority as tie-breaker
+  - `snippet-extractor.ts` — Structure-aware brand mention extraction (headings, list items, table rows, paragraphs) with entity windowing
+  - `source-classifier.ts` — 3-tier source classification (T1 authority, T2 industry, T3 general) with comparison surface detection
+  - `intent-dictionary.ts` — Deterministic category/audience/geo term generation from segment metadata (seedType + customerType)
+  - `scorer.ts` — 3-dimension scoring: Retrieved Authority (tier-weighted), Context Consistency (category/audience term proximity), Comparative Presence (comparison surface coverage)
+  - `evidence-collector.ts` — Per-factor evidence with 2 snippets per brand, winner determination, absence statements
+  - `action-recommender.ts` — Templated actions by gap type (category/audience/comparative/authority)
+  - `index.ts` — Orchestrator: crawl → extract → classify → score → evidence → actions, with progress callbacks
+  - API: `POST /api/segment-analysis/analyze`
+  - Frontend: `SegmentCitationAnalyzer` component with 3-way comparison grid, collapsible evidence per factor, strength badges, and actionable recommendations
+  - Shared crawler: `server/crawler.ts` — Reusable URL crawling with structural extraction (headings, lists, tables), URL canonicalization, content hashing
 
 ### Database
 - **Database**: PostgreSQL (required, referenced via `DATABASE_URL` environment variable)

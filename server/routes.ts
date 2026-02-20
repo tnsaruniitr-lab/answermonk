@@ -21,6 +21,7 @@ import { runScoring } from "./scoring/runner";
 import { insertSavedProfileSchema, insertMultiSegmentSessionSchema } from "@shared/schema";
 import { analyzePanelWebsite } from "./panel/generator";
 import { runInsightsAnalysis, type InsightsInput } from "./insights";
+import { runSegmentAnalysis } from "./segment-analysis";
 
 /** ------------------------
  * Scoring helpers (From user provided logic)
@@ -835,6 +836,25 @@ export async function registerRoutes(
       .slice(0, 15)
       .map(([name]) => name);
   }
+
+  app.post("/api/segment-analysis/analyze", async (req, res) => {
+    try {
+      const { brandName, segments } = req.body;
+      if (!brandName || !segments || !Array.isArray(segments)) {
+        res.status(400).json({ message: "brandName and segments array required" });
+        return;
+      }
+
+      const report = await runSegmentAnalysis(brandName, segments, (step, detail, pct) => {
+        console.log(`[segment-analysis] ${step}: ${detail} (${pct}%)`);
+      });
+
+      res.json(report);
+    } catch (err) {
+      console.error("Segment analysis error:", err);
+      res.status(500).json({ message: "Analysis failed", error: String(err) });
+    }
+  });
 
   return httpServer;
 }

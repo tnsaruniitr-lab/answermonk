@@ -51,6 +51,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+import { SegmentCitationAnalyzer } from "@/components/SegmentCitationAnalyzer";
 
 interface Prompt {
   id: string;
@@ -2645,6 +2646,19 @@ export default function PromptGenerator() {
                       )}
                     </div>
                   </div>
+                )}
+
+                {mode === "quickv2" && v2Segments.some((s) => s.scoringResult) && !v2IsAnalysing && (
+                  <SegmentCitationAnalyzer
+                    brandName={brandName}
+                    segments={v2Segments.filter(s => s.scoringResult).map(s => ({
+                      id: s.id,
+                      seedType: s.seedType,
+                      customerType: s.customerType,
+                      location: s.location,
+                      scoringResult: s.scoringResult,
+                    }))}
+                  />
                 )}
 
                 {mode !== "panel" && mode !== "quick" && mode !== "quickv2" && (<form onSubmit={handleGenerate} className="space-y-6 pb-16">
