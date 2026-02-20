@@ -178,7 +178,8 @@ function SegmentCard({ seg, idx, brandName }: { seg: SegmentData; idx: number; b
   const [showRaw, setShowRaw] = useState(false);
   const score = seg.scoringResult?.score;
   const rawRuns = seg.scoringResult?.raw_runs || [];
-  const segLabel = [seg.seedType, seg.customerType].filter(Boolean).join(" for ");
+  const formatSeedType = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  const segLabel = [seg.seedType ? formatSeedType(seg.seedType) : "", seg.customerType].filter(Boolean).join(" for ");
 
   return (
     <Card className="overflow-hidden" data-testid={`card-v2-segment-${idx}`}>

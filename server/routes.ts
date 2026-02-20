@@ -472,7 +472,7 @@ export async function registerRoutes(
         const rawRuns = (job.rawData as any)?.runs;
         return {
           persona: profile?.persona || "",
-          seedType: profile?.verticals?.[0] || profile?.persona || "",
+          seedType: profile?.persona || "",
           customerType: profile?.verticals?.[0] || "",
           location: profile?.geo || "",
           resultCount: job.promptCount,
