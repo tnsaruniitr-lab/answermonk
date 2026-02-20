@@ -1,0 +1,164 @@
+1) Biggest risk: wrong causal explanations
+
+Right now your pipeline assumes:
+
+citations → descriptions → ranking cause
+
+But sometimes the model output is driven by internal prior knowledge (training data + brand familiarity), not retrieved sources.
+
+If you don’t detect this case, your system will confidently output false reasoning.
+
+Add one lightweight guard
+
+Before running the full analysis, run a retrieval attribution check:
+
+For each answer in the scoring run:
+
+count how many entities in the answer appear in retrieved sources
+
+if low overlap → mark as “model-knowledge dominated”
+
+If dominated, change report tone:
+
+“Ranking appears influenced by general brand familiarity rather than citation coverage. Improvements should focus on brand prominence rather than page optimization.”
+
+This prevents the product from making provably incorrect prescriptions — a critical trust factor.
+
+2) Quote extraction edge case (important)
+
+Your extractor currently uses sentence matching.
+
+Problem: listicles and directories often don’t contain full sentences.
+
+Example:
+
+Qashio — Spend management platform for UAE SMEs
+Pemo — Corporate cards
+
+These are not sentences → your system will under-score them.
+
+Add “descriptor fragment extraction”
+
+When a brand mention occurs:
+
+capture surrounding 15–25 tokens
+
+not just sentence boundaries
+
+This dramatically improves intent scoring accuracy.
+
+3) Intent scoring calibration problem
+
+Right now the LLM scores signals absolutely (0–5).
+
+But ranking is relative, not absolute.
+
+A 3/5 can win if everyone else is 2/5.
+
+Fix
+
+Score comparatively in one call:
+
+Instead of:
+
+score each brand individually
+
+Do:
+
+rank all brands against each other per signal
+
+This stabilizes results and avoids flip-flopping across runs.
+
+4) Evidence density inflation
+
+Some sites repeat the same metric multiple times:
+
+“trusted by 1000 companies” appears 6 times
+
+Your count-based evidence metric will be gamed by page structure.
+
+Fix
+
+Deduplicate evidence by semantic similarity:
+
+same number + noun → count once per source
+
+5) Positioning drift — missing half the picture
+
+You compare:
+
+self description vs third-party description
+
+But drift only matters if the third-party description matches the query.
+
+Otherwise you penalize correctly positioned brands.
+
+Add condition
+
+Only flag drift when:
+third-party description aligns strongly with query intent.
+
+6) Reporting — avoid fake precision
+
+Avoid numeric claims like:
+
+“scores 2/5 vs 4/5 therefore ranking”
+
+LLM ranking is probabilistic.
+Over-precision reduces credibility when users test queries and see variance.
+
+Change phrasing style:
+
+Instead of deterministic:
+
+ranks higher because X
+
+Use:
+
+increases answer confidence because X
+
+This small wording change massively improves perceived correctness.
+
+7) Performance guard (practical)
+
+70 URLs sometimes contain duplicates (same article syndicated).
+
+Add canonical URL + content hash deduplication before analysis.
+
+You’ll save tokens and avoid skewed evidence.
+
+What you now have
+
+After these additions, your module becomes:
+
+Not:
+
+SEO audit + AI flavor
+
+But:
+
+retrieval reasoning reconstruction
+
+That distinction is what makes the product defensible.
+
+Verdict
+
+Your architecture works and is launch-ready.
+
+Add only these safeguards:
+
+retrieval attribution check
+
+descriptor fragment extraction
+
+relative scoring
+
+deduplicated evidence counts
+
+conditional positioning drift
+
+probabilistic wording
+
+content deduplication
+
+No extra UI, no new complex infra — just correctness protection.
