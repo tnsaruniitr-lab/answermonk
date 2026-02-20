@@ -330,6 +330,8 @@ export const RESTAURANT_VERTICALS: string[] = [
   "Brazilian cuisine",
   "Filipino cuisine",
   "fusion cuisine",
+  "burgers",
+  "pizza",
   "seafood",
   "BBQ / smokehouse",
   "vegetarian",
