@@ -2439,6 +2439,7 @@ export default function PromptGenerator() {
                             <SelectItem value="3">3</SelectItem>
                             <SelectItem value="5">5</SelectItem>
                             <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="11">11 (incl. easy-to-use)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
