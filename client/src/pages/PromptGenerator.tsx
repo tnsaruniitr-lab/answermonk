@@ -1007,6 +1007,7 @@ const QUICK_QUALIFIERS = [
   "most trusted",
   "top rated",
   "most reliable",
+  "easiest to use",
 ];
 
 function generateQuickPrompts(
