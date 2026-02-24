@@ -1040,10 +1040,8 @@ function generateQuickPrompts(
     if (isRestaurant) {
       const cuisinePhrase = customerType ? `${customerType} ` : "";
       text = `Recommend the ${qualifier} ${count} ${cuisinePhrase}${seedType} in ${location}. Focus on local favorites, quality, and atmosphere.`;
-    } else if (persona === "construction_management") {
-      text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType}${customerSuffix} based in ${location}.`;
     } else {
-      text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType}${customerSuffix} based in the ${location} or GCC region. Exclude US, European, or other non-regional providers; focus on providers headquartered or primarily operating in the Middle East / GCC.`;
+      text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType}${customerSuffix} based in ${location}.`;
     }
     prompts.push({
       id: `quick_${i + 1}`,
