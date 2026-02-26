@@ -135,11 +135,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async listMultiSegmentSessions(): Promise<MultiSegmentSession[]> {
-    return await db
-      .select()
+    const rows = await db
+      .select({
+        id: multiSegmentSessions.id,
+        brandName: multiSegmentSessions.brandName,
+        brandDomain: multiSegmentSessions.brandDomain,
+        promptsPerSegment: multiSegmentSessions.promptsPerSegment,
+        segments: multiSegmentSessions.segments,
+        createdAt: multiSegmentSessions.createdAt,
+      })
       .from(multiSegmentSessions)
       .orderBy(desc(multiSegmentSessions.createdAt))
       .limit(50);
+    return rows.map(r => ({ ...r, citationReport: null })) as MultiSegmentSession[];
   }
 
   async getMultiSegmentSession(id: number): Promise<MultiSegmentSession | undefined> {
