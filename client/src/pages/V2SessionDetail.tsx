@@ -27,6 +27,7 @@ import {
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { SegmentCitationAnalyzer } from "@/components/SegmentCitationAnalyzer";
+import { ReportViewer } from "@/components/ReportViewer";
 
 const ENGINE_LABELS: Record<string, string> = {
   chatgpt: "ChatGPT",
@@ -152,6 +153,10 @@ export default function V2SessionDetail() {
                 scoringResult: s.scoringResult,
               }))}
           />
+        )}
+
+        {scored > 0 && numericId !== null && (
+          <ReportViewer sessionId={numericId} brandName={session.brandName} />
         )}
 
         <div className="pb-16" />
