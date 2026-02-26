@@ -9,6 +9,9 @@ process.on("uncaughtException", (err) => {
 process.on("unhandledRejection", (reason) => {
   console.error("UNHANDLED REJECTION:", reason);
 });
+process.on("SIGHUP", () => {
+  console.log("Received SIGHUP, ignoring (keeping server alive)");
+});
 
 const app = express();
 const httpServer = createServer(app);
