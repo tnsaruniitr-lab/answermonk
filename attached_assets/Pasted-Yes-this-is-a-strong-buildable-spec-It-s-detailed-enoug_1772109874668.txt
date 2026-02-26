@@ -1,0 +1,149 @@
+Yes — this is a strong, buildable spec. It’s detailed enough to implement without guesswork, and the 3-section structure maps cleanly to: (1) aggregation, (2) evidence + explanations, (3) prescriptive actions + print.
+
+Where it’s already solid:
+
+Inputs are explicit (scores, engine/cluster breakdowns, competitors, raw runs, citation report).
+
+Outputs are concrete (dashboard metrics, heatmap, competitor tables, deep dives, gap cards, recommendations, model understanding).
+
+Tasks are correctly sequenced (endpoint → page sections 1/2 → section 3 + print CSS).
+
+What I would tighten (so the build doesn’t drift or get stuck on ambiguity):
+
+1) Define exact formulas for every “report metric”
+
+Right now some are implied. Lock these down in T001 so frontend is deterministic.
+
+Overall appearance rate (aggregate) — specify one:
+
+Weighted by valid runs:
+overallAppearance = sum(segment.appearances) / sum(segment.validRuns)
+where segment.appearances = segment.appearance_rate * segment.valid_runs
+
+OR simple average across segments (less defensible if segments have different valid_runs).
+
+Avg rank (per segment) — confirm whether it’s:
+
+mean rank conditional on brand_found, or
+
+mean rank with missing treated as null/∞.
+
+Web search grounding % — you need a detectable signal:
+
+If you already store per-run flags (e.g., used_web_search), great.
+
+If not, you must define a proxy (example: “has citations > 0” is NOT the same as web-search grounding, and Claude having 0 citations will distort it).
+
+Competitor “appearance rate/share” — define whether it’s:
+
+appearances / valid_runs, or
+
+appearances / total competitor mentions.
+
+If you don’t define these, section 2 becomes inconsistent.
+
+2) Make “Top 3 Deep Dive” extraction rules explicit
+
+You want phrase extraction from raw_text. That can explode if it’s not bounded.
+
+Define:
+
+Mention detection: match name_norm plus aliases? domain match? both?
+
+Phrase extraction method:
+
+“extract up to N snippets per competitor per segment (e.g., 5)”
+
+“each snippet max 160 chars”
+
+“prefer sentences containing competitor mention + nearby descriptors (adjectives/accreditations/claims)”
+
+Deduping: normalize whitespace, remove near-duplicates by similarity threshold.
+
+Otherwise you’ll get noisy, repetitive, or huge payloads.
+
+3) Authority tiering must be a single shared classifier
+
+You mention T1/T2/T3. Ensure one place determines this (in citation report evidence classification), then reuse it everywhere.
+
+Also define:
+
+What counts as “high-tier” (gov/edu/top medical authorities? mainstream press? regulators?)
+
+Whether competitor-owned domains (e.g., aster.ae) are T2 by default (often they should not outrank independent or regulator domains).
+
+4) Endpoint shape: return “report-ready” objects, not raw blobs
+
+You don’t want the frontend recomputing joins across 120 runs + citation report.
+
+For /api/multisegment/sessions/:id/report, return:
+
+meta: brandName, domain, date, location, sessionId
+
+section1: overall, perSegmentCards[], heatmap[segmentId][engine], grounding
+
+section2:
+
+perSegmentTop5[]
+
+crossSegmentOverlap[]
+
+perEngineLeaders[]
+
+deepDives[segmentId][competitor]: {authoritySources[], tierCounts, uniqueDomainCounts, phrases[], comparisonSurfaces[], crossEngineConsistency}
+
+section3:
+
+gapAnalysis (authority/context/comparative)
+
+recommendations (quickWins, getListedHere, useThesePhrases, missingSources)
+
+modelUnderstanding[engine]
+
+This keeps the page fast and printable.
+
+5) Printing: decide the PDF strategy now
+
+Print CSS is good, but specify constraints:
+
+Max page width (A4 vs Letter).
+
+Pagination rules: avoid splitting competitor deep-dive cards mid-section.
+
+A “Print/Export PDF” button that switches to a print layout mode (e.g., adds print class) so you can preview before actual printing.
+
+6) Risk check: payload size + latency
+
+Even with aggregation, if you return too many phrases/URLs it’ll bloat.
+Set caps:
+
+top competitors: 5 table, deep-dive only top 3
+
+authority sources: top 10 domains + top 20 URLs per competitor (or fewer)
+
+phrases: 5–8 max per competitor
+
+Suggested edits to your Tasks (minimal changes)
+T001 (add acceptance criteria)
+
+Add:
+
+Metric formulas documented in code comments + unit tests for aggregation.
+
+Hard caps for phrases/URLs per competitor.
+
+A field indicating grounding that is not “citations > 0” unless you explicitly accept that proxy.
+
+T002
+
+Add:
+
+Skeleton page renders with mocked report JSON.
+
+Heatmap component supports print-friendly layout (no hover-only meaning).
+
+T003
+
+Add:
+
+@page rules, page breaks (break-inside: avoid), headers/footers, and a “compact mode” toggle if needed.
