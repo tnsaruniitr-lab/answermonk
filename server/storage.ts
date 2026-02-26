@@ -1,6 +1,6 @@
 
 import { db } from "./db";
-import { and, desc, eq, isNull, ne, or } from "drizzle-orm";
+import { and, desc, eq, isNull, ne, or, sql } from "drizzle-orm";
 import {
   analysisResults,
   scoringJobs,
@@ -134,20 +134,39 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async listMultiSegmentSessions(): Promise<MultiSegmentSession[]> {
+  async listMultiSegmentSessions(): Promise<any[]> {
     const rows = await db
       .select({
         id: multiSegmentSessions.id,
         brandName: multiSegmentSessions.brandName,
         brandDomain: multiSegmentSessions.brandDomain,
         promptsPerSegment: multiSegmentSessions.promptsPerSegment,
-        segments: multiSegmentSessions.segments,
+        segmentsSummary: sql`(
+          SELECT jsonb_agg(jsonb_build_object(
+            'persona', elem->>'persona',
+            'location', elem->>'location',
+            'seedType', elem->>'seedType',
+            'resultCount', (elem->>'resultCount')::int,
+            'customerType', elem->>'customerType',
+            'promptCount', CASE WHEN elem->'prompts' IS NOT NULL THEN jsonb_array_length(elem->'prompts') ELSE 0 END,
+            'scoringResult', CASE WHEN elem->'scoringResult' IS NOT NULL THEN 'true'::jsonb ELSE 'null'::jsonb END
+          ))
+          FROM jsonb_array_elements(${multiSegmentSessions.segments}::jsonb) AS elem
+        )`,
         createdAt: multiSegmentSessions.createdAt,
       })
       .from(multiSegmentSessions)
       .orderBy(desc(multiSegmentSessions.createdAt))
       .limit(50);
-    return rows.map(r => ({ ...r, citationReport: null })) as MultiSegmentSession[];
+    return rows.map(r => ({
+      id: r.id,
+      brandName: r.brandName,
+      brandDomain: r.brandDomain,
+      promptsPerSegment: r.promptsPerSegment,
+      segments: r.segmentsSummary || [],
+      citationReport: null,
+      createdAt: r.createdAt,
+    }));
   }
 
   async getMultiSegmentSession(id: number): Promise<MultiSegmentSession | undefined> {
