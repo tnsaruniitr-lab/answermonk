@@ -15,7 +15,7 @@ import { z } from "zod";
 import { queryEngine } from "./engines";
 import { generatePromptSet } from "./promptgen/generator";
 import { BuyerIntentProfileSchema } from "./promptgen/types";
-import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, CORPORATE_CARDS_SERVICES, CORPORATE_CARDS_VERTICALS, CORPORATE_CARDS_MODIFIERS, EXPENSE_MANAGEMENT_SERVICES, EXPENSE_MANAGEMENT_VERTICALS, EXPENSE_MANAGEMENT_MODIFIERS, ACCOUNTING_AUTOMATION_SERVICES, ACCOUNTING_AUTOMATION_VERTICALS, ACCOUNTING_AUTOMATION_MODIFIERS, INVOICE_MANAGEMENT_SERVICES, INVOICE_MANAGEMENT_VERTICALS, INVOICE_MANAGEMENT_MODIFIERS, RESTAURANT_OFFERINGS, RESTAURANT_VERTICALS, RESTAURANT_MODIFIERS, CONSTRUCTION_MANAGEMENT_SERVICES, CONSTRUCTION_MANAGEMENT_VERTICALS, CONSTRUCTION_MANAGEMENT_MODIFIERS, BUDGET_ADJECTIVES, DECISION_MAKERS } from "./promptgen/presets";
+import { getPresetsForPersona, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, CORPORATE_CARDS_SERVICES, CORPORATE_CARDS_VERTICALS, CORPORATE_CARDS_MODIFIERS, EXPENSE_MANAGEMENT_SERVICES, EXPENSE_MANAGEMENT_VERTICALS, EXPENSE_MANAGEMENT_MODIFIERS, ACCOUNTING_AUTOMATION_SERVICES, ACCOUNTING_AUTOMATION_VERTICALS, ACCOUNTING_AUTOMATION_MODIFIERS, INVOICE_MANAGEMENT_SERVICES, INVOICE_MANAGEMENT_VERTICALS, INVOICE_MANAGEMENT_MODIFIERS, RESTAURANT_OFFERINGS, RESTAURANT_VERTICALS, RESTAURANT_MODIFIERS, CONSTRUCTION_MANAGEMENT_SERVICES, CONSTRUCTION_MANAGEMENT_VERTICALS, CONSTRUCTION_MANAGEMENT_MODIFIERS, HEALTHCARE_SERVICES, HEALTHCARE_VERTICALS, HEALTHCARE_MODIFIERS, WEIGHT_LOSS_SERVICES, WEIGHT_LOSS_VERTICALS, WEIGHT_LOSS_MODIFIERS, BLOOD_TEST_SERVICES, BLOOD_TEST_VERTICALS, BLOOD_TEST_MODIFIERS, BUDGET_ADJECTIVES, DECISION_MAKERS } from "./promptgen/presets";
 import { selectMiniPanel, selectMicroPanel } from "./scoring/panel";
 import { runScoring } from "./scoring/runner";
 import { insertSavedProfileSchema, insertMultiSegmentSessionSchema, insertSavedV2ConfigSchema } from "@shared/schema";
@@ -282,6 +282,30 @@ export async function registerRoutes(
         decision_makers: DECISION_MAKERS,
         budget_tiers: Object.keys(BUDGET_ADJECTIVES.construction_management),
       });
+    } else if (persona === "in_home_healthcare" || persona === "at_home_healthcare") {
+      res.json({
+        services: HEALTHCARE_SERVICES,
+        verticals: HEALTHCARE_VERTICALS,
+        modifiers: HEALTHCARE_MODIFIERS,
+        decision_makers: DECISION_MAKERS,
+        budget_tiers: Object.keys(BUDGET_ADJECTIVES[persona as keyof typeof BUDGET_ADJECTIVES]),
+      });
+    } else if (persona === "weight_loss_help") {
+      res.json({
+        services: WEIGHT_LOSS_SERVICES,
+        verticals: WEIGHT_LOSS_VERTICALS,
+        modifiers: WEIGHT_LOSS_MODIFIERS,
+        decision_makers: DECISION_MAKERS,
+        budget_tiers: Object.keys(BUDGET_ADJECTIVES.weight_loss_help),
+      });
+    } else if (persona === "in_home_blood_tests" || persona === "at_home_blood_tests") {
+      res.json({
+        services: BLOOD_TEST_SERVICES,
+        verticals: BLOOD_TEST_VERTICALS,
+        modifiers: BLOOD_TEST_MODIFIERS,
+        decision_makers: DECISION_MAKERS,
+        budget_tiers: Object.keys(BUDGET_ADJECTIVES[persona as keyof typeof BUDGET_ADJECTIVES]),
+      });
     } else {
       res.json({
         marketing_agency: {
@@ -330,6 +354,36 @@ export async function registerRoutes(
           services: CONSTRUCTION_MANAGEMENT_SERVICES,
           verticals: CONSTRUCTION_MANAGEMENT_VERTICALS,
           modifiers: CONSTRUCTION_MANAGEMENT_MODIFIERS,
+          decision_makers: DECISION_MAKERS,
+        },
+        in_home_healthcare: {
+          services: HEALTHCARE_SERVICES,
+          verticals: HEALTHCARE_VERTICALS,
+          modifiers: HEALTHCARE_MODIFIERS,
+          decision_makers: DECISION_MAKERS,
+        },
+        at_home_healthcare: {
+          services: HEALTHCARE_SERVICES,
+          verticals: HEALTHCARE_VERTICALS,
+          modifiers: HEALTHCARE_MODIFIERS,
+          decision_makers: DECISION_MAKERS,
+        },
+        weight_loss_help: {
+          services: WEIGHT_LOSS_SERVICES,
+          verticals: WEIGHT_LOSS_VERTICALS,
+          modifiers: WEIGHT_LOSS_MODIFIERS,
+          decision_makers: DECISION_MAKERS,
+        },
+        in_home_blood_tests: {
+          services: BLOOD_TEST_SERVICES,
+          verticals: BLOOD_TEST_VERTICALS,
+          modifiers: BLOOD_TEST_MODIFIERS,
+          decision_makers: DECISION_MAKERS,
+        },
+        at_home_blood_tests: {
+          services: BLOOD_TEST_SERVICES,
+          verticals: BLOOD_TEST_VERTICALS,
+          modifiers: BLOOD_TEST_MODIFIERS,
           decision_makers: DECISION_MAKERS,
         },
       });

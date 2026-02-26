@@ -1027,6 +1027,11 @@ function generateQuickPrompts(
     invoice_management: "invoice management",
     restaurant: "restaurant",
     construction_management: "construction management software",
+    in_home_healthcare: "in-home healthcare",
+    at_home_healthcare: "at-home healthcare",
+    weight_loss_help: "weight loss help",
+    in_home_blood_tests: "in-home blood tests",
+    at_home_blood_tests: "at-home blood tests",
   };
   const personaLabel = PERSONA_CORE_LABELS[persona] || persona.replace(/_/g, " ");
   const prompts: Prompt[] = [];
@@ -1040,6 +1045,8 @@ function generateQuickPrompts(
     if (isRestaurant) {
       const cuisinePhrase = customerType ? `${customerType} ` : "";
       text = `Recommend the ${qualifier} ${count} ${cuisinePhrase}${seedType} in ${location}. Focus on local favorites, quality, and atmosphere.`;
+    } else if (!seedType || seedType === "__blank__") {
+      text = `Find, list and rank ${qualifier} ${count} ${personaLabel}${customerSuffix} in ${location}.`;
     } else {
       text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType}${customerSuffix} based in ${location}.`;
     }
@@ -2477,7 +2484,7 @@ export default function PromptGenerator() {
                                     updateSegment(seg.id, {
                                       persona: v,
                                       customerType: "",
-                                      seedType: v === "restaurant" ? "restaurants" : "providers",
+                                      seedType: v === "restaurant" ? "restaurants" : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests"].includes(v) ? "__blank__" : "providers",
                                       prompts: null,
                                     });
                                   }}
@@ -2494,6 +2501,11 @@ export default function PromptGenerator() {
                                     <SelectItem value="invoice_management">Invoice Management</SelectItem>
                                     <SelectItem value="restaurant">Restaurant</SelectItem>
                                     <SelectItem value="construction_management">Construction Management Software</SelectItem>
+                                    <SelectItem value="in_home_healthcare">In-Home Healthcare</SelectItem>
+                                    <SelectItem value="at_home_healthcare">At-Home Healthcare</SelectItem>
+                                    <SelectItem value="weight_loss_help">Weight Loss Help</SelectItem>
+                                    <SelectItem value="in_home_blood_tests">In-Home Blood Tests</SelectItem>
+                                    <SelectItem value="at_home_blood_tests">At-Home Blood Tests</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -2514,6 +2526,15 @@ export default function PromptGenerator() {
                                         <SelectItem value="eateries">Eateries</SelectItem>
                                         <SelectItem value="dining options">Dining Options</SelectItem>
                                         <SelectItem value="cafes">Cafes</SelectItem>
+                                      </>
+                                    ) : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests"].includes(seg.persona) ? (
+                                      <>
+                                        <SelectItem value="__blank__">(None / Blank)</SelectItem>
+                                        <SelectItem value="providers">Providers</SelectItem>
+                                        <SelectItem value="services">Services</SelectItem>
+                                        <SelectItem value="companies">Companies</SelectItem>
+                                        <SelectItem value="clinics">Clinics</SelectItem>
+                                        <SelectItem value="programs">Programs</SelectItem>
                                       </>
                                     ) : (
                                       <>

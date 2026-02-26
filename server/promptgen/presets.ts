@@ -516,6 +516,47 @@ export const CONSTRUCTION_MANAGEMENT_MODIFIERS: string[] = [
   "RDash", "Powerplay", "Infurnia", "SiteSupervisor", "Katerra",
 ];
 
+export const HEALTHCARE_VERTICALS: string[] = [
+  "elderly care", "post-surgery recovery", "chronic disease management",
+  "physiotherapy", "nursing care", "palliative care", "pediatric care",
+  "maternity care", "mental health", "rehabilitation",
+  "diabetes management", "cardiac care", "respiratory care",
+];
+
+export const HEALTHCARE_SERVICES: string[] = [
+  "home nursing", "doctor visits", "physiotherapy", "lab tests",
+  "IV drip therapy", "wound care", "medication management",
+  "health checkups", "vaccination", "telehealth",
+];
+
+export const HEALTHCARE_MODIFIERS: string[] = [];
+
+export const WEIGHT_LOSS_VERTICALS: string[] = [
+  "women", "men", "postpartum", "seniors", "teens",
+  "diabetes patients", "PCOS", "thyroid conditions",
+  "busy professionals", "brides-to-be",
+];
+
+export const WEIGHT_LOSS_SERVICES: string[] = [
+  "diet plans", "meal delivery", "personal training", "nutrition coaching",
+  "online programs", "group coaching", "supplements", "clinical weight loss",
+];
+
+export const WEIGHT_LOSS_MODIFIERS: string[] = [];
+
+export const BLOOD_TEST_VERTICALS: string[] = [
+  "corporate wellness", "elderly", "chronic patients", "athletes",
+  "pregnant women", "families", "annual checkups", "pre-employment",
+];
+
+export const BLOOD_TEST_SERVICES: string[] = [
+  "CBC", "lipid panel", "thyroid panel", "vitamin deficiency",
+  "diabetes screening", "liver function", "kidney function",
+  "allergy testing", "hormone panel", "full body checkup",
+];
+
+export const BLOOD_TEST_MODIFIERS: string[] = [];
+
 export const DECISION_MAKERS: string[] = [
   "Founder",
   "Co-Founder",
@@ -632,6 +673,31 @@ export const BUDGET_ADJECTIVES: Record<PersonaType, Record<BudgetTier, string[]>
     budget: ["affordable", "budget-friendly", "cost-effective"],
     mid: ["mid-market", "scalable", "feature-rich"],
     premium: ["enterprise", "premium", "comprehensive"],
+  },
+  in_home_healthcare: {
+    budget: ["affordable", "budget-friendly", "cost-effective"],
+    mid: ["reliable", "trusted", "well-reviewed"],
+    premium: ["premium", "luxury", "concierge"],
+  },
+  at_home_healthcare: {
+    budget: ["affordable", "budget-friendly", "cost-effective"],
+    mid: ["reliable", "trusted", "well-reviewed"],
+    premium: ["premium", "luxury", "concierge"],
+  },
+  weight_loss_help: {
+    budget: ["affordable", "budget-friendly", "cost-effective"],
+    mid: ["effective", "trusted", "well-reviewed"],
+    premium: ["premium", "clinical", "medically-supervised"],
+  },
+  in_home_blood_tests: {
+    budget: ["affordable", "budget-friendly", "low-cost"],
+    mid: ["reliable", "accredited", "convenient"],
+    premium: ["premium", "comprehensive", "concierge"],
+  },
+  at_home_blood_tests: {
+    budget: ["affordable", "budget-friendly", "low-cost"],
+    mid: ["reliable", "accredited", "convenient"],
+    premium: ["premium", "comprehensive", "concierge"],
   },
 };
 
@@ -763,6 +829,11 @@ function getModifierKnownList(personaType: PersonaType): string[] {
     case "invoice_management": return INVOICE_MANAGEMENT_MODIFIERS;
     case "restaurant": return RESTAURANT_MODIFIERS;
     case "construction_management": return CONSTRUCTION_MANAGEMENT_MODIFIERS;
+    case "in_home_healthcare":
+    case "at_home_healthcare": return HEALTHCARE_MODIFIERS;
+    case "weight_loss_help": return WEIGHT_LOSS_MODIFIERS;
+    case "in_home_blood_tests":
+    case "at_home_blood_tests": return BLOOD_TEST_MODIFIERS;
     default: return AUTOMATION_KNOWN_TOOLS;
   }
 }
@@ -797,6 +868,12 @@ const SERVICE_VERB_PREFIXES: Record<PersonaType, string[]> = {
   accounting_automation: ["automate", "streamline", "manage"],
   invoice_management: ["automate", "handle", "manage"],
   restaurant: ["serve", "offer", "feature"],
+  construction_management: ["provide", "manage", "handle"],
+  in_home_healthcare: ["provide", "offer", "deliver"],
+  at_home_healthcare: ["provide", "offer", "deliver"],
+  weight_loss_help: ["provide", "offer", "deliver"],
+  in_home_blood_tests: ["provide", "offer", "conduct"],
+  at_home_blood_tests: ["provide", "offer", "conduct"],
 };
 
 export function ensureServiceVerb(service: string, personaType: PersonaType, rngPick?: <T>(arr: T[]) => T): string {
@@ -851,6 +928,24 @@ export function getPresetsForPersona(personaType: PersonaType) {
     return {
       services: CONSTRUCTION_MANAGEMENT_SERVICES,
       verticals: CONSTRUCTION_MANAGEMENT_VERTICALS,
+    };
+  }
+  if (personaType === "in_home_healthcare" || personaType === "at_home_healthcare") {
+    return {
+      services: HEALTHCARE_SERVICES,
+      verticals: HEALTHCARE_VERTICALS,
+    };
+  }
+  if (personaType === "weight_loss_help") {
+    return {
+      services: WEIGHT_LOSS_SERVICES,
+      verticals: WEIGHT_LOSS_VERTICALS,
+    };
+  }
+  if (personaType === "in_home_blood_tests" || personaType === "at_home_blood_tests") {
+    return {
+      services: BLOOD_TEST_SERVICES,
+      verticals: BLOOD_TEST_VERTICALS,
     };
   }
   return {
