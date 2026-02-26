@@ -1,0 +1,89 @@
+1) “response is too large for piping” is about STDOUT limits, not your server crashing
+
+Your logs show the server is healthy and answering /api/health fine on port 5000.
+
+That piping error happens when:
+
+the caller environment (Replit shell / agent runner / some monitor) refuses to pipe a huge response through STDIN/STDOUT, even though the server returned it.
+
+So the fix is still: curl -o file first (or reduce fields / gzip / pagination).
+
+2) “curl isn’t connecting properly” can happen even while health checks look fine
+
+Because you might be curling from a different network namespace than where the server is listening.
+
+Typical cases:
+
+Server runs inside a Replit workspace/container, bound to 127.0.0.1:5000
+
+Your curl is running from another container / another process / another repl where localhost:5000 points to itself, not your server
+
+Or your app is restarting/crashing intermittently and you caught it mid-restart
+
+Your logs don’t contradict this — they only prove one process served requests at that moment.
+
+3) “all Replit apps are crashing simultaneously” points to an environment-level failure
+
+If multiple repls crash at once, it’s rarely your code in each app. Common culprits:
+
+A) Resource exhaustion (most common)
+
+Out of RAM → OOM killer nukes Node/tsx processes
+
+Disk full (esp. /tmp or workspace) → writes fail → crashes
+
+Too many open files / too many processes
+
+Run these in each repl when it starts misbehaving:
+
+free -h || vm_stat
+df -h
+ulimit -n
+ps aux | head
+B) Hot-reload/tsx runaway loop
+
+If tsx restarts on file changes and something is touching files repeatedly (logs, generated files, build artifacts), it can create a constant restart storm.
+
+Mitigations:
+
+disable watch in dev (run plain node build output)
+
+exclude directories from watch (dist, logs, tmp)
+
+C) Health check loop / monitor hammering endpoints
+
+You’ve got:
+[Monitor] Starting health check loop (every 300s)
+
+That’s not frequent, but if you have multiple monitors or a bug that spawns multiple loops (e.g., starts on every reload without clearing interval), it can multiply.
+
+Quick check: do you see multiple monitor logs per 300s? If yes, you’re leaking intervals across reloads.
+
+D) Platform incident / network instability
+
+If it truly happens across unrelated repls, it can also be Replit infra/network. But you can still confirm locally via system stats above.
+
+What I’d do next (fast isolation)
+Step 1: confirm the “piping” issue is just size
+curl -sS http://localhost:5000/api/multisegment/sessions/7 -o /tmp/s7.json
+wc -c /tmp/s7.json
+
+If it’s tens of MB, that explains it.
+
+Step 2: confirm whether “localhost” mismatch is happening
+
+From the exact place where curl fails:
+
+curl -v http://127.0.0.1:5000/api/health
+curl -v http://localhost:5000/api/health
+
+If health fails there but works elsewhere, you’re in the wrong namespace/repl/container.
+
+Step 3: catch why repls crash
+
+Right after a crash/restart:
+
+dmesg | tail -n 50 2>/dev/null || true
+node -v
+
+(If dmesg isn’t available on Replit, rely on free -h, df -h, and logs.)

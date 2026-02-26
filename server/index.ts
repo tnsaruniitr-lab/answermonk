@@ -3,15 +3,35 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 
+process.on("SIGHUP", () => {});
+
+process.on("SIGTERM", () => {
+  console.log("[server] SIGTERM received, shutting down gracefully");
+  process.exit(0);
+});
+
+process.on("SIGINT", () => {
+  console.log("[server] SIGINT received, shutting down gracefully");
+  process.exit(0);
+});
+
 process.on("uncaughtException", (err) => {
-  console.error("UNCAUGHT EXCEPTION:", err);
+  console.error("[server] UNCAUGHT EXCEPTION:", err);
 });
+
 process.on("unhandledRejection", (reason) => {
-  console.error("UNHANDLED REJECTION:", reason);
+  console.error("[server] UNHANDLED REJECTION:", reason);
 });
-process.on("SIGHUP", () => {
-  console.log("Received SIGHUP, ignoring (keeping server alive)");
-});
+
+const origExit = process.exit.bind(process);
+process.exit = ((code?: number) => {
+  if (code !== 0 && code !== undefined) {
+    console.error(`[server] process.exit(${code}) intercepted — keeping server alive`);
+    console.trace();
+    return undefined as never;
+  }
+  return origExit(code);
+}) as typeof process.exit;
 
 const app = express();
 const httpServer = createServer(app);

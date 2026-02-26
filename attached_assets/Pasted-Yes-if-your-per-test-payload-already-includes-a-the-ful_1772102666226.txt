@@ -1,0 +1,284 @@
+Yes — if your per-test payload already includes (a) the full model response text, (b) structured parses of “who was mentioned + rank,” (c) citations/URLs/domains, (d) query metadata (category/segment, engine, geo), and (e) your scoring outputs, then a polished “client-grade” report is not only possible, it’s mostly a presentation + aggregation problem.
+
+Below is a practical design that uses exactly the kinds of fields you’re already collecting, and answers your 3 goals cleanly.
+
+Report structure (what the client sees)
+0) Cover + definitions (1 screen)
+
+Brand, time window, geo, engines included, #tests
+
+Simple definitions so they don’t misread metrics:
+
+Appearance rate (mentioned or not)
+
+Share of voice (share of mentions among top N)
+
+Avg rank when mentioned
+
+Top-3 rate
+
+Citation strength (tiered / authority-weighted)
+
+Consistency (variance across engines/prompts)
+
+This reduces “but why did it change?” arguments later.
+
+1) Current visibility stats (Dashboard)
+
+This is your “at-a-glance” page. Keep it extremely visual.
+
+A. KPI strip (top row)
+
+Appearance rate (overall)
+
+Top-3 rate (overall)
+
+Avg rank (when present)
+
+“Citation-backed mentions %” (mentions that include at least 1 credible citation)
+
+“Authority coverage score” (how often you appear on the same domains the models cite)
+
+B. Breakdown widgets
+
+By category/segment (table + bars)
+
+rows: segments (e.g., “home healthcare Dubai”, “blood tests at home”, etc.)
+
+cols: appearance rate, top-3, avg rank, competitor leader, biggest gap type
+
+By engine (small multiples)
+
+ChatGPT vs Gemini vs Claude etc.
+
+show: appearance rate & top-3 rate per engine
+
+add a “disagreement index” (how much outcomes vary)
+
+Trend over time (if you have historical runs)
+
+last 7/30/90 days
+
+highlight “statistically meaningful” changes (don’t overclaim on tiny sample deltas)
+
+C. “Where you are missing” panel
+
+list the 5 segments with:
+
+high intent volume (if you have it) OR strategic importance (manual weights)
+
+low appearance
+
+top competitor + why they show up (1 line)
+
+2) Competitors that rank highly (per category)
+
+This should feel like an SEO competitor report, but for LLMs.
+
+Per segment page (repeatable template)
+
+For each segment/category, show:
+
+A. “Leaderboard” table (Top 10)
+Columns:
+
+Competitor name
+
+Share of mentions (within this segment)
+
+Avg rank
+
+Top-3 rate
+
+Engines where they dominate (icons)
+
+Citation domains count (and tier-weighted count)
+
+Primary positioning phrase (their “one-liner”)
+
+This becomes your “who’s winning” answer.
+
+B. “Evidence map” (citations)
+
+A domain-level table:
+
+domain
+
+tier (T1/T2/T3)
+
+type (directory / editorial / review / government / hospital network / etc.)
+
+which competitors it supports
+
+whether your brand appears on it
+
+This is usually the most convincing section for clients, because it ties rankings to tangible web surfaces.
+
+C. “Engine disagreement view”
+
+same leaderboard but with per-engine ranks.
+
+mark unstable winners (e.g., competitor ranks #1 on Gemini but never appears on ChatGPT)
+
+That prevents false conclusions like “they are #1” when it’s model-specific.
+
+3) Key insights: what they did right (phrase + intent mapping)
+
+This is the part you described, and it’s the highest-value if done carefully.
+
+A. “Winning language” extraction (what you should replicate)
+
+From raw responses, extract the text windows around competitor mentions.
+
+Present it as:
+
+Top trust claims used for the winners (clustered)
+
+accreditation: “JCI-accredited”, “HAAD/DHA licensed”, “ISO”
+
+coverage: “24/7”, “same-day”, “home visit in X areas”
+
+proof: “rated 4.8”, “thousands of reviews”, “trusted by…”
+
+specialization: “elderly care”, “post-op”, “chronic care”
+
+Top “reason phrases” models use to justify recommending them
+
+Top “disqualifiers” for losers (including you), e.g.:
+
+“not available in [geo]”
+
+“unclear licensing”
+
+“few credible sources”
+
+“no comparison-page presence”
+
+Mechanically (no code, just method):
+
+For each segment, collect all responses.
+
+For each competitor, find sentences where they are mentioned.
+
+Pull ±1–2 sentences around each mention.
+
+Normalize to “claim snippets” (short phrases).
+
+Cluster similar claims (accreditation, speed, pricing, etc.).
+
+Rank clusters by frequency and by correlation with top-3 placements.
+
+B. “Phrase ↔ search type” mapping (what you asked)
+
+You’ll map phrases to intent types, not just keywords.
+
+Create 4–6 intent buckets (customizable):
+
+Eligibility / compliance intent (“licensed”, “certified”, “DHA”, “insurance accepted”)
+
+Urgency intent (“same-day”, “24/7”, “emergency”, “on-call”)
+
+Quality / trust intent (“JCI”, “top-rated”, “trusted”, “years of experience”)
+
+Price/value intent (“affordable”, “transparent pricing”, “packages”)
+
+Service scope intent (“nursing”, “physio”, “lab tests”, “doctor visit”)
+
+Geo coverage intent (“Dubai Marina”, “Abu Dhabi”, “UAE-wide”)
+
+Then in the report, show a matrix:
+
+rows = intent buckets
+
+columns = top competitors + your brand
+
+cells = which phrases are used for each brand (and how often)
+
+This makes the gap obvious: “Competitor A is always described with licensing + 24/7 + geo coverage; you are described vaguely or not at all.”
+
+C. “What to do next” recommendations (grounded in evidence)
+
+Keep recommendations tied to observed gaps, not generic.
+
+For each segment, output:
+
+Gap type (Authority / Coverage / Proof / Positioning / Geo eligibility)
+
+Evidence (top 2–3 domains & 2–3 representative snippets)
+
+Action plan
+
+Surface actions: which 5–10 domains to target (directories, comparison pages, editorial)
+
+Content actions: which claims you must be able to substantiate publicly
+
+Schema/actions: structured data, location pages, licensing pages, review aggregation, etc.
+
+Expected impact logic (not a promise): “This should increase citation-backed mentions because winners are repeatedly justified using [X] sources and [Y] claims.”
+
+How to design it from your current raw data (data → report pipeline)
+1) Aggregate layer (per “report run”)
+
+You want a report object that summarizes many tests:
+
+filters: date range, geo, engines, segments, prompt sets
+
+computed metrics:
+
+mention counts
+
+rank distributions
+
+engine splits
+
+citation domain counts + tiers
+
+phrase clusters per competitor
+
+gap tags and evidence
+
+2) Evidence-first UI
+
+Every “insight” should have a click-to-proof interaction:
+
+click a competitor → see the exact excerpts where they were recommended
+
+click a domain → see which tests cited it
+
+click an insight → see the raw snippets backing it
+
+This protects you when clients challenge conclusions.
+
+3) Exports
+
+Clients always want PDFs.
+
+“Executive PDF” (5–8 pages): KPIs, leaderboards, key insights, priorities
+
+“Appendix PDF” (long): all excerpts + citations + per-test details
+
+What makes it “great-looking” (presentation details that matter)
+
+Use three levels: Exec summary → Segment deep dives → Raw evidence appendix
+
+Prefer simple visuals:
+
+bars for appearance/top-3 by segment
+
+dot plot for rank distribution
+
+domain table for citations
+
+Avoid a “wall of tables.” Tables are secondary; insights and visuals first.
+
+Always show sample size per segment and per engine so stats aren’t misleading.
+
+The one thing that usually breaks these reports
+
+Phrase extraction can become noisy if competitor names are inconsistent (aliases, abbreviations, misspellings). You’ll want:
+
+a competitor canonicalization layer (Aster / Aster DM / Aster Healthcare → one)
+
+a confidence score for mention detection
+
+and “unknown brand / generic mention” handling
