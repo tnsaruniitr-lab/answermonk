@@ -37,11 +37,27 @@ export function log(message: string, source = "express") {
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+  let capturedBodySnippet: string | undefined = undefined;
 
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
+    try {
+      if (Array.isArray(bodyJson)) {
+        capturedBodySnippet = `[Array(${bodyJson.length})]`;
+      } else if (typeof bodyJson === "object" && bodyJson !== null) {
+        const keys = Object.keys(bodyJson);
+        if (keys.length > 10) {
+          capturedBodySnippet = `{Object(${keys.length} keys)}`;
+        } else {
+          const full = JSON.stringify(bodyJson);
+          capturedBodySnippet = full.length > 300 ? full.slice(0, 300) + `...` : full;
+        }
+      } else {
+        capturedBodySnippet = String(bodyJson).slice(0, 300);
+      }
+    } catch {
+      capturedBodySnippet = "[unserializable]";
+    }
     return originalResJson.apply(res, [bodyJson, ...args]);
   };
 
@@ -49,11 +65,9 @@ app.use((req, res, next) => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        const body = JSON.stringify(capturedJsonResponse);
-        logLine += ` :: ${body.length > 500 ? body.slice(0, 500) + `... (${body.length} chars)` : body}`;
+      if (capturedBodySnippet) {
+        logLine += ` :: ${capturedBodySnippet}`;
       }
-
       log(logLine);
     }
   });
