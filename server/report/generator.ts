@@ -402,7 +402,7 @@ export function generateReport(
     const runs = seg.scoringResult!.raw_runs || [];
     const competitors = [...(score.competitors || [])].sort((a, b) => b.appearances - a.appearances);
 
-    const top5 = competitors.slice(0, 5).map(c => ({
+    const top5 = competitors.slice(0, 10).map(c => ({
       name: c.name,
       share: score.valid_runs > 0 ? Math.round((c.appearances / score.valid_runs) * 1000) / 1000 : 0,
       appearances: c.appearances,
