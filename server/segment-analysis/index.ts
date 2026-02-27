@@ -18,13 +18,19 @@ const PERSONA_CORE_LABELS: Record<string, string> = {
   accounting_automation: "accounting automation",
   invoice_management: "invoice management",
   restaurant: "restaurant",
+  in_home_healthcare: "in-home healthcare",
+  at_home_healthcare: "at-home healthcare",
+  weight_loss_help: "weight loss",
+  in_home_blood_tests: "in-home blood tests",
+  at_home_blood_tests: "at-home blood tests",
 };
 
 function buildSegmentLabel(seg: { persona?: string; seedType: string; customerType: string }): string {
   const personaLabel = seg.persona ? (PERSONA_CORE_LABELS[seg.persona] || seg.persona.replace(/_/g, " ")) : "";
-  const seedLabel = seg.seedType ? seg.seedType.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "";
+  const isBlankSeed = !seg.seedType || seg.seedType.toLowerCase() === "blank";
+  const seedLabel = isBlankSeed ? "" : seg.seedType.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
   const category = personaLabel
-    ? `${personaLabel.charAt(0).toUpperCase() + personaLabel.slice(1)} ${seedLabel}`
+    ? (seedLabel ? `${personaLabel.charAt(0).toUpperCase() + personaLabel.slice(1)} ${seedLabel}` : personaLabel.charAt(0).toUpperCase() + personaLabel.slice(1))
     : seedLabel;
   return [category, seg.customerType].filter(Boolean).join(" for ");
 }
@@ -107,6 +113,7 @@ export async function runSegmentAnalysis(
       id: s.id,
       seedType: s.seedType,
       customerType: s.customerType,
+      persona: s.persona,
     })),
   );
 

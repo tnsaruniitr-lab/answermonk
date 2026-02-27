@@ -178,6 +178,75 @@ const SEGMENT_CATEGORY_DICTIONARY: Record<string, SegmentTerms> = {
     ],
     weak: ["checkout", "payment infrastructure", "acquiring", "merchant services"],
   },
+  "in_home_healthcare": {
+    explicit: [
+      "in-home healthcare", "in home healthcare", "home healthcare",
+      "home health care", "home nursing", "home care services",
+      "home medical care", "in-home nursing", "home health services",
+    ],
+    weak: [
+      "home visit", "home visits", "house call", "house calls",
+      "nursing at home", "doctor at home", "physiotherapy at home",
+      "home physiotherapy", "home lab test", "home caregiver",
+      "domiciliary care", "home health aide",
+    ],
+  },
+  "at_home_healthcare": {
+    explicit: [
+      "at-home healthcare", "at home healthcare", "home healthcare providers",
+      "at-home health services", "at-home medical care",
+      "home health care provider", "at home health care",
+    ],
+    weak: [
+      "home visit", "home visits", "healthcare at home",
+      "medical home visit", "doctor home visit", "nurse at home",
+      "home-based care", "mobile healthcare",
+    ],
+  },
+  "weight_loss_help": {
+    explicit: [
+      "weight loss", "weight loss clinic", "weight loss program",
+      "weight management", "weight loss provider", "weight loss center",
+      "slimming clinic", "weight loss service",
+    ],
+    weak: [
+      "diet plan", "nutrition program", "bariatric", "fat loss",
+      "body sculpting", "meal plan", "calorie management",
+      "fitness nutrition", "weight reduction",
+    ],
+  },
+  "in_home_blood_tests": {
+    explicit: [
+      "in-home blood test", "home blood test", "blood test at home",
+      "home lab test", "home pathology", "at-home blood work",
+      "home sample collection", "home blood draw",
+    ],
+    weak: [
+      "mobile phlebotomy", "home diagnostics", "lab at home",
+      "home health checkup", "doorstep blood test", "home lab services",
+    ],
+  },
+  "at_home_blood_tests": {
+    explicit: [
+      "at-home blood test", "at home blood test", "blood test at home",
+      "home blood testing", "home lab test", "at-home lab work",
+      "home sample collection", "mobile blood test",
+    ],
+    weak: [
+      "mobile phlebotomy", "home diagnostics", "lab at doorstep",
+      "home health screening", "doorstep lab test",
+    ],
+  },
+  "construction_management": {
+    explicit: [
+      "construction management", "construction management software",
+      "construction project management", "construction platform",
+    ],
+    weak: [
+      "building management", "site management", "project tracking",
+      "construction scheduling", "contractor management",
+    ],
+  },
 };
 
 const AUDIENCE_DICTIONARY: Record<string, SegmentTerms> = {
@@ -326,8 +395,12 @@ export function buildIntentDictionary(
   seedType: string,
   customerType: string,
   service?: string,
+  persona?: string,
 ): IntentDictionary {
-  const catTerms = lookupSegmentTerms(seedType, SEGMENT_CATEGORY_DICTIONARY);
+  const effectiveSeedType = (!seedType || seedType.toLowerCase() === "blank") && persona
+    ? persona
+    : seedType;
+  const catTerms = lookupSegmentTerms(effectiveSeedType, SEGMENT_CATEGORY_DICTIONARY);
   const audTerms = customerType ? lookupSegmentTerms(customerType, AUDIENCE_DICTIONARY) : { explicit: [], weak: [] };
   const svcTerms = service ? lookupSegmentTerms(service, SEGMENT_CATEGORY_DICTIONARY) : { explicit: [], weak: [] };
 
@@ -354,11 +427,11 @@ export function buildIntentDictionary(
 }
 
 export function buildAllIntentDictionaries(
-  segments: { id: string; seedType: string; customerType: string; service?: string }[],
+  segments: { id: string; seedType: string; customerType: string; service?: string; persona?: string }[],
 ): Map<string, IntentDictionary> {
   const map = new Map<string, IntentDictionary>();
   for (const seg of segments) {
-    map.set(seg.id, buildIntentDictionary(seg.id, seg.seedType, seg.customerType, seg.service));
+    map.set(seg.id, buildIntentDictionary(seg.id, seg.seedType, seg.customerType, seg.service, seg.persona));
   }
   return map;
 }
