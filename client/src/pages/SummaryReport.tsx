@@ -137,6 +137,7 @@ export default function SummaryReport() {
 
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-10">
         <VisibilityScorecard section1={section1} meta={meta} />
+        <SegmentBreakdown section2={section2} brandName={meta.brandName} />
         <TopScorersSection competitors={allCompetitors} brandName={meta.brandName} />
         <BrandMentionAudit audit={brandMentionAudit} brandName={meta.brandName} allCompetitors={allCompetitors} />
         <BiggestGaps gaps={biggestGaps} />
@@ -225,6 +226,82 @@ function VisibilityScorecard({ section1, meta }: { section1: any; meta: any }) {
             </CardContent>
           </Card>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function SegmentBreakdown({ section2, brandName }: { section2: any; brandName: string }) {
+  const segments = section2?.perSegment ?? [];
+  if (segments.length === 0) return null;
+
+  const segColors = [
+    { bar: "bg-indigo-500", bg: "bg-indigo-50", text: "text-indigo-700", ring: "ring-indigo-200" },
+    { bar: "bg-teal-500", bg: "bg-teal-50", text: "text-teal-700", ring: "ring-teal-200" },
+    { bar: "bg-rose-500", bg: "bg-rose-50", text: "text-rose-700", ring: "ring-rose-200" },
+    { bar: "bg-amber-500", bg: "bg-amber-50", text: "text-amber-700", ring: "ring-amber-200" },
+  ];
+
+  return (
+    <section data-testid="section-segment-breakdown">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center">
+          <BarChart3 className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Who Shows Up When Your Customers Search</h2>
+          <p className="text-sm text-muted-foreground">Top 5 competitors per segment — based on AI engine responses</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {segments.map((seg: any, si: number) => {
+          const top5 = (seg.top5 ?? []).slice(0, 5);
+          const color = segColors[si % segColors.length];
+          const maxShare = top5.length > 0 ? Math.max(...top5.map((c: any) => c.share)) : 1;
+
+          return (
+            <Card key={si} className="overflow-hidden" data-testid={`card-segment-${si}`}>
+              <div className={`h-1 ${color.bar}`} />
+              <CardContent className="pt-5 pb-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <Target className={`w-4 h-4 ${color.text}`} />
+                  <h3 className="font-semibold text-sm" data-testid={`text-segment-label-${si}`}>{seg.segmentLabel}</h3>
+                </div>
+                <div className="space-y-2.5">
+                  {top5.map((comp: any, ci: number) => {
+                    const pct = Math.round(comp.share * 100);
+                    const isBrand = comp.name.toLowerCase() === brandName.toLowerCase();
+                    return (
+                      <div key={ci} className="flex items-center gap-3" data-testid={`row-competitor-${si}-${ci}`}>
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${isBrand ? "bg-primary text-primary-foreground" : "bg-gray-100 text-gray-500"}`}>
+                          {ci + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className={`text-sm truncate ${isBrand ? "font-bold text-primary" : "font-medium"}`} data-testid={`text-comp-name-${si}-${ci}`}>
+                              {comp.name}
+                            </span>
+                            <span className={`text-sm font-semibold ml-2 shrink-0 ${color.text}`} data-testid={`text-comp-rate-${si}-${ci}`}>
+                              {pct}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-100 rounded-full h-1.5">
+                            <div
+                              className={`h-1.5 rounded-full ${color.bar} transition-all`}
+                              style={{ width: `${(comp.share / maxShare) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-3">{top5.reduce((s: number, c: any) => s + c.appearances, 0)} total competitor appearances across all prompts</p>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </section>
   );
