@@ -95,7 +95,7 @@ function classifyTier(domain: string): SourceTier {
     if (d.endsWith(`.${t2}`)) return "T2";
   }
 
-  if (d.endsWith(".gov") || d.endsWith(".edu") || d.endsWith(".org")) return "T1";
+  if (/\.gov(\.[a-z]{2})?$/.test(d) || d.endsWith(".edu") || d.endsWith(".org")) return "T1";
 
   return "T3";
 }

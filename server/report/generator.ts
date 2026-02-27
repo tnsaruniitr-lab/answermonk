@@ -1,4 +1,4 @@
-import { classifyTier } from "./tier-classifier";
+import { classifyTier, type TierLabel } from "./tier-classifier";
 
 interface RawRun {
   prompt_id: string;
@@ -160,8 +160,19 @@ export interface ReportData {
       getListedHere: string[];
       useThesePhrases: string[];
       missingSources: Array<{ domain: string; tier: string }>;
+      competitorEditorialMentions: Array<{ domain: string; tier: string; competitors: string[] }>;
     }>;
     modelUnderstanding: string | null;
+  };
+  appendix: {
+    domainsByTier: {
+      T1: Array<{ domain: string; urls: string[]; mentionedEntities: string[] }>;
+      T2: Array<{ domain: string; urls: string[]; mentionedEntities: string[] }>;
+      T3: Array<{ domain: string; urls: string[]; mentionedEntities: string[] }>;
+      T4: Array<{ domain: string; urls: string[]; mentionedEntities: string[] }>;
+      brand_owned: Array<{ domain: string; urls: string[]; mentionedEntities: string[] }>;
+    };
+    totalDomains: number;
   };
 }
 
@@ -394,7 +405,17 @@ export function generateReport(
 
   // --- SECTION 2: Competitive Landscape ---
 
+  const allCompetitorNames = new Set<string>();
+  for (const seg of segments) {
+    for (const c of (seg.scoringResult?.score.competitors || [])) {
+      allCompetitorNames.add(c.name);
+    }
+  }
+  const competitorNamesList = Array.from(allCompetitorNames);
+
   const allCompetitorMap = new Map<string, { segments: Set<string>; totalAppearances: number }>();
+
+  const appendixDomainMap = new Map<string, { tier: TierLabel; urls: Set<string>; mentionedEntities: Set<string> }>();
 
   const perSegmentSection2 = segments.map((seg, segIdx) => {
     const segLabel = buildSegmentLabel(seg);
@@ -444,11 +465,11 @@ export function generateReport(
         .map(([domain, urls]) => ({
           domain,
           urls: Array.from(urls).slice(0, 20),
-          tier: classifyTier(domain, comp.name),
+          tier: classifyTier(domain, comp.name, competitorNamesList),
         }))
         .sort((a, b) => {
-          const tierOrder: Record<string, number> = { T1: 0, T2: 1, brand_owned: 2, T3: 3 };
-          return (tierOrder[a.tier] || 3) - (tierOrder[b.tier] || 3);
+          const tierOrder: Record<string, number> = { T1: 0, T2: 1, brand_owned: 2, T3: 3, T4: 4 };
+          return (tierOrder[a.tier] || 4) - (tierOrder[b.tier] || 4);
         })
         .slice(0, 10);
 
@@ -505,6 +526,31 @@ export function generateReport(
         geoFactors,
       };
     });
+
+    for (const run of runs) {
+      if (!run.citations) continue;
+      const candidates = Array.isArray(run.candidates) ? run.candidates : [];
+      const mentionedInRun: string[] = [];
+      for (const cand of candidates) {
+        const cn = typeof cand === "string" ? cand : (cand?.name_norm || cand?.name_raw || "");
+        if (cn) mentionedInRun.push(cn);
+      }
+      if (run.brand_found) mentionedInRun.push(session.brandName);
+
+      for (const cit of run.citations) {
+        if (!cit.url) continue;
+        const domain = extractDomain(cit.url);
+        if (!appendixDomainMap.has(domain)) {
+          const tier = classifyTier(domain, session.brandName, competitorNamesList);
+          appendixDomainMap.set(domain, { tier, urls: new Set(), mentionedEntities: new Set() });
+        }
+        const entry = appendixDomainMap.get(domain)!;
+        entry.urls.add(cit.url);
+        for (const m of mentionedInRun) {
+          entry.mentionedEntities.add(m);
+        }
+      }
+    }
 
     return { segmentLabel: segLabel, top5, deepDives };
   });
@@ -574,6 +620,9 @@ export function generateReport(
     const brandCompPages = crSeg?.scores?.brand?.comparative?.comparisonPages || [];
     for (const page of brandCompPages) {
       if (!page.present && page.url) {
+        const pageDomain = extractDomain(page.url);
+        const pageTier = classifyTier(pageDomain, session.brandName, competitorNamesList);
+        if (pageTier === "T4") continue;
         getListedHere.push(page.url);
         if (getListedHere.length >= 10) break;
       }
@@ -596,16 +645,38 @@ export function generateReport(
       const brandDomains = new Set((crSeg.scores?.brand?.authority?.topDomains || []).map((d: any) => d.domain?.toLowerCase()));
       for (const cs of compScores) {
         for (const td of (cs?.authority?.topDomains || [])) {
-          if (!brandDomains.has(td.domain?.toLowerCase()) && (td.tier === "T1" || td.tier === "T2")) {
+          if (!brandDomains.has(td.domain?.toLowerCase()) && (td.tier === "T1" || td.tier === "T2" || td.tier === "T3")) {
+            const tdTier = classifyTier(td.domain, session.brandName, competitorNamesList);
+            if (tdTier === "T4" || tdTier === "brand_owned") continue;
             const already = missingSources.some(m => m.domain === td.domain);
             if (!already) {
-              missingSources.push({ domain: td.domain, tier: td.tier || "T3" });
+              missingSources.push({ domain: td.domain, tier: tdTier });
               if (missingSources.length >= 10) break;
             }
           }
         }
       }
     }
+
+    const competitorEditorialMentions: Array<{ domain: string; tier: string; competitors: string[] }> = [];
+    for (const [domain, entry] of appendixDomainMap) {
+      if (entry.tier !== "T1" && entry.tier !== "T2" && entry.tier !== "T3") continue;
+      const mentionedComps = Array.from(entry.mentionedEntities).filter(
+        e => e.toLowerCase() !== session.brandName.toLowerCase()
+      );
+      if (mentionedComps.length === 0) continue;
+      const hasBrand = entry.mentionedEntities.has(session.brandName);
+      if (hasBrand) continue;
+      competitorEditorialMentions.push({
+        domain,
+        tier: entry.tier,
+        competitors: mentionedComps.slice(0, 5),
+      });
+    }
+    competitorEditorialMentions.sort((a, b) => {
+      const tierOrder: Record<string, number> = { T1: 0, T2: 1, T3: 2 };
+      return (tierOrder[a.tier] || 3) - (tierOrder[b.tier] || 3);
+    });
 
     return {
       segmentLabel: segLabel,
@@ -614,6 +685,7 @@ export function generateReport(
       getListedHere,
       useThesePhrases,
       missingSources,
+      competitorEditorialMentions: competitorEditorialMentions.slice(0, 10),
     };
   });
 
@@ -648,5 +720,29 @@ export function generateReport(
       },
     },
     section3: { gapAnalysis, recommendations, modelUnderstanding },
+    appendix: buildAppendix(appendixDomainMap),
+  };
+}
+
+function buildAppendix(domainMap: Map<string, { tier: TierLabel; urls: Set<string>; mentionedEntities: Set<string> }>) {
+  const domainsByTier: Record<TierLabel, Array<{ domain: string; urls: string[]; mentionedEntities: string[] }>> = {
+    T1: [], T2: [], T3: [], T4: [], brand_owned: [],
+  };
+
+  for (const [domain, entry] of domainMap) {
+    domainsByTier[entry.tier].push({
+      domain,
+      urls: Array.from(entry.urls).slice(0, 10),
+      mentionedEntities: Array.from(entry.mentionedEntities),
+    });
+  }
+
+  for (const tier of Object.keys(domainsByTier) as TierLabel[]) {
+    domainsByTier[tier].sort((a, b) => a.domain.localeCompare(b.domain));
+  }
+
+  return {
+    domainsByTier,
+    totalDomains: domainMap.size,
   };
 }

@@ -26,7 +26,9 @@ const T2_DOMAINS = new Set([
   "zoominfo.com", "apollo.io",
 ]);
 
-export function classifyTier(domain: string, _competitorName?: string): "T1" | "T2" | "brand_owned" | "T3" {
+export type TierLabel = "T1" | "T2" | "T3" | "T4" | "brand_owned";
+
+export function classifyTier(domain: string, _competitorName?: string, allCompetitorNames?: string[]): TierLabel {
   const d = domain.toLowerCase().replace(/^www\./, "");
 
   if (_competitorName) {
@@ -46,7 +48,18 @@ export function classifyTier(domain: string, _competitorName?: string): "T1" | "
     if (d.endsWith(`.${t2}`)) return "T2";
   }
 
-  if (d.endsWith(".gov") || d.endsWith(".edu") || d.endsWith(".org")) return "T1";
+  if (/\.gov(\.[a-z]{2})?$/.test(d) || d.endsWith(".edu") || d.endsWith(".org")) return "T1";
+
+  if (allCompetitorNames && allCompetitorNames.length > 0) {
+    for (const compName of allCompetitorNames) {
+      const cn = compName.toLowerCase().replace(/\s+/g, "");
+      if (cn.length < 3) continue;
+      const domBase = d.replace(/\.\w+$/, "").replace(/\.\w+$/, "");
+      if (domBase.includes(cn) || cn.includes(domBase)) {
+        return "T4";
+      }
+    }
+  }
 
   return "T3";
 }

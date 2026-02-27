@@ -268,7 +268,81 @@ async function exportPDF(report: any) {
       doc.text(rec.missingSources.map((s: any) => `${s.domain} (${s.tier})`).join(", "), margin + 6, y);
       y += 5;
     }
+
+    if (rec.competitorEditorialMentions?.length > 0) {
+      checkPage(15);
+      doc.setFont("helvetica", "bold");
+      doc.text("Competitors mentioned here (you're not):", margin + 3, y); y += 3.5;
+      doc.setFont("helvetica", "normal");
+      for (const em of rec.competitorEditorialMentions.slice(0, 8)) {
+        checkPage(5);
+        doc.setTextColor(80);
+        doc.text(`• [${em.tier}] ${em.domain} — ${em.competitors.slice(0, 3).join(", ")}`, margin + 6, y);
+        doc.setTextColor(0);
+        y += 3.5;
+      }
+      y += 2;
+    }
     y += 3;
+  }
+
+  if (report.appendix) {
+    addPage();
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("Appendix: All Citation Domains", margin, y);
+    y += 4;
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(120);
+    doc.text(`${report.appendix.totalDomains} unique domains found across all segments`, margin, y);
+    doc.setTextColor(0);
+    y += 7;
+
+    const tierConfigs = [
+      { key: "T1", label: "T1 — High Authority", color: [0, 120, 0] as [number, number, number] },
+      { key: "T2", label: "T2 — Mid Tier", color: [0, 60, 160] as [number, number, number] },
+      { key: "T3", label: "T3 — Blogs & News", color: [160, 120, 0] as [number, number, number] },
+      { key: "T4", label: "T4 — Competitor Websites", color: [180, 0, 0] as [number, number, number] },
+      { key: "brand_owned", label: "Brand Owned", color: [120, 0, 160] as [number, number, number] },
+    ];
+
+    for (const tc of tierConfigs) {
+      const domains = report.appendix.domainsByTier[tc.key] || [];
+      if (domains.length === 0) continue;
+
+      checkPage(15);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...tc.color);
+      doc.text(`${tc.label} (${domains.length})`, margin, y);
+      doc.setTextColor(0);
+      y += 5;
+
+      const appendixRows = domains.map((d: any) => [
+        d.domain,
+        d.urls.length.toString(),
+        d.mentionedEntities.slice(0, 4).join(", "),
+        d.urls[0] || "",
+      ]);
+
+      autoTable(doc, {
+        startY: y,
+        margin: { left: margin, right: margin },
+        head: [["Domain", "URLs", "Mentioned Entities", "Sample URL"]],
+        body: appendixRows,
+        styles: { fontSize: 7, cellPadding: 1.5, overflow: "ellipsize" },
+        headStyles: { fillColor: [60, 60, 60], textColor: 255, fontStyle: "bold" },
+        alternateRowStyles: { fillColor: [248, 248, 248] },
+        columnStyles: {
+          0: { cellWidth: 35 },
+          1: { cellWidth: 12, halign: "center" },
+          2: { cellWidth: 50 },
+          3: { cellWidth: contentW - 97 },
+        },
+      });
+      y = (doc as any).lastAutoTable.finalY + 6;
+    }
   }
 
   const pageCount = doc.getNumberOfPages();
@@ -430,6 +504,7 @@ export function ReportViewer({ sessionId, brandName }: ReportViewerProps) {
       <Section1 data={report.section1} />
       <Section2 data={report.section2} brandName={report.meta.brandName} />
       <Section3 data={report.section3} />
+      {report.appendix && <AppendixSection data={report.appendix} />}
     </div>
   );
 }
@@ -868,6 +943,21 @@ function Section3({ data }: { data: any }) {
                         </div>
                       )}
 
+                      {rec.competitorEditorialMentions?.length > 0 && (
+                        <div>
+                          <div className="text-[10px] font-medium text-muted-foreground mb-1">Competitors Mentioned on These Sources (You're Not)</div>
+                          <div className="space-y-1">
+                            {rec.competitorEditorialMentions.slice(0, 8).map((em: any, j: number) => (
+                              <div key={j} className="flex items-center gap-2 text-[11px]">
+                                <Badge variant="outline" className="text-[8px] px-1 shrink-0">{em.tier}</Badge>
+                                <span className="font-medium">{em.domain}</span>
+                                <span className="text-muted-foreground truncate">({em.competitors.join(", ")})</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {rec.useThesePhrases.length > 0 && (
                         <div>
                           <div className="text-[10px] font-medium text-muted-foreground mb-1">Use These Phrases</div>
@@ -889,5 +979,115 @@ function Section3({ data }: { data: any }) {
         </CollapsibleContent>
       </Collapsible>
     </Card>
+  );
+}
+
+const TIER_LABELS: Record<string, { label: string; color: string }> = {
+  T1: { label: "T1 — High Authority", color: "text-green-700 dark:text-green-400" },
+  T2: { label: "T2 — Mid Tier", color: "text-blue-700 dark:text-blue-400" },
+  T3: { label: "T3 — Blogs & News", color: "text-yellow-700 dark:text-yellow-400" },
+  T4: { label: "T4 — Competitor Websites", color: "text-red-600 dark:text-red-400" },
+  brand_owned: { label: "Brand Owned", color: "text-purple-700 dark:text-purple-400" },
+};
+
+function AppendixSection({ data }: { data: any }) {
+  const [open, setOpen] = useState(false);
+
+  const tiers = ["T1", "T2", "T3", "T4", "brand_owned"] as const;
+
+  return (
+    <Card className="overflow-hidden">
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors text-left">
+          <div className="flex items-center gap-2">
+            {open ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            <Globe className="w-4 h-4 text-blue-500" />
+            <span className="text-sm font-semibold">Appendix: All Citation Domains ({data.totalDomains})</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {tiers.map(t => {
+              const count = data.domainsByTier[t]?.length || 0;
+              if (count === 0) return null;
+              return (
+                <Badge key={t} variant="outline" className="text-[8px]">
+                  {t === "brand_owned" ? "Own" : t}: {count}
+                </Badge>
+              );
+            })}
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="px-4 pb-4 border-t space-y-4 pt-3">
+            {tiers.map(tier => {
+              const domains = data.domainsByTier[tier] || [];
+              if (domains.length === 0) return null;
+              const info = TIER_LABELS[tier];
+              return (
+                <div key={tier}>
+                  <h4 className={`text-xs font-medium mb-2 ${info.color}`}>
+                    {info.label} ({domains.length})
+                  </h4>
+                  <div className="divide-y divide-border/50 border border-border/50 rounded-md overflow-hidden">
+                    {domains.map((d: any, i: number) => (
+                      <AppendixDomainRow key={i} entry={d} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  );
+}
+
+function AppendixDomainRow({ entry }: { entry: any }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="px-3 py-1.5">
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between text-left"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          {expanded ? <ChevronDown className="w-3 h-3 shrink-0" /> : <ChevronRight className="w-3 h-3 shrink-0" />}
+          <span className="text-xs font-medium truncate">{entry.domain}</span>
+          <span className="text-[9px] text-muted-foreground shrink-0">({entry.urls.length} URLs)</span>
+        </div>
+        {entry.mentionedEntities.length > 0 && (
+          <span className="text-[9px] text-muted-foreground truncate max-w-[200px] ml-2">
+            {entry.mentionedEntities.slice(0, 3).join(", ")}
+          </span>
+        )}
+      </button>
+      <AnimatePresence>
+        {expanded && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
+            <div className="mt-1.5 ml-5 space-y-1">
+              {entry.mentionedEntities.length > 0 && (
+                <div className="text-[9px] text-muted-foreground">
+                  Mentions: {entry.mentionedEntities.join(", ")}
+                </div>
+              )}
+              {entry.urls.map((url: string, i: number) => (
+                <a
+                  key={i}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                  <span className="truncate">{url}</span>
+                </a>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
