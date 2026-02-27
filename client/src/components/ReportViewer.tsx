@@ -27,6 +27,261 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+async function exportPDF(report: any) {
+  const { default: jsPDF } = await import("jspdf");
+  const { default: autoTable } = await import("jspdf-autotable");
+
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const margin = 15;
+  const contentW = pageW - margin * 2;
+  let y = 20;
+
+  const addPage = () => { doc.addPage(); y = 20; };
+  const checkPage = (needed: number) => { if (y + needed > 270) addPage(); };
+
+  doc.setFontSize(20);
+  doc.setFont("helvetica", "bold");
+  doc.text(`GEO Report — ${report.meta.brandName}`, margin, y);
+  y += 8;
+
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(120);
+  doc.text(`Domain: ${report.meta.brandDomain || "N/A"}  |  Analyzed: ${new Date(report.meta.analyzedAt).toLocaleDateString()}  |  ${report.meta.segmentCount} segments, ${report.meta.totalRuns} runs`, margin, y);
+  doc.setTextColor(0);
+  y += 10;
+
+  doc.setFillColor(245, 245, 245);
+  doc.roundedRect(margin, y, contentW, 18, 2, 2, "F");
+  const boxW = contentW / 4;
+  const statsLabels = ["Appearance Rate", "Top 3 Rate", "Avg Rank", "Valid Runs"];
+  const statsValues = [
+    `${Math.round(report.section1.overall.appearanceRate * 100)}%`,
+    `${Math.round(report.section1.overall.primaryRate * 100)}%`,
+    report.section1.overall.avgRank !== null ? `#${report.section1.overall.avgRank}` : "—",
+    `${report.section1.overall.totalValidRuns}`,
+  ];
+  for (let i = 0; i < 4; i++) {
+    const cx = margin + boxW * i + boxW / 2;
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(statsValues[i], cx, y + 8, { align: "center" });
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(120);
+    doc.text(statsLabels[i], cx, y + 13, { align: "center" });
+    doc.setTextColor(0);
+  }
+  y += 24;
+
+  doc.setFontSize(13);
+  doc.setFont("helvetica", "bold");
+  doc.text("1. Visibility Dashboard", margin, y);
+  y += 7;
+
+  const segRows = report.section1.perSegment.map((s: any, i: number) => [
+    `#${i + 1}`,
+    s.persona.replace(/_/g, " "),
+    s.location || "—",
+    `${Math.round(s.appearanceRate * 100)}%`,
+    `${Math.round(s.primaryRate * 100)}%`,
+    s.avgRank !== null ? `#${s.avgRank}` : "—",
+  ]);
+
+  autoTable(doc, {
+    startY: y,
+    margin: { left: margin, right: margin },
+    head: [["#", "Persona", "Location", "Appearance", "Top 3", "Avg Rank"]],
+    body: segRows,
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [60, 60, 60], textColor: 255, fontStyle: "bold" },
+    alternateRowStyles: { fillColor: [248, 248, 248] },
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  const heatmapEntries = Object.entries(report.section1.engineHeatmap);
+  if (heatmapEntries.length > 0) {
+    checkPage(20);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("Engine Heatmap", margin, y);
+    y += 5;
+
+    const heatRows = heatmapEntries.map(([seg, engines]: [string, any]) => [
+      seg,
+      engines.chatgpt ? `${Math.round(engines.chatgpt.appearanceRate * 100)}%` : "—",
+      engines.gemini ? `${Math.round(engines.gemini.appearanceRate * 100)}%` : "—",
+      engines.claude ? `${Math.round(engines.claude.appearanceRate * 100)}%` : "—",
+    ]);
+
+    autoTable(doc, {
+      startY: y,
+      margin: { left: margin, right: margin },
+      head: [["Segment", "ChatGPT", "Gemini", "Claude"]],
+      body: heatRows,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [60, 60, 60], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [248, 248, 248] },
+    });
+    y = (doc as any).lastAutoTable.finalY + 8;
+  }
+
+  checkPage(15);
+  doc.setFontSize(13);
+  doc.setFont("helvetica", "bold");
+  doc.text("2. Competitive Landscape", margin, y);
+  y += 7;
+
+  for (const seg of report.section2.perSegment) {
+    checkPage(25);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text(seg.segmentLabel, margin, y);
+    y += 5;
+
+    const compRows = seg.top5.map((c: any, i: number) => [
+      `${i + 1}`,
+      c.name,
+      `${Math.round(c.share * 100)}%`,
+      `${c.appearances}`,
+    ]);
+
+    autoTable(doc, {
+      startY: y,
+      margin: { left: margin, right: margin },
+      head: [["#", "Competitor", "Share", "Appearances"]],
+      body: compRows,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [80, 80, 80], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [248, 248, 248] },
+    });
+    y = (doc as any).lastAutoTable.finalY + 6;
+
+    for (const dd of seg.deepDives) {
+      checkPage(20);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${dd.name} — ${Math.round(dd.share * 100)}% share (${dd.crossEngineConsistency} cross-engine)`, margin + 3, y);
+      y += 4;
+
+      if (dd.authoritySources?.length > 0) {
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(80);
+        doc.text(`Authority sources: ${dd.authoritySources.slice(0, 5).map((s: any) => `${s.domain} (${s.tier})`).join(", ")}`, margin + 3, y);
+        doc.setTextColor(0);
+        y += 4;
+      }
+
+      if (dd.comparisonSurfaces?.length > 0) {
+        const missing = dd.comparisonSurfaces.filter((cs: any) => !cs.brandPresent);
+        if (missing.length > 0) {
+          doc.setFontSize(8);
+          doc.setTextColor(180, 0, 0);
+          doc.text(`Missing from: ${missing.slice(0, 3).map((cs: any) => cs.domain).join(", ")}`, margin + 3, y);
+          doc.setTextColor(0);
+          y += 4;
+        }
+      }
+      y += 2;
+    }
+  }
+
+  checkPage(15);
+  doc.setFontSize(13);
+  doc.setFont("helvetica", "bold");
+  doc.text("3. Actionable Insights", margin, y);
+  y += 7;
+
+  if (report.section3.modelUnderstanding) {
+    checkPage(15);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "italic");
+    doc.setTextColor(60, 60, 160);
+    const muLines = doc.splitTextToSize(`AI perception: ${report.section3.modelUnderstanding}`, contentW - 6);
+    doc.text(muLines, margin + 3, y);
+    doc.setTextColor(0);
+    doc.setFont("helvetica", "normal");
+    y += muLines.length * 4 + 4;
+  }
+
+  for (const gap of report.section3.gapAnalysis) {
+    checkPage(20);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.text(`${gap.segmentLabel} — ${gap.gapType} gap`, margin, y);
+    y += 4;
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(80);
+    doc.text(`Authority: ${gap.authority.label} — ${gap.authority.detail}`, margin + 3, y); y += 3.5;
+    doc.text(`Context: ${gap.context.label} — ${gap.context.detail}`, margin + 3, y); y += 3.5;
+    doc.text(`Comparative: ${gap.comparative.label} — ${gap.comparative.detail}`, margin + 3, y); y += 5;
+    doc.setTextColor(0);
+  }
+
+  for (const rec of report.section3.recommendations) {
+    checkPage(30);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text(rec.segmentLabel, margin, y);
+    y += 5;
+
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    const qwLines = doc.splitTextToSize(`Quick Win: ${rec.quickWins}`, contentW - 6);
+    doc.setTextColor(0, 120, 0);
+    doc.text(qwLines, margin + 3, y);
+    doc.setTextColor(0);
+    y += qwLines.length * 3.5 + 2;
+
+    if (rec.secondaryAction) {
+      checkPage(10);
+      const saLines = doc.splitTextToSize(`Secondary: ${rec.secondaryAction}`, contentW - 6);
+      doc.setTextColor(0, 60, 160);
+      doc.text(saLines, margin + 3, y);
+      doc.setTextColor(0);
+      y += saLines.length * 3.5 + 2;
+    }
+
+    if (rec.getListedHere?.length > 0) {
+      checkPage(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("Get listed here:", margin + 3, y); y += 3.5;
+      doc.setFont("helvetica", "normal");
+      for (const url of rec.getListedHere.slice(0, 5)) {
+        checkPage(5);
+        doc.setTextColor(0, 0, 200);
+        doc.text(`• ${url}`, margin + 6, y);
+        doc.setTextColor(0);
+        y += 3.5;
+      }
+      y += 2;
+    }
+
+    if (rec.missingSources?.length > 0) {
+      checkPage(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("Missing high-tier sources:", margin + 3, y); y += 3.5;
+      doc.setFont("helvetica", "normal");
+      doc.text(rec.missingSources.map((s: any) => `${s.domain} (${s.tier})`).join(", "), margin + 6, y);
+      y += 5;
+    }
+    y += 3;
+  }
+
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7);
+    doc.setTextColor(160);
+    doc.text(`GEO Report — ${report.meta.brandName} — Page ${i}/${pageCount}`, pageW / 2, 290, { align: "center" });
+  }
+
+  doc.save(`geo-report-${report.meta.brandName}-${new Date().toISOString().split("T")[0]}.pdf`);
+}
+
 interface ReportViewerProps {
   sessionId: number | null;
   brandName: string;
@@ -115,24 +370,36 @@ export function ReportViewer({ sessionId, brandName }: ReportViewerProps) {
           <FileText className="w-5 h-5" />
           GEO Report — {report.meta.brandName}
         </h2>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          onClick={() => {
-            const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `geo-report-${report.meta.brandName}-${new Date().toISOString().split("T")[0]}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-          }}
-          data-testid="button-download-report"
-        >
-          <Download className="w-3.5 h-3.5" />
-          Export JSON
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="default"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => exportPDF(report)}
+            data-testid="button-export-pdf"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export PDF
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => {
+              const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `geo-report-${report.meta.brandName}-${new Date().toISOString().split("T")[0]}.json`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            data-testid="button-download-report"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export JSON
+          </Button>
+        </div>
       </div>
 
       <Card className="p-4 bg-secondary/30">
