@@ -109,7 +109,7 @@ export default function SummaryReport() {
   const allCompetitors = gatherTopCompetitors(competitorPlaybook);
   const brandMentionAudit = gatherBrandMentionAudit(section2, meta.brandName);
   const biggestGaps = extractBiggestGaps(section3, competitorPlaybook);
-  const quickWins = extractQuickWins(section3, competitorPlaybook);
+  const consolidatedWins = extractConsolidatedWins(section3, competitorPlaybook, allCompetitors);
   const authoritySnapshot = buildAuthoritySnapshot(appendix);
 
   return (
@@ -140,7 +140,7 @@ export default function SummaryReport() {
         <TopScorersSection competitors={allCompetitors} brandName={meta.brandName} />
         <BrandMentionAudit audit={brandMentionAudit} brandName={meta.brandName} allCompetitors={allCompetitors} />
         <BiggestGaps gaps={biggestGaps} />
-        <QuickWinsSection wins={quickWins} />
+        <ConsolidatedWinsSection wins={consolidatedWins} />
         <AuthoritySnapshotSection snapshot={authoritySnapshot} brandName={meta.brandName} />
       </main>
 
@@ -509,8 +509,19 @@ function BiggestGaps({ gaps }: { gaps: GapEntry[] }) {
   );
 }
 
-function QuickWinsSection({ wins }: { wins: QuickWin[] }) {
+function ConsolidatedWinsSection({ wins }: { wins: ConsolidatedWin[] }) {
   if (wins.length === 0) return null;
+
+  const icons = [
+    <FileText className="w-5 h-5" />,
+    <Award className="w-5 h-5" />,
+    <MessageSquare className="w-5 h-5" />,
+  ];
+  const colors = [
+    { bg: "bg-emerald-500", badge: "bg-emerald-100 text-emerald-700", border: "border-emerald-200", light: "bg-emerald-50/50" },
+    { bg: "bg-blue-500", badge: "bg-blue-100 text-blue-700", border: "border-blue-200", light: "bg-blue-50/50" },
+    { bg: "bg-purple-500", badge: "bg-purple-100 text-purple-700", border: "border-purple-200", light: "bg-purple-50/50" },
+  ];
 
   return (
     <section data-testid="section-quick-wins">
@@ -519,37 +530,75 @@ function QuickWinsSection({ wins }: { wins: QuickWin[] }) {
           <Zap className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Quick Wins</h2>
-          <p className="text-sm text-muted-foreground">Highest-impact actions to improve AI visibility</p>
+          <h2 className="text-2xl font-bold tracking-tight">Strategic Action Plan</h2>
+          <p className="text-sm text-muted-foreground">3 high-impact moves based on what top competitors are doing</p>
         </div>
       </div>
 
-      <div className="space-y-3">
-        {wins.map((win, i) => (
-          <Card key={i} className="bg-emerald-50/30 border-emerald-200" data-testid={`card-quickwin-${i}`}>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-start gap-4">
-                <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold shrink-0">
-                  {i + 1}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium leading-relaxed" data-testid={`text-quickwin-${i}`}>{win.action}</p>
-                  {win.segment && <p className="text-xs text-muted-foreground mt-1">Segment: {win.segment}</p>}
-                  {win.getListedUrls && win.getListedUrls.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {win.getListedUrls.map((url, ui) => (
-                        <a key={ui} href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1" data-testid={`link-getlisted-${i}-${ui}`}>
-                          <ExternalLink className="w-3 h-3" />
-                          {url.replace(/https?:\/\/(www\.)?/, "").split("/")[0]}
-                        </a>
-                      ))}
+      <div className="space-y-5">
+        {wins.map((win, i) => {
+          const color = colors[i] || colors[0];
+          return (
+            <Card key={i} className={`overflow-hidden ${color.border}`} data-testid={`card-quickwin-${i}`}>
+              <div className={`h-1 ${color.bg}`} />
+              <CardContent className="pt-5 pb-5">
+                <div className="flex items-start gap-4">
+                  <div className={`w-10 h-10 rounded-xl ${color.bg} flex items-center justify-center text-white shrink-0`}>
+                    {icons[i] || icons[0]}
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <h3 className="font-semibold text-base" data-testid={`text-quickwin-title-${i}`}>{win.title}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed mt-1" data-testid={`text-quickwin-desc-${i}`}>{win.description}</p>
                     </div>
-                  )}
+
+                    {win.examples.length > 0 && (
+                      <div className={`${color.light} rounded-lg p-3.5 space-y-2.5`}>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">What competitors are doing</p>
+                        {win.examples.map((ex, ei) => (
+                          <div key={ei} className="flex items-start gap-2" data-testid={`example-${i}-${ei}`}>
+                            <Trophy className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                            <div>
+                              <span className="text-sm font-medium">{ex.competitor}:</span>{" "}
+                              <span className="text-sm text-foreground/80">{ex.detail}</span>
+                              {ex.url && (
+                                <a href={ex.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 ml-1">
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {win.targetDomains.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Target these domains</p>
+                        <div className="flex flex-wrap gap-2">
+                          {win.targetDomains.map((td, ti) => (
+                            <a
+                              key={ti}
+                              href={td.url || `https://${td.domain}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-medium hover:opacity-80 transition-opacity ${tierColor(td.tier)}`}
+                              data-testid={`link-target-${i}-${ti}`}
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              {td.domain}
+                              <span className="opacity-60">({td.tier})</span>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </section>
   );
@@ -789,40 +838,147 @@ function extractBiggestGaps(section3: any, playbook: any): GapEntry[] {
   }).slice(0, 3);
 }
 
-interface QuickWin {
-  action: string;
-  segment: string | null;
-  getListedUrls: string[];
+interface ConsolidatedWin {
+  title: string;
+  description: string;
+  examples: Array<{ competitor: string; detail: string; url?: string }>;
+  targetDomains: Array<{ domain: string; tier: string; url?: string }>;
 }
 
-function extractQuickWins(section3: any, playbook: any): QuickWin[] {
-  const wins: QuickWin[] = [];
-  const recs = section3?.recommendations ?? [];
-  const seen = new Set<string>();
+function extractConsolidatedWins(section3: any, playbook: any, allCompetitors: TopCompetitorAggregate[]): ConsolidatedWin[] {
+  const wins: ConsolidatedWin[] = [];
 
-  for (const rec of recs) {
-    if (rec.quickWins && !seen.has(rec.quickWins)) {
-      seen.add(rec.quickWins);
-      wins.push({ action: rec.quickWins, segment: rec.segmentLabel, getListedUrls: rec.getListedHere ?? [] });
-    }
-    if (rec.secondaryAction && !seen.has(rec.secondaryAction) && wins.length < 5) {
-      seen.add(rec.secondaryAction);
-      wins.push({ action: rec.secondaryAction, segment: rec.segmentLabel, getListedUrls: [] });
-    }
-  }
-
+  const phrasingExamples: Array<{ competitor: string; detail: string }> = [];
+  const allThemes = new Set<string>();
   for (const seg of (playbook?.perSegment ?? [])) {
     for (const comp of (seg?.topCompetitors ?? [])) {
-      for (const da of (comp?.derivedActions ?? [])) {
-        if (!seen.has(da) && wins.length < 7) {
-          seen.add(da);
-          wins.push({ action: da, segment: seg.segmentLabel, getListedUrls: [] });
+      for (const theme of (comp.contextThemes ?? [])) {
+        allThemes.add(theme.theme);
+      }
+      if (comp.exampleQuotes?.length > 0) {
+        const eq = comp.exampleQuotes[0];
+        const quote = eq.quote.length > 150 ? eq.quote.substring(0, 150) + "..." : eq.quote;
+        if (!phrasingExamples.some(p => p.competitor === comp.name)) {
+          phrasingExamples.push({
+            competitor: comp.name,
+            detail: `${eq.engine} describes them as: "${quote}"`,
+          });
+        }
+      }
+      for (const da of (comp.derivedActions ?? [])) {
+        if (da.includes("consistently described as") && !phrasingExamples.some(p => p.detail.includes("consistently described"))) {
+          phrasingExamples.push({ competitor: comp.name, detail: da });
         }
       }
     }
   }
 
-  return wins.slice(0, 7);
+  const topPhrases = [...allThemes].slice(0, 5);
+  wins.push({
+    title: "Optimize Your Content for AI Discovery",
+    description: `AI engines recommend competitors who use specific language patterns. Add phrases like ${topPhrases.slice(0, 3).map(t => `"${t}"`).join(", ")} to your homepage H1, first 200 words, and directory profiles. Match the exact terminology AI models associate with top-ranked providers.`,
+    examples: phrasingExamples.slice(0, 2),
+    targetDomains: [],
+  });
+
+  const pubExamples: Array<{ competitor: string; detail: string; url?: string }> = [];
+  const pubDomains = new Map<string, { tier: string; url?: string }>();
+
+  const competitorNames = new Set(allCompetitors.map(c => c.name.toLowerCase()));
+
+  for (const seg of (playbook?.perSegment ?? [])) {
+    for (const comp of (seg?.topCompetitors ?? [])) {
+      for (const src of (comp.authoritySources ?? [])) {
+        if (src.isAIInfra) continue;
+        if (src.tier === "T4") continue;
+        const srcDomainLower = src.domain.toLowerCase();
+        const isCompetitorDomain = [...competitorNames].some(cn => {
+          const cnWords = cn.replace(/[^a-z0-9 ]/g, "").split(/\s+/);
+          return cnWords.some(w => w.length > 3 && srcDomainLower.includes(w));
+        });
+        if (isCompetitorDomain) continue;
+
+        if (!pubDomains.has(src.domain)) {
+          pubDomains.set(src.domain, { tier: src.tier, url: src.urls?.[0] });
+        }
+      }
+
+      for (const da of (comp.derivedActions ?? [])) {
+        if (da.includes("high-authority sources") && !pubExamples.some(p => p.competitor === comp.name && p.detail.includes("high-authority"))) {
+          pubExamples.push({ competitor: comp.name, detail: da });
+        }
+      }
+    }
+
+    for (const hfs of (seg.highFrequencySources ?? [])) {
+      if (hfs.tier === "T4") continue;
+      if (!pubDomains.has(hfs.domain)) {
+        pubDomains.set(hfs.domain, { tier: hfs.tier });
+      }
+    }
+  }
+
+  const recs = section3?.recommendations ?? [];
+  for (const rec of recs) {
+    for (const url of (rec.getListedHere ?? [])) {
+      try {
+        const domain = new URL(url).hostname.replace(/^www\./, "");
+        const isCompDomain = [...competitorNames].some(cn => {
+          const cnWords = cn.replace(/[^a-z0-9 ]/g, "").split(/\s+/);
+          return cnWords.some((w: string) => w.length > 3 && domain.includes(w));
+        });
+        if (!isCompDomain && !pubDomains.has(domain)) {
+          pubDomains.set(domain, { tier: "T3", url });
+        }
+      } catch { /* skip bad URLs */ }
+    }
+  }
+
+  const sortedPubDomains = [...pubDomains.entries()]
+    .sort((a, b) => {
+      const tierOrder: Record<string, number> = { T1: 0, T2: 1, T3: 2 };
+      return (tierOrder[a[1].tier] ?? 3) - (tierOrder[b[1].tier] ?? 3);
+    })
+    .slice(0, 6)
+    .map(([domain, data]) => ({ domain, tier: data.tier, url: data.url }));
+
+  wins.push({
+    title: "Get Featured in Publications AI Engines Trust",
+    description: "AI models cite specific publications as sources. Getting featured in these publications directly increases your chances of appearing in AI recommendations. Focus on PR, guest content, and directory submissions.",
+    examples: pubExamples.slice(0, 2),
+    targetDomains: sortedPubDomains,
+  });
+
+  const socialExamples: Array<{ competitor: string; detail: string; url?: string }> = [];
+  const socialDomains = new Map<string, { url?: string }>();
+
+  for (const comp of allCompetitors.slice(0, 5)) {
+    for (const sm of (comp.socialMentions ?? [])) {
+      const domain = sm.domain.toLowerCase().replace(/^(www\.|ca\.)/, "");
+      if (!socialDomains.has(domain)) {
+        socialDomains.set(domain, { url: sm.url });
+      }
+      if (!socialExamples.some(s => s.competitor === comp.name)) {
+        socialExamples.push({
+          competitor: comp.name,
+          detail: `Active on ${sm.domain} — AI engines find and cite this when recommending them.`,
+          url: sm.url,
+        });
+      }
+    }
+  }
+
+  if (socialDomains.size > 0) {
+    const platformList = [...socialDomains.keys()].slice(0, 4).join(", ");
+    wins.push({
+      title: "Build Social Proof Where AI Engines Look",
+      description: `AI models pull recommendations from social platforms like ${platformList}. Competitors who are active on these platforms get cited more frequently. Create and maintain presence through reviews, community answers, and posts.`,
+      examples: socialExamples.slice(0, 2),
+      targetDomains: [...socialDomains.entries()].slice(0, 4).map(([domain, data]) => ({ domain, tier: "T2", url: data.url })),
+    });
+  }
+
+  return wins;
 }
 
 interface AuthorityDomain {
