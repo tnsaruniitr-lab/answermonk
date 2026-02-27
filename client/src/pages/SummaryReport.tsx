@@ -166,7 +166,7 @@ export default function SummaryReport() {
       )}
 
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-10">
-        <VisibilityScorecard section1={section1} meta={meta} />
+        <VisibilityScorecard section1={section1} section2={section2} meta={meta} />
         <SegmentBreakdown section2={section2} brandName={meta.brandName} />
         <TopScorersSection competitors={allCompetitors} brandName={meta.brandName} />
         <BrandMentionAudit audit={brandMentionAudit} brandName={meta.brandName} allCompetitors={allCompetitors} />
@@ -194,7 +194,62 @@ export default function SummaryReport() {
   );
 }
 
-function VisibilityScorecard({ section1, meta }: { section1: any; meta: any }) {
+function buildRankingTable(section2: any, brandName: string, section1: any) {
+  const segments = section2?.perSegment ?? [];
+  if (segments.length === 0) return [];
+
+  const brandKey = brandName.toLowerCase().trim();
+  const competitorMap: Record<string, { totalShare: number; segCount: number; segments: Record<string, number> }> = {};
+
+  const brandOverall = section1?.overall;
+  const brandPerSeg = section1?.perSegment ?? [];
+
+  segments.forEach((seg: any, idx: number) => {
+    const segLabel = seg.segmentLabel || `Segment ${idx + 1}`;
+    const top5 = seg.top5 ?? [];
+    top5.forEach((c: any) => {
+      const key = c.name.toLowerCase().trim();
+      if (!competitorMap[key]) competitorMap[key] = { totalShare: 0, segCount: 0, segments: {} };
+      competitorMap[key].totalShare += (c.share ?? 0);
+      competitorMap[key].segCount += 1;
+      competitorMap[key].segments[segLabel] = c.share ?? 0;
+    });
+  });
+
+  const segLabels = segments.map((s: any, i: number) => s.segmentLabel || `Segment ${i + 1}`);
+
+  const rows = Object.entries(competitorMap)
+    .map(([key, val]) => ({
+      name: key,
+      avgShare: val.totalShare / segments.length,
+      perSegment: segLabels.map((sl: string) => val.segments[sl] ?? 0),
+      isBrand: false,
+    }))
+    .sort((a, b) => b.avgShare - a.avgShare)
+    .slice(0, 7);
+
+  const brandAvgShare = brandOverall?.appearanceRate ?? 0;
+  const brandRow = {
+    name: brandName,
+    avgShare: brandAvgShare,
+    perSegment: segLabels.map((_sl: string, idx: number) => brandPerSeg[idx]?.appearanceRate ?? 0),
+    isBrand: true,
+  };
+
+  const alreadyInList = rows.some(r => r.name === brandKey);
+  if (!alreadyInList) {
+    rows.push(brandRow);
+  } else {
+    const existing = rows.find(r => r.name === brandKey);
+    if (existing) existing.isBrand = true;
+  }
+
+  rows.sort((a, b) => b.avgShare - a.avgShare);
+
+  return { rows, segLabels };
+}
+
+function VisibilityScorecard({ section1, section2, meta }: { section1: any; section2: any; meta: any }) {
   const overall = section1.overall;
   const grade = scoreGrade(overall.appearanceRate);
 
@@ -221,6 +276,9 @@ function VisibilityScorecard({ section1, meta }: { section1: any; meta: any }) {
     const rate = totalRuns > 0 ? totalApp / totalRuns : 0;
     return { engine: eng, label: engineLabels[eng], rate, totalRuns };
   });
+
+  const ranking = buildRankingTable(section2, meta.brandName, section1);
+  const showRanking = ranking && ranking.rows && ranking.rows.length > 0 && overall.appearanceRate >= 0.2;
 
   return (
     <section data-testid="section-visibility-scorecard">
@@ -267,6 +325,69 @@ function VisibilityScorecard({ section1, meta }: { section1: any; meta: any }) {
           </Card>
         ))}
       </div>
+
+      {showRanking && (
+        <Card className="mt-6" data-testid="card-ranking-table">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-amber-500" />
+              <CardTitle className="text-lg">Competitive Ranking</CardTitle>
+            </div>
+            <p className="text-sm text-muted-foreground">Where {meta.brandName} ranks against competitors across all segments</p>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm" data-testid="table-ranking">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-3 font-medium text-muted-foreground w-8">#</th>
+                    <th className="text-left py-3 px-3 font-medium text-muted-foreground">Brand</th>
+                    <th className="text-center py-3 px-3 font-medium text-muted-foreground">Overall</th>
+                    {ranking.segLabels.map((sl: string) => (
+                      <th key={sl} className="text-center py-3 px-3 font-medium text-muted-foreground whitespace-nowrap">{sl}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {ranking.rows.map((row: any, idx: number) => (
+                    <tr
+                      key={row.name}
+                      className={`border-b border-gray-100 ${row.isBrand ? "bg-primary/5 font-semibold" : "hover:bg-gray-50"}`}
+                      data-testid={`row-ranking-${idx}`}
+                    >
+                      <td className="py-3 px-3 text-muted-foreground">{idx + 1}</td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2">
+                          {row.isBrand && <div className="w-2 h-2 rounded-full bg-primary" />}
+                          <span className={row.isBrand ? "text-primary" : ""}>{row.name}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 text-center">
+                        <div className="inline-flex items-center gap-2">
+                          <div className="w-16 bg-gray-100 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full ${row.isBrand ? "bg-primary" : "bg-gray-400"}`}
+                              style={{ width: `${Math.min(row.avgShare * 100, 100)}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-mono w-10">{formatPct(row.avgShare)}</span>
+                        </div>
+                      </td>
+                      {row.perSegment.map((val: number, si: number) => (
+                        <td key={si} className="py-3 px-3 text-center">
+                          <span className={`text-xs font-mono ${val === 0 ? "text-gray-300" : val >= 0.5 ? "text-emerald-600 font-semibold" : ""}`}>
+                            {val === 0 ? "—" : formatPct(val)}
+                          </span>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </section>
   );
 }
