@@ -167,7 +167,7 @@ export default function SummaryReport() {
 
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-10">
         <VisibilityScorecard section1={section1} section2={section2} meta={meta} />
-        <SegmentBreakdown section2={section2} brandName={meta.brandName} />
+        <SegmentBreakdown section2={section2} section1={section1} brandName={meta.brandName} />
         <TopScorersSection competitors={allCompetitors} brandName={meta.brandName} />
         <BrandMentionAudit audit={brandMentionAudit} brandName={meta.brandName} allCompetitors={allCompetitors} />
         <BiggestGaps gaps={biggestGaps} />
@@ -263,18 +263,20 @@ function VisibilityScorecard({ section1, section2, meta }: { section1: any; sect
 
   const engineStats = engines.map(eng => {
     const heatmap = section1.engineHeatmap;
-    let totalApp = 0, totalRuns = 0;
+    let totalApp = 0, totalRuns = 0, totalPrimary = 0;
     if (heatmap) {
       for (const segKey of Object.keys(heatmap)) {
         const segData = heatmap[segKey];
         if (segData?.[eng]) {
           totalApp += Math.round(segData[eng].appearanceRate * segData[eng].validRuns);
+          totalPrimary += Math.round((segData[eng].primaryRate ?? 0) * segData[eng].validRuns);
           totalRuns += segData[eng].validRuns;
         }
       }
     }
     const rate = totalRuns > 0 ? totalApp / totalRuns : 0;
-    return { engine: eng, label: engineLabels[eng], rate, totalRuns };
+    const top3Rate = totalRuns > 0 ? totalPrimary / totalRuns : 0;
+    return { engine: eng, label: engineLabels[eng], rate, top3Rate, totalRuns };
   });
 
   const ranking = buildRankingTable(section2, meta.brandName, section1);
@@ -314,6 +316,7 @@ function VisibilityScorecard({ section1, section2, meta }: { section1: any; sect
             <CardContent className="pt-5 text-center">
               <p className="text-sm font-medium text-muted-foreground mb-1">{es.label}</p>
               <p className="text-3xl font-bold" data-testid={`text-engine-rate-${es.engine}`}>{formatPct(es.rate)}</p>
+              <p className="text-xs text-muted-foreground mt-1">Top 3: <span className="font-semibold text-foreground">{formatPct(es.top3Rate)}</span></p>
               <p className="text-xs text-muted-foreground mt-2">{es.totalRuns} responses analyzed</p>
               <div className="mt-3 w-full bg-gray-100 rounded-full h-2">
                 <div
@@ -392,8 +395,9 @@ function VisibilityScorecard({ section1, section2, meta }: { section1: any; sect
   );
 }
 
-function SegmentBreakdown({ section2, brandName }: { section2: any; brandName: string }) {
+function SegmentBreakdown({ section2, section1, brandName }: { section2: any; section1: any; brandName: string }) {
   const segments = section2?.perSegment ?? [];
+  const brandPerSeg = section1?.perSegment ?? [];
   if (segments.length === 0) return null;
 
   const segColors = [
@@ -411,15 +415,31 @@ function SegmentBreakdown({ section2, brandName }: { section2: any; brandName: s
         </div>
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Who Shows Up When Your Customers Search</h2>
-          <p className="text-sm text-muted-foreground">Top 5 competitors per segment — based on AI engine responses</p>
+          <p className="text-sm text-muted-foreground">Top 10 per segment — including {brandName} — based on AI engine responses</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {segments.map((seg: any, si: number) => {
-          const top5 = (seg.top5 ?? []).slice(0, 5);
+          const competitors = (seg.top5 ?? []).slice(0, 10);
+          const brandKey = brandName.toLowerCase().trim();
+          const brandAlreadyIn = competitors.some((c: any) => c.name.toLowerCase().trim() === brandKey);
+
+          let combined = [...competitors];
+          if (!brandAlreadyIn && brandPerSeg[si]) {
+            combined.push({
+              name: brandName,
+              share: brandPerSeg[si].appearanceRate ?? 0,
+              appearances: brandPerSeg[si].validRuns ?? 0,
+              _isBrand: true,
+            });
+          }
+
+          combined.sort((a: any, b: any) => (b.share ?? 0) - (a.share ?? 0));
+          combined = combined.slice(0, 10);
+
           const color = segColors[si % segColors.length];
-          const maxShare = top5.length > 0 ? Math.max(...top5.map((c: any) => c.share)) : 1;
+          const maxShare = combined.length > 0 ? Math.max(...combined.map((c: any) => c.share ?? 0)) : 1;
 
           return (
             <Card key={si} className="overflow-hidden" data-testid={`card-segment-${si}`}>
@@ -430,11 +450,11 @@ function SegmentBreakdown({ section2, brandName }: { section2: any; brandName: s
                   <h3 className="font-semibold text-sm" data-testid={`text-segment-label-${si}`}>{seg.segmentLabel}</h3>
                 </div>
                 <div className="space-y-2.5">
-                  {top5.map((comp: any, ci: number) => {
-                    const pct = Math.round(comp.share * 100);
-                    const isBrand = comp.name.toLowerCase() === brandName.toLowerCase();
+                  {combined.map((comp: any, ci: number) => {
+                    const pct = Math.round((comp.share ?? 0) * 100);
+                    const isBrand = comp._isBrand || comp.name.toLowerCase().trim() === brandKey;
                     return (
-                      <div key={ci} className="flex items-center gap-3" data-testid={`row-competitor-${si}-${ci}`}>
+                      <div key={ci} className={`flex items-center gap-3 ${isBrand ? "py-1 px-2 -mx-2 rounded-lg bg-primary/5" : ""}`} data-testid={`row-competitor-${si}-${ci}`}>
                         <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${isBrand ? "bg-primary text-primary-foreground" : "bg-gray-100 text-gray-500"}`}>
                           {ci + 1}
                         </div>
@@ -443,14 +463,14 @@ function SegmentBreakdown({ section2, brandName }: { section2: any; brandName: s
                             <span className={`text-sm truncate ${isBrand ? "font-bold text-primary" : "font-medium"}`} data-testid={`text-comp-name-${si}-${ci}`}>
                               {comp.name}
                             </span>
-                            <span className={`text-sm font-semibold ml-2 shrink-0 ${color.text}`} data-testid={`text-comp-rate-${si}-${ci}`}>
+                            <span className={`text-sm font-semibold ml-2 shrink-0 ${isBrand ? "text-primary" : color.text}`} data-testid={`text-comp-rate-${si}-${ci}`}>
                               {pct}%
                             </span>
                           </div>
                           <div className="w-full bg-gray-100 rounded-full h-1.5">
                             <div
-                              className={`h-1.5 rounded-full ${color.bar} transition-all`}
-                              style={{ width: `${(comp.share / maxShare) * 100}%` }}
+                              className={`h-1.5 rounded-full ${isBrand ? "bg-primary" : color.bar} transition-all`}
+                              style={{ width: `${((comp.share ?? 0) / maxShare) * 100}%` }}
                             />
                           </div>
                         </div>
@@ -458,7 +478,7 @@ function SegmentBreakdown({ section2, brandName }: { section2: any; brandName: s
                     );
                   })}
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-3">{top5.reduce((s: number, c: any) => s + c.appearances, 0)} total competitor appearances across all prompts</p>
+                <p className="text-[10px] text-muted-foreground mt-3">{combined.reduce((s: number, c: any) => s + (c.appearances ?? 0), 0)} total appearances across all prompts</p>
               </CardContent>
             </Card>
           );
