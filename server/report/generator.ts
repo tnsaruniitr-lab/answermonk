@@ -1,5 +1,6 @@
 import { classifyTier, isAIInfraDomain, isDomainOwnedByEntity, type TierLabel } from "./tier-classifier";
 import { generateCompetitorNarrative, extractAllMentionSentences } from "./competitor-narrative";
+import { resolveGroundingUrls, collectAllCitationUrls } from "./grounding-resolver";
 
 interface RawRun {
   prompt_id: string;
@@ -706,6 +707,29 @@ export async function generateReport(
 ): Promise<ReportData> {
   const segments = Array.isArray(session.segments) ? session.segments.filter(s => s.scoringResult) : [];
   const citationReport = session.citationReport || null;
+
+  // --- RESOLVE GEMINI GROUNDING URLs ---
+  const allCitUrls = collectAllCitationUrls(segments as any);
+  const groundingMap = await resolveGroundingUrls(allCitUrls);
+  const resolvedCount = Array.from(groundingMap.values()).filter(r => r.resolvedDomain).length;
+  if (resolvedCount > 0) {
+    console.log(`[report] Resolved ${resolvedCount}/${groundingMap.size} Gemini grounding URLs`);
+    for (const seg of segments) {
+      const runs = seg.scoringResult?.raw_runs;
+      if (!runs) continue;
+      for (const run of runs as any[]) {
+        if (!run.citations) continue;
+        run.citations = run.citations.map((cit: any) => {
+          if (!cit.url) return cit;
+          const resolved = groundingMap.get(cit.url);
+          if (resolved && resolved.resolvedDomain) {
+            return { ...cit, url: resolved.resolvedUrl, originalGroundingUrl: cit.url };
+          }
+          return cit;
+        });
+      }
+    }
+  }
 
   // --- SECTION 1: Visibility Dashboard ---
 
