@@ -1,0 +1,84 @@
+#1
+In-Home Healthcare
+
+#1
+Aster DM Healthcare
+46% share
+strong cross-engine
+Appears in 45% of AI responses (15/33 runs). Present on ChatGPT (1/11, avg #4), Gemini (4/11, avg #5.8), Claude (10/11, avg #5). Backed by 1 high-authority source: thebritnurse.org.
+
+Engine Presence
+ChatGPT
+1/11
+Avg #4
+Gemini
+4/11
+Avg #5.8
+Claude
+10/11
+Avg #5
+Positioning Themes (How AI Perceives Them)
+trusted brand
+Claude
+(3x)
+weak signal
+affordable pricing
+Claude
+(1x)
+weak signal
+home visits
+Claude
+(1x)
+weak signal
+How AI Engines Describe Them (Verbatim)
+"### 2) **Aster@Home (Aster Clinic / Aster DM Healthcare)**"
+
+ChatGPT
+Prompt: Find, list and rank most trusted 5 in-home healthcare in dubai.
+"* **Why it’s popular:** As part of the Aster DM Healthcare group, Medcare carries immense brand trust"
+
+Gemini
+Prompt: Find, list and rank most popular 5 in-home healthcare in dubai.
+"Medcare Home Health (Aster DM Healthcare)**"
+
+Gemini
+Prompt: Find, list and rank leading 5 in-home healthcare in dubai.
+"Medcare Home Services (Aster DM Healthcare)"
+
+Gemini
+Prompt: Find, list and rank most trusted 5 in-home healthcare in dubai.
+"As the home-care arm of **Aster DM Healthcare** (one of the largest medical conglomerates in the region), Medcare Home Services carries the weight and reliability of a massive hospital network"
+
+Gemini
+Prompt: Find, list and rank most trusted 5 in-home healthcare in dubai.
+"* **Overview:** Part of the massive Aster DM Healthcare group, Medcare is widely considered the gold standard for home healthcare in Dubai"
+
+Gemini
+Prompt: Find, list and rank top rated 5 in-home healthcare in dubai.
+Authority Sources Backing This Competitor
+T3
+zawya.com
+(1 URLs)
+T3
+stage.nightingalepolyclinic.ae
+(1 URLs)
+T3
+pflege.ae
+(1 URLs)
+T1
+thebritnurse.org
+(1 URLs)
+T3
+vertexaisearch.cloud.google.com
+Gemini grounding
+(5 URLs)
+Actions for valeo (Based on Aster DM Healthcare's Strategy)
+1.
+Aster DM Healthcare is backed by 1 high-authority sources (thebritnurse.org). Target these same publications with PR, guest content, or directory submissions.
+
+2.
+Weak spot: Aster DM Healthcare is only mentioned as "trusted brand" on one engine. If you can demonstrate this attribute more consistently, you can outposition them.
+
+
+#2
+Emirates Home Nursing

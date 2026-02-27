@@ -270,7 +270,7 @@ async function exportPDF(report: any) {
           doc.text("Authority Sources:", margin + 5, y);
           y += 3.5;
           doc.setFont("helvetica", "normal");
-          doc.text(comp.authoritySources.slice(0, 5).map((s: any) => `${s.domain} (${s.tier})`).join(", "), margin + 8, y);
+          doc.text(comp.authoritySources.slice(0, 5).map((s: any) => `${s.domain} (${s.tier})${s.isAIInfra ? " [Gemini grounding]" : ""}`).join(", "), margin + 8, y);
           y += 4;
         }
 
@@ -1105,18 +1105,9 @@ function PlaybookCompetitorCard({ comp, brandName }: { comp: any; brandName: str
                     <Shield className="w-3 h-3" />
                     Authority Sources Backing This Competitor
                   </div>
-                  <div className="space-y-0.5">
+                  <div className="space-y-1">
                     {comp.authoritySources.map((src: any, i: number) => (
-                      <div key={i} className="flex items-center gap-2 text-[11px]">
-                        <Badge variant="outline" className="text-[8px] px-1 shrink-0">{src.tier}</Badge>
-                        <span className="font-medium">{src.domain}</span>
-                        <span className="text-muted-foreground">({src.urls.length} URLs)</span>
-                        {src.urls[0] && (
-                          <a href={src.urls[0]} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        )}
-                      </div>
+                      <AuthoritySourceRow key={i} src={src} />
                     ))}
                   </div>
                 </div>
@@ -1166,6 +1157,62 @@ function PlaybookCompetitorCard({ comp, brandName }: { comp: any; brandName: str
         )}
       </AnimatePresence>
     </Card>
+  );
+}
+
+function AuthoritySourceRow({ src }: { src: any }) {
+  const [showUrls, setShowUrls] = useState(false);
+  const hasMultiple = src.urls.length > 1;
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 text-[11px]">
+        <Badge variant="outline" className="text-[8px] px-1 shrink-0" data-testid={`badge-tier-${src.domain}`}>{src.tier}</Badge>
+        <span className="font-medium">{src.domain}</span>
+        {src.isAIInfra && (
+          <Badge className="text-[7px] px-1 bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-0">
+            Gemini grounding
+          </Badge>
+        )}
+        {hasMultiple ? (
+          <button
+            type="button"
+            onClick={() => setShowUrls(!showUrls)}
+            className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline text-[10px]"
+            data-testid={`button-toggle-urls-${src.domain}`}
+          >
+            {showUrls ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+            {src.urls.length} URLs
+          </button>
+        ) : (
+          <a href={src.urls[0]} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline text-[10px]" data-testid={`link-source-${src.domain}`}>
+            <ExternalLink className="w-3 h-3" />
+            1 URL
+          </a>
+        )}
+      </div>
+      <AnimatePresence>
+        {showUrls && hasMultiple && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
+            <div className="ml-8 mt-1 space-y-0.5">
+              {src.urls.map((url: string, j: number) => (
+                <a
+                  key={j}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 hover:underline"
+                  data-testid={`link-authority-url-${j}`}
+                >
+                  <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                  <span className="truncate">{url}</span>
+                </a>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 

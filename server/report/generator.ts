@@ -1,4 +1,4 @@
-import { classifyTier, type TierLabel } from "./tier-classifier";
+import { classifyTier, isAIInfraDomain, type TierLabel } from "./tier-classifier";
 
 interface RawRun {
   prompt_id: string;
@@ -175,7 +175,7 @@ export interface ReportData {
         whyTheyRank: string;
         enginePresence: Record<string, { appearances: number; totalRuns: number; avgRank: number | null }>;
         crossEngineConsistency: "strong" | "moderate" | "weak";
-        authoritySources: Array<{ domain: string; tier: string; urls: string[] }>;
+        authoritySources: Array<{ domain: string; tier: string; urls: string[]; isAIInfra?: boolean }>;
         contextThemes: Array<{ theme: string; count: number; engines: string[] }>;
         exampleQuotes: Array<{ quote: string; engine: string; prompt?: string }>;
         socialMentions: Array<{ domain: string; url: string; context: string }>;
@@ -987,9 +987,10 @@ export function generateReport(
       }
 
       const authoritySources = Array.from(domainUrlMap.entries())
-        .map(([domain, data]) => ({ domain, tier: data.tier, urls: Array.from(data.urls).slice(0, 5) }))
+        .map(([domain, data]) => ({ domain, tier: data.tier, urls: Array.from(data.urls).slice(0, 5), isAIInfra: isAIInfraDomain(domain) }))
         .filter(s => s.tier !== "T4" && s.tier !== "brand_owned")
         .sort((a, b) => {
+          if (a.isAIInfra !== b.isAIInfra) return a.isAIInfra ? 1 : -1;
           const tierOrder: Record<string, number> = { T1: 0, T2: 1, T3: 2 };
           return (tierOrder[a.tier] || 3) - (tierOrder[b.tier] || 3);
         })

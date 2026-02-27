@@ -26,7 +26,19 @@ const T2_DOMAINS = new Set([
   "zoominfo.com", "apollo.io",
 ]);
 
+const AI_INFRA_DOMAINS = new Set([
+  "vertexaisearch.cloud.google.com",
+]);
+
 export type TierLabel = "T1" | "T2" | "T3" | "T4" | "brand_owned";
+
+export function isAIInfraDomain(domain: string): boolean {
+  const d = domain.toLowerCase().replace(/^www\./, "");
+  for (const ai of AI_INFRA_DOMAINS) {
+    if (d === ai || d.endsWith(`.${ai}`)) return true;
+  }
+  return false;
+}
 
 export function classifyTier(domain: string, _competitorName?: string, allCompetitorNames?: string[]): TierLabel {
   const d = domain.toLowerCase().replace(/^www\./, "");
