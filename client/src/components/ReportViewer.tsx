@@ -223,7 +223,8 @@ async function exportPDF(report: any) {
         doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(80);
-        const whyLines = doc.splitTextToSize(comp.whyTheyRank, contentW - 10);
+        const narrativeText = comp.narrative || comp.whyTheyRank;
+        const whyLines = doc.splitTextToSize(narrativeText, contentW - 10);
         doc.text(whyLines, margin + 5, y);
         doc.setTextColor(0);
         y += whyLines.length * 3.5 + 2;
@@ -1022,7 +1023,39 @@ function PlaybookCompetitorCard({ comp, brandName }: { comp: any; brandName: str
       </button>
 
       <div className="px-4 pb-3">
-        <p className="text-[11px] text-muted-foreground leading-relaxed">{comp.whyTheyRank}</p>
+        {comp.narrative ? (
+          <div className="text-[11px] leading-relaxed space-y-1.5" data-testid={`text-narrative-${comp.name}`}>
+            {comp.narrative.split("\n").filter((l: string) => l.trim()).map((line: string, i: number) => {
+              const boldHeader = line.match(/^\*\*([^*]+):\*\*\s*(.*)/);
+              if (boldHeader) {
+                return (
+                  <div key={i}>
+                    <span className="font-semibold text-foreground">{boldHeader[1]}:</span>{" "}
+                    <span className="text-muted-foreground">{boldHeader[2]}</span>
+                  </div>
+                );
+              }
+              const bulletQuote = line.match(/^-\s*\[([^\]]+)\]:\s*"([^"]+)"\s*[—–-]\s*(.*)/);
+              if (bulletQuote) {
+                return (
+                  <div key={i} className="pl-3 flex gap-1.5">
+                    <Badge variant="outline" className="text-[8px] px-1 shrink-0 mt-0.5">{ENGINE_LABELS[bulletQuote[1]] || bulletQuote[1]}</Badge>
+                    <span className="text-muted-foreground">
+                      <span className="italic">"{bulletQuote[2]}"</span>
+                      {" — "}{bulletQuote[3]}
+                    </span>
+                  </div>
+                );
+              }
+              if (line.startsWith("- ")) {
+                return <div key={i} className="pl-3 text-muted-foreground">{line}</div>;
+              }
+              return <div key={i} className="text-muted-foreground">{line}</div>;
+            })}
+          </div>
+        ) : (
+          <p className="text-[11px] text-muted-foreground leading-relaxed">{comp.whyTheyRank}</p>
+        )}
       </div>
 
       <AnimatePresence>

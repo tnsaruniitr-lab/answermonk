@@ -1,4 +1,5 @@
-import { classifyTier, isAIInfraDomain, type TierLabel } from "./tier-classifier";
+import { classifyTier, isAIInfraDomain, isDomainOwnedByEntity, type TierLabel } from "./tier-classifier";
+import { generateCompetitorNarrative, extractAllMentionSentences } from "./competitor-narrative";
 
 interface RawRun {
   prompt_id: string;
@@ -172,6 +173,7 @@ export interface ReportData {
         rank: number;
         share: number;
         appearances: number;
+        narrative: string;
         whyTheyRank: string;
         enginePresence: Record<string, { appearances: number; totalRuns: number; avgRank: number | null }>;
         crossEngineConsistency: "strong" | "moderate" | "weak";
@@ -578,9 +580,9 @@ function computeGeoFactors(
   return { citationDensity, categoryMatch, comparisonPresence, crossEngine };
 }
 
-export function generateReport(
+export async function generateReport(
   session: { id: number; brandName: string; brandDomain?: string | null; createdAt?: string; segments: SegmentData[]; citationReport?: CitationReport | null },
-): ReportData {
+): Promise<ReportData> {
   const segments = Array.isArray(session.segments) ? session.segments.filter(s => s.scoringResult) : [];
   const citationReport = session.citationReport || null;
 
@@ -956,28 +958,72 @@ export function generateReport(
     }
   }
 
-  const playbookPerSegment = segments.map((seg) => {
+  const playbookPerSegment: Array<{ segmentLabel: string; topCompetitors: any[] }> = [];
+
+  interface NarrativeJob {
+    segIdx: number;
+    compIdx: number;
+    ctx: Parameters<typeof generateCompetitorNarrative>[0];
+  }
+  const narrativeJobs: NarrativeJob[] = [];
+
+  for (let segI = 0; segI < segments.length; segI++) {
+    const seg = segments[segI];
     const segLabel = buildSegmentLabel(seg);
     const score = seg.scoringResult!.score;
     const runs = seg.scoringResult!.raw_runs || [];
     const competitors = [...(score.competitors || [])].sort((a, b) => b.appearances - a.appearances);
 
-    const topCompetitors = competitors.slice(0, 3).map((comp, idx) => {
+    const topCompetitors: any[] = [];
+
+    for (let idx = 0; idx < Math.min(3, competitors.length); idx++) {
+      const comp = competitors[idx];
       const perEngine = computePerEngineStats(runs, comp.name);
       const crossEngine = computeCrossEngineConsistency(perEngine);
 
       const domainUrlMap = new Map<string, { urls: Set<string>; tier: string }>();
+      const compLC = comp.name.toLowerCase();
       for (const run of runs) {
         if (!run.citations) continue;
         const candidates = Array.isArray(run.candidates) ? run.candidates : [];
         const compFound = candidates.some((cand: any) => {
           const cn = typeof cand === "string" ? cand : (cand?.name_norm || cand?.name_raw || "");
-          return cn.toLowerCase().includes(comp.name.toLowerCase()) || comp.name.toLowerCase().includes(cn.toLowerCase());
+          return cn.toLowerCase().includes(compLC) || compLC.includes(cn.toLowerCase());
         });
         if (!compFound) continue;
+
+        const rawLC = (run.raw_text || "").toLowerCase();
+        const compSections: string[] = [];
+        if (rawLC) {
+          const blocks = rawLC.split(/\n\n+/);
+          for (let bi = 0; bi < blocks.length; bi++) {
+            if (blocks[bi].includes(compLC)) {
+              if (bi > 0) compSections.push(blocks[bi - 1]);
+              compSections.push(blocks[bi]);
+              if (bi + 1 < blocks.length) compSections.push(blocks[bi + 1]);
+            }
+          }
+        }
+        const compContext = compSections.join(" ");
+
         for (const cit of run.citations) {
           if (!cit.url) continue;
           const domain = extractDomain(cit.url);
+
+          if (isAIInfraDomain(domain)) {
+            if (!domainUrlMap.has(domain)) {
+              domainUrlMap.set(domain, { urls: new Set(), tier: classifyTier(domain, session.brandName, competitorNamesList) });
+            }
+            domainUrlMap.get(domain)!.urls.add(cit.url);
+            continue;
+          }
+
+          const domLC = domain.toLowerCase();
+          const citInCompContext = compContext.includes(domLC) ||
+            compContext.includes(domLC.replace(/\.\w+$/, ""));
+
+          if (!citInCompContext && compSections.length > 0) continue;
+
           if (!domainUrlMap.has(domain)) {
             const tier = classifyTier(domain, session.brandName, competitorNamesList);
             domainUrlMap.set(domain, { urls: new Set(), tier });
@@ -988,7 +1034,11 @@ export function generateReport(
 
       const authoritySources = Array.from(domainUrlMap.entries())
         .map(([domain, data]) => ({ domain, tier: data.tier, urls: Array.from(data.urls).slice(0, 5), isAIInfra: isAIInfraDomain(domain) }))
-        .filter(s => s.tier !== "T4" && s.tier !== "brand_owned")
+        .filter(s => {
+          if (s.tier === "T4" || s.tier === "brand_owned") return false;
+          if (isDomainOwnedByEntity(s.domain, comp.name)) return false;
+          return true;
+        })
         .sort((a, b) => {
           if (a.isAIInfra !== b.isAIInfra) return a.isAIInfra ? 1 : -1;
           const tierOrder: Record<string, number> = { T1: 0, T2: 1, T3: 2 };
@@ -997,7 +1047,12 @@ export function generateReport(
         .slice(0, 10);
 
       const contextThemes = extractContextThemes(comp.name, runs);
-      const exampleQuotes = extractExampleQuotes(comp.name, runs);
+      const allMentionSentences = extractAllMentionSentences(comp.name, runs as any);
+      const exampleQuotes = allMentionSentences.slice(0, 6).map(s => ({
+        quote: s.sentence,
+        engine: s.engine,
+        prompt: s.prompt,
+      }));
       const socialMentions = extractSocialMentions(comp.name, runs);
 
       const whyTheyRank = buildWhyTheyRank(
@@ -1011,11 +1066,30 @@ export function generateReport(
         socialMentions, session.brandName,
       );
 
-      return {
+      narrativeJobs.push({
+        segIdx: segI,
+        compIdx: idx,
+        ctx: {
+          name: comp.name,
+          rank: idx + 1,
+          share: score.valid_runs > 0 ? comp.appearances / score.valid_runs : 0,
+          appearances: comp.appearances,
+          totalRuns: score.valid_runs,
+          perEngine,
+          crossEngineConsistency: crossEngine,
+          authoritySources: authoritySources.map(s => ({ domain: s.domain, tier: s.tier })),
+          allMentionSentences,
+          segmentLabel: segLabel,
+          brandName: session.brandName,
+        },
+      });
+
+      topCompetitors.push({
         name: comp.name,
         rank: idx + 1,
         share: score.valid_runs > 0 ? Math.round((comp.appearances / score.valid_runs) * 1000) / 1000 : 0,
         appearances: comp.appearances,
+        narrative: "",
         whyTheyRank,
         enginePresence: perEngine,
         crossEngineConsistency: crossEngine,
@@ -1024,11 +1098,22 @@ export function generateReport(
         exampleQuotes,
         socialMentions,
         derivedActions,
-      };
-    });
+      });
+    }
 
-    return { segmentLabel: segLabel, topCompetitors };
-  });
+    playbookPerSegment.push({ segmentLabel: segLabel, topCompetitors });
+  }
+
+  const narrativeResults = await Promise.allSettled(
+    narrativeJobs.map(j => generateCompetitorNarrative(j.ctx))
+  );
+  for (let i = 0; i < narrativeJobs.length; i++) {
+    const job = narrativeJobs[i];
+    const result = narrativeResults[i];
+    if (result.status === "fulfilled" && result.value) {
+      playbookPerSegment[job.segIdx].topCompetitors[job.compIdx].narrative = result.value;
+    }
+  }
 
   return {
     meta: {

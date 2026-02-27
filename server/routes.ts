@@ -1078,7 +1078,7 @@ export async function registerRoutes(
         res.status(404).json({ message: "Session not found" });
         return;
       }
-      const report = generateReport({
+      const report = await generateReport({
         id: session.id,
         brandName: session.brandName,
         brandDomain: session.brandDomain,
