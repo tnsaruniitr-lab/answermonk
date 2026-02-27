@@ -24,6 +24,11 @@ import {
   Lightbulb,
   Shield,
   Download,
+  BookOpen,
+  Quote,
+  Zap,
+  Users,
+  MessageCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -185,6 +190,121 @@ async function exportPDF(report: any) {
         }
       }
       y += 2;
+    }
+  }
+
+  if (report.competitorPlaybook?.perSegment?.length > 0) {
+    addPage();
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("Competitor Playbook — Top 3 Analysis", margin, y);
+    y += 4;
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(120);
+    doc.text("Why AI recommends them, how they are described, and actions to copy their strategies.", margin, y);
+    doc.setTextColor(0);
+    y += 7;
+
+    for (const seg of report.competitorPlaybook.perSegment) {
+      checkPage(20);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text(seg.segmentLabel, margin, y);
+      y += 5;
+
+      for (const comp of seg.topCompetitors) {
+        checkPage(30);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.text(`#${comp.rank} ${comp.name} — ${Math.round(comp.share * 100)}% share (${comp.crossEngineConsistency} cross-engine)`, margin + 3, y);
+        y += 4;
+
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(80);
+        const whyLines = doc.splitTextToSize(comp.whyTheyRank, contentW - 10);
+        doc.text(whyLines, margin + 5, y);
+        doc.setTextColor(0);
+        y += whyLines.length * 3.5 + 2;
+
+        if (comp.contextThemes?.length > 0) {
+          checkPage(10);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(8);
+          doc.text("Positioning Themes:", margin + 5, y);
+          y += 3.5;
+          doc.setFont("helvetica", "normal");
+          for (const t of comp.contextThemes.slice(0, 5)) {
+            checkPage(4);
+            const signal = t.engines.length >= 3 ? " [cross-engine]" : t.engines.length === 1 ? " [weak signal]" : "";
+            doc.text(`• ${t.theme} (${t.engines.join(", ")}, ${t.count}x)${signal}`, margin + 8, y);
+            y += 3.5;
+          }
+          y += 1;
+        }
+
+        if (comp.exampleQuotes?.length > 0) {
+          checkPage(10);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(8);
+          doc.text("AI Quotes:", margin + 5, y);
+          y += 3.5;
+          doc.setFont("helvetica", "italic");
+          for (const q of comp.exampleQuotes.slice(0, 3)) {
+            checkPage(8);
+            doc.setTextColor(80);
+            const qLines = doc.splitTextToSize(`"${q.quote}" — ${q.engine}`, contentW - 16);
+            doc.text(qLines, margin + 8, y);
+            doc.setTextColor(0);
+            y += qLines.length * 3.5 + 1;
+          }
+          doc.setFont("helvetica", "normal");
+          y += 1;
+        }
+
+        if (comp.authoritySources?.length > 0) {
+          checkPage(10);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(8);
+          doc.text("Authority Sources:", margin + 5, y);
+          y += 3.5;
+          doc.setFont("helvetica", "normal");
+          doc.text(comp.authoritySources.slice(0, 5).map((s: any) => `${s.domain} (${s.tier})`).join(", "), margin + 8, y);
+          y += 4;
+        }
+
+        if (comp.socialMentions?.length > 0) {
+          checkPage(8);
+          doc.setFont("helvetica", "bold");
+          doc.text("Social/Community:", margin + 5, y);
+          y += 3.5;
+          doc.setFont("helvetica", "normal");
+          doc.text(comp.socialMentions.map((s: any) => s.domain).join(", "), margin + 8, y);
+          y += 4;
+        }
+
+        if (comp.derivedActions?.length > 0) {
+          checkPage(15);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(8);
+          doc.setTextColor(160, 100, 0);
+          doc.text("Actions to Copy:", margin + 5, y);
+          y += 3.5;
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(0);
+          for (const action of comp.derivedActions.slice(0, 3)) {
+            checkPage(8);
+            const aLines = doc.splitTextToSize(`${comp.derivedActions.indexOf(action) + 1}. ${action}`, contentW - 16);
+            doc.text(aLines, margin + 8, y);
+            y += aLines.length * 3.5 + 1;
+          }
+          y += 2;
+        }
+
+        y += 3;
+      }
+      y += 3;
     }
   }
 
@@ -503,6 +623,7 @@ export function ReportViewer({ sessionId, brandName }: ReportViewerProps) {
 
       <Section1 data={report.section1} />
       <Section2 data={report.section2} brandName={report.meta.brandName} />
+      {report.competitorPlaybook && <CompetitorPlaybookSection data={report.competitorPlaybook} brandName={report.meta.brandName} />}
       <Section3 data={report.section3} />
       {report.appendix && <AppendixSection data={report.appendix} />}
     </div>
@@ -816,6 +937,225 @@ function CompetitorDeepDive({ dd }: { dd: any }) {
                         <a href={cs.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline truncate">
                           {cs.domain}
                         </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Card>
+  );
+}
+
+function CompetitorPlaybookSection({ data, brandName }: { data: any; brandName: string }) {
+  const [open, setOpen] = useState(true);
+
+  return (
+    <Card className="overflow-hidden border-amber-200 dark:border-amber-800">
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors text-left bg-amber-50/50 dark:bg-amber-900/10">
+          <div className="flex items-center gap-2">
+            {open ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            <BookOpen className="w-4 h-4 text-amber-600" />
+            <span className="text-sm font-semibold">Competitor Playbook — What Top 3 Do Well & How to Copy It</span>
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="px-4 pb-4 border-t space-y-5 pt-3">
+            <p className="text-xs text-muted-foreground">
+              Analysis of the top 3 competitors per segment — why AI recommends them, how they are described, and specific actions you can take based on their strategies.
+            </p>
+            {data.perSegment.map((seg: any, segIdx: number) => (
+              <PlaybookSegment key={segIdx} seg={seg} segIdx={segIdx} brandName={brandName} />
+            ))}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  );
+}
+
+function PlaybookSegment({ seg, segIdx, brandName }: { seg: any; segIdx: number; brandName: string }) {
+  return (
+    <div data-testid={`section-playbook-segment-${segIdx}`}>
+      <h4 className="text-xs font-medium mb-3 flex items-center gap-1.5">
+        <span className="text-muted-foreground">#{segIdx + 1}</span>
+        {seg.segmentLabel}
+      </h4>
+      <div className="space-y-4">
+        {seg.topCompetitors.map((comp: any, i: number) => (
+          <PlaybookCompetitorCard key={i} comp={comp} brandName={brandName} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PlaybookCompetitorCard({ comp, brandName }: { comp: any; brandName: string }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const consistencyColor = comp.crossEngineConsistency === "strong" ? "text-green-600 dark:text-green-400" :
+    comp.crossEngineConsistency === "moderate" ? "text-yellow-600 dark:text-yellow-400" : "text-red-500 dark:text-red-400";
+
+  return (
+    <Card className="p-0 overflow-hidden" data-testid={`card-playbook-competitor-${comp.name}`}>
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-muted/30 transition-colors"
+      >
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <span className="text-xs font-mono text-muted-foreground w-5 shrink-0">#{comp.rank}</span>
+          <span className="text-sm font-semibold truncate">{comp.name}</span>
+          <Badge variant="outline" className="text-[9px] shrink-0">{Math.round(comp.share * 100)}% share</Badge>
+          <Badge className={`text-[9px] shrink-0 border-0 ${
+            comp.crossEngineConsistency === "strong" ? "bg-green-100 dark:bg-green-900/20" :
+            comp.crossEngineConsistency === "moderate" ? "bg-yellow-100 dark:bg-yellow-900/20" : "bg-red-100 dark:bg-red-900/20"
+          } ${consistencyColor}`}>
+            {comp.crossEngineConsistency} cross-engine
+          </Badge>
+        </div>
+        {expanded ? <ChevronDown className="w-4 h-4 shrink-0" /> : <ChevronRight className="w-4 h-4 shrink-0" />}
+      </button>
+
+      <div className="px-4 pb-3">
+        <p className="text-[11px] text-muted-foreground leading-relaxed">{comp.whyTheyRank}</p>
+      </div>
+
+      <AnimatePresence>
+        {expanded && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
+            <div className="px-4 pb-4 space-y-4 border-t pt-3">
+              <div>
+                <div className="text-[10px] font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <BarChart3 className="w-3 h-3" />
+                  Engine Presence
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {Object.entries(comp.enginePresence).map(([engine, stats]: [string, any]) => (
+                    <div key={engine} className="bg-secondary/30 rounded-md p-2 text-center">
+                      <div className="text-[10px] text-muted-foreground">{ENGINE_LABELS[engine] || engine}</div>
+                      <div className="text-sm font-semibold">{stats.appearances}/{stats.totalRuns}</div>
+                      {stats.avgRank && <div className="text-[9px] text-muted-foreground">Avg #{stats.avgRank}</div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {comp.contextThemes?.length > 0 && (
+                <div>
+                  <div className="text-[10px] font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <Zap className="w-3 h-3" />
+                    Positioning Themes (How AI Perceives Them)
+                  </div>
+                  <div className="space-y-1">
+                    {comp.contextThemes.map((t: any, i: number) => (
+                      <div key={i} className="flex items-center gap-2 text-[11px]">
+                        <span className="font-medium capitalize min-w-[120px]">{t.theme}</span>
+                        <div className="flex items-center gap-1">
+                          {t.engines.map((e: string) => (
+                            <Badge key={e} variant="outline" className="text-[8px] px-1">
+                              {ENGINE_LABELS[e] || e}
+                            </Badge>
+                          ))}
+                        </div>
+                        <span className="text-muted-foreground">({t.count}x)</span>
+                        {t.engines.length >= 3 && (
+                          <Badge className="text-[8px] px-1 bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-0">
+                            cross-engine
+                          </Badge>
+                        )}
+                        {t.engines.length === 1 && (
+                          <Badge className="text-[8px] px-1 bg-red-100 dark:bg-red-900/20 text-red-500 dark:text-red-400 border-0">
+                            weak signal
+                          </Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {comp.exampleQuotes?.length > 0 && (
+                <div>
+                  <div className="text-[10px] font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <Quote className="w-3 h-3" />
+                    How AI Engines Describe Them (Verbatim)
+                  </div>
+                  <div className="space-y-1.5">
+                    {comp.exampleQuotes.map((q: any, i: number) => (
+                      <div key={i} className="bg-secondary/30 rounded px-3 py-2">
+                        <p className="text-[11px] italic text-muted-foreground leading-relaxed">"{q.quote}"</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-[8px] px-1">{ENGINE_LABELS[q.engine] || q.engine}</Badge>
+                          {q.prompt && <span className="text-[9px] text-muted-foreground truncate max-w-[250px]">Prompt: {q.prompt}</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {comp.authoritySources?.length > 0 && (
+                <div>
+                  <div className="text-[10px] font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <Shield className="w-3 h-3" />
+                    Authority Sources Backing This Competitor
+                  </div>
+                  <div className="space-y-0.5">
+                    {comp.authoritySources.map((src: any, i: number) => (
+                      <div key={i} className="flex items-center gap-2 text-[11px]">
+                        <Badge variant="outline" className="text-[8px] px-1 shrink-0">{src.tier}</Badge>
+                        <span className="font-medium">{src.domain}</span>
+                        <span className="text-muted-foreground">({src.urls.length} URLs)</span>
+                        {src.urls[0] && (
+                          <a href={src.urls[0]} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {comp.socialMentions?.length > 0 && (
+                <div>
+                  <div className="text-[10px] font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <MessageCircle className="w-3 h-3" />
+                    Social & Community Mentions
+                  </div>
+                  <div className="space-y-1">
+                    {comp.socialMentions.map((sm: any, i: number) => (
+                      <div key={i} className="flex items-start gap-2 text-[11px]">
+                        <Badge variant="outline" className="text-[8px] px-1 shrink-0 mt-0.5">{sm.domain}</Badge>
+                        <div className="min-w-0">
+                          {sm.context && <p className="text-muted-foreground text-[10px] italic truncate">{sm.context}</p>}
+                          <a href={sm.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline text-[10px] flex items-center gap-1">
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                            <span className="truncate">{sm.url}</span>
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {comp.derivedActions?.length > 0 && (
+                <div className="bg-amber-50 dark:bg-amber-900/10 rounded-lg p-3">
+                  <div className="text-[10px] font-medium text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-1.5">
+                    <Lightbulb className="w-3 h-3" />
+                    Actions for {brandName} (Based on {comp.name}'s Strategy)
+                  </div>
+                  <div className="space-y-1.5">
+                    {comp.derivedActions.map((action: string, i: number) => (
+                      <div key={i} className="flex items-start gap-2 text-[11px] text-amber-900 dark:text-amber-200">
+                        <span className="font-mono text-[9px] text-amber-600 dark:text-amber-400 mt-0.5 shrink-0">{i + 1}.</span>
+                        <p className="leading-relaxed">{action}</p>
                       </div>
                     ))}
                   </div>

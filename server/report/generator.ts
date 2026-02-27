@@ -164,6 +164,25 @@ export interface ReportData {
     }>;
     modelUnderstanding: string | null;
   };
+  competitorPlaybook: {
+    perSegment: Array<{
+      segmentLabel: string;
+      topCompetitors: Array<{
+        name: string;
+        rank: number;
+        share: number;
+        appearances: number;
+        whyTheyRank: string;
+        enginePresence: Record<string, { appearances: number; totalRuns: number; avgRank: number | null }>;
+        crossEngineConsistency: "strong" | "moderate" | "weak";
+        authoritySources: Array<{ domain: string; tier: string; urls: string[] }>;
+        contextThemes: Array<{ theme: string; count: number; engines: string[] }>;
+        exampleQuotes: Array<{ quote: string; engine: string; prompt?: string }>;
+        socialMentions: Array<{ domain: string; url: string; context: string }>;
+        derivedActions: string[];
+      }>;
+    }>;
+  };
   appendix: {
     domainsByTier: {
       T1: Array<{ domain: string; urls: string[]; mentionedEntities: string[] }>;
@@ -218,6 +237,244 @@ function wordOverlap(a: string, b: string): number {
     if (wordsB.has(w)) overlap++;
   }
   return overlap / Math.max(wordsA.size, wordsB.size);
+}
+
+const SOCIAL_DOMAINS = new Set([
+  "reddit.com", "quora.com", "twitter.com", "x.com", "facebook.com",
+  "linkedin.com", "youtube.com", "tiktok.com", "instagram.com",
+  "medium.com", "trustpilot.com", "glassdoor.com",
+]);
+
+function isSocialDomain(domain: string): boolean {
+  const d = domain.toLowerCase().replace(/^www\./, "");
+  for (const sd of SOCIAL_DOMAINS) {
+    if (d === sd || d.endsWith(`.${sd}`)) return true;
+  }
+  return false;
+}
+
+function extractContextThemes(competitorName: string, runs: RawRun[]): Array<{ theme: string; count: number; engines: string[] }> {
+  const nameLC = competitorName.toLowerCase();
+  const themeMap = new Map<string, { count: number; engines: Set<string> }>();
+  
+  const ATTRIBUTE_PATTERNS = [
+    /(?:jci|iso|nabh)[\s-]*(?:accredited|certified|compliant)/gi,
+    /(?:24\/7|round[\s-]*the[\s-]*clock|24[\s-]*hour)/gi,
+    /(?:dha|moh|haad|doe)[\s-]*(?:licensed|approved|certified|registered)/gi,
+    /(?:multilingual|multi[\s-]*language|arabic[\s-]*speaking|english[\s-]*speaking)/gi,
+    /(?:home[\s-]*visit|house[\s-]*call|in[\s-]*home|at[\s-]*home|doorstep)/gi,
+    /(?:affordable|competitive[\s-]*pric|cost[\s-]*effective|budget[\s-]*friendly|low[\s-]*cost)/gi,
+    /(?:premium|luxury|high[\s-]*end|vip|concierge)/gi,
+    /(?:experienced|qualified|board[\s-]*certified|specialist|expert)/gi,
+    /(?:fast|quick|rapid|same[\s-]*day|next[\s-]*day|within[\s-]*hours)/gi,
+    /(?:comprehensive|full[\s-]*range|wide[\s-]*range|end[\s-]*to[\s-]*end|holistic)/gi,
+    /(?:trusted|reputable|reliable|well[\s-]*known|established|recognized)/gi,
+    /(?:personalized|customized|tailored|individualized)/gi,
+    /(?:technology|app|digital|online|platform|portal|telehealth|telemedicine)/gi,
+    /(?:insurance|covered|accepted|cashless)/gi,
+    /(?:satisfaction|rating|review|rated|star)/gi,
+  ];
+
+  for (const run of runs) {
+    if (!run.raw_text) continue;
+    const sentences = run.raw_text.split(/[.!?\n]+/).map(s => s.trim()).filter(s => s.length > 15 && s.length < 500);
+    
+    for (const sentence of sentences) {
+      if (!sentence.toLowerCase().includes(nameLC)) continue;
+      
+      for (const pattern of ATTRIBUTE_PATTERNS) {
+        pattern.lastIndex = 0;
+        const match = pattern.exec(sentence);
+        if (match) {
+          const theme = match[0].toLowerCase().trim();
+          if (!themeMap.has(theme)) {
+            themeMap.set(theme, { count: 0, engines: new Set() });
+          }
+          const entry = themeMap.get(theme)!;
+          entry.count++;
+          entry.engines.add(run.engine);
+        }
+      }
+    }
+  }
+
+  const consolidated = new Map<string, { theme: string; count: number; engines: Set<string> }>();
+  for (const [theme, data] of themeMap) {
+    let key = theme;
+    if (/24/.test(theme)) key = "24/7 availability";
+    else if (/jci|iso|nabh/.test(theme)) key = "accredited/certified";
+    else if (/dha|moh|haad/.test(theme)) key = "government licensed";
+    else if (/multilingual|arabic|english/.test(theme)) key = "multilingual";
+    else if (/home|house|doorstep/.test(theme)) key = "home visits";
+    else if (/affordable|cost|budget|low/.test(theme)) key = "affordable pricing";
+    else if (/premium|luxury|vip|concierge/.test(theme)) key = "premium service";
+    else if (/experienced|qualified|board|specialist|expert/.test(theme)) key = "experienced staff";
+    else if (/fast|quick|rapid|same|next|within/.test(theme)) key = "fast service";
+    else if (/comprehensive|full|wide|end.*end|holistic/.test(theme)) key = "comprehensive services";
+    else if (/trusted|reputable|reliable|well.*known|established|recognized/.test(theme)) key = "trusted brand";
+    else if (/personalized|customized|tailored|individualized/.test(theme)) key = "personalized care";
+    else if (/technology|app|digital|online|platform|portal|telehealth|telemedicine/.test(theme)) key = "tech-enabled";
+    else if (/insurance|covered|cashless/.test(theme)) key = "insurance accepted";
+    else if (/satisfaction|rating|review|rated|star/.test(theme)) key = "high ratings";
+
+    if (!consolidated.has(key)) {
+      consolidated.set(key, { theme: key, count: 0, engines: new Set() });
+    }
+    const e = consolidated.get(key)!;
+    e.count += data.count;
+    for (const eng of data.engines) e.engines.add(eng);
+  }
+
+  return Array.from(consolidated.values())
+    .map(e => ({ theme: e.theme, count: e.count, engines: Array.from(e.engines) }))
+    .sort((a, b) => b.engines.length - a.engines.length || b.count - a.count)
+    .slice(0, 8);
+}
+
+function extractExampleQuotes(competitorName: string, runs: RawRun[], maxQuotes: number = 6): Array<{ quote: string; engine: string; prompt?: string }> {
+  const nameLC = competitorName.toLowerCase();
+  const quotes: Array<{ quote: string; engine: string; prompt?: string }> = [];
+  const seenEngines = new Set<string>();
+
+  for (const run of runs) {
+    if (!run.raw_text) continue;
+    const sentences = run.raw_text.split(/[.!?\n]+/).map(s => s.trim()).filter(s => s.length > 20 && s.length < 400);
+
+    for (const sentence of sentences) {
+      if (!sentence.toLowerCase().includes(nameLC)) continue;
+      if (sentence.toLowerCase().startsWith("here") || sentence.toLowerCase().startsWith("sure") || sentence.toLowerCase().startsWith("i ")) continue;
+
+      let snippet = sentence;
+      if (snippet.length > 200) {
+        const idx = snippet.toLowerCase().indexOf(nameLC);
+        const start = Math.max(0, idx - 60);
+        snippet = snippet.substring(start, start + 200);
+        if (start > 0) snippet = "..." + snippet;
+        if (start + 200 < sentence.length) snippet = snippet + "...";
+      }
+
+      const isDuplicate = quotes.some(q => wordOverlap(q.quote, snippet) > 0.7);
+      if (!isDuplicate) {
+        const prioritize = !seenEngines.has(run.engine);
+        if (prioritize) seenEngines.add(run.engine);
+        quotes.push({ quote: snippet, engine: run.engine, prompt: run.prompt_text });
+        if (quotes.length >= maxQuotes) return quotes;
+      }
+    }
+  }
+
+  return quotes;
+}
+
+function extractSocialMentions(competitorName: string, runs: RawRun[]): Array<{ domain: string; url: string; context: string }> {
+  const nameLC = competitorName.toLowerCase();
+  const mentions: Array<{ domain: string; url: string; context: string }> = [];
+  const seenDomains = new Set<string>();
+
+  for (const run of runs) {
+    if (!run.citations) continue;
+    const candidates = Array.isArray(run.candidates) ? run.candidates : [];
+    const compFound = candidates.some((cand: any) => {
+      const cn = typeof cand === "string" ? cand : (cand?.name_norm || cand?.name_raw || "");
+      return cn.toLowerCase().includes(nameLC) || nameLC.includes(cn.toLowerCase());
+    });
+    if (!compFound) continue;
+
+    for (const cit of run.citations) {
+      if (!cit.url) continue;
+      const domain = extractDomain(cit.url);
+      if (!isSocialDomain(domain)) continue;
+      if (seenDomains.has(domain)) continue;
+      seenDomains.add(domain);
+
+      let context = "";
+      if (run.raw_text) {
+        const sentences = run.raw_text.split(/[.!?\n]+/).map(s => s.trim());
+        const relevant = sentences.find(s => s.toLowerCase().includes(nameLC) && s.length > 15 && s.length < 300);
+        if (relevant) {
+          context = relevant.length > 150 ? relevant.substring(0, 150) + "..." : relevant;
+        }
+      }
+
+      mentions.push({ domain, url: cit.url, context });
+      if (mentions.length >= 5) return mentions;
+    }
+  }
+
+  return mentions;
+}
+
+function buildWhyTheyRank(
+  comp: { name: string; share: number; appearances: number },
+  perEngine: Record<string, { appearances: number; totalRuns: number; avgRank: number | null }>,
+  crossEngine: "strong" | "moderate" | "weak",
+  authoritySources: Array<{ domain: string; tier: string }>,
+  themes: Array<{ theme: string; count: number; engines: string[] }>,
+  validRuns: number,
+): string {
+  const parts: string[] = [];
+  const pct = validRuns > 0 ? Math.round((comp.appearances / validRuns) * 100) : 0;
+  parts.push(`Appears in ${pct}% of AI responses (${comp.appearances}/${validRuns} runs)`);
+
+  const engines = Object.entries(perEngine)
+    .filter(([, s]) => s.appearances > 0)
+    .map(([e, s]) => `${e === "chatgpt" ? "ChatGPT" : e === "gemini" ? "Gemini" : "Claude"} (${s.appearances}/${s.totalRuns}${s.avgRank ? `, avg #${s.avgRank}` : ""})`);
+  if (engines.length > 0) {
+    parts.push(`Present on ${engines.join(", ")}`);
+  }
+
+  const t1Sources = authoritySources.filter(s => s.tier === "T1");
+  const t2Sources = authoritySources.filter(s => s.tier === "T2");
+  if (t1Sources.length > 0) {
+    parts.push(`Backed by ${t1Sources.length} high-authority source${t1Sources.length > 1 ? "s" : ""}: ${t1Sources.slice(0, 3).map(s => s.domain).join(", ")}`);
+  }
+  if (t2Sources.length > 0) {
+    parts.push(`Also cited on ${t2Sources.length} mid-tier source${t2Sources.length > 1 ? "s" : ""}`);
+  }
+
+  if (themes.length > 0) {
+    const crossEngineThemes = themes.filter(t => t.engines.length >= 2);
+    if (crossEngineThemes.length > 0) {
+      parts.push(`Key positioning themes (cross-engine): ${crossEngineThemes.slice(0, 3).map(t => t.theme).join(", ")}`);
+    }
+  }
+
+  return parts.join(". ") + ".";
+}
+
+function deriveBrandActions(
+  compName: string,
+  themes: Array<{ theme: string; count: number; engines: string[] }>,
+  authoritySources: Array<{ domain: string; tier: string; urls: string[] }>,
+  socialMentions: Array<{ domain: string }>,
+  brandName: string,
+): string[] {
+  const actions: string[] = [];
+
+  const crossEngineThemes = themes.filter(t => t.engines.length >= 2);
+  if (crossEngineThemes.length > 0) {
+    actions.push(`${compName} is consistently described as "${crossEngineThemes.slice(0, 2).map(t => t.theme).join('" and "')}" across multiple AI engines. Ensure your website and profiles use similar phrasing if applicable.`);
+  }
+
+  const t1Sources = authoritySources.filter(s => s.tier === "T1");
+  if (t1Sources.length > 0) {
+    actions.push(`${compName} is backed by ${t1Sources.length} high-authority sources (${t1Sources.slice(0, 3).map(s => s.domain).join(", ")}). Target these same publications with PR, guest content, or directory submissions.`);
+  }
+
+  if (socialMentions.length > 0) {
+    actions.push(`${compName} has presence on ${socialMentions.map(s => s.domain).join(", ")}. Build your brand visibility on these platforms with reviews, posts, and community engagement.`);
+  }
+
+  const singleEngineThemes = themes.filter(t => t.engines.length === 1);
+  if (singleEngineThemes.length > 0) {
+    actions.push(`Weak spot: ${compName} is only mentioned as "${singleEngineThemes[0].theme}" on one engine. If you can demonstrate this attribute more consistently, you can outposition them.`);
+  }
+
+  if (actions.length === 0) {
+    actions.push(`Monitor ${compName}'s positioning and ensure your brand messaging covers the same key attributes to remain competitive.`);
+  }
+
+  return actions.slice(0, 4);
 }
 
 function extractPhrases(competitorName: string, runs: RawRun[], maxPhrases: number = 5, maxLen: number = 160): string[] {
@@ -699,6 +956,79 @@ export function generateReport(
     }
   }
 
+  const playbookPerSegment = segments.map((seg) => {
+    const segLabel = buildSegmentLabel(seg);
+    const score = seg.scoringResult!.score;
+    const runs = seg.scoringResult!.raw_runs || [];
+    const competitors = [...(score.competitors || [])].sort((a, b) => b.appearances - a.appearances);
+
+    const topCompetitors = competitors.slice(0, 3).map((comp, idx) => {
+      const perEngine = computePerEngineStats(runs, comp.name);
+      const crossEngine = computeCrossEngineConsistency(perEngine);
+
+      const domainUrlMap = new Map<string, { urls: Set<string>; tier: string }>();
+      for (const run of runs) {
+        if (!run.citations) continue;
+        const candidates = Array.isArray(run.candidates) ? run.candidates : [];
+        const compFound = candidates.some((cand: any) => {
+          const cn = typeof cand === "string" ? cand : (cand?.name_norm || cand?.name_raw || "");
+          return cn.toLowerCase().includes(comp.name.toLowerCase()) || comp.name.toLowerCase().includes(cn.toLowerCase());
+        });
+        if (!compFound) continue;
+        for (const cit of run.citations) {
+          if (!cit.url) continue;
+          const domain = extractDomain(cit.url);
+          if (!domainUrlMap.has(domain)) {
+            const tier = classifyTier(domain, session.brandName, competitorNamesList);
+            domainUrlMap.set(domain, { urls: new Set(), tier });
+          }
+          domainUrlMap.get(domain)!.urls.add(cit.url);
+        }
+      }
+
+      const authoritySources = Array.from(domainUrlMap.entries())
+        .map(([domain, data]) => ({ domain, tier: data.tier, urls: Array.from(data.urls).slice(0, 5) }))
+        .filter(s => s.tier !== "T4" && s.tier !== "brand_owned")
+        .sort((a, b) => {
+          const tierOrder: Record<string, number> = { T1: 0, T2: 1, T3: 2 };
+          return (tierOrder[a.tier] || 3) - (tierOrder[b.tier] || 3);
+        })
+        .slice(0, 10);
+
+      const contextThemes = extractContextThemes(comp.name, runs);
+      const exampleQuotes = extractExampleQuotes(comp.name, runs);
+      const socialMentions = extractSocialMentions(comp.name, runs);
+
+      const whyTheyRank = buildWhyTheyRank(
+        comp, perEngine, crossEngine,
+        authoritySources, contextThemes,
+        score.valid_runs,
+      );
+
+      const derivedActions = deriveBrandActions(
+        comp.name, contextThemes, authoritySources,
+        socialMentions, session.brandName,
+      );
+
+      return {
+        name: comp.name,
+        rank: idx + 1,
+        share: score.valid_runs > 0 ? Math.round((comp.appearances / score.valid_runs) * 1000) / 1000 : 0,
+        appearances: comp.appearances,
+        whyTheyRank,
+        enginePresence: perEngine,
+        crossEngineConsistency: crossEngine,
+        authoritySources,
+        contextThemes,
+        exampleQuotes,
+        socialMentions,
+        derivedActions,
+      };
+    });
+
+    return { segmentLabel: segLabel, topCompetitors };
+  });
+
   return {
     meta: {
       brandName: session.brandName,
@@ -720,6 +1050,7 @@ export function generateReport(
       },
     },
     section3: { gapAnalysis, recommendations, modelUnderstanding },
+    competitorPlaybook: { perSegment: playbookPerSegment },
     appendix: buildAppendix(appendixDomainMap),
   };
 }

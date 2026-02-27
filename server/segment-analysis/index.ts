@@ -191,7 +191,8 @@ export async function runSegmentAnalysis(
     );
 
     const evidence = collectEvidence(seg.id, brandScore, compAScore, compBScore);
-    const action = recommendActions(evidence, brandScore, intentDict);
+    const allCompetitorNames = comparison.competitors.map(c => c.name);
+    const action = recommendActions(evidence, brandScore, intentDict, brandName, allCompetitorNames);
 
     const segmentLabel = buildSegmentLabel(seg);
 
