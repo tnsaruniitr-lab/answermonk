@@ -1,4 +1,5 @@
 
+import path from "path";
 import type { Express } from "express";
 import type { Server } from "http";
 import { createServer } from "http";
@@ -1075,6 +1076,15 @@ export async function registerRoutes(
       }
       const session = await storage.getMultiSegmentSession(id);
       if (!session) {
+        const staticPath = path.join(__dirname, "static-reports", `${id}.json`);
+        try {
+          const fs = await import("fs");
+          if (fs.existsSync(staticPath)) {
+            const staticData = JSON.parse(fs.readFileSync(staticPath, "utf-8"));
+            res.json(staticData);
+            return;
+          }
+        } catch {}
         res.status(404).json({ message: "Session not found" });
         return;
       }

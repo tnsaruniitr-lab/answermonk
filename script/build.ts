@@ -1,6 +1,6 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
-import { rm, readFile } from "fs/promises";
+import { rm, readFile, cp, mkdir } from "fs/promises";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
@@ -8,6 +8,7 @@ const allowlist = [
   "@google/generative-ai",
   "axios",
   "connect-pg-simple",
+  "cookie-parser",
   "cors",
   "date-fns",
   "drizzle-orm",
@@ -59,6 +60,9 @@ async function buildAll() {
     external: externals,
     logLevel: "info",
   });
+
+  await mkdir("dist/static-reports", { recursive: true });
+  await cp("server/static-reports", "dist/static-reports", { recursive: true });
 }
 
 buildAll().catch((err) => {
