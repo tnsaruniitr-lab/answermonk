@@ -1,4 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cookieParser from "cookie-parser";
+import crypto from "crypto";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
@@ -52,6 +54,65 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+const AUTH_COOKIE = "geo_admin_token";
+
+function generateAuthToken(): string {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+const validTokens = new Set<string>();
+
+function isPublicPath(path: string): boolean {
+  if (path === "/api/auth/login") return true;
+  if (path === "/api/auth/check") return true;
+  if (path.match(/^\/api\/multi-segment-sessions\/\d+\/report$/)) return true;
+  if (!path.startsWith("/api/")) return true;
+  return false;
+}
+
+app.post("/api/auth/login", (req, res) => {
+  const { password } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) {
+    return res.status(500).json({ message: "Admin password not configured" });
+  }
+  if (password !== adminPassword) {
+    return res.status(401).json({ message: "Invalid password" });
+  }
+  const token = generateAuthToken();
+  validTokens.add(token);
+  res.cookie(AUTH_COOKIE, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    path: "/",
+  });
+  return res.json({ success: true });
+});
+
+app.get("/api/auth/check", (req, res) => {
+  const token = req.cookies?.[AUTH_COOKIE];
+  if (token && validTokens.has(token)) {
+    return res.json({ authenticated: true });
+  }
+  return res.json({ authenticated: false });
+});
+
+app.post("/api/auth/logout", (req, res) => {
+  const token = req.cookies?.[AUTH_COOKIE];
+  if (token) validTokens.delete(token);
+  res.clearCookie(AUTH_COOKIE);
+  return res.json({ success: true });
+});
+
+app.use((req, res, next) => {
+  if (isPublicPath(req.path)) return next();
+  const token = req.cookies?.[AUTH_COOKIE];
+  if (token && validTokens.has(token)) return next();
+  return res.status(401).json({ message: "Authentication required" });
+});
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {

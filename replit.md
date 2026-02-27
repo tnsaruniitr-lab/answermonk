@@ -64,7 +64,14 @@ The application adopts a monorepo structure, separating concerns into `client/` 
 - `recharts`: Data visualization.
 - `wouter`: Client-side routing.
 
+### Authentication & Sharing
+- **Auth System**: Password-based admin gate using `ADMIN_PASSWORD` env var. Cookie-based (`geo_admin_token`), in-memory token store (resets on server restart — re-login required). All `/api/*` routes require auth except `/api/auth/*` and `/api/multi-segment-sessions/:id/report` (public for share links).
+- **Share Links**: `/share/summary/:id` renders SummaryReport without internal navigation (no "Full Report" back button, no admin links). Uses the same report API endpoint. Share links work without login.
+- **Login Page**: `client/src/pages/Login.tsx` — simple password form, gates all non-share frontend routes.
+- **Frontend Auth Gate**: `client/src/App.tsx` — checks `/api/auth/check` on load, shows Login or AdminRouter/PublicRouter accordingly.
+
 ### Environment Variables
 - `DATABASE_URL`: PostgreSQL connection string.
+- `ADMIN_PASSWORD`: Admin password for accessing the full tool (required).
 - `AI_INTEGRATIONS_OPENAI_API_KEY`, `AI_INTEGRATIONS_OPENAI_BASE_URL`: OpenAI API credentials.
 - `AI_INTEGRATIONS_ANTHROPIC_API_KEY`, `AI_INTEGRATIONS_ANTHROPIC_BASE_URL`: Anthropic API credentials.

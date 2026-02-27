@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import {
   ArrowLeft,
   TrendingUp,
@@ -74,6 +74,8 @@ function scoreGrade(rate: number): { label: string; color: string } {
 export default function SummaryReport() {
   const params = useParams<{ id: string }>();
   const sessionId = params.id;
+  const [location] = useLocation();
+  const isShareView = location.startsWith("/share/");
 
   const { data, isLoading, error } = useQuery<ReportResponse>({
     queryKey: [`/api/multi-segment-sessions/${sessionId}/report`],
@@ -97,9 +99,11 @@ export default function SummaryReport() {
         <div className="text-center space-y-4">
           <AlertTriangle className="w-12 h-12 text-destructive mx-auto" />
           <p className="text-muted-foreground" data-testid="text-error">Failed to load report data.</p>
-          <Link href={`/v2/${sessionId}`}>
-            <Button variant="outline" data-testid="button-back-to-detail">Back to Detail</Button>
-          </Link>
+          {!isShareView && (
+            <Link href={`/v2/${sessionId}`}>
+              <Button variant="outline" data-testid="button-back-to-detail">Back to Detail</Button>
+            </Link>
+          )}
         </div>
       </div>
     );
@@ -119,13 +123,17 @@ export default function SummaryReport() {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href={`/v2/${sessionId}`}>
-              <Button variant="ghost" size="sm" data-testid="button-back">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Full Report
-              </Button>
-            </Link>
-            <Separator orientation="vertical" className="h-6" />
+            {!isShareView && (
+              <>
+                <Link href={`/v2/${sessionId}`}>
+                  <Button variant="ghost" size="sm" data-testid="button-back">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Full Report
+                  </Button>
+                </Link>
+                <Separator orientation="vertical" className="h-6" />
+              </>
+            )}
             <div>
               <h1 className="text-xl font-semibold tracking-tight" data-testid="text-brand-name">{meta.brandName}</h1>
               <p className="text-sm text-muted-foreground">GEO Impact Summary — {meta.segmentCount} segments, {meta.totalRuns} AI responses analyzed</p>

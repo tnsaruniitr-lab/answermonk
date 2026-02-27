@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -10,8 +11,10 @@ import PromptGenerator from "@/pages/PromptGenerator";
 import ScoringDetail from "@/pages/ScoringDetail";
 import V2SessionDetail from "@/pages/V2SessionDetail";
 import SummaryReport from "@/pages/SummaryReport";
+import Login from "@/pages/Login";
+import { Loader2 } from "lucide-react";
 
-function Router() {
+function AdminRouter() {
   return (
     <Switch>
       <Route path="/" component={Analyzer} />
@@ -25,12 +28,55 @@ function Router() {
   );
 }
 
+function PublicRouter() {
+  return (
+    <Switch>
+      <Route path="/share/summary/:id" component={SummaryReport} />
+      <Route>
+        <Login onSuccess={() => window.location.reload()} />
+      </Route>
+    </Switch>
+  );
+}
+
+function AuthGate() {
+  const [authState, setAuthState] = useState<"loading" | "authenticated" | "unauthenticated">("loading");
+
+  useEffect(() => {
+    fetch("/api/auth/check")
+      .then(res => res.json())
+      .then(data => setAuthState(data.authenticated ? "authenticated" : "unauthenticated"))
+      .catch(() => setAuthState("unauthenticated"));
+  }, []);
+
+  if (authState === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (authState === "authenticated") {
+    return (
+      <>
+        <Switch>
+          <Route path="/share/summary/:id" component={SummaryReport} />
+          <Route><AdminRouter /></Route>
+        </Switch>
+      </>
+    );
+  }
+
+  return <PublicRouter />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router />
+        <AuthGate />
       </TooltipProvider>
     </QueryClientProvider>
   );
