@@ -10,7 +10,7 @@ const T1_DOMAINS = new Set([
   "marketwatch.com", "barrons.com", "investopedia.com",
   "clutch.co", "goodfirms.co", "sortlist.com",
   "thenational.ae", "arabianbusiness.com", "gulfnews.com",
-  "khaleejtimes.com",
+  "khaleejtimes.com", "zawya.com", "mordorintelligence.com",
 ]);
 
 const T2_DOMAINS = new Set([

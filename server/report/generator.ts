@@ -175,6 +175,14 @@ export interface ReportData {
         appearances: number;
         narrative: string;
         whyTheyRank: string;
+        quickStats: {
+          totalMentions: number;
+          authoritySourceCount: number;
+          engineCount: number;
+          avgRankAcrossEngines: number | null;
+          topThemes: string[];
+          bestPromptMatch: { promptKeyword: string; quote: string; engine: string } | null;
+        };
         enginePresence: Record<string, { appearances: number; totalRuns: number; avgRank: number | null }>;
         crossEngineConsistency: "strong" | "moderate" | "weak";
         authoritySources: Array<{ domain: string; tier: string; urls: string[]; isAIInfra?: boolean }>;
@@ -182,6 +190,13 @@ export interface ReportData {
         exampleQuotes: Array<{ quote: string; engine: string; prompt?: string }>;
         socialMentions: Array<{ domain: string; url: string; context: string }>;
         derivedActions: string[];
+      }>;
+      highFrequencySources: Array<{
+        domain: string;
+        tier: string;
+        count: number;
+        competitors: string[];
+        actionable: string;
       }>;
     }>;
   };
@@ -404,6 +419,112 @@ function extractSocialMentions(competitorName: string, runs: RawRun[]): Array<{ 
   }
 
   return mentions;
+}
+
+const PROMPT_INTENT_KEYWORDS: Record<string, string[]> = {
+  "trusted": ["trust", "reliable", "reputable", "established", "credible"],
+  "top rated": ["rated", "rating", "review", "star", "score"],
+  "affordable": ["affordable", "budget", "cost", "cheap", "price", "value"],
+  "popular": ["popular", "well-known", "famous", "widely", "common"],
+  "best": ["best", "leading", "top", "premier", "finest"],
+  "premium": ["premium", "luxury", "exclusive", "high-end", "vip"],
+  "recommended": ["recommend", "suggest", "advise", "endorsed"],
+  "comprehensive": ["comprehensive", "full-service", "wide range", "holistic", "end-to-end"],
+  "fastest": ["fast", "quick", "rapid", "same-day", "urgent", "emergency"],
+  "specialized": ["specialist", "specialized", "expert", "focused", "niche"],
+};
+
+function findBestPromptMatch(
+  quotes: Array<{ quote: string; engine: string; prompt?: string }>,
+): { promptKeyword: string; quote: string; engine: string } | null {
+  let bestMatch: { promptKeyword: string; quote: string; engine: string; score: number } | null = null;
+
+  for (const q of quotes) {
+    if (!q.prompt || !q.quote) continue;
+    const promptLC = q.prompt.toLowerCase();
+
+    for (const [keyword, synonyms] of Object.entries(PROMPT_INTENT_KEYWORDS)) {
+      const promptHasIntent = synonyms.some(s => promptLC.includes(s)) || promptLC.includes(keyword);
+      if (!promptHasIntent) continue;
+
+      const quoteLC = q.quote.toLowerCase();
+      const matchCount = synonyms.filter(s => quoteLC.includes(s)).length;
+      if (matchCount === 0) continue;
+
+      const score = matchCount + (quoteLC.includes(keyword) ? 2 : 0);
+      if (!bestMatch || score > bestMatch.score) {
+        const shortQuote = q.quote.length > 120 ? q.quote.substring(0, 120) + "..." : q.quote;
+        bestMatch = { promptKeyword: keyword, quote: shortQuote, engine: q.engine, score };
+      }
+    }
+  }
+
+  return bestMatch ? { promptKeyword: bestMatch.promptKeyword, quote: bestMatch.quote, engine: bestMatch.engine } : null;
+}
+
+function computeQuickStats(
+  comp: { appearances: number },
+  perEngine: Record<string, { appearances: number; totalRuns: number; avgRank: number | null }>,
+  authoritySources: Array<{ domain: string; tier: string; isAIInfra?: boolean }>,
+  contextThemes: Array<{ theme: string; count: number; engines: string[] }>,
+  exampleQuotes: Array<{ quote: string; engine: string; prompt?: string }>,
+) {
+  const activeEngines = Object.entries(perEngine).filter(([, s]) => s.appearances > 0);
+  const avgRanks = activeEngines.map(([, s]) => s.avgRank).filter((r): r is number => r !== null);
+  const overallAvgRank = avgRanks.length > 0 ? Math.round((avgRanks.reduce((a, b) => a + b, 0) / avgRanks.length) * 10) / 10 : null;
+  const topThemes = contextThemes
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3)
+    .map(t => t.theme);
+  const bestPromptMatch = findBestPromptMatch(exampleQuotes);
+
+  return {
+    totalMentions: comp.appearances,
+    authoritySourceCount: authoritySources.filter(s => !s.isAIInfra).length,
+    engineCount: activeEngines.length,
+    avgRankAcrossEngines: overallAvgRank,
+    topThemes,
+    bestPromptMatch,
+  };
+}
+
+function computeHighFrequencySources(
+  topCompetitors: Array<{ name: string; authoritySources: Array<{ domain: string; tier: string; isAIInfra?: boolean }> }>,
+  brandName: string,
+): Array<{ domain: string; tier: string; count: number; competitors: string[]; actionable: string }> {
+  const domainMap = new Map<string, { tier: string; competitors: Set<string> }>();
+
+  for (const comp of topCompetitors) {
+    for (const src of comp.authoritySources) {
+      if (src.isAIInfra) continue;
+      if (!domainMap.has(src.domain)) {
+        domainMap.set(src.domain, { tier: src.tier, competitors: new Set() });
+      }
+      domainMap.get(src.domain)!.competitors.add(comp.name);
+    }
+  }
+
+  const results: Array<{ domain: string; tier: string; count: number; competitors: string[]; actionable: string }> = [];
+
+  for (const [domain, data] of domainMap) {
+    if (data.competitors.size < 2) continue;
+    const compNames = Array.from(data.competitors);
+    const count = compNames.length;
+    const total = topCompetitors.length;
+
+    let actionable = "";
+    if (data.tier === "T1") {
+      actionable = `High-authority source backing ${count}/${total} competitors — prioritize editorial coverage or PR outreach to ${domain}.`;
+    } else if (data.tier === "T2") {
+      actionable = `Mid-tier platform listing ${count}/${total} competitors — ensure ${brandName} has an optimized presence on ${domain}.`;
+    } else {
+      actionable = `Directory/blog listing ${count}/${total} competitors — get ${brandName} listed on ${domain} to match competitor visibility.`;
+    }
+
+    results.push({ domain, tier: data.tier, count, competitors: compNames, actionable });
+  }
+
+  return results.sort((a, b) => b.count - a.count || (a.tier < b.tier ? -1 : 1));
 }
 
 function buildWhyTheyRank(
@@ -1084,6 +1205,8 @@ export async function generateReport(
         },
       });
 
+      const quickStats = computeQuickStats(comp, perEngine, authoritySources, contextThemes, exampleQuotes);
+
       topCompetitors.push({
         name: comp.name,
         rank: idx + 1,
@@ -1091,6 +1214,7 @@ export async function generateReport(
         appearances: comp.appearances,
         narrative: "",
         whyTheyRank,
+        quickStats,
         enginePresence: perEngine,
         crossEngineConsistency: crossEngine,
         authoritySources,
@@ -1101,7 +1225,8 @@ export async function generateReport(
       });
     }
 
-    playbookPerSegment.push({ segmentLabel: segLabel, topCompetitors });
+    const highFrequencySources = computeHighFrequencySources(topCompetitors, session.brandName);
+    playbookPerSegment.push({ segmentLabel: segLabel, topCompetitors, highFrequencySources });
   }
 
   const narrativeResults = await Promise.allSettled(

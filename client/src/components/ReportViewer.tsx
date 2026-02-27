@@ -220,6 +220,22 @@ async function exportPDF(report: any) {
         doc.text(`#${comp.rank} ${comp.name} — ${Math.round(comp.share * 100)}% share (${comp.crossEngineConsistency} cross-engine)`, margin + 3, y);
         y += 4;
 
+        if (comp.quickStats) {
+          doc.setFontSize(7);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(100);
+          const statsLine = `${comp.quickStats.totalMentions} mentions | ${comp.quickStats.authoritySourceCount} authority sources | Avg #${comp.quickStats.avgRankAcrossEngines || "—"} across ${comp.quickStats.engineCount} engines${comp.quickStats.topThemes?.length > 0 ? " | Known for: " + comp.quickStats.topThemes.join(", ") : ""}`;
+          doc.text(statsLine, margin + 5, y);
+          y += 3.5;
+          if (comp.quickStats.bestPromptMatch) {
+            const matchLine = `Prompt "${comp.quickStats.bestPromptMatch.promptKeyword}" → ${comp.quickStats.bestPromptMatch.engine}: "${comp.quickStats.bestPromptMatch.quote.substring(0, 80)}..."`;
+            const matchLines = doc.splitTextToSize(matchLine, contentW - 12);
+            doc.text(matchLines, margin + 5, y);
+            y += matchLines.length * 3 + 1;
+          }
+          doc.setTextColor(0);
+        }
+
         doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(80);
@@ -991,6 +1007,27 @@ function PlaybookSegment({ seg, segIdx, brandName }: { seg: any; segIdx: number;
           <PlaybookCompetitorCard key={i} comp={comp} brandName={brandName} />
         ))}
       </div>
+
+      {seg.highFrequencySources?.length > 0 && (
+        <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800/30" data-testid={`section-high-freq-sources-${segIdx}`}>
+          <div className="text-[10px] font-semibold text-amber-800 dark:text-amber-300 mb-2 flex items-center gap-1.5">
+            <Target className="w-3 h-3" />
+            High-Frequency Sources Across Competitors
+          </div>
+          <div className="space-y-2">
+            {seg.highFrequencySources.map((src: any, i: number) => (
+              <div key={i} className="flex items-start gap-2 text-[11px]">
+                <Badge variant="outline" className="text-[8px] px-1 shrink-0 mt-0.5">{src.tier}</Badge>
+                <div>
+                  <span className="font-medium">{src.domain}</span>
+                  <span className="text-muted-foreground ml-1">— backs {src.count}/{seg.topCompetitors.length} competitors ({src.competitors.join(", ")})</span>
+                  <div className="text-[10px] text-amber-700 dark:text-amber-400 mt-0.5">{src.actionable}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1021,6 +1058,41 @@ function PlaybookCompetitorCard({ comp, brandName }: { comp: any; brandName: str
         </div>
         {expanded ? <ChevronDown className="w-4 h-4 shrink-0" /> : <ChevronRight className="w-4 h-4 shrink-0" />}
       </button>
+
+      {comp.quickStats && (
+        <div className="px-4 pb-2">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+            <span data-testid={`stat-mentions-${comp.name}`}>
+              <span className="font-semibold text-foreground">{comp.quickStats.totalMentions}</span> mentions
+            </span>
+            <span className="text-border">|</span>
+            <span data-testid={`stat-sources-${comp.name}`}>
+              <span className="font-semibold text-foreground">{comp.quickStats.authoritySourceCount}</span> authority sources
+            </span>
+            <span className="text-border">|</span>
+            <span data-testid={`stat-avgrank-${comp.name}`}>
+              Avg <span className="font-semibold text-foreground">#{comp.quickStats.avgRankAcrossEngines || "—"}</span> across {comp.quickStats.engineCount} engines
+            </span>
+            {comp.quickStats.topThemes?.length > 0 && (
+              <>
+                <span className="text-border">|</span>
+                <span>Known for: {comp.quickStats.topThemes.map((t: string, i: number) => (
+                  <Badge key={i} variant="secondary" className="text-[8px] px-1 py-0 mx-0.5">{t}</Badge>
+                ))}</span>
+              </>
+            )}
+          </div>
+          {comp.quickStats.bestPromptMatch && (
+            <div className="mt-1.5 text-[10px] bg-secondary/30 rounded px-2 py-1.5" data-testid={`stat-match-${comp.name}`}>
+              <span className="text-muted-foreground">Prompt asked </span>
+              <span className="font-medium">"{comp.quickStats.bestPromptMatch.promptKeyword}"</span>
+              <span className="text-muted-foreground"> → </span>
+              <Badge variant="outline" className="text-[8px] px-1 mx-0.5">{ENGINE_LABELS[comp.quickStats.bestPromptMatch.engine] || comp.quickStats.bestPromptMatch.engine}</Badge>
+              <span className="italic text-muted-foreground"> "{comp.quickStats.bestPromptMatch.quote.length > 90 ? comp.quickStats.bestPromptMatch.quote.substring(0, 90) + "..." : comp.quickStats.bestPromptMatch.quote}"</span>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="px-4 pb-3">
         {comp.narrative ? (
