@@ -3,6 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+
+function sanitizeBlank(text: string, segmentLabel?: string): string {
+  if (!text) return text;
+  const replacement = segmentLabel
+    ? segmentLabel.replace(/\s*[-–—]\s*$/, "").trim()
+    : "your target service";
+  return text
+    .replace(/[""]?\s*blank\s*[""]?/gi, `"${replacement}"`)
+    .replace(/\bBlank\b/g, replacement);
+}
 import {
   Collapsible,
   CollapsibleContent,
@@ -367,7 +377,7 @@ async function exportPDF(report: any) {
 
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
-    const qwLines = doc.splitTextToSize(`Quick Win: ${rec.quickWins}`, contentW - 6);
+    const qwLines = doc.splitTextToSize(`Quick Win: ${sanitizeBlank(rec.quickWins, rec.segmentLabel)}`, contentW - 6);
     doc.setTextColor(0, 120, 0);
     doc.text(qwLines, margin + 3, y);
     doc.setTextColor(0);
@@ -1392,7 +1402,7 @@ function Section3({ data }: { data: any }) {
 
                       <div className="bg-green-50 dark:bg-green-900/10 rounded p-2">
                         <div className="text-[10px] font-medium text-green-700 dark:text-green-400 mb-0.5">Quick Win</div>
-                        <p className="text-[11px] text-green-900 dark:text-green-200">{rec.quickWins}</p>
+                        <p className="text-[11px] text-green-900 dark:text-green-200">{sanitizeBlank(rec.quickWins, rec.segmentLabel)}</p>
                       </div>
 
                       {rec.secondaryAction && (

@@ -16,8 +16,9 @@ export function recommendActions(
   brandName?: string,
   competitorNames?: string[],
 ): ActionRecommendation {
-  const categoryTerms = intentDict.category_terms.slice(0, 3).map(t => `"${t}"`).join(", ");
-  const audienceTerms = intentDict.audience_terms.slice(0, 3).map(t => `"${t}"`).join(", ");
+  const filteredCategoryTerms = intentDict.category_terms.filter(t => t.toLowerCase() !== "blank");
+  const categoryTerms = filteredCategoryTerms.slice(0, 3).map(t => `"${t}"`).join(", ") || '"your target service"';
+  const audienceTerms = intentDict.audience_terms.filter(t => t.toLowerCase() !== "blank").slice(0, 3).map(t => `"${t}"`).join(", ") || '"your target audience"';
 
   const categoryGap = brandScore.context.label === "absent" || brandScore.context.label === "weak";
   const audienceGap = brandScore.context.audienceRate >= 0 && brandScore.context.audienceRate < 0.3;
