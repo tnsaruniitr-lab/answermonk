@@ -1,0 +1,66 @@
+Brand Mention Audit
+Where valeo appears across non-brand sources vs. competitors
+
+valeo
+
+17
+
+Non-brand sources
+
+Aster DM Healthcare
+
+3
+
+Non-brand sources
+
+Manzil Healthcare Services
+
+14
+
+Non-brand sources
+
+Vesta Care
+
+8
+
+Non-brand sources
+
+Sources Mentioning valeo
+T2
+reddit.com Social / Mid-tier
+
+https://www.reddit.com/r/dubai/comments/1o4j9tl/looking_for_reliable_home_health_care_in_dubai/
+https://www.reddit.com/r/dubai/comments/1qcelww/nutrition_kitchen_alternative/
+https://www.reddit.com/r/UAE/comments/1nnnkab/have_you_tried_home_lab_testing_in_dubai_heres/
+https://www.reddit.com/r/dubai/comments/1lh29kt/best_aesthetic_clinics_in_dubai/
+https://www.reddit.com/r/dubai/comments/1ilcy5i/home_lab_test_just_life/
+T3
+care24.ae Third-party
+
+https://care24.ae/services/doctor-at-home/?utm_source=openai
+https://care24.ae/services/lab-home-tests/?utm_source=openai
+https://care24.ae/services/lab-home-tests/
+T3
+emahs.ae Third-party
+
+https://emahs.ae/home-nursing-services-in-dubai/
+https://emahs.ae/the-rise-in-popularity-of-home-health-care-in-dubai-recent-trends-and-insights/
+https://emahs.ae/the-complete-guide-to-at-home-blood-tests-in-dubai-benefits-types-booking-with-emahs/?utm_source=openai
+https://emahs.ae/blood-test-at-home-service-dubai/
+T3
+healthfinder.ae Third-party
+
+https://healthfinder.ae/listings/trucare-plus-247-on-call-doctor/?utm_source=openai
+https://healthfinder.ae/listings/carexperts-home-healthcare-dubais-finest-care-services-from-newborns-to-seniors-we-offer-in-home-nursing-physiotherapy-2/?utm_source=openai
+https://healthfinder.ae/listings/chicago-home-health/?utm_source=openai
+https://healthfinder.ae/listings/manzil-home-health-services/
+https://healthfinder.ae/listings/first-response-healthcare-dubai/
+https://healthfinder.ae/listings/emirates-home-nursing-llc/
+https://healthfinder.ae/listings/nightingale-home-healthcare-dubai/
+https://healthfinder.ae/listings/vital-zone-home-dubai-quality-home-care-newborn-baby-elderly-services-by-expert-nurses-babysitting-in-dubai-2/
+https://healthfinder.ae/listings/medcare-homecare-services/
+https://healthfinder.ae/listings/fastcare-home-health-care-24-7-doctor-on-call-iv-therapy-blood-test/
+T3
+jprhomehealthcare.com Third-party
+
+https://jprhomehealthcare.com/blood-test-at-home-in-duba

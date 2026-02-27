@@ -107,7 +107,7 @@ export default function SummaryReport() {
   const { meta, section1, section2, section3, competitorPlaybook, appendix } = report;
 
   const allCompetitors = gatherTopCompetitors(competitorPlaybook);
-  const brandMentionAudit = gatherBrandMentionAudit(appendix, meta.brandName);
+  const brandMentionAudit = gatherBrandMentionAudit(section2, meta.brandName);
   const biggestGaps = extractBiggestGaps(section3, competitorPlaybook);
   const quickWins = extractQuickWins(section3, competitorPlaybook);
   const authoritySnapshot = buildAuthoritySnapshot(appendix);
@@ -388,8 +388,8 @@ function BrandMentionAudit({ audit, brandName, allCompetitors }: { audit: BrandM
         <Card className="border-2 border-blue-200 bg-blue-50/30">
           <CardContent className="pt-5 text-center">
             <p className="text-sm font-medium text-blue-700">{brandName}</p>
-            <p className="text-4xl font-bold text-blue-700 mt-1" data-testid="text-brand-source-count">{audit.brandSources.length}</p>
-            <p className="text-xs text-blue-600 mt-1">Non-brand sources</p>
+            <p className="text-4xl font-bold text-blue-700 mt-1" data-testid="text-brand-source-count">{audit.uniqueDomainCount}</p>
+            <p className="text-xs text-blue-600 mt-1">Citation source{audit.uniqueDomainCount !== 1 ? "s" : ""}</p>
           </CardContent>
         </Card>
         {top3Comps.map((comp, i) => (
@@ -397,7 +397,7 @@ function BrandMentionAudit({ audit, brandName, allCompetitors }: { audit: BrandM
             <CardContent className="pt-5 text-center">
               <p className="text-sm font-medium text-muted-foreground">{comp.name}</p>
               <p className="text-4xl font-bold mt-1" data-testid={`text-comp-source-count-${i}`}>{comp.allSources.length}</p>
-              <p className="text-xs text-muted-foreground mt-1">Non-brand sources</p>
+              <p className="text-xs text-muted-foreground mt-1">Citation source{comp.allSources.length !== 1 ? "s" : ""}</p>
             </CardContent>
           </Card>
         ))}
@@ -417,16 +417,14 @@ function BrandMentionAudit({ audit, brandName, allCompetitors }: { audit: BrandM
           ) : (
             <div className="space-y-2">
               {audit.brandSources.map((src, i) => (
-                <div key={i} className="flex items-start gap-3 p-2 rounded border border-gray-100" data-testid={`row-brand-source-${i}`}>
+                <div key={i} className="flex items-start gap-3 p-2.5 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors" data-testid={`row-brand-source-${i}`}>
                   <Badge variant="outline" className={`text-[10px] shrink-0 ${tierColor(src.tier)}`}>{src.tier}</Badge>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium">{src.domain} <span className="text-xs text-muted-foreground ml-1">{tierLabel(src.tier)}</span></p>
-                    {src.urls.map((u, ui) => (
-                      <a key={ui} href={u} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-0.5 truncate" data-testid={`link-brand-source-${i}-${ui}`}>
-                        <ExternalLink className="w-3 h-3 shrink-0" />
-                        <span className="truncate">{u}</span>
-                      </a>
-                    ))}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-semibold">{src.mentions}</p>
+                    <p className="text-[10px] text-muted-foreground">mention{src.mentions !== 1 ? "s" : ""}</p>
                   </div>
                 </div>
               ))}
@@ -709,42 +707,39 @@ function gatherTopCompetitors(playbook: any): TopCompetitorAggregate[] {
 }
 
 interface BrandMentionAuditData {
-  brandSources: Array<{ domain: string; tier: string; urls: string[] }>;
+  brandSources: Array<{ domain: string; tier: string; mentions: number }>;
   byType: Array<{ type: string; count: number }>;
+  uniqueDomainCount: number;
+  totalMentions: number;
 }
 
-function gatherBrandMentionAudit(appendix: any, brandName: string): BrandMentionAuditData {
-  const brandSources: Array<{ domain: string; tier: string; urls: string[] }> = [];
+function gatherBrandMentionAudit(section2: any, brandName: string): BrandMentionAuditData {
+  const brandCitationDomains = section2?.brandComparison?.brandCitationDomains ?? [];
+  const brandSources: Array<{ domain: string; tier: string; mentions: number }> = [];
   const typeCounts: Record<string, number> = {};
 
-  const tiers = appendix?.domainsByTier ?? {};
-  for (const [tier, domains] of Object.entries(tiers) as [string, any[]][]) {
-    if (tier === "brand_owned") continue;
+  for (const d of brandCitationDomains) {
+    brandSources.push({ domain: d.domain, tier: d.tier, mentions: d.mentions });
 
-    for (const d of domains) {
-      const mentionsBrand = (d.mentionedEntities || []).some((e: string) => e.toLowerCase().includes(brandName.toLowerCase()));
-      if (mentionsBrand) {
-        brandSources.push({ domain: d.domain, tier, urls: d.urls || [] });
-
-        let sourceType = "publication";
-        const dm = d.domain.toLowerCase();
-        if (dm.includes("reddit") || dm.includes("quora") || dm.includes("trustpilot") || dm.includes("twitter") || dm.includes("facebook") || dm.includes("linkedin")) {
-          sourceType = "social";
-        } else if (dm.includes("g2") || dm.includes("capterra") || dm.includes("crunchbase") || dm.includes("glassdoor")) {
-          sourceType = "directory";
-        } else if (tier === "T1") {
-          sourceType = "major publication";
-        } else if (tier === "T3" || tier === "T4") {
-          sourceType = "third-party";
-        }
-
-        typeCounts[sourceType] = (typeCounts[sourceType] || 0) + 1;
-      }
+    let sourceType = "publication";
+    const dm = d.domain.toLowerCase();
+    if (dm.includes("reddit") || dm.includes("quora") || dm.includes("trustpilot") || dm.includes("twitter") || dm.includes("facebook") || dm.includes("linkedin")) {
+      sourceType = "social";
+    } else if (dm.includes("g2") || dm.includes("capterra") || dm.includes("crunchbase") || dm.includes("glassdoor")) {
+      sourceType = "directory";
+    } else if (d.tier === "T1") {
+      sourceType = "major publication";
+    } else if (d.tier === "T3" || d.tier === "T4") {
+      sourceType = "third-party";
     }
+
+    typeCounts[sourceType] = (typeCounts[sourceType] || 0) + 1;
   }
 
   const byType = Object.entries(typeCounts).map(([type, count]) => ({ type, count })).sort((a, b) => b.count - a.count);
-  return { brandSources, byType };
+  const uniqueDomainCount = section2?.brandComparison?.uniqueDomainCount ?? brandSources.length;
+  const totalMentionsFallback = brandSources.reduce((sum, s) => sum + s.mentions, 0);
+  return { brandSources, byType, uniqueDomainCount, totalMentions: totalMentionsFallback };
 }
 
 interface GapEntry {

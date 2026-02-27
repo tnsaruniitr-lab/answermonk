@@ -145,6 +145,7 @@ export interface ReportData {
       authorityLabel: string;
       comparisonPagesPresent: number;
       comparisonPagesTotal: number;
+      brandCitationDomains: Array<{ domain: string; tier: string; mentions: number }>;
     };
   };
   section3: {
@@ -976,9 +977,36 @@ export async function generateReport(
   let brandCompPagesPresent = 0;
   let brandCompPagesTotal = 0;
 
+  let brandCitationDomainsFromReport: Array<{ domain: string; tier: string; mentions: number }> = [];
+
   if (citationReport) {
     brandUniqueDomains = citationReport.globalAuthority?.uniqueDomains || 0;
     brandAuthorityLabel = citationReport.globalAuthority?.label || "unknown";
+    brandCitationDomainsFromReport = citationReport.globalAuthority?.allDomains || [];
+
+    if (brandCitationDomainsFromReport.length === 0 && brandUniqueDomains > 0) {
+      const domainSet = new Map<string, { tier: string; mentions: number }>();
+      for (const crSeg of citationReport.segments || []) {
+        const brandAuth = crSeg.scores?.brand?.authority;
+        if (brandAuth?.topDomains) {
+          for (const td of brandAuth.topDomains) {
+            const existing = domainSet.get(td.domain);
+            if (existing) {
+              existing.mentions += 1;
+            } else {
+              domainSet.set(td.domain, { tier: td.tier, mentions: 1 });
+            }
+          }
+        }
+      }
+      brandCitationDomainsFromReport = [...domainSet.entries()]
+        .sort((a, b) => {
+          const tierOrder: Record<string, number> = { T1: 0, T2: 1, T3: 2, T4: 3 };
+          return (tierOrder[a[1].tier] ?? 4) - (tierOrder[b[1].tier] ?? 4) || b[1].mentions - a[1].mentions;
+        })
+        .map(([domain, d]) => ({ domain, tier: d.tier, mentions: d.mentions }));
+    }
+
     for (const crSeg of citationReport.segments || []) {
       const brandComp = crSeg.scores?.brand?.comparative;
       if (brandComp) {
@@ -1282,6 +1310,7 @@ export async function generateReport(
         authorityLabel: brandAuthorityLabel,
         comparisonPagesPresent: brandCompPagesPresent,
         comparisonPagesTotal: brandCompPagesTotal,
+        brandCitationDomains: brandCitationDomainsFromReport,
       },
     },
     section3: { gapAnalysis, recommendations, modelUnderstanding },

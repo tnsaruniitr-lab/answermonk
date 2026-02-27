@@ -72,6 +72,7 @@ export interface GlobalAuthority {
   label: string;
   uniqueDomains: number;
   highTierDomains: { domain: string; tier: string }[];
+  allDomains: { domain: string; tier: string; mentions: number }[];
   totalMentions: number;
 }
 
@@ -97,7 +98,7 @@ export async function runSegmentAnalysis(
     return {
       brandName,
       segments: [],
-      globalAuthority: { label: "Minimal", uniqueDomains: 0, highTierDomains: [], totalMentions: 0 },
+      globalAuthority: { label: "Minimal", uniqueDomains: 0, highTierDomains: [], allDomains: [], totalMentions: 0 },
       totalCitationsCrawled: 0,
       totalAccessible: 0,
       analyzedAt: new Date().toISOString(),
@@ -276,10 +277,18 @@ function computeGlobalAuthority(
   else if (domainMap.size >= 1) label = "Low";
   else label = "Minimal";
 
+  const allDomains = [...domainMap.entries()]
+    .sort((a, b) => {
+      const tierOrder: Record<string, number> = { T1: 0, T2: 1, T3: 2, T4: 3 };
+      return (tierOrder[a[1].tier] ?? 4) - (tierOrder[b[1].tier] ?? 4) || b[1].mentions - a[1].mentions;
+    })
+    .map(([domain, d]) => ({ domain, tier: d.tier, mentions: d.mentions }));
+
   return {
     label,
     uniqueDomains: domainMap.size,
     highTierDomains,
+    allDomains,
     totalMentions,
   };
 }
