@@ -156,6 +156,17 @@ export default function V2SessionDetail() {
         )}
 
         {scored > 0 && numericId !== null && (
+          <div className="flex gap-3 items-center">
+            <Link href={`/summary/${numericId}`}>
+              <Button variant="outline" className="gap-2" data-testid="button-summary-report">
+                <FileText className="w-4 h-4" />
+                Impact Summary
+              </Button>
+            </Link>
+          </div>
+        )}
+
+        {scored > 0 && numericId !== null && (
           <ReportViewer sessionId={numericId} brandName={session.brandName} />
         )}
 
