@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
 import {
@@ -14,6 +15,7 @@ import {
   Globe,
   MessageSquare,
   ChevronRight,
+  ChevronDown,
   Award,
   Eye,
   FileText,
@@ -143,6 +145,7 @@ export default function SummaryReport() {
         <BiggestGaps gaps={biggestGaps} />
         <ConsolidatedWinsSection wins={consolidatedWins} />
         <AuthoritySnapshotSection snapshot={authoritySnapshot} brandName={meta.brandName} />
+        <AllCitationSourcesSection appendix={appendix} />
       </main>
 
       <footer className="border-t border-gray-200 bg-white mt-16">
@@ -1089,4 +1092,154 @@ function buildAuthoritySnapshot(appendix: any): AuthorityDomain[] {
       return b.urlCount - a.urlCount;
     })
     .slice(0, 25);
+}
+
+const TIER_CONFIG: Array<{ key: string; label: string; description: string; colorClass: string }> = [
+  { key: "T1", label: "T1 — Major Publications", description: "High-authority domains trusted by AI engines", colorClass: "text-emerald-700" },
+  { key: "T2", label: "T2 — Mid-Tier & Social", description: "Blogs, social platforms, review sites", colorClass: "text-blue-700" },
+  { key: "T3", label: "T3 — Third-Party Sites", description: "Directories, niche sites, local listings", colorClass: "text-amber-700" },
+  { key: "T4", label: "T4 — Competitor Owned", description: "Competitor websites and properties", colorClass: "text-red-700" },
+  { key: "brand_owned", label: "Brand Owned", description: "Your own website and properties", colorClass: "text-purple-700" },
+];
+
+const ENGINE_BADGE_COLORS: Record<string, string> = {
+  chatgpt: "bg-green-100 text-green-700 border-green-200",
+  gemini: "bg-blue-100 text-blue-700 border-blue-200",
+  claude: "bg-orange-100 text-orange-700 border-orange-200",
+};
+
+function AllCitationSourcesSection({ appendix }: { appendix: any }) {
+  const [expandedTier, setExpandedTier] = useState<string | null>(null);
+  const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set());
+  const domainsByTier = appendix?.domainsByTier ?? {};
+  const totalDomains = appendix?.totalDomains ?? 0;
+
+  if (totalDomains === 0) return null;
+
+  const toggleDomain = (domainKey: string) => {
+    setExpandedDomains(prev => {
+      const next = new Set(prev);
+      if (next.has(domainKey)) next.delete(domainKey);
+      else next.add(domainKey);
+      return next;
+    });
+  };
+
+  return (
+    <section data-testid="section-all-citations">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-xl bg-gray-700 flex items-center justify-center">
+          <Globe className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">All Citation Sources</h2>
+          <p className="text-sm text-muted-foreground">{totalDomains} domains sourced across all AI engine responses</p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-5">
+        {TIER_CONFIG.map(tc => {
+          const count = (domainsByTier[tc.key] ?? []).length;
+          if (count === 0) return null;
+          return (
+            <Badge key={tc.key} variant="outline" className={`text-xs ${tierColor(tc.key)}`} data-testid={`badge-tier-count-${tc.key}`}>
+              {tc.key === "brand_owned" ? "Own" : tc.key}: {count} domains
+            </Badge>
+          );
+        })}
+      </div>
+
+      <div className="space-y-3">
+        {TIER_CONFIG.map(tc => {
+          const domains = domainsByTier[tc.key] ?? [];
+          if (domains.length === 0) return null;
+          const isOpen = expandedTier === tc.key;
+
+          return (
+            <Card key={tc.key} className="overflow-hidden" data-testid={`card-tier-${tc.key}`}>
+              <button
+                type="button"
+                onClick={() => setExpandedTier(isOpen ? null : tc.key)}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors text-left"
+                data-testid={`btn-tier-toggle-${tc.key}`}
+              >
+                <div className="flex items-center gap-2">
+                  {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                  <span className={`text-sm font-semibold ${tc.colorClass}`}>{tc.label}</span>
+                  <span className="text-xs text-muted-foreground">({domains.length} domains)</span>
+                </div>
+                <span className="text-xs text-muted-foreground">{tc.description}</span>
+              </button>
+              {isOpen && (
+                <div className="border-t divide-y divide-border/50">
+                  {domains.map((d: any, di: number) => {
+                    const urls: Array<{ url: string; engines: string[] }> = (d.urls || []).map((u: any) =>
+                      typeof u === "string" ? { url: u, engines: [] } : { url: u.url, engines: u.engines || [] }
+                    );
+                    const domainEngines: string[] = d.engines || [];
+                    const domainKey = `${tc.key}-${d.domain}`;
+                    const isDomainOpen = expandedDomains.has(domainKey);
+
+                    return (
+                      <div key={di} className="px-4 py-2" data-testid={`row-domain-${tc.key}-${di}`}>
+                        <button
+                          type="button"
+                          onClick={() => toggleDomain(domainKey)}
+                          className="w-full flex items-center justify-between text-left"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            {isDomainOpen ? <ChevronDown className="w-3 h-3 shrink-0" /> : <ChevronRight className="w-3 h-3 shrink-0" />}
+                            <span className="text-xs font-medium truncate">{d.domain}</span>
+                            <span className="text-[9px] text-muted-foreground shrink-0">({urls.length} URLs)</span>
+                            {domainEngines.map((eng: string) => (
+                              <span key={eng} className={`text-[7px] px-1.5 py-0 rounded-full border font-medium capitalize ${ENGINE_BADGE_COLORS[eng] || "bg-gray-100 text-gray-600 border-gray-200"}`}>
+                                {eng}
+                              </span>
+                            ))}
+                          </div>
+                          {(d.mentionedEntities || []).length > 0 && (
+                            <span className="text-[9px] text-muted-foreground truncate max-w-[250px] ml-2">
+                              {d.mentionedEntities.slice(0, 3).join(", ")}
+                            </span>
+                          )}
+                        </button>
+                        {isDomainOpen && (
+                          <div className="mt-2 ml-5 space-y-1.5 pb-1">
+                            {(d.mentionedEntities || []).length > 0 && (
+                              <p className="text-[9px] text-muted-foreground">
+                                Mentioned: {d.mentionedEntities.join(", ")}
+                              </p>
+                            )}
+                            {urls.map((u, ui) => (
+                              <div key={ui} className="flex items-center gap-1.5">
+                                <a
+                                  href={u.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 text-[10px] text-blue-600 hover:underline min-w-0"
+                                  data-testid={`link-citation-${tc.key}-${di}-${ui}`}
+                                >
+                                  <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                                  <span className="truncate">{u.url}</span>
+                                </a>
+                                {u.engines.map((eng: string) => (
+                                  <span key={eng} className={`text-[7px] px-1.5 py-0 rounded-full border font-medium capitalize shrink-0 ${ENGINE_BADGE_COLORS[eng] || "bg-gray-100 text-gray-600 border-gray-200"}`}>
+                                    {eng}
+                                  </span>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          );
+        })}
+      </div>
+    </section>
+  );
 }

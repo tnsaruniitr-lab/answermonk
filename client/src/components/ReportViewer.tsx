@@ -466,26 +466,32 @@ async function exportPDF(report: any) {
       doc.setTextColor(0);
       y += 5;
 
-      const appendixRows = domains.map((d: any) => [
-        d.domain,
-        d.urls.length.toString(),
-        d.mentionedEntities.slice(0, 4).join(", "),
-        d.urls[0] || "",
-      ]);
+      const appendixRows = domains.map((d: any) => {
+        const urls = (d.urls || []).map((u: any) => typeof u === "string" ? u : u.url);
+        const enginesLabel = (d.engines || []).join(", ");
+        return [
+          d.domain,
+          urls.length.toString(),
+          enginesLabel || "—",
+          d.mentionedEntities.slice(0, 4).join(", "),
+          urls[0] || "",
+        ];
+      });
 
       autoTable(doc, {
         startY: y,
         margin: { left: margin, right: margin },
-        head: [["Domain", "URLs", "Mentioned Entities", "Sample URL"]],
+        head: [["Domain", "URLs", "Engines", "Mentioned Entities", "Sample URL"]],
         body: appendixRows,
         styles: { fontSize: 7, cellPadding: 1.5, overflow: "ellipsize" },
         headStyles: { fillColor: [60, 60, 60], textColor: 255, fontStyle: "bold" },
         alternateRowStyles: { fillColor: [248, 248, 248] },
         columnStyles: {
-          0: { cellWidth: 35 },
-          1: { cellWidth: 12, halign: "center" },
-          2: { cellWidth: 50 },
-          3: { cellWidth: contentW - 97 },
+          0: { cellWidth: 30 },
+          1: { cellWidth: 10, halign: "center" },
+          2: { cellWidth: 25 },
+          3: { cellWidth: 40 },
+          4: { cellWidth: contentW - 105 },
         },
       });
       y = (doc as any).lastAutoTable.finalY + 6;
@@ -1546,6 +1552,10 @@ function AppendixSection({ data }: { data: any }) {
 
 function AppendixDomainRow({ entry }: { entry: any }) {
   const [expanded, setExpanded] = useState(false);
+  const urls: Array<{ url: string; engines: string[] }> = (entry.urls || []).map((u: any) =>
+    typeof u === "string" ? { url: u, engines: [] } : { url: u.url, engines: u.engines || [] }
+  );
+  const domainEngines: string[] = entry.engines || [];
 
   return (
     <div className="px-3 py-1.5">
@@ -1557,7 +1567,10 @@ function AppendixDomainRow({ entry }: { entry: any }) {
         <div className="flex items-center gap-2 min-w-0">
           {expanded ? <ChevronDown className="w-3 h-3 shrink-0" /> : <ChevronRight className="w-3 h-3 shrink-0" />}
           <span className="text-xs font-medium truncate">{entry.domain}</span>
-          <span className="text-[9px] text-muted-foreground shrink-0">({entry.urls.length} URLs)</span>
+          <span className="text-[9px] text-muted-foreground shrink-0">({urls.length} URLs)</span>
+          {domainEngines.length > 0 && domainEngines.map((eng: string) => (
+            <Badge key={eng} variant="outline" className="text-[7px] px-1 py-0 capitalize">{eng}</Badge>
+          ))}
         </div>
         {entry.mentionedEntities.length > 0 && (
           <span className="text-[9px] text-muted-foreground truncate max-w-[200px] ml-2">
@@ -1574,17 +1587,21 @@ function AppendixDomainRow({ entry }: { entry: any }) {
                   Mentions: {entry.mentionedEntities.join(", ")}
                 </div>
               )}
-              {entry.urls.map((url: string, i: number) => (
-                <a
-                  key={i}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 hover:underline"
-                >
-                  <ExternalLink className="w-2.5 h-2.5 shrink-0" />
-                  <span className="truncate">{url}</span>
-                </a>
+              {urls.map((u, i: number) => (
+                <div key={i} className="flex items-center gap-1">
+                  <a
+                    href={u.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 hover:underline min-w-0"
+                  >
+                    <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                    <span className="truncate">{u.url}</span>
+                  </a>
+                  {u.engines.length > 0 && u.engines.map((eng: string) => (
+                    <Badge key={eng} variant="outline" className="text-[7px] px-1 py-0 capitalize shrink-0">{eng}</Badge>
+                  ))}
+                </div>
               ))}
             </div>
           </motion.div>

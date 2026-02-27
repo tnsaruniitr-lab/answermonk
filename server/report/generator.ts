@@ -820,7 +820,7 @@ export async function generateReport(
 
   const allCompetitorMap = new Map<string, { segments: Set<string>; totalAppearances: number }>();
 
-  const appendixDomainMap = new Map<string, { tier: TierLabel; urls: Set<string>; mentionedEntities: Set<string> }>();
+  const appendixDomainMap = new Map<string, { tier: TierLabel; urls: Set<string>; mentionedEntities: Set<string>; engines: Set<string>; urlEngines: Map<string, Set<string>> }>();
 
   const perSegmentSection2 = segments.map((seg, segIdx) => {
     const segLabel = buildSegmentLabel(seg);
@@ -947,10 +947,16 @@ export async function generateReport(
         const domain = extractDomain(cit.url);
         if (!appendixDomainMap.has(domain)) {
           const tier = classifyTier(domain, session.brandName, competitorNamesList);
-          appendixDomainMap.set(domain, { tier, urls: new Set(), mentionedEntities: new Set() });
+          appendixDomainMap.set(domain, { tier, urls: new Set(), mentionedEntities: new Set(), engines: new Set(), urlEngines: new Map() });
         }
         const entry = appendixDomainMap.get(domain)!;
         entry.urls.add(cit.url);
+        const runEngine = run.engine || "";
+        if (runEngine) {
+          entry.engines.add(runEngine);
+          if (!entry.urlEngines.has(cit.url)) entry.urlEngines.set(cit.url, new Set());
+          entry.urlEngines.get(cit.url)!.add(runEngine);
+        }
         for (const m of mentionedInRun) {
           entry.mentionedEntities.add(m);
         }
@@ -1319,16 +1325,21 @@ export async function generateReport(
   };
 }
 
-function buildAppendix(domainMap: Map<string, { tier: TierLabel; urls: Set<string>; mentionedEntities: Set<string> }>) {
-  const domainsByTier: Record<TierLabel, Array<{ domain: string; urls: string[]; mentionedEntities: string[] }>> = {
+function buildAppendix(domainMap: Map<string, { tier: TierLabel; urls: Set<string>; mentionedEntities: Set<string>; engines: Set<string>; urlEngines: Map<string, Set<string>> }>) {
+  const domainsByTier: Record<TierLabel, Array<{ domain: string; urls: Array<{ url: string; engines: string[] }>; mentionedEntities: string[]; engines: string[] }>> = {
     T1: [], T2: [], T3: [], T4: [], brand_owned: [],
   };
 
   for (const [domain, entry] of domainMap) {
+    const urlList = Array.from(entry.urls).slice(0, 10).map(url => ({
+      url,
+      engines: Array.from(entry.urlEngines.get(url) || []),
+    }));
     domainsByTier[entry.tier].push({
       domain,
-      urls: Array.from(entry.urls).slice(0, 10),
+      urls: urlList,
       mentionedEntities: Array.from(entry.mentionedEntities),
+      engines: Array.from(entry.engines),
     });
   }
 
