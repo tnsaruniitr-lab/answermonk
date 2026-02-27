@@ -293,6 +293,7 @@ function VisibilityScorecard({ section1, section2, meta }: { section1: any; sect
           <p className="text-sm text-muted-foreground">How often AI engines recommend {meta.brandName}</p>
         </div>
       </div>
+      <p className="text-xl font-bold text-foreground mb-6">Your customers ask AI — are you the answer?</p>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="md:col-span-1 border-2 border-primary/20">
