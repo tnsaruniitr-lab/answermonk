@@ -111,7 +111,7 @@ export default function SummaryReport() {
   const allCompetitors = gatherTopCompetitors(competitorPlaybook);
   const brandMentionAudit = gatherBrandMentionAudit(section2, meta.brandName);
   const biggestGaps = extractBiggestGaps(section3, competitorPlaybook);
-  const consolidatedWins = extractConsolidatedWins(section3, competitorPlaybook, allCompetitors);
+  const consolidatedWins = extractConsolidatedWins(section3, competitorPlaybook, allCompetitors, section1);
   const authoritySnapshot = buildAuthoritySnapshot(appendix);
 
   return (
@@ -594,13 +594,17 @@ function ConsolidatedWinsSection({ wins }: { wins: ConsolidatedWin[] }) {
 
   const icons = [
     <FileText className="w-5 h-5" />,
+    <Globe className="w-5 h-5" />,
     <Award className="w-5 h-5" />,
     <MessageSquare className="w-5 h-5" />,
+    <Shield className="w-5 h-5" />,
   ];
   const colors = [
     { bg: "bg-emerald-500", badge: "bg-emerald-100 text-emerald-700", border: "border-emerald-200", light: "bg-emerald-50/50" },
+    { bg: "bg-indigo-500", badge: "bg-indigo-100 text-indigo-700", border: "border-indigo-200", light: "bg-indigo-50/50" },
     { bg: "bg-blue-500", badge: "bg-blue-100 text-blue-700", border: "border-blue-200", light: "bg-blue-50/50" },
     { bg: "bg-purple-500", badge: "bg-purple-100 text-purple-700", border: "border-purple-200", light: "bg-purple-50/50" },
+    { bg: "bg-amber-500", badge: "bg-amber-100 text-amber-700", border: "border-amber-200", light: "bg-amber-50/50" },
   ];
 
   return (
@@ -611,7 +615,7 @@ function ConsolidatedWinsSection({ wins }: { wins: ConsolidatedWin[] }) {
         </div>
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Strategic Action Plan</h2>
-          <p className="text-sm text-muted-foreground">3 high-impact moves based on what top competitors are doing</p>
+          <p className="text-sm text-muted-foreground">High-impact moves based on GEO principles and real competitor data</p>
         </div>
       </div>
 
@@ -629,7 +633,12 @@ function ConsolidatedWinsSection({ wins }: { wins: ConsolidatedWin[] }) {
                   <div className="flex-1 space-y-3">
                     <div>
                       <h3 className="font-semibold text-base" data-testid={`text-quickwin-title-${i}`}>{win.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed mt-1" data-testid={`text-quickwin-desc-${i}`}>{win.description}</p>
+                      {win.principle && (
+                        <p className={`text-xs font-medium mt-1 ${color.badge} inline-block px-2 py-0.5 rounded-md`} data-testid={`text-quickwin-principle-${i}`}>
+                          {win.principle}
+                        </p>
+                      )}
+                      <p className="text-sm text-muted-foreground leading-relaxed mt-2" data-testid={`text-quickwin-desc-${i}`}>{win.description}</p>
                     </div>
 
                     {win.examples.length > 0 && (
@@ -920,81 +929,118 @@ function extractBiggestGaps(section3: any, playbook: any): GapEntry[] {
 
 interface ConsolidatedWin {
   title: string;
+  principle: string;
   description: string;
   examples: Array<{ competitor: string; detail: string; url?: string }>;
   targetDomains: Array<{ domain: string; tier: string; url?: string }>;
 }
 
-function extractConsolidatedWins(section3: any, playbook: any, allCompetitors: TopCompetitorAggregate[]): ConsolidatedWin[] {
+function extractConsolidatedWins(section3: any, playbook: any, allCompetitors: TopCompetitorAggregate[], section1: any): ConsolidatedWin[] {
   const wins: ConsolidatedWin[] = [];
+  const competitorNames = new Set(allCompetitors.map(c => c.name.toLowerCase()));
 
-  const phrasingExamples: Array<{ competitor: string; detail: string }> = [];
+  const isCompetitorDomain = (domain: string) => {
+    const dl = domain.toLowerCase();
+    return [...competitorNames].some(cn => {
+      const words = cn.replace(/[^a-z0-9 ]/g, "").split(/\s+/);
+      return words.some(w => w.length > 3 && dl.includes(w));
+    });
+  };
+
+  // WIN 1: Write for Passages, Not Pages (Principle 3)
+  const passageExamples: Array<{ competitor: string; detail: string }> = [];
   const allThemes = new Set<string>();
   for (const seg of (playbook?.perSegment ?? [])) {
     for (const comp of (seg?.topCompetitors ?? [])) {
-      for (const theme of (comp.contextThemes ?? [])) {
-        allThemes.add(theme.theme);
-      }
-      if (comp.exampleQuotes?.length > 0) {
+      for (const theme of (comp.contextThemes ?? [])) allThemes.add(theme.theme);
+      if (comp.exampleQuotes?.length > 0 && !passageExamples.some(p => p.competitor === comp.name)) {
         const eq = comp.exampleQuotes[0];
-        const quote = eq.quote.length > 150 ? eq.quote.substring(0, 150) + "..." : eq.quote;
-        if (!phrasingExamples.some(p => p.competitor === comp.name)) {
-          phrasingExamples.push({
-            competitor: comp.name,
-            detail: `${eq.engine} describes them as: "${quote}"`,
-          });
-        }
+        const quote = eq.quote.length > 140 ? eq.quote.substring(0, 140) + "..." : eq.quote;
+        passageExamples.push({
+          competitor: comp.name,
+          detail: `${eq.engine} cites them with: "${quote}"`,
+        });
       }
-      for (const da of (comp.derivedActions ?? [])) {
-        if (da.includes("consistently described as") && !phrasingExamples.some(p => p.detail.includes("consistently described"))) {
-          phrasingExamples.push({ competitor: comp.name, detail: da });
+    }
+  }
+  const topPhrases = [...allThemes].slice(0, 5);
+  const phraseList = topPhrases.length > 0
+    ? `Add phrases like ${topPhrases.slice(0, 3).map(t => `"${t}"`).join(", ")} as structured Q&A, bullet points, and direct definitions on your key pages — not buried in paragraphs.`
+    : "Structure your content as Q&A, bullet points, and direct definitions — not buried in long paragraphs.";
+  wins.push({
+    title: "Write for Passages, Not Just Pages",
+    principle: "LLMs pick 1–3 sentence snippets that directly answer a question. Fluffy intros get skipped.",
+    description: `Top competitors get cited because they have clean, extractable passages. ${phraseList}`,
+    examples: passageExamples.slice(0, 2),
+    targetDomains: [],
+  });
+
+  // WIN 2: Build Entity Authority (Principle 4)
+  const entityExamples: Array<{ competitor: string; detail: string }> = [];
+  const entityDomains = new Map<string, { tier: string; url?: string }>();
+
+  for (const seg of (playbook?.perSegment ?? [])) {
+    for (const comp of (seg?.topCompetitors ?? [])) {
+      const themes = (comp.contextThemes ?? []).map((t: any) => t.theme);
+      const consistency = comp.crossEngineConsistency;
+      if (consistency === "strong" && !entityExamples.some(e => e.competitor === comp.name)) {
+        entityExamples.push({
+          competitor: comp.name,
+          detail: `Consistently described across all 3 AI engines as "${themes[0] || "trusted provider"}". This repeated entity signal is why they rank.`,
+        });
+      }
+      for (const src of (comp.authoritySources ?? [])) {
+        if (src.isAIInfra || src.tier === "T4") continue;
+        if (isCompetitorDomain(src.domain)) continue;
+        if ((src.tier === "T1" || src.tier === "T2") && !entityDomains.has(src.domain)) {
+          entityDomains.set(src.domain, { tier: src.tier, url: src.urls?.[0] });
         }
       }
     }
   }
 
-  const topPhrases = [...allThemes].slice(0, 5);
+  for (const comp of allCompetitors.slice(0, 5)) {
+    if (comp.segmentsPresent >= 3 && !entityExamples.some(e => e.competitor === comp.name)) {
+      entityExamples.push({
+        competitor: comp.name,
+        detail: `Appears across ${comp.segmentsPresent} different search segments — AI engines treat them as a recognized entity in this space.`,
+      });
+    }
+  }
+
   wins.push({
-    title: "Optimize Your Content for AI Discovery",
-    description: `AI engines recommend competitors who use specific language patterns. Add phrases like ${topPhrases.slice(0, 3).map(t => `"${t}"`).join(", ")} to your homepage H1, first 200 words, and directory profiles. Match the exact terminology AI models associate with top-ranked providers.`,
-    examples: phrasingExamples.slice(0, 2),
-    targetDomains: [],
+    title: "Build Entity Authority Across Trusted Contexts",
+    principle: "Backlinks still help, but LLMs also reward repeated brand mentions across reviews, comparisons, and reputable discussions.",
+    description: "AI engines don't just count backlinks — they look for consistent brand mentions across trusted sources. Get your brand name mentioned in the same contexts competitors appear in: review sites, comparison articles, and industry directories.",
+    examples: entityExamples.slice(0, 2),
+    targetDomains: [...entityDomains.entries()].sort((a, b) => {
+      const o: Record<string, number> = { T1: 0, T2: 1 };
+      return (o[a[1].tier] ?? 2) - (o[b[1].tier] ?? 2);
+    }).slice(0, 4).map(([domain, data]) => ({ domain, tier: data.tier, url: data.url })),
   });
 
+  // WIN 3: Get Featured in AI-Trusted Publications (Principle 10 + 4)
   const pubExamples: Array<{ competitor: string; detail: string; url?: string }> = [];
   const pubDomains = new Map<string, { tier: string; url?: string }>();
-
-  const competitorNames = new Set(allCompetitors.map(c => c.name.toLowerCase()));
 
   for (const seg of (playbook?.perSegment ?? [])) {
     for (const comp of (seg?.topCompetitors ?? [])) {
       for (const src of (comp.authoritySources ?? [])) {
-        if (src.isAIInfra) continue;
-        if (src.tier === "T4") continue;
-        const srcDomainLower = src.domain.toLowerCase();
-        const isCompetitorDomain = [...competitorNames].some(cn => {
-          const cnWords = cn.replace(/[^a-z0-9 ]/g, "").split(/\s+/);
-          return cnWords.some(w => w.length > 3 && srcDomainLower.includes(w));
-        });
-        if (isCompetitorDomain) continue;
-
+        if (src.isAIInfra || src.tier === "T4") continue;
+        if (isCompetitorDomain(src.domain)) continue;
         if (!pubDomains.has(src.domain)) {
           pubDomains.set(src.domain, { tier: src.tier, url: src.urls?.[0] });
         }
       }
-
       for (const da of (comp.derivedActions ?? [])) {
-        if (da.includes("high-authority sources") && !pubExamples.some(p => p.competitor === comp.name && p.detail.includes("high-authority"))) {
+        if (da.includes("high-authority sources") && !pubExamples.some(p => p.competitor === comp.name)) {
           pubExamples.push({ competitor: comp.name, detail: da });
         }
       }
     }
-
     for (const hfs of (seg.highFrequencySources ?? [])) {
       if (hfs.tier === "T4") continue;
-      if (!pubDomains.has(hfs.domain)) {
-        pubDomains.set(hfs.domain, { tier: hfs.tier });
-      }
+      if (!pubDomains.has(hfs.domain)) pubDomains.set(hfs.domain, { tier: hfs.tier });
     }
   }
 
@@ -1003,45 +1049,41 @@ function extractConsolidatedWins(section3: any, playbook: any, allCompetitors: T
     for (const url of (rec.getListedHere ?? [])) {
       try {
         const domain = new URL(url).hostname.replace(/^www\./, "");
-        const isCompDomain = [...competitorNames].some(cn => {
-          const cnWords = cn.replace(/[^a-z0-9 ]/g, "").split(/\s+/);
-          return cnWords.some((w: string) => w.length > 3 && domain.includes(w));
-        });
-        if (!isCompDomain && !pubDomains.has(domain)) {
+        if (!isCompetitorDomain(domain) && !pubDomains.has(domain)) {
           pubDomains.set(domain, { tier: "T3", url });
         }
-      } catch { /* skip bad URLs */ }
+      } catch { /* skip */ }
     }
   }
 
   const sortedPubDomains = [...pubDomains.entries()]
     .sort((a, b) => {
-      const tierOrder: Record<string, number> = { T1: 0, T2: 1, T3: 2 };
-      return (tierOrder[a[1].tier] ?? 3) - (tierOrder[b[1].tier] ?? 3);
+      const o: Record<string, number> = { T1: 0, T2: 1, T3: 2 };
+      return (o[a[1].tier] ?? 3) - (o[b[1].tier] ?? 3);
     })
     .slice(0, 6)
     .map(([domain, data]) => ({ domain, tier: data.tier, url: data.url }));
 
   wins.push({
-    title: "Get Featured in Publications AI Engines Trust",
-    description: "AI models cite specific publications as sources. Getting featured in these publications directly increases your chances of appearing in AI recommendations. Focus on PR, guest content, and directory submissions.",
+    title: "Get Featured Where AI Models Retrieve From",
+    principle: "LLM distribution goes beyond your own site — be present where retrieval systems look: review sites, comparisons, directories, and definition-style pages.",
+    description: "AI engines retrieve from specific publications and use them as citation sources. Getting mentioned in these publications directly increases your chance of appearing in AI answers. Target PR, guest content, and directory profiles.",
     examples: pubExamples.slice(0, 2),
     targetDomains: sortedPubDomains,
   });
 
+  // WIN 4: Own the Two-Layer SERP — Reddit/Quora/Trustpilot (Principle 7)
   const socialExamples: Array<{ competitor: string; detail: string; url?: string }> = [];
   const socialDomains = new Map<string, { url?: string }>();
 
-  for (const comp of allCompetitors.slice(0, 5)) {
+  for (const comp of allCompetitors.slice(0, 8)) {
     for (const sm of (comp.socialMentions ?? [])) {
       const domain = sm.domain.toLowerCase().replace(/^(www\.|ca\.)/, "");
-      if (!socialDomains.has(domain)) {
-        socialDomains.set(domain, { url: sm.url });
-      }
+      if (!socialDomains.has(domain)) socialDomains.set(domain, { url: sm.url });
       if (!socialExamples.some(s => s.competitor === comp.name)) {
         socialExamples.push({
           competitor: comp.name,
-          detail: `Active on ${sm.domain} — AI engines find and cite this when recommending them.`,
+          detail: `Mentioned on ${sm.domain} — AI engines retrieve and cite this thread directly when recommending them.`,
           url: sm.url,
         });
       }
@@ -1051,10 +1093,50 @@ function extractConsolidatedWins(section3: any, playbook: any, allCompetitors: T
   if (socialDomains.size > 0) {
     const platformList = [...socialDomains.keys()].slice(0, 4).join(", ");
     wins.push({
-      title: "Build Social Proof Where AI Engines Look",
-      description: `AI models pull recommendations from social platforms like ${platformList}. Competitors who are active on these platforms get cited more frequently. Create and maintain presence through reviews, community answers, and posts.`,
+      title: "Own the Two-Layer SERP: Reddit, Quora & Reviews",
+      principle: "In AI search, it's rational to rank on Reddit/Quora — not just your own site. Those threads are what get retrieved and cited.",
+      description: `AI models retrieve answers from community platforms like ${platformList}. Seed accurate, helpful answers in high-ranking threads. Ensure your brand appears in "best / alternatives / comparison" discussions. Publish canonical pages those threads can link back to.`,
       examples: socialExamples.slice(0, 2),
       targetDomains: [...socialDomains.entries()].slice(0, 4).map(([domain, data]) => ({ domain, tier: "T2", url: data.url })),
+    });
+  }
+
+  // WIN 5: Show Your Work — E-E-A-T for AI (Principle 5)
+  const grounding = section1?.grounding ?? {};
+  const engineCitationRates: Array<{ engine: string; pct: number }> = [];
+  for (const eng of ["chatgpt", "gemini", "claude"]) {
+    const g = grounding[eng];
+    if (g) engineCitationRates.push({ engine: eng, pct: g.pct ?? 0 });
+  }
+
+  const showWorkExamples: Array<{ competitor: string; detail: string }> = [];
+  for (const seg of (playbook?.perSegment ?? [])) {
+    for (const comp of (seg?.topCompetitors ?? [])) {
+      const themes = (comp.contextThemes ?? []).map((t: any) => t.theme);
+      const credibilityThemes = themes.filter((t: string) =>
+        t.includes("licensed") || t.includes("accredited") || t.includes("certified") || t.includes("government") || t.includes("award") || t.includes("trusted")
+      );
+      if (credibilityThemes.length > 0 && !showWorkExamples.some(e => e.competitor === comp.name)) {
+        showWorkExamples.push({
+          competitor: comp.name,
+          detail: `AI engines highlight their "${credibilityThemes[0]}" credential — this verifiable claim makes them safe to cite.`,
+        });
+      }
+    }
+  }
+
+  if (showWorkExamples.length > 0 || engineCitationRates.length > 0) {
+    const citationNote = engineCitationRates
+      .filter(e => e.pct > 0)
+      .map(e => `${e.engine}: ${e.pct}% of responses include citations`)
+      .join("; ");
+
+    wins.push({
+      title: "Make Your Pages Safe to Cite (E-E-A-T for AI)",
+      principle: "LLM systems prefer sources that make verification easy: clear credentials, dates, methodology, and outbound references.",
+      description: `AI answers are fragile — engines prefer citing sources they can verify. Add clear accreditations, "updated on" dates, author info, and methodology to your key pages.${citationNote ? ` Currently: ${citationNote}.` : ""} Make it easy for AI to trust and quote you.`,
+      examples: showWorkExamples.slice(0, 2),
+      targetDomains: [],
     });
   }
 

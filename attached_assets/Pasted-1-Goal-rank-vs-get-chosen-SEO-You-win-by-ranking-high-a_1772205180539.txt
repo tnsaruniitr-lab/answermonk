@@ -1,0 +1,89 @@
+1) Goal: rank vs get chosen
+
+SEO: You win by ranking high and earning the click.
+
+LLM search: You win by being retrieved and then judged “quotable” (trustworthy, directly answers the question, easy to cite). Often the user never clicks.
+
+2) Metrics that matter
+
+SEO: impressions, CTR, positions, backlinks.
+
+LLM search: share of voice in answers, citation frequency, which queries you’re mentioned for, brand/entity recall, and source inclusion in AI features.
+
+3) Content shape: “best page” vs “best passage”
+
+LLMs often pick snippets that are:
+
+directly responsive (1–3 sentence answers),
+
+well-structured (headings, bullets, definitions),
+
+unambiguous and scoped (no fluffy intros).
+Q&A / FAQ works because it creates clean extractable passages, but the broader pattern is “passage-level usefulness.”
+
+4) Authority signals shift: backlinks still help, but “entity authority” rises
+
+Backlinks remain useful (they correlate with being visible/credible on the web).
+
+But LLM systems also reward consistent, repeated mentions of your brand/entity across trusted contexts (reviews, comparisons, lists, reputable discussions). This is where Reddit/Quora and other third-party mentions can help more than in classic SEO.
+
+5) “E-E-A-T” becomes operational: show your work
+
+LLM answers are fragile; systems prefer sources that make verification easy:
+
+clear author/editor info,
+
+citations/outbound references to primary sources,
+
+dates/last updated,
+
+methodology, assumptions, definitions.
+This increases the chance your page is safe to cite.
+
+6) Freshness matters more for many queries
+
+AI answers get penalized harder when they’re stale or unclear on timing. You need:
+
+visible “updated on” dates where appropriate,
+
+update rhythms for fast-moving topics,
+
+versioning / changelogs for specs, pricing, policy pages.
+
+7) “Two-layer SERP”: sometimes you want to rank on Reddit/Quora, not just your site
+
+In SEO you mainly try to rank your own pages.
+In LLM/AI search (and even in Google AI experiences), it can be rational to also:
+
+seed accurate, helpful answers in high-ranking threads,
+
+ensure your brand is mentioned in “comparison / best / alternatives” discussions,
+
+publish canonical pages that those threads can cite.
+Because those threads themselves are often what get retrieved/cited.
+
+8) Structured data is less about “rich snippets” and more about disambiguation
+
+Schema still helps SEO, but for AI it additionally helps systems understand what you are (product, org, person, pricing, reviews, FAQ, how-to) and connect entity relationships cleanly.
+
+9) Risk profile changes: hallucination + mis-citation
+
+In SEO, being wrong mostly hurts conversion/brand.
+In LLM search, wrong pages can get amplified into answers—especially in health/finance/legal-ish topics—so “trust + clarity” is a gating factor.
+
+10) Distribution strategy expands
+
+Classic SEO: publish + links.
+LLM search: publish + be present where models and retrieval systems look:
+
+reputable review sites,
+
+comparisons,
+
+Wikipedia/Wikidata-style entity nodes (where relevant),
+
+Q&A communities,
+
+industry directories,
+
+docs, specifications, and “definition” style pages that are easy to cite.
