@@ -138,6 +138,9 @@ export const MARKETING_VERTICALS: string[] = [
   "pet services",
   "photographers",
   "F&B",
+  "enterprise customers",
+  "banks",
+  "financial services",
 ];
 
 export const AUTOMATION_VERTICALS: string[] = [
