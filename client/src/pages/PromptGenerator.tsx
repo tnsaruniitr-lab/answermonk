@@ -1241,7 +1241,7 @@ export default function PromptGenerator() {
   });
 
   const [v2Segments, setV2Segments] = useState<V2Segment[]>([makeSegment()]);
-  const [v2ExpandedConfigs, setV2ExpandedConfigs] = useState<Set<string>>(new Set());
+  const [v2ExpandedConfigs, setV2ExpandedConfigs] = useState<string[]>([]);
   const [v2PromptsPerSegment, setV2PromptsPerSegment] = useState(3);
   const [v2IsAnalysing, setV2IsAnalysing] = useState(false);
   const [v2LoadedSessionId, setV2LoadedSessionId] = useState<number | null>(null);
@@ -2612,16 +2612,14 @@ export default function PromptGenerator() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => {
-                                      setV2ExpandedConfigs((prev) => {
-                                        const next = new Set(prev);
-                                        if (next.has(seg.id)) next.delete(seg.id); else next.add(seg.id);
-                                        return next;
-                                      });
+                                      setV2ExpandedConfigs((prev) =>
+                                        prev.includes(seg.id) ? prev.filter((id) => id !== seg.id) : [...prev, seg.id]
+                                      );
                                     }}
                                     className="text-muted-foreground hover:text-primary h-7 px-2 text-xs gap-1"
                                     data-testid={`button-v2-toggle-config-${idx}`}
                                   >
-                                    {v2ExpandedConfigs.has(seg.id) ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                                    {v2ExpandedConfigs.includes(seg.id) ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                                     Edit
                                   </Button>
                                 )}
@@ -2672,7 +2670,7 @@ export default function PromptGenerator() {
                               </div>
                             )}
 
-                            {(!seg.scoringResult || v2ExpandedConfigs.has(seg.id)) && (
+                            {(!seg.scoringResult || v2ExpandedConfigs.includes(seg.id)) && (
                               <div className={`space-y-4 ${seg.scoringResult ? "border-t pt-4" : ""}`}>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   <div className="space-y-1.5">
