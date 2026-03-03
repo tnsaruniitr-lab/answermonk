@@ -948,6 +948,30 @@ export function ensureServiceVerb(service: string, personaType: PersonaType, rng
 
 const AGENCY_PERSONAS = ["marketing_agency", "seo_agency", "performance_marketing_agency", "content_marketing_agency", "social_media_agency", "web_design_agency", "pr_agency", "branding_agency", "digital_marketing_agency"];
 
+export const PERSONA_CATEGORY_LABELS: Record<string, string> = {
+  marketing_agency: "marketing agencies or digital marketing agencies",
+  seo_agency: "SEO agencies or search engine optimization agencies",
+  performance_marketing_agency: "performance marketing agencies",
+  content_marketing_agency: "content marketing agencies",
+  social_media_agency: "social media marketing agencies",
+  web_design_agency: "web design or web development agencies",
+  pr_agency: "PR agencies or public relations agencies",
+  branding_agency: "branding agencies",
+  digital_marketing_agency: "digital marketing agencies",
+  automation_consultant: "automation consultants or business automation platforms",
+  corporate_cards_provider: "corporate card providers or spend management platforms",
+  expense_management_software: "expense management software or platforms",
+  accounting_automation: "accounting automation software or platforms",
+  invoice_management: "invoice management software or platforms",
+  restaurant: "restaurants, cafes, or dining establishments",
+  construction_management: "construction management software or platforms",
+  in_home_healthcare: "in-home healthcare providers or home health services",
+  at_home_healthcare: "at-home healthcare providers or home health services",
+  weight_loss_help: "weight loss clinics, programs, or services",
+  in_home_blood_tests: "at-home blood testing or mobile lab services",
+  at_home_blood_tests: "at-home blood testing or mobile lab services",
+};
+
 export function getPresetsForPersona(personaType: PersonaType) {
   if (AGENCY_PERSONAS.includes(personaType)) {
     return {

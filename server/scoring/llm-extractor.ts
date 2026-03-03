@@ -6,7 +6,7 @@ const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
-const EXTRACTION_PROMPT = `You are a brand/company name extraction tool. Respond ONLY with a JSON array of strings — no other text, no explanation, no markdown.
+const BASE_EXTRACTION_PROMPT = `You are a brand/company name extraction tool. Respond ONLY with a JSON array of strings — no other text, no explanation, no markdown.
 
 Given an AI-generated response, extract ONLY the company, product, or brand names that are being recommended or listed as options.
 
@@ -20,9 +20,17 @@ Rules:
 - Maximum 10 brands
 - Keep original spelling
 - Do NOT return duplicate brands
+- Do NOT include review platforms (e.g. Clutch, G2), award shows, or industry events
+- Do NOT include brands that are merely mentioned as clients, partners, integrations, or examples — only extract brands that are themselves being recommended as a provider/option`;
 
-Example input: "1. **HubSpot** - Great for marketing\\n   - Specialty: Inbound\\n2. **Salesforce** - Enterprise CRM"
-Example output: ["HubSpot", "Salesforce"]`;
+function buildExtractionPrompt(categoryHint?: string): string {
+  let prompt = BASE_EXTRACTION_PROMPT;
+  if (categoryHint) {
+    prompt += `\n- IMPORTANT: The query is asking about ${categoryHint}. ONLY extract names of ${categoryHint}. Do NOT extract names of companies from other categories that are merely mentioned in passing (e.g. client names, platforms they integrate with, delivery apps, banks, software tools, etc.)`;
+  }
+  prompt += `\n\nExample input: "1. **HubSpot** - Great for marketing\\n   - Specialty: Inbound\\n2. **Salesforce** - Enterprise CRM"\nExample output: ["HubSpot", "Salesforce"]`;
+  return prompt;
+}
 
 export interface LLMExtractionResult {
   brands: string[];
@@ -190,6 +198,7 @@ function postProcessBrands(brands: string[], rawText: string): string[] {
 export async function extractBrandsWithLLM(
   rawText: string,
   query?: string,
+  categoryHint?: string,
 ): Promise<LLMExtractionResult> {
   if (shouldSkipExtraction(rawText)) {
     return { brands: [], valid: false };
@@ -200,10 +209,12 @@ export async function extractBrandsWithLLM(
       ? `Query that was asked: "${query}"\n\nAI response to extract brands from:\n${rawText}`
       : `AI response to extract brands from:\n${rawText}`;
 
+    const systemPrompt = buildExtractionPrompt(categoryHint);
+
     const completion = await openai.chat.completions.create({
       model: "gpt-5.2",
       messages: [
-        { role: "system", content: EXTRACTION_PROMPT },
+        { role: "system", content: systemPrompt },
         { role: "user", content: userMessage },
       ],
       max_completion_tokens: 256,

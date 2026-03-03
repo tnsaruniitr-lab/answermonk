@@ -64,6 +64,7 @@ export async function runScoring(
   brandDomain?: string | null,
   onProgress?: (completed: number, total: number) => void,
   aliases?: AliasEntry[],
+  categoryHint?: string,
 ): Promise<ScoringRunResult> {
   const brand = buildBrandIdentity(brandName, brandDomain, aliases);
   const totalCalls = prompts.length * ENGINES.length;
@@ -87,7 +88,7 @@ export async function runScoring(
                   await sleep(delay);
                 }
                 const engineResponse = await queryEngine(engine, prompt.text);
-                const llmResult = await extractBrandsWithLLM(engineResponse.text, prompt.text);
+                const llmResult = await extractBrandsWithLLM(engineResponse.text, prompt.text, categoryHint);
                 const extraction = llmResultToExtractedCandidates(llmResult);
                 const match = matchRun(extraction.candidates, brand);
 
