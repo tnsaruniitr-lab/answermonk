@@ -50,7 +50,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { SegmentCitationAnalyzer } from "@/components/SegmentCitationAnalyzer";
 
 interface Prompt {
@@ -1159,6 +1159,7 @@ interface PanelAnalysisResult {
 type GeneratorMode = "simple" | "advanced" | "quick" | "quickv2" | "panel";
 
 export default function PromptGenerator() {
+  const [, navigate] = useLocation();
   const [mode, setMode] = useState<GeneratorMode>("simple");
   const simpleMode = mode === "simple";
   const [promptStyle, setPromptStyle] = useState<"find_best" | "top5" | "top3">("find_best");
@@ -2410,12 +2411,11 @@ export default function PromptGenerator() {
                             </label>
                             <Select
                               onValueChange={(v) => {
-                                const session = v2Sessions.find((s) => String(s.id) === v);
-                                if (session) loadV2Session(session);
+                                navigate(`/v2/${v}`);
                               }}
                             >
                               <SelectTrigger className="bg-secondary/50" data-testid="select-v2-session">
-                                <SelectValue placeholder="Load a previous analysis..." />
+                                <SelectValue placeholder="View a previous analysis..." />
                               </SelectTrigger>
                               <SelectContent>
                                 {v2Sessions.map((s) => {
