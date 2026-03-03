@@ -48,6 +48,7 @@ import {
   Plus,
   Trash2,
   RefreshCw,
+  DollarSign,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -842,11 +843,12 @@ function ResultsDashboard({ score, brandName, mode, promptsUsed, rawRuns, onNewA
   );
 }
 
-function SegmentResultsDashboard({ score, brandName, rawRuns, segmentLabel }: {
+function SegmentResultsDashboard({ score, brandName, rawRuns, segmentLabel, cost }: {
   score: GEOScore;
   brandName: string;
   rawRuns?: RawRun[];
   segmentLabel: string;
+  cost?: any;
 }) {
   const [showSources, setShowSources] = useState(false);
   const [showRawRuns, setShowRawRuns] = useState(false);
@@ -875,6 +877,16 @@ function SegmentResultsDashboard({ score, brandName, rawRuns, segmentLabel }: {
           <div className="text-[10px] text-muted-foreground">Avg Rank</div>
         </div>
       </div>
+
+      {cost && cost.total_cost_usd > 0 && (
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+          <DollarSign className="w-3 h-3" />
+          <span>Segment cost: ${cost.total_cost_usd.toFixed(4)}</span>
+          <span className="text-muted-foreground/50">
+            (ChatGPT ${cost.engine_costs?.chatgpt?.cost_usd?.toFixed(4) || '0'} · Gemini ${cost.engine_costs?.gemini?.cost_usd?.toFixed(4) || '0'} · Claude ${cost.engine_costs?.claude?.cost_usd?.toFixed(4) || '0'} · Extraction ${cost.extraction_costs?.cost_usd?.toFixed(4) || '0'})
+          </span>
+        </div>
+      )}
 
       {Object.keys(score.engine_breakdown).length > 0 && (
         <div>
@@ -2657,6 +2669,7 @@ export default function PromptGenerator() {
                                   brandName={brandName}
                                   rawRuns={seg.scoringResult.raw_runs || []}
                                   segmentLabel={`${idx + 1}`}
+                                  cost={seg.scoringResult.cost}
                                 />
                               </div>
                             )}
@@ -3090,6 +3103,31 @@ export default function PromptGenerator() {
                     </div>
                   </div>
                 )}
+
+                {mode === "quickv2" && v2Segments.some((s) => s.scoringResult?.cost) && !v2IsAnalysing && (() => {
+                  const totalCost = v2Segments.reduce((sum, s) => sum + (s.scoringResult?.cost?.total_cost_usd || 0), 0);
+                  const totalChatgpt = v2Segments.reduce((sum, s) => sum + (s.scoringResult?.cost?.engine_costs?.chatgpt?.cost_usd || 0), 0);
+                  const totalGemini = v2Segments.reduce((sum, s) => sum + (s.scoringResult?.cost?.engine_costs?.gemini?.cost_usd || 0), 0);
+                  const totalClaude = v2Segments.reduce((sum, s) => sum + (s.scoringResult?.cost?.engine_costs?.claude?.cost_usd || 0), 0);
+                  const totalExtraction = v2Segments.reduce((sum, s) => sum + (s.scoringResult?.cost?.extraction_costs?.cost_usd || 0), 0);
+                  const segmentsWithCost = v2Segments.filter((s) => s.scoringResult?.cost).length;
+                  if (totalCost <= 0) return null;
+                  return (
+                    <Card className="p-3" data-testid="session-cost-summary">
+                      <div className="flex items-center gap-2 text-sm">
+                        <DollarSign className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium">Session Cost: ${totalCost.toFixed(4)}</span>
+                        <span className="text-xs text-muted-foreground">({segmentsWithCost} segment{segmentsWithCost !== 1 ? 's' : ''})</span>
+                      </div>
+                      <div className="flex gap-3 mt-1.5 text-[10px] text-muted-foreground">
+                        <span>ChatGPT: ${totalChatgpt.toFixed(4)}</span>
+                        <span>Gemini: ${totalGemini.toFixed(4)}</span>
+                        <span>Claude: ${totalClaude.toFixed(4)}</span>
+                        <span>Extraction: ${totalExtraction.toFixed(4)}</span>
+                      </div>
+                    </Card>
+                  );
+                })()}
 
                 {mode === "quickv2" && v2Segments.some((s) => s.scoringResult) && !v2IsAnalysing && (
                   <SegmentCitationAnalyzer

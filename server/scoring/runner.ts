@@ -40,6 +40,29 @@ export interface Citation {
 
 export type WebSearchStatus = "grounded" | "ungrounded" | "fallback" | "not_applicable";
 
+export interface TokenUsage {
+  input_tokens: number;
+  output_tokens: number;
+}
+
+export interface CostBreakdown {
+  engine_costs: Record<ScoringEngine, { tokens: TokenUsage; cost_usd: number; calls: number }>;
+  extraction_costs: { tokens: TokenUsage; cost_usd: number; calls: number };
+  total_cost_usd: number;
+}
+
+const MODEL_PRICING: Record<string, { input_per_1m: number; output_per_1m: number }> = {
+  "gpt-5.2": { input_per_1m: 2.0, output_per_1m: 8.0 },
+  "gpt-4o-mini": { input_per_1m: 0.15, output_per_1m: 0.60 },
+  "claude-sonnet-4-5": { input_per_1m: 3.0, output_per_1m: 15.0 },
+  "gemini-3-flash-preview": { input_per_1m: 0.15, output_per_1m: 0.60 },
+};
+
+function calcCost(model: string, usage: TokenUsage): number {
+  const pricing = MODEL_PRICING[model] || { input_per_1m: 1.0, output_per_1m: 3.0 };
+  return (usage.input_tokens * pricing.input_per_1m + usage.output_tokens * pricing.output_per_1m) / 1_000_000;
+}
+
 export interface RawRunResult {
   prompt_id: string;
   cluster: string;
@@ -56,6 +79,7 @@ export interface ScoringRunResult {
   score: GEOScore;
   raw_runs: RawRunResult[];
   brand_identity: BrandIdentity;
+  cost?: CostBreakdown;
 }
 
 export async function runScoring(
@@ -71,6 +95,24 @@ export async function runScoring(
   let completed = 0;
 
   const allRawRuns: RawRunResult[] = [];
+
+  const ENGINE_MODELS: Record<ScoringEngine, string> = {
+    chatgpt: "gpt-5.2",
+    claude: "claude-sonnet-4-5",
+    gemini: "gemini-3-flash-preview",
+  };
+
+  const costTracker: {
+    engines: Record<ScoringEngine, { tokens: TokenUsage; calls: number }>;
+    extraction: { tokens: TokenUsage; calls: number };
+  } = {
+    engines: {
+      chatgpt: { tokens: { input_tokens: 0, output_tokens: 0 }, calls: 0 },
+      gemini: { tokens: { input_tokens: 0, output_tokens: 0 }, calls: 0 },
+      claude: { tokens: { input_tokens: 0, output_tokens: 0 }, calls: 0 },
+    },
+    extraction: { tokens: { input_tokens: 0, output_tokens: 0 }, calls: 0 },
+  };
 
   const engineResults = await Promise.all(
     ENGINES.map(async (engine) => {
@@ -88,7 +130,21 @@ export async function runScoring(
                   await sleep(delay);
                 }
                 const engineResponse = await queryEngine(engine, prompt.text);
+
+                if (engineResponse.usage) {
+                  costTracker.engines[engine].tokens.input_tokens += engineResponse.usage.input_tokens;
+                  costTracker.engines[engine].tokens.output_tokens += engineResponse.usage.output_tokens;
+                  costTracker.engines[engine].calls++;
+                }
+
                 const llmResult = await extractBrandsWithLLM(engineResponse.text, prompt.text, categoryHint);
+
+                if (llmResult.usage) {
+                  costTracker.extraction.tokens.input_tokens += llmResult.usage.input_tokens;
+                  costTracker.extraction.tokens.output_tokens += llmResult.usage.output_tokens;
+                  costTracker.extraction.calls++;
+                }
+
                 const extraction = llmResultToExtractedCandidates(llmResult);
                 const match = matchRun(extraction.candidates, brand);
 
@@ -160,10 +216,44 @@ export async function runScoring(
 
   const score = computeGEOScore(runDataList);
 
+  const costBreakdown: CostBreakdown = {
+    engine_costs: {
+      chatgpt: {
+        tokens: costTracker.engines.chatgpt.tokens,
+        cost_usd: calcCost(ENGINE_MODELS.chatgpt, costTracker.engines.chatgpt.tokens),
+        calls: costTracker.engines.chatgpt.calls,
+      },
+      gemini: {
+        tokens: costTracker.engines.gemini.tokens,
+        cost_usd: calcCost(ENGINE_MODELS.gemini, costTracker.engines.gemini.tokens),
+        calls: costTracker.engines.gemini.calls,
+      },
+      claude: {
+        tokens: costTracker.engines.claude.tokens,
+        cost_usd: calcCost(ENGINE_MODELS.claude, costTracker.engines.claude.tokens),
+        calls: costTracker.engines.claude.calls,
+      },
+    },
+    extraction_costs: {
+      tokens: costTracker.extraction.tokens,
+      cost_usd: calcCost("gpt-5.2", costTracker.extraction.tokens),
+      calls: costTracker.extraction.calls,
+    },
+    total_cost_usd: 0,
+  };
+  costBreakdown.total_cost_usd =
+    costBreakdown.engine_costs.chatgpt.cost_usd +
+    costBreakdown.engine_costs.gemini.cost_usd +
+    costBreakdown.engine_costs.claude.cost_usd +
+    costBreakdown.extraction_costs.cost_usd;
+
+  console.log(`[Cost] Session cost: $${costBreakdown.total_cost_usd.toFixed(4)} (ChatGPT: $${costBreakdown.engine_costs.chatgpt.cost_usd.toFixed(4)}, Gemini: $${costBreakdown.engine_costs.gemini.cost_usd.toFixed(4)}, Claude: $${costBreakdown.engine_costs.claude.cost_usd.toFixed(4)}, Extraction: $${costBreakdown.extraction_costs.cost_usd.toFixed(4)})`);
+
   return {
     score,
     raw_runs: allRawRuns,
     brand_identity: brand,
+    cost: costBreakdown,
   };
 }
 
@@ -172,6 +262,7 @@ interface EngineResponse {
   citations: Citation[];
   webSearchStatus: WebSearchStatus;
   fallbackReason?: string;
+  usage?: TokenUsage;
 }
 
 async function queryEngine(engine: ScoringEngine, promptText: string): Promise<EngineResponse> {
@@ -245,7 +336,12 @@ async function queryChatGPT(prompt: string): Promise<EngineResponse> {
       ? "grounded"
       : "ungrounded";
 
-    return { text, citations, webSearchStatus };
+    const usage: TokenUsage = {
+      input_tokens: (response as any).usage?.input_tokens ?? 0,
+      output_tokens: (response as any).usage?.output_tokens ?? 0,
+    };
+
+    return { text, citations, webSearchStatus, usage };
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     console.error("Quick mode ChatGPT web search failed, falling back to standard:", err);
@@ -255,11 +351,16 @@ async function queryChatGPT(prompt: string): Promise<EngineResponse> {
       max_completion_tokens: 1024,
       temperature: 0.2,
     });
+    const usage: TokenUsage = {
+      input_tokens: completion.usage?.prompt_tokens ?? 0,
+      output_tokens: completion.usage?.completion_tokens ?? 0,
+    };
     return {
       text: completion.choices[0]?.message?.content ?? "",
       citations: [],
       webSearchStatus: "fallback",
       fallbackReason: reason,
+      usage,
     };
   }
 }
@@ -274,7 +375,11 @@ async function queryClaude(prompt: string): Promise<EngineResponse> {
     .filter((b): b is Anthropic.TextBlock => b.type === "text")
     .map((b) => b.text)
     .join("\n");
-  return { text, citations: [], webSearchStatus: "not_applicable" };
+  const usage: TokenUsage = {
+    input_tokens: message.usage?.input_tokens ?? 0,
+    output_tokens: message.usage?.output_tokens ?? 0,
+  };
+  return { text, citations: [], webSearchStatus: "not_applicable", usage };
 }
 
 async function queryGemini(prompt: string): Promise<EngineResponse> {
@@ -311,7 +416,13 @@ async function queryGemini(prompt: string): Promise<EngineResponse> {
         ? "grounded"
         : "ungrounded";
 
-    return { text, citations, webSearchStatus };
+    const usageMeta = (response as any).usageMetadata;
+    const usage: TokenUsage = {
+      input_tokens: usageMeta?.promptTokenCount ?? 0,
+      output_tokens: usageMeta?.candidatesTokenCount ?? 0,
+    };
+
+    return { text, citations, webSearchStatus, usage };
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     console.error("Quick mode Gemini web search failed, falling back to standard:", err);
@@ -320,11 +431,17 @@ async function queryGemini(prompt: string): Promise<EngineResponse> {
       contents: prompt,
       config: { maxOutputTokens: 1024 },
     });
+    const usageMeta = (response as any).usageMetadata;
+    const usage: TokenUsage = {
+      input_tokens: usageMeta?.promptTokenCount ?? 0,
+      output_tokens: usageMeta?.candidatesTokenCount ?? 0,
+    };
     return {
       text: response.text ?? "",
       citations: [],
       webSearchStatus: "fallback",
       fallbackReason: reason,
+      usage,
     };
   }
 }

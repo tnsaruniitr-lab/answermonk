@@ -35,6 +35,7 @@ function buildExtractionPrompt(categoryHint?: string): string {
 export interface LLMExtractionResult {
   brands: string[];
   valid: boolean;
+  usage?: { input_tokens: number; output_tokens: number };
 }
 
 const SKIP_PATTERNS = [
@@ -204,6 +205,8 @@ export async function extractBrandsWithLLM(
     return { brands: [], valid: false };
   }
 
+  let extractionUsage: { input_tokens: number; output_tokens: number } | undefined;
+
   try {
     const userMessage = query
       ? `Query that was asked: "${query}"\n\nAI response to extract brands from:\n${rawText}`
@@ -222,15 +225,21 @@ export async function extractBrandsWithLLM(
     });
 
     const content = completion.choices[0]?.message?.content ?? "[]";
+    extractionUsage = {
+      input_tokens: completion.usage?.prompt_tokens ?? 0,
+      output_tokens: completion.usage?.completion_tokens ?? 0,
+    };
 
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
-      return fallbackToRegex(rawText);
+      const fb = fallbackToRegex(rawText);
+      return { ...fb, usage: extractionUsage };
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
     if (!Array.isArray(parsed)) {
-      return fallbackToRegex(rawText);
+      const fb = fallbackToRegex(rawText);
+      return { ...fb, usage: extractionUsage };
     }
 
     const rawBrands = parsed
@@ -238,7 +247,8 @@ export async function extractBrandsWithLLM(
       .map((b: string) => b.trim());
 
     if (rawBrands.length === 0) {
-      return fallbackToRegex(rawText);
+      const fb = fallbackToRegex(rawText);
+      return { ...fb, usage: extractionUsage };
     }
 
     const brands = postProcessBrands(rawBrands, rawText);
@@ -246,10 +256,12 @@ export async function extractBrandsWithLLM(
     return {
       brands,
       valid: brands.length >= 1,
+      usage: extractionUsage,
     };
   } catch (err) {
     console.error("LLM extraction failed, falling back to regex:", err);
-    return fallbackToRegex(rawText);
+    const fb = fallbackToRegex(rawText);
+    return { ...fb, usage: extractionUsage };
   }
 }
 
