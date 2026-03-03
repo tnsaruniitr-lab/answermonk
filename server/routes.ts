@@ -628,6 +628,40 @@ export async function registerRoutes(
     }
   });
 
+  const SegmentPatchSchema = z.object({
+    segments: z.array(z.object({
+      persona: z.string(),
+      seedType: z.string().optional(),
+      serviceType: z.string().optional(),
+      customerType: z.string().optional(),
+      customerTypeEnabled: z.boolean().optional(),
+      location: z.string().optional(),
+      resultCount: z.number().optional(),
+      prompts: z.any().nullable().optional(),
+      scoringResult: z.any().nullable().optional(),
+    })),
+  });
+
+  app.patch("/api/multisegment/sessions/:id/segments", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid session ID" });
+        return;
+      }
+      const parsed = SegmentPatchSchema.parse(req.body);
+      await storage.updateMultiSegmentSessionSegments(id, parsed.segments);
+      res.json({ success: true });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors.map((e) => e.message).join(", ") });
+      } else {
+        console.error("Error updating session segments:", err);
+        res.status(500).json({ message: "Failed to update session" });
+      }
+    }
+  });
+
   app.get("/api/multisegment/sessions", async (_req, res) => {
     try {
       const sessions = await storage.listMultiSegmentSessions();

@@ -47,6 +47,7 @@ import {
   ExternalLink,
   Plus,
   Trash2,
+  RefreshCw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -1234,6 +1235,7 @@ export default function PromptGenerator() {
   const [v2Segments, setV2Segments] = useState<V2Segment[]>([makeSegment()]);
   const [v2PromptsPerSegment, setV2PromptsPerSegment] = useState(3);
   const [v2IsAnalysing, setV2IsAnalysing] = useState(false);
+  const [v2LoadedSessionId, setV2LoadedSessionId] = useState<number | null>(null);
 
   const updateSegment = (id: string, patch: Partial<V2Segment>) => {
     setV2Segments((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -1245,6 +1247,68 @@ export default function PromptGenerator() {
 
   const removeSegment = (id: string) => {
     setV2Segments((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const saveSegmentsToSession = async (sessionId: number, segments: V2Segment[]) => {
+    const segmentsToSave = segments.map((seg) => ({
+      persona: seg.persona,
+      seedType: seg.seedType,
+      serviceType: seg.serviceType,
+      customerType: seg.customerType,
+      customerTypeEnabled: seg.customerTypeEnabled,
+      location: seg.location,
+      resultCount: seg.resultCount,
+      prompts: seg.prompts,
+      scoringResult: seg.scoringResult,
+    }));
+    await apiRequest("PATCH", `/api/multisegment/sessions/${sessionId}/segments`, { segments: segmentsToSave });
+  };
+
+  const v2SegmentsRef = { current: v2Segments };
+  v2SegmentsRef.current = v2Segments;
+
+  const runSingleSegment = async (seg: V2Segment) => {
+    if (!brandName.trim() || !seg.location.trim()) return;
+
+    const effectiveCustomerType = (seg.customerTypeEnabled && seg.customerType !== "__none__") ? seg.customerType : "";
+    const prompts = generateQuickPrompts(seg.persona, seg.seedType, effectiveCustomerType, seg.resultCount, seg.location.trim(), v2PromptsPerSegment, seg.serviceType);
+
+    setV2Segments((prev) => prev.map((s) => s.id === seg.id ? { ...s, prompts, scoringResult: null, isScoring: true } : s));
+
+    try {
+      const res = await apiRequest("POST", "/api/scoring/run", {
+        prompts,
+        brand_name: brandName.trim(),
+        brand_domain: brandDomain.trim() || undefined,
+        mode: "full",
+        source: "v2segment",
+        profile: {
+          persona: seg.persona,
+          seedType: seg.seedType,
+          services: [seg.serviceType].filter(Boolean),
+          verticals: [seg.customerType].filter(Boolean),
+          geo: seg.location.trim() || null,
+        },
+      });
+      const data = await res.json() as ScoringResponse;
+      const updatedSeg = { ...seg, prompts, scoringResult: data, isScoring: false };
+      setV2Segments((prev) => prev.map((s) => s.id === seg.id ? updatedSeg : s));
+      if (v2LoadedSessionId) {
+        try {
+          const latestSegs = v2SegmentsRef.current.map((s) => s.id === seg.id ? updatedSeg : s);
+          await saveSegmentsToSession(v2LoadedSessionId, latestSegs);
+          queryClient.invalidateQueries({ queryKey: ["/api/multisegment/sessions"] });
+          toast({ title: "Segment scored & saved", description: "Results updated in session." });
+        } catch {
+          toast({ title: "Segment scored", description: "Results visible but couldn't save to session.", variant: "destructive" });
+        }
+      } else {
+        toast({ title: "Segment scored", description: "Results updated." });
+      }
+    } catch (err: any) {
+      setV2Segments((prev) => prev.map((s) => s.id === seg.id ? { ...s, prompts, isScoring: false } : s));
+      toast({ title: "Scoring failed", description: err.message || "Something went wrong.", variant: "destructive" });
+    }
   };
 
   const { toast } = useToast();
@@ -1276,7 +1340,8 @@ export default function PromptGenerator() {
       const res = await apiRequest("POST", "/api/multisegment/sessions", session);
       return res.json();
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (data, variables) => {
+      if (data?.id) setV2LoadedSessionId(data.id);
       queryClient.invalidateQueries({ queryKey: ["/api/multisegment/sessions"] });
       toast({ title: "Session saved", description: `Multi-segment analysis saved for ${variables.brandName}.` });
     },
@@ -1343,6 +1408,7 @@ export default function PromptGenerator() {
     setBrandName(session.brandName);
     setBrandDomain(session.brandDomain || "");
     setV2PromptsPerSegment(session.promptsPerSegment || 3);
+    setV2LoadedSessionId(session.id);
     const rawSegments = Array.isArray(session.segments) ? session.segments : [];
     if (rawSegments.length === 0) {
       setV2Segments([makeSegment()]);
@@ -2434,6 +2500,28 @@ export default function PromptGenerator() {
                         )}
                       </div>
                     )}
+                    {v2LoadedSessionId && (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary/50 rounded-md px-3 py-2">
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>Editing session #{v2LoadedSessionId} — changes auto-save. Re-run or add segments as needed.</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs ml-auto"
+                          onClick={() => {
+                            setV2LoadedSessionId(null);
+                            setV2Segments([makeSegment()]);
+                            setV2PromptsPerSegment(3);
+                            setBrandName("");
+                            setBrandDomain("");
+                          }}
+                          data-testid="button-v2-new-session"
+                        >
+                          Start Fresh
+                        </Button>
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -2489,19 +2577,40 @@ export default function PromptGenerator() {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <Badge variant="secondary" className="text-xs font-mono">Segment {idx + 1}</Badge>
+                                {seg.scoringResult && (
+                                  <Badge variant="outline" className="text-[10px] text-green-600 border-green-300 dark:text-green-400 dark:border-green-700">
+                                    Scored
+                                  </Badge>
+                                )}
                               </div>
-                              {v2Segments.length > 1 && (
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => removeSegment(seg.id)}
-                                  className="text-muted-foreground hover:text-destructive h-7 w-7 p-0"
-                                  data-testid={`button-v2-remove-segment-${idx}`}
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </Button>
-                              )}
+                              <div className="flex items-center gap-1">
+                                {seg.location.trim() && !seg.isScoring && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => runSingleSegment(seg)}
+                                    disabled={v2IsAnalysing || !brandName.trim()}
+                                    className="text-muted-foreground hover:text-primary h-7 px-2 text-xs gap-1"
+                                    data-testid={`button-v2-run-segment-${idx}`}
+                                  >
+                                    <RefreshCw className="w-3 h-3" />
+                                    {seg.scoringResult ? "Re-run" : "Run"}
+                                  </Button>
+                                )}
+                                {v2Segments.length > 1 && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeSegment(seg.id)}
+                                    className="text-muted-foreground hover:text-destructive h-7 w-7 p-0"
+                                    data-testid={`button-v2-remove-segment-${idx}`}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                )}
+                              </div>
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2893,12 +3002,21 @@ export default function PromptGenerator() {
                                 prompts: seg.prompts,
                                 scoringResult: seg.scoringResult,
                               }));
-                              saveV2Session({
-                                brandName: brandName.trim(),
-                                brandDomain: brandDomain.trim() || null,
-                                promptsPerSegment: v2PromptsPerSegment,
-                                segments: segmentsToSave,
-                              });
+                              if (v2LoadedSessionId) {
+                                saveSegmentsToSession(v2LoadedSessionId, v2Segments).then(() => {
+                                  queryClient.invalidateQueries({ queryKey: ["/api/multisegment/sessions"] });
+                                  toast({ title: "Session updated", description: "Analysis results saved." });
+                                }).catch(() => {
+                                  toast({ title: "Save failed", description: "Results visible but couldn't update session.", variant: "destructive" });
+                                });
+                              } else {
+                                saveV2Session({
+                                  brandName: brandName.trim(),
+                                  brandDomain: brandDomain.trim() || null,
+                                  promptsPerSegment: v2PromptsPerSegment,
+                                  segments: segmentsToSave,
+                                });
+                              }
                             }
                           }}
                           disabled={v2IsAnalysing}

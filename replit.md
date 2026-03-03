@@ -38,7 +38,8 @@ The application adopts a monorepo structure, separating concerns into `client/` 
 ### Database
 - **Type**: PostgreSQL, accessed via `DATABASE_URL`.
 - **ORM**: Drizzle ORM for schema management and data access.
-- **Schema**: Includes tables for `analysis_results`, `scoring_jobs` (for GEO scoring runs), and `saved_v2_configs` (for reusable multi-segment configurations).
+- **Schema**: Includes tables for `analysis_results`, `scoring_jobs` (for GEO scoring runs), `multi_segment_sessions` (V2 analysis sessions with per-segment scoring results), and `saved_v2_configs` (for reusable multi-segment configurations).
+- **Session Management**: V2 sessions support per-segment re-run (re-score individual segments without re-running the entire analysis) and incremental segment addition (add new segments to an existing session). Sessions auto-save via PATCH endpoint (`/api/multisegment/sessions/:id/segments`). Loaded sessions show an "Editing session #N" indicator with a "Start Fresh" button.
 
 ### Build System
 - **Development**: Uses `tsx` for the server and Vite for the client with HMR.
