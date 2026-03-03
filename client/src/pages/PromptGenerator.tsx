@@ -1192,6 +1192,7 @@ export default function PromptGenerator() {
   const [budgetTier, setBudgetTier] = useState("mid");
   const [brandName, setBrandName] = useState("");
   const [brandDomain, setBrandDomain] = useState("");
+  const [enabledEngines, setEnabledEngines] = useState<Set<string>>(new Set(["chatgpt", "gemini", "claude"]));
   const [decisionMakers, setDecisionMakers] = useState<string[]>([]);
   const [resultCount, setResultCount] = useState<number>(10);
   const [scoringMode, setScoringMode] = useState<"micro" | "quick" | "full">("quick");
@@ -1303,6 +1304,7 @@ export default function PromptGenerator() {
         brand_domain: brandDomain.trim() || undefined,
         mode: "full",
         source: "v2segment",
+        engines: Array.from(enabledEngines),
         profile: {
           persona: seg.persona,
           seedType: seg.seedType,
@@ -2541,6 +2543,7 @@ export default function PromptGenerator() {
                             setV2PromptsPerSegment(3);
                             setBrandName("");
                             setBrandDomain("");
+                            setEnabledEngines(new Set(["chatgpt", "gemini", "claude"]));
                           }}
                           data-testid="button-v2-new-session"
                         >
@@ -2593,6 +2596,36 @@ export default function PromptGenerator() {
                           </SelectContent>
                         </Select>
                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 mt-3">
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Engines</span>
+                      {(["chatgpt", "gemini", "claude"] as const).map((engine) => {
+                        const labels: Record<string, string> = { chatgpt: "ChatGPT", gemini: "Gemini", claude: "Claude" };
+                        const isChecked = enabledEngines.has(engine);
+                        return (
+                          <label key={engine} className="flex items-center gap-1.5 cursor-pointer" data-testid={`toggle-engine-${engine}`}>
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={(checked) => {
+                                setEnabledEngines((prev) => {
+                                  const next = new Set(prev);
+                                  if (checked) {
+                                    next.add(engine);
+                                  } else {
+                                    if (next.size > 1) next.delete(engine);
+                                  }
+                                  return next;
+                                });
+                              }}
+                            />
+                            <span className="text-xs">{labels[engine]}</span>
+                          </label>
+                        );
+                      })}
+                      {enabledEngines.size < 3 && (
+                        <span className="text-[10px] text-amber-500">({enabledEngines.size}/3 engines — reduced cost)</span>
+                      )}
                     </div>
 
                     <div className="border-t pt-4 space-y-4">
@@ -3023,6 +3056,7 @@ export default function PromptGenerator() {
                                   brand_domain: brandDomain.trim() || undefined,
                                   mode: "full",
                                   source: "v2segment",
+                                  engines: Array.from(enabledEngines),
                                   profile: {
                                     persona: seg.persona,
                                     seedType: seg.seedType,
@@ -3076,12 +3110,12 @@ export default function PromptGenerator() {
                           {v2IsAnalysing ? (
                             <>
                               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Analysing {v2Segments.length} segment{v2Segments.length > 1 ? "s" : ""} across 3 AI engines...
+                              Analysing {v2Segments.length} segment{v2Segments.length > 1 ? "s" : ""} across {enabledEngines.size} AI engine{enabledEngines.size > 1 ? "s" : ""}...
                             </>
                           ) : (
                             <>
                               <BarChart3 className="w-4 h-4 mr-2" />
-                              Analyse ({v2Segments.length} segment{v2Segments.length > 1 ? "s" : ""} x {v2PromptsPerSegment} prompts x 3 engines)
+                              Analyse ({v2Segments.length} segment{v2Segments.length > 1 ? "s" : ""} x {v2PromptsPerSegment} prompts x {enabledEngines.size} engine{enabledEngines.size > 1 ? "s" : ""})
                             </>
                           )}
                         </Button>

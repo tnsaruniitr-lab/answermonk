@@ -423,6 +423,7 @@ export async function registerRoutes(
       geo: z.string().nullable(),
     }).optional(),
     source: z.string().optional(),
+    engines: z.array(z.enum(["chatgpt", "gemini", "claude"])).min(1).optional(),
   });
 
   app.post("/api/scoring/run", async (req, res) => {
@@ -442,7 +443,7 @@ export async function registerRoutes(
         mode: parsed.mode,
         status: "running",
         promptCount: promptsToRun.length,
-        engineCount: 3,
+        engineCount: parsed.engines?.length ?? 3,
         source: parsed.source || null,
       });
 
@@ -458,6 +459,7 @@ export async function registerRoutes(
           undefined,
           undefined,
           categoryHint,
+          parsed.engines,
         );
 
         await storage.updateScoringJob(job.id, {

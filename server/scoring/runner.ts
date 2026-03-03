@@ -89,9 +89,11 @@ export async function runScoring(
   onProgress?: (completed: number, total: number) => void,
   aliases?: AliasEntry[],
   categoryHint?: string,
+  enabledEngines?: ScoringEngine[],
 ): Promise<ScoringRunResult> {
   const brand = buildBrandIdentity(brandName, brandDomain, aliases);
-  const totalCalls = prompts.length * ENGINES.length;
+  const activeEngines = enabledEngines && enabledEngines.length > 0 ? enabledEngines : ENGINES;
+  const totalCalls = prompts.length * activeEngines.length;
   let completed = 0;
 
   const allRawRuns: RawRunResult[] = [];
@@ -114,8 +116,9 @@ export async function runScoring(
     extraction: { tokens: { input_tokens: 0, output_tokens: 0 }, calls: 0 },
   };
 
+  console.log(`[Scoring] Running with engines: ${activeEngines.join(", ")}`);
   const engineResults = await Promise.all(
-    ENGINES.map(async (engine) => {
+    activeEngines.map(async (engine) => {
       const runs: RawRunResult[] = [];
       for (let i = 0; i < prompts.length; i += BATCH_SIZE) {
         const batch = prompts.slice(i, i + BATCH_SIZE);
