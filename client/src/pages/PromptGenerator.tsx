@@ -2598,8 +2598,10 @@ export default function PromptGenerator() {
                                 )}
                                 {seg.scoringResult && (
                                   <span className="text-[10px] text-muted-foreground">
-                                    {seg.persona.replace(/_/g, " ")} · {seg.location}
+                                    {seg.persona.replace(/_/g, " ")}
                                     {seg.serviceType ? ` · ${seg.serviceType}` : ""}
+                                    {seg.customerTypeEnabled && seg.customerType && seg.customerType !== "__none__" ? ` · ${seg.customerType}` : ""}
+                                    {` · ${seg.location}`}
                                   </span>
                                 )}
                               </div>
