@@ -2411,11 +2411,12 @@ export default function PromptGenerator() {
                             </label>
                             <Select
                               onValueChange={(v) => {
-                                navigate(`/v2/${v}`);
+                                const session = v2Sessions.find((s) => String(s.id) === v);
+                                if (session) loadV2Session(session);
                               }}
                             >
                               <SelectTrigger className="bg-secondary/50" data-testid="select-v2-session">
-                                <SelectValue placeholder="View a previous analysis..." />
+                                <SelectValue placeholder="Load a previous analysis..." />
                               </SelectTrigger>
                               <SelectContent>
                                 {v2Sessions.map((s) => {
