@@ -1233,6 +1233,7 @@ export default function PromptGenerator() {
   });
 
   const [v2Segments, setV2Segments] = useState<V2Segment[]>([makeSegment()]);
+  const [v2ExpandedConfigs, setV2ExpandedConfigs] = useState<Set<string>>(new Set());
   const [v2PromptsPerSegment, setV2PromptsPerSegment] = useState(3);
   const [v2IsAnalysing, setV2IsAnalysing] = useState(false);
   const [v2LoadedSessionId, setV2LoadedSessionId] = useState<number | null>(null);
@@ -2582,8 +2583,33 @@ export default function PromptGenerator() {
                                     Scored
                                   </Badge>
                                 )}
+                                {seg.scoringResult && (
+                                  <span className="text-[10px] text-muted-foreground">
+                                    {seg.persona.replace(/_/g, " ")} · {seg.location}
+                                    {seg.serviceType ? ` · ${seg.serviceType}` : ""}
+                                  </span>
+                                )}
                               </div>
                               <div className="flex items-center gap-1">
+                                {seg.scoringResult && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setV2ExpandedConfigs((prev) => {
+                                        const next = new Set(prev);
+                                        if (next.has(seg.id)) next.delete(seg.id); else next.add(seg.id);
+                                        return next;
+                                      });
+                                    }}
+                                    className="text-muted-foreground hover:text-primary h-7 px-2 text-xs gap-1"
+                                    data-testid={`button-v2-toggle-config-${idx}`}
+                                  >
+                                    {v2ExpandedConfigs.has(seg.id) ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                                    Edit
+                                  </Button>
+                                )}
                                 {seg.location.trim() && !seg.isScoring && (
                                   <Button
                                     type="button"
@@ -2613,216 +2639,216 @@ export default function PromptGenerator() {
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                  Persona
-                                </label>
-                                <Select
-                                  value={seg.persona}
-                                  onValueChange={(v) => {
-                                    const agencyPersonas = ["seo_agency", "performance_marketing_agency", "content_marketing_agency", "social_media_agency", "web_design_agency", "pr_agency", "branding_agency", "digital_marketing_agency"];
-                                    updateSegment(seg.id, {
-                                      persona: v,
-                                      customerType: "",
-                                      serviceType: "",
-                                      seedType: v === "restaurant" ? "restaurants" : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests"].includes(v) ? "__blank__" : agencyPersonas.includes(v) ? "agencies" : "providers",
-                                      prompts: null,
-                                    });
-                                  }}
-                                >
-                                  <SelectTrigger className="bg-secondary/50" data-testid={`select-v2-persona-${idx}`}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="marketing_agency">Marketing Agency</SelectItem>
-                                    <SelectItem value="seo_agency">SEO Agency</SelectItem>
-                                    <SelectItem value="performance_marketing_agency">Performance Marketing Agency</SelectItem>
-                                    <SelectItem value="content_marketing_agency">Content Marketing Agency</SelectItem>
-                                    <SelectItem value="social_media_agency">Social Media Agency</SelectItem>
-                                    <SelectItem value="web_design_agency">Web Design Agency</SelectItem>
-                                    <SelectItem value="pr_agency">PR Agency</SelectItem>
-                                    <SelectItem value="branding_agency">Branding Agency</SelectItem>
-                                    <SelectItem value="digital_marketing_agency">Digital Marketing Agency</SelectItem>
-                                    <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
-                                    <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
-                                    <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
-                                    <SelectItem value="accounting_automation">Accounting Automation</SelectItem>
-                                    <SelectItem value="invoice_management">Invoice Management</SelectItem>
-                                    <SelectItem value="restaurant">Restaurant</SelectItem>
-                                    <SelectItem value="construction_management">Construction Management Software</SelectItem>
-                                    <SelectItem value="in_home_healthcare">In-Home Healthcare</SelectItem>
-                                    <SelectItem value="at_home_healthcare">At-Home Healthcare</SelectItem>
-                                    <SelectItem value="weight_loss_help">Weight Loss Help</SelectItem>
-                                    <SelectItem value="in_home_blood_tests">In-Home Blood Tests</SelectItem>
-                                    <SelectItem value="at_home_blood_tests">At-Home Blood Tests</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                  Seed Type
-                                </label>
-                                <Select value={seg.seedType} onValueChange={(v) => updateSegment(seg.id, { seedType: v, prompts: null })}>
-                                  <SelectTrigger className="bg-secondary/50" data-testid={`select-v2-seed-type-${idx}`}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {seg.persona === "restaurant" ? (
-                                      <>
-                                        <SelectItem value="restaurants">Restaurants</SelectItem>
-                                        <SelectItem value="places">Places</SelectItem>
-                                        <SelectItem value="spots">Spots</SelectItem>
-                                        <SelectItem value="eateries">Eateries</SelectItem>
-                                        <SelectItem value="dining options">Dining Options</SelectItem>
-                                        <SelectItem value="cafes">Cafes</SelectItem>
-                                      </>
-                                    ) : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests"].includes(seg.persona) ? (
-                                      <>
-                                        <SelectItem value="__blank__">(None / Blank)</SelectItem>
-                                        <SelectItem value="providers">Providers</SelectItem>
-                                        <SelectItem value="services">Services</SelectItem>
-                                        <SelectItem value="companies">Companies</SelectItem>
-                                        <SelectItem value="clinics">Clinics</SelectItem>
-                                        <SelectItem value="programs">Programs</SelectItem>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <SelectItem value="software">Software</SelectItem>
-                                        <SelectItem value="providers">Providers</SelectItem>
-                                        <SelectItem value="vendors">Vendors</SelectItem>
-                                        <SelectItem value="platforms">Platforms</SelectItem>
-                                        <SelectItem value="tools">Tools</SelectItem>
-                                        <SelectItem value="solutions">Solutions</SelectItem>
-                                        <SelectItem value="companies">Companies</SelectItem>
-                                        <SelectItem value="agencies">Agencies</SelectItem>
-                                      </>
-                                    )}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                              <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                  Service Type <span className="text-muted-foreground/60 normal-case">(optional)</span>
-                                </label>
-                                <Select value={seg.serviceType || "__none__"} onValueChange={(v) => updateSegment(seg.id, { serviceType: v === "__none__" ? "" : v, prompts: null })}>
-                                  <SelectTrigger className="bg-secondary/50" data-testid={`select-v2-service-type-${idx}`}>
-                                    <SelectValue placeholder="Any service..." />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="__none__">
-                                      <span className="text-muted-foreground italic">Any service</span>
-                                    </SelectItem>
-                                    {(segPresets?.services || []).map((v) => (
-                                      <SelectItem key={v} value={v}>{v}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-                                  <span>{seg.persona === "restaurant" ? "Cuisine / Style" : "Customer Type"}</span>
-                                  <button
-                                    type="button"
-                                    className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${seg.customerTypeEnabled ? "bg-primary" : "bg-muted-foreground/30"}`}
-                                    onClick={() => updateSegment(seg.id, { customerTypeEnabled: !seg.customerTypeEnabled, customerType: !seg.customerTypeEnabled ? seg.customerType : "", prompts: null })}
-                                    data-testid={`toggle-v2-customer-type-${idx}`}
-                                  >
-                                    <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${seg.customerTypeEnabled ? "translate-x-3.5" : "translate-x-0.5"}`} />
-                                  </button>
-                                </label>
-                                <Select
-                                  value={seg.customerTypeEnabled ? (seg.customerType || "__none__") : "__none__"}
-                                  onValueChange={(v) => updateSegment(seg.id, { customerType: v === "__none__" ? "" : v, prompts: null })}
-                                  disabled={!seg.customerTypeEnabled}
-                                >
-                                  <SelectTrigger className={`bg-secondary/50 ${!seg.customerTypeEnabled ? "opacity-50" : ""}`} data-testid={`select-v2-customer-type-${idx}`}>
-                                    <SelectValue placeholder={seg.persona === "restaurant" ? "Any cuisine..." : "Any customer type..."} />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="__none__">
-                                      <span className="text-muted-foreground italic">{seg.persona === "restaurant" ? "Any cuisine" : "Any customer type"}</span>
-                                    </SelectItem>
-                                    {(segPresets?.verticals || []).map((v) => (
-                                      <SelectItem key={v} value={v}>{v}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                  Location (city or country)
-                                </label>
-                                <Input
-                                  value={seg.location}
-                                  onChange={(e) => updateSegment(seg.id, { location: e.target.value })}
-                                  placeholder="e.g. UAE, Dubai, Singapore"
-                                  className="bg-secondary/50 border-border"
-                                  data-testid={`input-v2-location-${idx}`}
+                            {seg.scoringResult && (
+                              <div className="pt-1">
+                                <SegmentResultsDashboard
+                                  score={seg.scoringResult.score}
+                                  brandName={brandName}
+                                  rawRuns={seg.scoringResult.raw_runs || []}
+                                  segmentLabel={`${idx + 1}`}
                                 />
                               </div>
-                            </div>
+                            )}
 
-                            <div className="space-y-1.5">
-                              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Result Count (find top N)
-                              </label>
-                              <Select value={String(seg.resultCount)} onValueChange={(v) => updateSegment(seg.id, { resultCount: Number(v), prompts: null })}>
-                                <SelectTrigger className="bg-secondary/50 w-24" data-testid={`select-v2-result-count-${idx}`}>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="3">3</SelectItem>
-                                  <SelectItem value="5">5</SelectItem>
-                                  <SelectItem value="10">10</SelectItem>
-                                  <SelectItem value="15">15</SelectItem>
-                                  <SelectItem value="20">20</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
+                            {seg.isScoring && (
+                              <div className="flex items-center gap-2 py-3 text-sm text-muted-foreground">
+                                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                                <span>Scoring across 3 AI engines...</span>
+                              </div>
+                            )}
 
-                            {seg.prompts && (
-                              <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                className="border-t pt-3"
-                              >
-                                <div className="flex items-center gap-2 mb-2">
-                                  <FileText className="w-3.5 h-3.5 text-primary" />
-                                  <span className="text-xs font-medium text-muted-foreground">
-                                    {seg.prompts.length} prompts generated
-                                  </span>
-                                </div>
-                                <div className="space-y-1 max-h-48 overflow-y-auto">
-                                  {seg.prompts.map((p, pi) => (
-                                    <div key={p.id} className="flex items-start gap-2 text-xs py-1 border-b last:border-b-0 border-border/50">
-                                      <span className="text-muted-foreground font-mono w-4 shrink-0 pt-0.5">{pi + 1}</span>
-                                      <span className="break-words flex-1">{p.text}</span>
-                                    </div>
-                                  ))}
-                                </div>
-
-                                {seg.isScoring && (
-                                  <div className="flex items-center gap-2 pt-2 text-xs text-muted-foreground">
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-                                    <span>Scoring across 3 AI engines...</span>
+                            {(!seg.scoringResult || v2ExpandedConfigs.has(seg.id)) && (
+                              <div className={`space-y-4 ${seg.scoringResult ? "border-t pt-4" : ""}`}>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <div className="space-y-1.5">
+                                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                      Persona
+                                    </label>
+                                    <Select
+                                      value={seg.persona}
+                                      onValueChange={(v) => {
+                                        const agencyPersonas = ["seo_agency", "performance_marketing_agency", "content_marketing_agency", "social_media_agency", "web_design_agency", "pr_agency", "branding_agency", "digital_marketing_agency"];
+                                        updateSegment(seg.id, {
+                                          persona: v,
+                                          customerType: "",
+                                          serviceType: "",
+                                          seedType: v === "restaurant" ? "restaurants" : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests"].includes(v) ? "__blank__" : agencyPersonas.includes(v) ? "agencies" : "providers",
+                                          prompts: null,
+                                        });
+                                      }}
+                                    >
+                                      <SelectTrigger className="bg-secondary/50" data-testid={`select-v2-persona-${idx}`}>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="marketing_agency">Marketing Agency</SelectItem>
+                                        <SelectItem value="seo_agency">SEO Agency</SelectItem>
+                                        <SelectItem value="performance_marketing_agency">Performance Marketing Agency</SelectItem>
+                                        <SelectItem value="content_marketing_agency">Content Marketing Agency</SelectItem>
+                                        <SelectItem value="social_media_agency">Social Media Agency</SelectItem>
+                                        <SelectItem value="web_design_agency">Web Design Agency</SelectItem>
+                                        <SelectItem value="pr_agency">PR Agency</SelectItem>
+                                        <SelectItem value="branding_agency">Branding Agency</SelectItem>
+                                        <SelectItem value="digital_marketing_agency">Digital Marketing Agency</SelectItem>
+                                        <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
+                                        <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
+                                        <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
+                                        <SelectItem value="accounting_automation">Accounting Automation</SelectItem>
+                                        <SelectItem value="invoice_management">Invoice Management</SelectItem>
+                                        <SelectItem value="restaurant">Restaurant</SelectItem>
+                                        <SelectItem value="construction_management">Construction Management Software</SelectItem>
+                                        <SelectItem value="in_home_healthcare">In-Home Healthcare</SelectItem>
+                                        <SelectItem value="at_home_healthcare">At-Home Healthcare</SelectItem>
+                                        <SelectItem value="weight_loss_help">Weight Loss Help</SelectItem>
+                                        <SelectItem value="in_home_blood_tests">In-Home Blood Tests</SelectItem>
+                                        <SelectItem value="at_home_blood_tests">At-Home Blood Tests</SelectItem>
+                                      </SelectContent>
+                                    </Select>
                                   </div>
-                                )}
+                                  <div className="space-y-1.5">
+                                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                      Seed Type
+                                    </label>
+                                    <Select value={seg.seedType} onValueChange={(v) => updateSegment(seg.id, { seedType: v, prompts: null })}>
+                                      <SelectTrigger className="bg-secondary/50" data-testid={`select-v2-seed-type-${idx}`}>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {seg.persona === "restaurant" ? (
+                                          <>
+                                            <SelectItem value="restaurants">Restaurants</SelectItem>
+                                            <SelectItem value="places">Places</SelectItem>
+                                            <SelectItem value="spots">Spots</SelectItem>
+                                            <SelectItem value="eateries">Eateries</SelectItem>
+                                            <SelectItem value="dining options">Dining Options</SelectItem>
+                                            <SelectItem value="cafes">Cafes</SelectItem>
+                                          </>
+                                        ) : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests"].includes(seg.persona) ? (
+                                          <>
+                                            <SelectItem value="__blank__">(None / Blank)</SelectItem>
+                                            <SelectItem value="providers">Providers</SelectItem>
+                                            <SelectItem value="services">Services</SelectItem>
+                                            <SelectItem value="companies">Companies</SelectItem>
+                                            <SelectItem value="clinics">Clinics</SelectItem>
+                                            <SelectItem value="programs">Programs</SelectItem>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <SelectItem value="software">Software</SelectItem>
+                                            <SelectItem value="providers">Providers</SelectItem>
+                                            <SelectItem value="vendors">Vendors</SelectItem>
+                                            <SelectItem value="platforms">Platforms</SelectItem>
+                                            <SelectItem value="tools">Tools</SelectItem>
+                                            <SelectItem value="solutions">Solutions</SelectItem>
+                                            <SelectItem value="companies">Companies</SelectItem>
+                                            <SelectItem value="agencies">Agencies</SelectItem>
+                                          </>
+                                        )}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
 
-                                {seg.scoringResult && (
-                                  <div className="pt-3 border-t">
-                                    <SegmentResultsDashboard
-                                      score={seg.scoringResult.score}
-                                      brandName={brandName}
-                                      rawRuns={seg.scoringResult.raw_runs || []}
-                                      segmentLabel={`${idx + 1}`}
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                  <div className="space-y-1.5">
+                                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                      Service Type <span className="text-muted-foreground/60 normal-case">(optional)</span>
+                                    </label>
+                                    <Select value={seg.serviceType || "__none__"} onValueChange={(v) => updateSegment(seg.id, { serviceType: v === "__none__" ? "" : v, prompts: null })}>
+                                      <SelectTrigger className="bg-secondary/50" data-testid={`select-v2-service-type-${idx}`}>
+                                        <SelectValue placeholder="Any service..." />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="__none__">
+                                          <span className="text-muted-foreground italic">Any service</span>
+                                        </SelectItem>
+                                        {(segPresets?.services || []).map((v) => (
+                                          <SelectItem key={v} value={v}>{v}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                                      <span>{seg.persona === "restaurant" ? "Cuisine / Style" : "Customer Type"}</span>
+                                      <button
+                                        type="button"
+                                        className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${seg.customerTypeEnabled ? "bg-primary" : "bg-muted-foreground/30"}`}
+                                        onClick={() => updateSegment(seg.id, { customerTypeEnabled: !seg.customerTypeEnabled, customerType: !seg.customerTypeEnabled ? seg.customerType : "", prompts: null })}
+                                        data-testid={`toggle-v2-customer-type-${idx}`}
+                                      >
+                                        <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${seg.customerTypeEnabled ? "translate-x-3.5" : "translate-x-0.5"}`} />
+                                      </button>
+                                    </label>
+                                    <Select
+                                      value={seg.customerTypeEnabled ? (seg.customerType || "__none__") : "__none__"}
+                                      onValueChange={(v) => updateSegment(seg.id, { customerType: v === "__none__" ? "" : v, prompts: null })}
+                                      disabled={!seg.customerTypeEnabled}
+                                    >
+                                      <SelectTrigger className={`bg-secondary/50 ${!seg.customerTypeEnabled ? "opacity-50" : ""}`} data-testid={`select-v2-customer-type-${idx}`}>
+                                        <SelectValue placeholder={seg.persona === "restaurant" ? "Any cuisine..." : "Any customer type..."} />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="__none__">
+                                          <span className="text-muted-foreground italic">{seg.persona === "restaurant" ? "Any cuisine" : "Any customer type"}</span>
+                                        </SelectItem>
+                                        {(segPresets?.verticals || []).map((v) => (
+                                          <SelectItem key={v} value={v}>{v}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                      Location (city or country)
+                                    </label>
+                                    <Input
+                                      value={seg.location}
+                                      onChange={(e) => updateSegment(seg.id, { location: e.target.value })}
+                                      placeholder="e.g. UAE, Dubai, Singapore"
+                                      className="bg-secondary/50 border-border"
+                                      data-testid={`input-v2-location-${idx}`}
                                     />
                                   </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                    Result Count (find top N)
+                                  </label>
+                                  <Select value={String(seg.resultCount)} onValueChange={(v) => updateSegment(seg.id, { resultCount: Number(v), prompts: null })}>
+                                    <SelectTrigger className="bg-secondary/50 w-24" data-testid={`select-v2-result-count-${idx}`}>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="3">3</SelectItem>
+                                      <SelectItem value="5">5</SelectItem>
+                                      <SelectItem value="10">10</SelectItem>
+                                      <SelectItem value="15">15</SelectItem>
+                                      <SelectItem value="20">20</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                {seg.prompts && (
+                                  <div className="border-t pt-3">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <FileText className="w-3.5 h-3.5 text-primary" />
+                                      <span className="text-xs font-medium text-muted-foreground">
+                                        {seg.prompts.length} prompts generated
+                                      </span>
+                                    </div>
+                                    <div className="space-y-1 max-h-48 overflow-y-auto">
+                                      {seg.prompts.map((p, pi) => (
+                                        <div key={p.id} className="flex items-start gap-2 text-xs py-1 border-b last:border-b-0 border-border/50">
+                                          <span className="text-muted-foreground font-mono w-4 shrink-0 pt-0.5">{pi + 1}</span>
+                                          <span className="break-words flex-1">{p.text}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
                                 )}
-                              </motion.div>
+                              </div>
                             )}
                           </Card>
                         );
