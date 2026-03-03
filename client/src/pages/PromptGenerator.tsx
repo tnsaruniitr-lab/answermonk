@@ -1017,9 +1017,18 @@ function generateQuickPrompts(
   count: number,
   location: string,
   promptCount: number = 10,
+  serviceType: string = "",
 ): Prompt[] {
   const PERSONA_CORE_LABELS: Record<string, string> = {
     marketing_agency: "marketing agency",
+    seo_agency: "SEO agency",
+    performance_marketing_agency: "performance marketing agency",
+    content_marketing_agency: "content marketing agency",
+    social_media_agency: "social media agency",
+    web_design_agency: "web design agency",
+    pr_agency: "PR agency",
+    branding_agency: "branding agency",
+    digital_marketing_agency: "digital marketing agency",
     automation_consultant: "automation",
     corporate_cards_provider: "corporate cards",
     expense_management_software: "expense management",
@@ -1034,6 +1043,7 @@ function generateQuickPrompts(
     at_home_blood_tests: "at-home blood tests",
   };
   const personaLabel = PERSONA_CORE_LABELS[persona] || persona.replace(/_/g, " ");
+  const serviceSuffix = serviceType ? ` specializing in ${serviceType}` : "";
   const prompts: Prompt[] = [];
   const isRestaurant = persona === "restaurant";
   const customerSuffix = customerType ? ` for ${customerType}` : "";
@@ -1046,9 +1056,9 @@ function generateQuickPrompts(
       const cuisinePhrase = customerType ? `${customerType} ` : "";
       text = `Recommend the ${qualifier} ${count} ${cuisinePhrase}${seedType} in ${location}. Focus on local favorites, quality, and atmosphere.`;
     } else if (!seedType || seedType === "__blank__") {
-      text = `Find, list and rank ${qualifier} ${count} ${personaLabel}${customerSuffix} in ${location}.`;
+      text = `Find, list and rank ${qualifier} ${count} ${personaLabel}${serviceSuffix}${customerSuffix} in ${location}.`;
     } else {
-      text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType}${customerSuffix} based in ${location}.`;
+      text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType}${serviceSuffix}${customerSuffix} based in ${location}.`;
     }
     prompts.push({
       id: `quick_${i + 1}`,
@@ -1196,7 +1206,9 @@ export default function PromptGenerator() {
     id: string;
     persona: string;
     seedType: string;
+    serviceType: string;
     customerType: string;
+    customerTypeEnabled: boolean;
     location: string;
     resultCount: number;
     prompts: Prompt[] | null;
@@ -1208,6 +1220,8 @@ export default function PromptGenerator() {
     id: `seg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     persona: "marketing_agency",
     seedType: "providers",
+    serviceType: "",
+    customerTypeEnabled: true,
     customerType: "",
     location: "",
     resultCount: 5,
@@ -1308,7 +1322,9 @@ export default function PromptGenerator() {
       id: `seg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       persona: s.persona || "marketing_agency",
       seedType: s.seedType || "providers",
+      serviceType: s.serviceType || "",
       customerType: s.customerType || "",
+      customerTypeEnabled: s.customerTypeEnabled !== false,
       location: s.location || "",
       resultCount: s.resultCount || 5,
       prompts: null,
@@ -1335,7 +1351,9 @@ export default function PromptGenerator() {
       id: `seg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       persona: s.persona || "marketing_agency",
       seedType: s.seedType || "providers",
+      serviceType: s.serviceType || "",
       customerType: s.customerType || "",
+      customerTypeEnabled: s.customerTypeEnabled !== false,
       location: s.location || "",
       resultCount: s.resultCount || 5,
       prompts: s.prompts || null,
@@ -2103,9 +2121,10 @@ export default function PromptGenerator() {
                         <Select
                           value={persona}
                           onValueChange={(v) => {
+                            const agencyPersonas = ["seo_agency", "performance_marketing_agency", "content_marketing_agency", "social_media_agency", "web_design_agency", "pr_agency", "branding_agency", "digital_marketing_agency"];
                             setPersona(v);
                             setQuickCustomerType("");
-                            setQuickSeedType(v === "restaurant" ? "restaurants" : "providers");
+                            setQuickSeedType(v === "restaurant" ? "restaurants" : agencyPersonas.includes(v) ? "agencies" : "providers");
                           }}
                         >
                           <SelectTrigger className="bg-secondary/50" data-testid="select-quick-persona">
@@ -2113,6 +2132,14 @@ export default function PromptGenerator() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="marketing_agency">Marketing Agency</SelectItem>
+                            <SelectItem value="seo_agency">SEO Agency</SelectItem>
+                            <SelectItem value="performance_marketing_agency">Performance Marketing Agency</SelectItem>
+                            <SelectItem value="content_marketing_agency">Content Marketing Agency</SelectItem>
+                            <SelectItem value="social_media_agency">Social Media Agency</SelectItem>
+                            <SelectItem value="web_design_agency">Web Design Agency</SelectItem>
+                            <SelectItem value="pr_agency">PR Agency</SelectItem>
+                            <SelectItem value="branding_agency">Branding Agency</SelectItem>
+                            <SelectItem value="digital_marketing_agency">Digital Marketing Agency</SelectItem>
                             <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
                             <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
                             <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
@@ -2484,10 +2511,12 @@ export default function PromptGenerator() {
                                 <Select
                                   value={seg.persona}
                                   onValueChange={(v) => {
+                                    const agencyPersonas = ["seo_agency", "performance_marketing_agency", "content_marketing_agency", "social_media_agency", "web_design_agency", "pr_agency", "branding_agency", "digital_marketing_agency"];
                                     updateSegment(seg.id, {
                                       persona: v,
                                       customerType: "",
-                                      seedType: v === "restaurant" ? "restaurants" : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests"].includes(v) ? "__blank__" : "providers",
+                                      serviceType: "",
+                                      seedType: v === "restaurant" ? "restaurants" : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests"].includes(v) ? "__blank__" : agencyPersonas.includes(v) ? "agencies" : "providers",
                                       prompts: null,
                                     });
                                   }}
@@ -2497,6 +2526,14 @@ export default function PromptGenerator() {
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="marketing_agency">Marketing Agency</SelectItem>
+                                    <SelectItem value="seo_agency">SEO Agency</SelectItem>
+                                    <SelectItem value="performance_marketing_agency">Performance Marketing Agency</SelectItem>
+                                    <SelectItem value="content_marketing_agency">Content Marketing Agency</SelectItem>
+                                    <SelectItem value="social_media_agency">Social Media Agency</SelectItem>
+                                    <SelectItem value="web_design_agency">Web Design Agency</SelectItem>
+                                    <SelectItem value="pr_agency">PR Agency</SelectItem>
+                                    <SelectItem value="branding_agency">Branding Agency</SelectItem>
+                                    <SelectItem value="digital_marketing_agency">Digital Marketing Agency</SelectItem>
                                     <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
                                     <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
                                     <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
@@ -2556,13 +2593,43 @@ export default function PromptGenerator() {
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                               <div className="space-y-1.5">
                                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                  {seg.persona === "restaurant" ? "Cuisine / Style" : "Customer Type"} <span className="text-muted-foreground/60 normal-case">(optional)</span>
+                                  Service Type <span className="text-muted-foreground/60 normal-case">(optional)</span>
                                 </label>
-                                <Select value={seg.customerType || "__none__"} onValueChange={(v) => updateSegment(seg.id, { customerType: v === "__none__" ? "" : v, prompts: null })}>
-                                  <SelectTrigger className="bg-secondary/50" data-testid={`select-v2-customer-type-${idx}`}>
+                                <Select value={seg.serviceType || "__none__"} onValueChange={(v) => updateSegment(seg.id, { serviceType: v === "__none__" ? "" : v, prompts: null })}>
+                                  <SelectTrigger className="bg-secondary/50" data-testid={`select-v2-service-type-${idx}`}>
+                                    <SelectValue placeholder="Any service..." />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="__none__">
+                                      <span className="text-muted-foreground italic">Any service</span>
+                                    </SelectItem>
+                                    {(segPresets?.services || []).map((v) => (
+                                      <SelectItem key={v} value={v}>{v}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                                  <span>{seg.persona === "restaurant" ? "Cuisine / Style" : "Customer Type"}</span>
+                                  <button
+                                    type="button"
+                                    className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${seg.customerTypeEnabled ? "bg-primary" : "bg-muted-foreground/30"}`}
+                                    onClick={() => updateSegment(seg.id, { customerTypeEnabled: !seg.customerTypeEnabled, customerType: !seg.customerTypeEnabled ? seg.customerType : "", prompts: null })}
+                                    data-testid={`toggle-v2-customer-type-${idx}`}
+                                  >
+                                    <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${seg.customerTypeEnabled ? "translate-x-3.5" : "translate-x-0.5"}`} />
+                                  </button>
+                                </label>
+                                <Select
+                                  value={seg.customerTypeEnabled ? (seg.customerType || "__none__") : "__none__"}
+                                  onValueChange={(v) => updateSegment(seg.id, { customerType: v === "__none__" ? "" : v, prompts: null })}
+                                  disabled={!seg.customerTypeEnabled}
+                                >
+                                  <SelectTrigger className={`bg-secondary/50 ${!seg.customerTypeEnabled ? "opacity-50" : ""}`} data-testid={`select-v2-customer-type-${idx}`}>
                                     <SelectValue placeholder={seg.persona === "restaurant" ? "Any cuisine..." : "Any customer type..."} />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -2711,7 +2778,9 @@ export default function PromptGenerator() {
                                 segments: v2Segments.map((seg) => ({
                                   persona: seg.persona,
                                   seedType: seg.seedType,
+                                  serviceType: seg.serviceType,
                                   customerType: seg.customerType,
+                                  customerTypeEnabled: seg.customerTypeEnabled,
                                   location: seg.location,
                                   resultCount: seg.resultCount,
                                 })),
@@ -2754,8 +2823,8 @@ export default function PromptGenerator() {
                             }
                             setV2Segments((prev) =>
                               prev.map((seg) => {
-                                const effectiveCustomerType = seg.customerType === "__none__" ? "" : seg.customerType;
-                                const prompts = generateQuickPrompts(seg.persona, seg.seedType, effectiveCustomerType, seg.resultCount, seg.location.trim(), v2PromptsPerSegment);
+                                const effectiveCustomerType = (seg.customerTypeEnabled && seg.customerType !== "__none__") ? seg.customerType : "";
+                                const prompts = generateQuickPrompts(seg.persona, seg.seedType, effectiveCustomerType, seg.resultCount, seg.location.trim(), v2PromptsPerSegment, seg.serviceType);
                                 return { ...seg, prompts, scoringResult: null, isScoring: false };
                               })
                             );
@@ -2776,6 +2845,7 @@ export default function PromptGenerator() {
                               id: seg.id,
                               persona: seg.persona,
                               seedType: seg.seedType,
+                              serviceType: seg.serviceType,
                               customerType: seg.customerType,
                               location: seg.location,
                               resultCount: seg.resultCount,
@@ -2796,7 +2866,7 @@ export default function PromptGenerator() {
                                   profile: {
                                     persona: seg.persona,
                                     seedType: seg.seedType,
-                                    services: [],
+                                    services: [seg.serviceType].filter(Boolean),
                                     verticals: [seg.customerType].filter(Boolean),
                                     geo: seg.location.trim() || null,
                                   },
@@ -2815,6 +2885,7 @@ export default function PromptGenerator() {
                               const segmentsToSave = segSnapshot.map((seg) => ({
                                 persona: seg.persona,
                                 seedType: seg.seedType,
+                                serviceType: seg.serviceType,
                                 customerType: seg.customerType,
                                 location: seg.location,
                                 resultCount: seg.resultCount,

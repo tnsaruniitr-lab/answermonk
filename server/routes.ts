@@ -220,7 +220,8 @@ export async function registerRoutes(
 
   app.get("/api/promptgen/presets", (req, res) => {
     const persona = req.query.persona as string;
-    if (persona === "marketing_agency") {
+    const AGENCY_PERSONAS = ["marketing_agency", "seo_agency", "performance_marketing_agency", "content_marketing_agency", "social_media_agency", "web_design_agency", "pr_agency", "branding_agency", "digital_marketing_agency"];
+    if (AGENCY_PERSONAS.includes(persona)) {
       res.json({
         services: MARKETING_CHANNELS,
         verticals: MARKETING_VERTICALS,
@@ -309,13 +310,22 @@ export async function registerRoutes(
         budget_tiers: Object.keys(BUDGET_ADJECTIVES[persona as keyof typeof BUDGET_ADJECTIVES]),
       });
     } else {
-      res.json({
-        marketing_agency: {
+      const agencyPreset = {
           services: MARKETING_CHANNELS,
           verticals: MARKETING_VERTICALS,
           modifiers: MARKETING_MODIFIERS,
           decision_makers: DECISION_MAKERS,
-        },
+        };
+      res.json({
+        marketing_agency: agencyPreset,
+        seo_agency: agencyPreset,
+        performance_marketing_agency: agencyPreset,
+        content_marketing_agency: agencyPreset,
+        social_media_agency: agencyPreset,
+        web_design_agency: agencyPreset,
+        pr_agency: agencyPreset,
+        branding_agency: agencyPreset,
+        digital_marketing_agency: agencyPreset,
         automation_consultant: {
           services: AUTOMATION_SERVICES,
           verticals: AUTOMATION_VERTICALS,

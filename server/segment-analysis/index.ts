@@ -12,6 +12,14 @@ import type { CrawledPage } from "../crawler";
 
 const PERSONA_CORE_LABELS: Record<string, string> = {
   marketing_agency: "marketing agency",
+  seo_agency: "SEO agency",
+  performance_marketing_agency: "performance marketing agency",
+  content_marketing_agency: "content marketing agency",
+  social_media_agency: "social media agency",
+  web_design_agency: "web design agency",
+  pr_agency: "PR agency",
+  branding_agency: "branding agency",
+  digital_marketing_agency: "digital marketing agency",
   automation_consultant: "automation",
   corporate_cards_provider: "corporate cards",
   expense_management_software: "expense management",
@@ -25,14 +33,17 @@ const PERSONA_CORE_LABELS: Record<string, string> = {
   at_home_blood_tests: "at-home blood tests",
 };
 
-function buildSegmentLabel(seg: { persona?: string; seedType: string; customerType: string }): string {
+function buildSegmentLabel(seg: { persona?: string; seedType: string; customerType: string; serviceType?: string }): string {
   const personaLabel = seg.persona ? (PERSONA_CORE_LABELS[seg.persona] || seg.persona.replace(/_/g, " ")) : "";
   const isBlankSeed = !seg.seedType || seg.seedType.toLowerCase() === "blank";
   const seedLabel = isBlankSeed ? "" : seg.seedType.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
   const category = personaLabel
     ? (seedLabel ? `${personaLabel.charAt(0).toUpperCase() + personaLabel.slice(1)} ${seedLabel}` : personaLabel.charAt(0).toUpperCase() + personaLabel.slice(1))
     : seedLabel;
-  return [category, seg.customerType].filter(Boolean).join(" for ");
+  const parts = [category];
+  if (seg.serviceType) parts.push(`(${seg.serviceType})`);
+  if (seg.customerType) parts.push(`for ${seg.customerType}`);
+  return parts.filter(Boolean).join(" ");
 }
 
 export interface SegmentAnalysisResult {

@@ -639,6 +639,46 @@ export const BUDGET_ADJECTIVES: Record<PersonaType, Record<BudgetTier, string[]>
     mid: ["reasonably priced", "good value", "well-priced"],
     premium: ["premium", "high-end", "top-tier"],
   },
+  seo_agency: {
+    budget: ["affordable", "low-cost", "budget-friendly"],
+    mid: ["reasonably priced", "good value", "well-priced"],
+    premium: ["premium", "high-end", "top-tier"],
+  },
+  performance_marketing_agency: {
+    budget: ["affordable", "low-cost", "budget-friendly"],
+    mid: ["reasonably priced", "good value", "well-priced"],
+    premium: ["premium", "high-end", "top-tier"],
+  },
+  content_marketing_agency: {
+    budget: ["affordable", "low-cost", "budget-friendly"],
+    mid: ["reasonably priced", "good value", "well-priced"],
+    premium: ["premium", "high-end", "top-tier"],
+  },
+  social_media_agency: {
+    budget: ["affordable", "low-cost", "budget-friendly"],
+    mid: ["reasonably priced", "good value", "well-priced"],
+    premium: ["premium", "high-end", "top-tier"],
+  },
+  web_design_agency: {
+    budget: ["affordable", "low-cost", "budget-friendly"],
+    mid: ["reasonably priced", "good value", "well-priced"],
+    premium: ["premium", "high-end", "top-tier"],
+  },
+  pr_agency: {
+    budget: ["affordable", "low-cost", "budget-friendly"],
+    mid: ["reasonably priced", "good value", "well-priced"],
+    premium: ["premium", "high-end", "top-tier"],
+  },
+  branding_agency: {
+    budget: ["affordable", "low-cost", "budget-friendly"],
+    mid: ["reasonably priced", "good value", "well-priced"],
+    premium: ["premium", "high-end", "top-tier"],
+  },
+  digital_marketing_agency: {
+    budget: ["affordable", "low-cost", "budget-friendly"],
+    mid: ["reasonably priced", "good value", "well-priced"],
+    premium: ["premium", "high-end", "top-tier"],
+  },
   automation_consultant: {
     budget: ["freelancer-friendly", "startup-budget", "affordable"],
     mid: ["experienced", "good value", "mid-range"],
@@ -822,7 +862,15 @@ export function dedupeByKey<T extends { key: string }>(terms: T[]): T[] {
 
 function getModifierKnownList(personaType: PersonaType): string[] {
   switch (personaType) {
-    case "marketing_agency": return MARKETING_CHANNELS;
+    case "marketing_agency":
+    case "seo_agency":
+    case "performance_marketing_agency":
+    case "content_marketing_agency":
+    case "social_media_agency":
+    case "web_design_agency":
+    case "pr_agency":
+    case "branding_agency":
+    case "digital_marketing_agency": return MARKETING_CHANNELS;
     case "corporate_cards_provider": return CORPORATE_CARDS_MODIFIERS;
     case "expense_management_software": return EXPENSE_MANAGEMENT_MODIFIERS;
     case "accounting_automation": return ACCOUNTING_AUTOMATION_MODIFIERS;
@@ -862,6 +910,14 @@ export function resolveModifier(
 
 const SERVICE_VERB_PREFIXES: Record<PersonaType, string[]> = {
   marketing_agency: ["run", "manage", "handle"],
+  seo_agency: ["run", "manage", "handle"],
+  performance_marketing_agency: ["run", "manage", "handle"],
+  content_marketing_agency: ["create", "produce", "manage"],
+  social_media_agency: ["run", "manage", "handle"],
+  web_design_agency: ["design", "build", "create"],
+  pr_agency: ["run", "manage", "handle"],
+  branding_agency: ["create", "develop", "design"],
+  digital_marketing_agency: ["run", "manage", "handle"],
   automation_consultant: ["set up", "build", "automate"],
   corporate_cards_provider: ["provide", "offer", "manage"],
   expense_management_software: ["handle", "automate", "manage"],
@@ -887,8 +943,10 @@ export function ensureServiceVerb(service: string, personaType: PersonaType, rng
   return `${verb} ${service.trim()}`;
 }
 
+const AGENCY_PERSONAS = ["marketing_agency", "seo_agency", "performance_marketing_agency", "content_marketing_agency", "social_media_agency", "web_design_agency", "pr_agency", "branding_agency", "digital_marketing_agency"];
+
 export function getPresetsForPersona(personaType: PersonaType) {
-  if (personaType === "marketing_agency") {
+  if (AGENCY_PERSONAS.includes(personaType)) {
     return {
       services: MARKETING_CHANNELS,
       verticals: MARKETING_VERTICALS,

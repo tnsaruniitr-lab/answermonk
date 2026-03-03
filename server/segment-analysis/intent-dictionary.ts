@@ -65,7 +65,7 @@ const SEGMENT_CATEGORY_DICTIONARY: Record<string, SegmentTerms> = {
       "link building", "technical seo", "seo strategy",
     ],
   },
-  "web_design": {
+  "web_design_agency": {
     explicit: [
       "web design", "web design agency", "website design",
       "web development", "web developer", "website development",
@@ -75,7 +75,7 @@ const SEGMENT_CATEGORY_DICTIONARY: Record<string, SegmentTerms> = {
       "ux design", "responsive design", "web studio",
     ],
   },
-  "social_media": {
+  "social_media_agency": {
     explicit: [
       "social media agency", "social media management",
       "social media marketing", "smm", "social media services",
@@ -103,6 +103,36 @@ const SEGMENT_CATEGORY_DICTIONARY: Record<string, SegmentTerms> = {
     weak: [
       "brand identity", "brand design", "brand development",
       "visual identity", "brand consulting",
+    ],
+  },
+  "performance_marketing_agency": {
+    explicit: [
+      "performance marketing agency", "performance marketing",
+      "performance agency", "growth marketing agency",
+    ],
+    weak: [
+      "paid media", "roi-driven marketing", "conversion optimization",
+      "paid advertising", "media buying", "growth hacking",
+    ],
+  },
+  "content_marketing_agency": {
+    explicit: [
+      "content marketing agency", "content agency",
+      "content marketing", "content strategy agency",
+    ],
+    weak: [
+      "content creation", "blog writing", "content strategy",
+      "copywriting", "editorial", "thought leadership",
+    ],
+  },
+  "digital_marketing_agency": {
+    explicit: [
+      "digital marketing agency", "digital agency",
+      "digital marketing", "online marketing agency",
+    ],
+    weak: [
+      "online advertising", "digital strategy", "internet marketing",
+      "multi-channel marketing", "omnichannel marketing",
     ],
   },
   "restaurant": {

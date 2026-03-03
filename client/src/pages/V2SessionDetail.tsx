@@ -201,6 +201,14 @@ function SegmentCard({ seg, idx, brandName }: { seg: SegmentData; idx: number; b
   const rawRuns = seg.scoringResult?.raw_runs || [];
   const PERSONA_CORE_LABELS: Record<string, string> = {
     marketing_agency: "marketing agency",
+    seo_agency: "SEO agency",
+    performance_marketing_agency: "performance marketing agency",
+    content_marketing_agency: "content marketing agency",
+    social_media_agency: "social media agency",
+    web_design_agency: "web design agency",
+    pr_agency: "PR agency",
+    branding_agency: "branding agency",
+    digital_marketing_agency: "digital marketing agency",
     automation_consultant: "automation",
     corporate_cards_provider: "corporate cards",
     expense_management_software: "expense management",
@@ -215,7 +223,10 @@ function SegmentCard({ seg, idx, brandName }: { seg: SegmentData; idx: number; b
   const category = personaLabel
     ? `${personaLabel.charAt(0).toUpperCase() + personaLabel.slice(1)} ${seedLabel}`
     : seedLabel;
-  const segLabel = [category, seg.customerType].filter(Boolean).join(" for ");
+  const labelParts = [category];
+  if (seg.serviceType) labelParts.push(`(${seg.serviceType})`);
+  if (seg.customerType) labelParts.push(`for ${seg.customerType}`);
+  const segLabel = labelParts.filter(Boolean).join(" ");
 
   return (
     <Card className="overflow-hidden" data-testid={`card-v2-segment-${idx}`}>
