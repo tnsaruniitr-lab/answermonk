@@ -851,6 +851,14 @@ function SegmentResultsDashboard({ score, brandName, rawRuns, segmentLabel }: {
   const [showSources, setShowSources] = useState(false);
   const [showRawRuns, setShowRawRuns] = useState(false);
 
+  if (!score || typeof score.appearance_rate === "undefined") {
+    return (
+      <div className="text-xs text-muted-foreground py-2" data-testid={`segment-results-${segmentLabel}`}>
+        Score data unavailable for this segment.
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4" data-testid={`segment-results-${segmentLabel}`}>
       <div className="grid grid-cols-3 gap-2">
