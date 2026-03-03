@@ -2485,9 +2485,14 @@ export default function PromptGenerator() {
                               Past Results
                             </label>
                             <Select
-                              onValueChange={(v) => {
-                                const session = v2Sessions.find((s) => String(s.id) === v);
-                                if (session) loadV2Session(session);
+                              onValueChange={async (v) => {
+                                try {
+                                  const res = await apiRequest("GET", `/api/multisegment/sessions/${v}`);
+                                  const fullSession = await res.json();
+                                  loadV2Session(fullSession);
+                                } catch (err) {
+                                  toast({ title: "Failed to load session", description: "Could not fetch full session data.", variant: "destructive" });
+                                }
                               }}
                             >
                               <SelectTrigger className="bg-secondary/50" data-testid="select-v2-session">
