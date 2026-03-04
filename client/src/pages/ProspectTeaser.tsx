@@ -1762,20 +1762,20 @@ export default function ProspectTeaser() {
                   marginBottom: 18,
                 }}
               >
-                Be the best... because AI said so :)
+                Win AI recommendations and content
               </h2>
               <p
                 style={{
                   fontSize: 15,
                   color: V.text,
-                  maxWidth: 420,
+                  maxWidth: 480,
                   margin: "0 auto 40px",
                   lineHeight: 1.75,
                 }}
               >
-                This preview covers the surface. The full audit includes every segment, every prompt,
-                competitor playbook, authority acquisition roadmap, and the exact narrative strategy to
-                fix what AI says about {brandName}.
+                This preview is a snapshot. The full audit includes the full prompt set, engine-by-engine
+                transcripts, segment breakdowns, competitor narrative analysis, an authority roadmap,
+                and a prioritized fix plan to improve what AI says about {brandName}.
               </p>
               <button
                 onClick={() => setShowSurvey(true)}
@@ -1799,7 +1799,7 @@ export default function ProspectTeaser() {
                 onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(201,168,76,0.25)"; }}
                 data-testid="button-cta"
               >
-                Request Full Audit
+                Request the Full Audit
               </button>
             </>
           )}
