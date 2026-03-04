@@ -373,7 +373,7 @@ function LockedOverlay({ count, label }: { count: number; label: string }) {
         alignItems: "center",
         justifyContent: "center",
         background:
-          "radial-gradient(ellipse at center, rgba(7,9,15,0.55) 0%, rgba(7,9,15,0.92) 65%)",
+          "radial-gradient(ellipse at center, rgba(7,9,15,0.50) 0%, rgba(7,9,15,0.95) 60%)",
         zIndex: 2,
         cursor: "default",
         overflow: "hidden",
@@ -780,21 +780,35 @@ export default function ProspectTeaser() {
             }}
           />
           <div style={{ ...S.eyebrow, color: V.muted }}>Overall AI Visibility Score</div>
-          <div
-            ref={scoreCount.ref as any}
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: 88,
-              fontWeight: 700,
-              color: V.goldLight,
-              lineHeight: 1,
-              marginBottom: 6,
-              animation: "teaser-score-enter 1.2s cubic-bezier(0.16, 1, 0.3, 1) both",
-            }}
-            data-testid="text-score-num"
-          >
-            {scoreCount.value}
-            <sup style={{ fontSize: 40, verticalAlign: "super" }}>%</sup>
+          <div style={{ position: "relative", display: "inline-block" }}>
+            <div style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 180,
+              height: 180,
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(201,168,76,0.10) 0%, rgba(201,168,76,0.03) 50%, transparent 70%)",
+              pointerEvents: "none",
+            }} />
+            <div
+              ref={scoreCount.ref as any}
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 96,
+                fontWeight: 700,
+                color: V.goldLight,
+                lineHeight: 1,
+                marginBottom: 6,
+                position: "relative",
+                animation: "teaser-score-enter 1.2s cubic-bezier(0.16, 1, 0.3, 1) both",
+              }}
+              data-testid="text-score-num"
+            >
+              {scoreCount.value}
+              <sup style={{ fontSize: 42, verticalAlign: "super" }}>%</sup>
+            </div>
           </div>
           <div
             style={{ fontSize: 13, color: V.mutedMd, marginBottom: 36 }}
@@ -899,27 +913,28 @@ export default function ProspectTeaser() {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "88px 1fr 48px",
+                    gridTemplateColumns: "100px 1fr 56px",
                     gap: 16,
                     alignItems: "center",
-                    marginBottom: 8,
+                    marginBottom: 10,
                   }}
                 >
                   <div
                     style={{
                       fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 12,
-                      color: V.text,
+                      fontSize: 14,
+                      color: V.textBright,
                       letterSpacing: "0.04em",
+                      fontWeight: 500,
                     }}
                   >
                     {eng.label}
                   </div>
                   <div
                     style={{
-                      height: 3,
+                      height: 7,
                       background: "rgba(255,255,255,0.05)",
-                      borderRadius: 2,
+                      borderRadius: 4,
                       overflow: "hidden",
                     }}
                   >
@@ -928,7 +943,7 @@ export default function ProspectTeaser() {
                       data-width={`${pct}%`}
                       style={{
                         height: "100%",
-                        borderRadius: 2,
+                        borderRadius: 4,
                         background: c,
                       }}
                     />
@@ -936,8 +951,8 @@ export default function ProspectTeaser() {
                   <div
                     style={{
                       fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 14,
-                      fontWeight: 500,
+                      fontSize: 16,
+                      fontWeight: 600,
                       textAlign: "right",
                       color: c,
                     }}
@@ -947,10 +962,10 @@ export default function ProspectTeaser() {
                 </div>
                 <div
                   style={{
-                    fontSize: 11.5,
-                    color: eng.color === "red" ? V.red : V.muted,
-                    lineHeight: 1.5,
-                    paddingLeft: 104,
+                    fontSize: 12,
+                    color: eng.color === "red" ? V.red : V.mutedMd,
+                    lineHeight: 1.6,
+                    paddingLeft: 116,
                   }}
                   dangerouslySetInnerHTML={{
                     __html: eng.note.replace(
@@ -1106,10 +1121,10 @@ export default function ProspectTeaser() {
               <div style={{ position: "relative", marginTop: 10 }}>
                 <div
                   style={{
-                    filter: "blur(5px)",
+                    filter: "blur(8px)",
                     pointerEvents: "none",
                     userSelect: "none",
-                    opacity: 0.25,
+                    opacity: 0.2,
                   }}
                 >
                   {lockedInsights.map((insight, i) => (
@@ -1230,10 +1245,10 @@ export default function ProspectTeaser() {
               <div style={{ position: "relative", marginTop: 10 }}>
                 <div
                   style={{
-                    filter: "blur(5px)",
+                    filter: "blur(8px)",
                     pointerEvents: "none",
                     userSelect: "none",
-                    opacity: 0.25,
+                    opacity: 0.2,
                   }}
                 >
                   {lockedActions.map((action, i) => (
@@ -1271,7 +1286,7 @@ export default function ProspectTeaser() {
                     alignItems: "center",
                     justifyContent: "center",
                     background:
-                      "radial-gradient(ellipse at center, rgba(7,9,15,0.55) 0%, rgba(7,9,15,0.92) 65%)",
+                      "radial-gradient(ellipse at center, rgba(7,9,15,0.50) 0%, rgba(7,9,15,0.95) 60%)",
                     zIndex: 2,
                     overflow: "hidden",
                   }}
@@ -1355,10 +1370,11 @@ export default function ProspectTeaser() {
                     gridTemplateColumns: "32px 1fr 1fr 56px",
                     gap: 14,
                     alignItems: "center",
-                    padding: "14px 18px",
+                    padding: isBrand ? "18px 18px" : "14px 18px",
                     borderBottom: `1px solid ${V.border}`,
-                    background: isBrand ? "rgba(201,168,76,0.04)" : "transparent",
-                    borderLeft: isBrand ? `2px solid ${V.gold}` : "2px solid transparent",
+                    background: isBrand ? "rgba(201,168,76,0.06)" : "transparent",
+                    borderLeft: isBrand ? `3px solid ${V.gold}` : "3px solid transparent",
+                    boxShadow: isBrand ? "inset 0 0 30px rgba(201,168,76,0.04)" : "none",
                   }}
                   data-testid={`ranking-row-${i}`}
                 >
@@ -1417,9 +1433,9 @@ export default function ProspectTeaser() {
                     <div
                       style={{
                         flex: 1,
-                        height: 3,
+                        height: 5,
                         background: "rgba(255,255,255,0.05)",
-                        borderRadius: 2,
+                        borderRadius: 3,
                         overflow: "hidden",
                       }}
                     >
@@ -1428,7 +1444,7 @@ export default function ProspectTeaser() {
                         data-width={`${entry.share}%`}
                         style={{
                           height: "100%",
-                          borderRadius: 2,
+                          borderRadius: 3,
                           background: isBrand ? V.gold : V.borderMd,
                         }}
                       />
@@ -1451,8 +1467,10 @@ export default function ProspectTeaser() {
           </div>
         </div>
 
+        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 10%, ${V.borderMd} 50%, transparent 90%)` }} />
+
         {/* 07 · Customer Type Analysis — right after Competitive Ranking */}
-        <div ref={reveal} style={{ marginBottom: 100, marginTop: 20 }} data-testid="section-segments">
+        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-segments">
           <SectionNumber num="07" />
           <h2
             style={{
@@ -1620,10 +1638,10 @@ export default function ProspectTeaser() {
               <div style={{ position: "relative", marginTop: 3 }}>
                 <div
                   style={{
-                    filter: "blur(4px)",
+                    filter: "blur(8px)",
                     pointerEvents: "none",
                     userSelect: "none",
-                    opacity: 0.25,
+                    opacity: 0.2,
                   }}
                 >
                   {lockedSegments.slice(0, 3).map((seg, i) => (
@@ -1706,13 +1724,15 @@ export default function ProspectTeaser() {
           ref={reveal}
           style={{
             textAlign: "center",
-            padding: "72px 48px",
-            border: `1px solid ${V.border}`,
+            padding: "80px 48px",
+            border: `1px solid rgba(201,168,76,0.15)`,
+            borderTop: `2px solid ${V.gold}`,
             borderRadius: 3,
             background: V.surface,
             position: "relative",
             overflow: "hidden",
             marginTop: 60,
+            boxShadow: "0 0 60px rgba(201,168,76,0.04)",
           }}
           data-testid="section-cta"
         >
@@ -1761,18 +1781,22 @@ export default function ProspectTeaser() {
                 onClick={() => setShowSurvey(true)}
                 style={{
                   display: "inline-block",
-                  background: V.gold,
+                  background: `linear-gradient(135deg, ${V.gold} 0%, ${V.goldLight} 100%)`,
                   color: V.bg,
                   fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 11,
-                  fontWeight: 500,
-                  letterSpacing: "0.12em",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.14em",
                   textTransform: "uppercase",
-                  padding: "15px 40px",
-                  borderRadius: 2,
+                  padding: "18px 52px",
+                  borderRadius: 3,
                   cursor: "pointer",
                   border: "none",
+                  boxShadow: "0 4px 20px rgba(201,168,76,0.25)",
+                  transition: "transform 0.2s ease, box-shadow 0.2s ease",
                 }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 6px 28px rgba(201,168,76,0.35)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(201,168,76,0.25)"; }}
                 data-testid="button-cta"
               >
                 Request Full Audit
