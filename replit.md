@@ -41,8 +41,9 @@ The application adopts a monorepo structure, separating concerns into `client/` 
 ### Database
 - **Type**: PostgreSQL, accessed via `DATABASE_URL`.
 - **ORM**: Drizzle ORM for schema management and data access.
-- **Schema**: Includes tables for `analysis_results`, `scoring_jobs` (for GEO scoring runs), `multi_segment_sessions` (V2 analysis sessions with per-segment scoring results), and `saved_v2_configs` (for reusable multi-segment configurations).
+- **Schema**: Includes tables for `analysis_results`, `scoring_jobs` (for GEO scoring runs), `multi_segment_sessions` (V2 analysis sessions with per-segment scoring results, cached reports), `saved_v2_configs` (for reusable multi-segment configurations), and `report_cache` (key-value cache for group key session reports).
 - **Session Management**: V2 sessions support per-segment re-run (re-score individual segments without re-running the entire analysis) and incremental segment addition (add new segments to an existing session). Sessions auto-save via PATCH endpoint (`/api/multisegment/sessions/:id/segments`). Loaded sessions show an "Editing session #N" indicator with a "Start Fresh" button.
+- **Report Caching**: Full GEO reports are persisted after first generation. Numeric sessions use `cached_report` JSONB column on `multi_segment_sessions`. Group key sessions use `report_cache` table with key `group:{groupKey}:report`. Cache is automatically invalidated when segments or citation reports update. Frontend checks cache first (`?cached_only=true`) — if cached, loads instantly; if not, shows "Generate Full Report" button. Users can force regeneration via "Regenerate" button (`?force=true`). Impact Summary page also benefits from backend caching.
 
 ### Build System
 - **Development**: Uses `tsx` for the server and Vite for the client with HMR.

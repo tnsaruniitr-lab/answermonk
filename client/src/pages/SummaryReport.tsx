@@ -90,7 +90,7 @@ export default function SummaryReport() {
       if (!res.ok) throw new Error("Failed to load report");
       return res.json();
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: Infinity,
   });
 
   if (isLoading) {
@@ -98,7 +98,7 @@ export default function SummaryReport() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground text-lg" data-testid="text-loading">Generating summary report...</p>
+          <p className="text-muted-foreground text-lg" data-testid="text-loading">Loading summary report...</p>
         </div>
       </div>
     );

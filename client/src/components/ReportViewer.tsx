@@ -537,32 +537,84 @@ const STRENGTH_BG: Record<string, string> = {
 
 export function ReportViewer({ sessionId, brandName, groupKey }: ReportViewerProps) {
   const [showReport, setShowReport] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const effectiveGroupKey = groupKey && groupKey.length > 0 ? groupKey : null;
-  const reportUrl = effectiveGroupKey
+  const baseReportUrl = effectiveGroupKey
     ? `/api/scoring/v2-groups/${effectiveGroupKey}/report`
     : `/api/multi-segment-sessions/${sessionId}/report`;
   const hasValidId = effectiveGroupKey ? true : sessionId !== null;
 
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: effectiveGroupKey
-      ? ["/api/scoring/v2-groups", effectiveGroupKey, "report"]
-      : ["/api/multi-segment-sessions", sessionId, "report"],
+  const queryKey = effectiveGroupKey
+    ? ["/api/scoring/v2-groups", effectiveGroupKey, "report"]
+    : ["/api/multi-segment-sessions", sessionId, "report"];
+
+  const { data, isLoading, error } = useQuery({
+    queryKey,
     queryFn: async () => {
-      const res = await fetch(reportUrl);
-      if (!res.ok) throw new Error("Failed to generate report");
+      const res = await fetch(`${baseReportUrl}?cached_only=true`);
+      if (!res.ok) throw new Error("Failed to check report cache");
       return res.json();
     },
-    enabled: showReport && hasValidId,
+    enabled: hasValidId,
+    staleTime: Infinity,
   });
 
-  const report = data?.report;
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    try {
+      const res = await fetch(baseReportUrl);
+      if (!res.ok) throw new Error("Failed to generate report");
+      const result = await res.json();
+      const { queryClient } = await import("@/lib/queryClient");
+      queryClient.setQueryData(queryKey, result);
+    } catch {}
+    setIsGenerating(false);
+  };
 
-  if (!showReport) {
+  const handleRegenerate = async () => {
+    setIsRegenerating(true);
+    try {
+      const res = await fetch(`${baseReportUrl}?force=true`);
+      if (!res.ok) throw new Error("Failed to regenerate report");
+      const result = await res.json();
+      const { queryClient } = await import("@/lib/queryClient");
+      queryClient.setQueryData(queryKey, result);
+    } catch {}
+    setIsRegenerating(false);
+  };
+
+  const report = data?.report;
+  const isCached = data?.cached === true;
+
+  if (isLoading) {
+    return (
+      <div className="mt-6">
+        <Card className="p-8 flex flex-col items-center justify-center gap-3">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Checking for report...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isGenerating) {
+    return (
+      <div className="mt-6">
+        <Card className="p-8 flex flex-col items-center justify-center gap-3">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Generating report for {brandName}...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!report) {
     return (
       <div className="mt-6">
         <Button
-          onClick={() => setShowReport(true)}
+          onClick={handleGenerate}
           className="w-full gap-2"
           size="lg"
           data-testid="button-generate-report"
@@ -574,39 +626,40 @@ export function ReportViewer({ sessionId, brandName, groupKey }: ReportViewerPro
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="mt-6">
-        <Card className="p-8 flex flex-col items-center justify-center gap-3">
-          <Loader2 className="w-6 h-6 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Generating report for {brandName}...</p>
-        </Card>
-      </div>
-    );
-  }
-
-  if (error || !report) {
-    return (
-      <div className="mt-6">
-        <Card className="p-6 text-center space-y-3">
-          <AlertTriangle className="w-5 h-5 text-destructive mx-auto" />
-          <p className="text-sm text-muted-foreground">Failed to generate report. Make sure citation analysis has been run first.</p>
-          <Button variant="outline" size="sm" onClick={() => refetch()} data-testid="button-retry-report">
-            Retry
-          </Button>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="mt-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold flex items-center gap-2" data-testid="text-report-title">
-          <FileText className="w-5 h-5" />
-          GEO Report — {report.meta.brandName}
-        </h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold flex items-center gap-2" data-testid="text-report-title">
+            <FileText className="w-5 h-5" />
+            GEO Report — {report.meta.brandName}
+          </h2>
+          {isCached && (
+            <Badge variant="outline" className="text-[10px] text-muted-foreground">cached</Badge>
+          )}
+        </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-muted-foreground"
+            onClick={handleRegenerate}
+            disabled={isRegenerating}
+            data-testid="button-regenerate-report"
+          >
+            <Loader2 className={`w-3.5 h-3.5 ${isRegenerating ? "animate-spin" : ""}`} />
+            {isRegenerating ? "Regenerating..." : "Regenerate"}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => setShowReport(!showReport)}
+            data-testid="button-toggle-report"
+          >
+            {showReport ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            {showReport ? "Collapse" : "Expand"}
+          </Button>
           <Button
             variant="default"
             size="sm"
@@ -663,11 +716,15 @@ export function ReportViewer({ sessionId, brandName, groupKey }: ReportViewerPro
         </div>
       </Card>
 
-      <Section1 data={report.section1} />
-      <Section2 data={report.section2} brandName={report.meta.brandName} />
-      {report.competitorPlaybook && <CompetitorPlaybookSection data={report.competitorPlaybook} brandName={report.meta.brandName} />}
-      <Section3 data={report.section3} />
-      {report.appendix && <AppendixSection data={report.appendix} />}
+      {showReport && (
+        <>
+          <Section1 data={report.section1} />
+          <Section2 data={report.section2} brandName={report.meta.brandName} />
+          {report.competitorPlaybook && <CompetitorPlaybookSection data={report.competitorPlaybook} brandName={report.meta.brandName} />}
+          <Section3 data={report.section3} />
+          {report.appendix && <AppendixSection data={report.appendix} />}
+        </>
+      )}
     </div>
   );
 }

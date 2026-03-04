@@ -7,6 +7,7 @@ import {
   savedProfiles,
   multiSegmentSessions,
   savedV2Configs,
+  reportCache,
   type InsertAnalysisResult,
   type AnalysisResult,
   type InsertScoringJob,
@@ -52,6 +53,9 @@ export interface IStorage {
     segments: ScoringJob[];
     createdAt: Date;
   } | undefined>;
+  updateCachedReport(sessionId: number, report: any): Promise<void>;
+  getReportCache(cacheKey: string): Promise<any | null>;
+  setReportCache(cacheKey: string, data: any): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -181,14 +185,14 @@ export class DatabaseStorage implements IStorage {
   async updateMultiSegmentSessionSegments(sessionId: number, segments: any): Promise<void> {
     await db
       .update(multiSegmentSessions)
-      .set({ segments })
+      .set({ segments, cachedReport: null })
       .where(eq(multiSegmentSessions.id, sessionId));
   }
 
   async updateCitationReport(sessionId: number, report: any): Promise<void> {
     await db
       .update(multiSegmentSessions)
-      .set({ citationReport: report })
+      .set({ citationReport: report, cachedReport: null })
       .where(eq(multiSegmentSessions.id, sessionId));
   }
 
@@ -278,6 +282,31 @@ export class DatabaseStorage implements IStorage {
   } | undefined> {
     const groups = await this.getV2SegmentGroups();
     return groups.find(g => g.groupKey === groupKey);
+  }
+
+  async updateCachedReport(sessionId: number, report: any): Promise<void> {
+    await db
+      .update(multiSegmentSessions)
+      .set({ cachedReport: report })
+      .where(eq(multiSegmentSessions.id, sessionId));
+  }
+
+  async getReportCache(cacheKey: string): Promise<any | null> {
+    const [result] = await db
+      .select()
+      .from(reportCache)
+      .where(eq(reportCache.cacheKey, cacheKey));
+    return result?.reportData ?? null;
+  }
+
+  async setReportCache(cacheKey: string, data: any): Promise<void> {
+    await db
+      .insert(reportCache)
+      .values({ cacheKey, reportData: data })
+      .onConflictDoUpdate({
+        target: reportCache.cacheKey,
+        set: { reportData: data, createdAt: sql`NOW()` },
+      });
   }
 }
 

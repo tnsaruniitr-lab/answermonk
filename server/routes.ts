@@ -1210,6 +1210,16 @@ export async function registerRoutes(
         res.status(404).json({ message: "Session not found" });
         return;
       }
+      const force = req.query.force === "true";
+      const cachedOnly = req.query.cached_only === "true";
+      if (!force && session.cachedReport) {
+        res.json({ report: session.cachedReport, cached: true });
+        return;
+      }
+      if (cachedOnly) {
+        res.json({ report: null, cached: false });
+        return;
+      }
       const report = await generateReport({
         id: session.id,
         brandName: session.brandName,
@@ -1218,6 +1228,7 @@ export async function registerRoutes(
         segments: Array.isArray(session.segments) ? session.segments as any : [],
         citationReport: session.citationReport as any || null,
       });
+      await storage.updateCachedReport(session.id, report);
       res.json({ report });
     } catch (err) {
       res.status(500).json({ message: "Failed to generate report", error: String(err) });
@@ -1226,13 +1237,29 @@ export async function registerRoutes(
 
   app.get("/api/scoring/v2-groups/:groupKey/report", async (req, res) => {
     try {
-      const group = await storage.getV2SegmentGroup(req.params.groupKey);
+      const groupKey = req.params.groupKey;
+      const group = await storage.getV2SegmentGroup(groupKey);
       if (!group) {
         res.status(404).json({ message: "V2 group not found" });
         return;
       }
       if (!group.segments || group.segments.length === 0) {
         res.status(400).json({ message: "No segments found in this session" });
+        return;
+      }
+
+      const force = req.query.force === "true";
+      const cachedOnly = req.query.cached_only === "true";
+      const cacheKey = `group:${groupKey}:report`;
+      if (!force) {
+        const cached = await storage.getReportCache(cacheKey);
+        if (cached) {
+          res.json({ report: cached, cached: true });
+          return;
+        }
+      }
+      if (cachedOnly) {
+        res.json({ report: null, cached: false });
         return;
       }
 
@@ -1262,6 +1289,7 @@ export async function registerRoutes(
         segments: segments as any,
         citationReport: null,
       });
+      await storage.setReportCache(cacheKey, report);
       res.json({ report });
     } catch (err) {
       console.error("Error generating V2 group report:", err);

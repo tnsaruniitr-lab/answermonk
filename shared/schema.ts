@@ -50,6 +50,14 @@ export const multiSegmentSessions = pgTable("multi_segment_sessions", {
   promptsPerSegment: integer("prompts_per_segment").notNull().default(3),
   segments: jsonb("segments").notNull(),
   citationReport: jsonb("citation_report"),
+  cachedReport: jsonb("cached_report"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const reportCache = pgTable("report_cache", {
+  id: serial("id").primaryKey(),
+  cacheKey: text("cache_key").notNull().unique(),
+  reportData: jsonb("report_data").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
