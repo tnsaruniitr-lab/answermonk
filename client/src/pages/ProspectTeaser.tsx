@@ -454,6 +454,7 @@ export default function ProspectTeaser() {
   const reveal = useScrollReveal();
   const animBar = useAnimatedBars();
 
+  const [showSurvey, setShowSurvey] = useState(false);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [surveyComments, setSurveyComments] = useState("");
   const [surveySubmitted, setSurveySubmitted] = useState(false);
@@ -1653,138 +1654,94 @@ export default function ProspectTeaser() {
               pointerEvents: "none",
             }}
           />
-          <h2
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: 30,
-              fontWeight: 700,
-              color: "#fff",
-              lineHeight: 1.25,
-              marginBottom: 18,
-            }}
-          >
-            See the full analysis.
-          </h2>
-          <p
-            style={{
-              fontSize: 14,
-              color: V.mutedMd,
-              maxWidth: 420,
-              margin: "0 auto 40px",
-              lineHeight: 1.75,
-            }}
-          >
-            This preview covers the surface. The full report includes every segment, every prompt,
-            competitor playbook, authority acquisition roadmap, and the exact narrative strategy to
-            fix what AI says about {brandName}.
-          </p>
-          <button
-            onClick={async () => {
-              try {
-                await fetch(`/api/share/teaser/${sessionId}/lead`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ interests: ["full_report_request"], comments: null }),
-                });
-              } catch {}
-              const survey = document.querySelector('[data-testid="section-survey"]');
-              if (survey) survey.scrollIntoView({ behavior: "smooth" });
-            }}
-            style={{
-              display: "inline-block",
-              background: V.gold,
-              color: V.bg,
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 11,
-              fontWeight: 500,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              padding: "15px 40px",
-              borderRadius: 2,
-              cursor: "pointer",
-              border: "none",
-            }}
-            data-testid="button-cta"
-          >
-            Request Full Report
-          </button>
-          <p
-            style={{
-              marginTop: 18,
-              fontSize: 11,
-              color: V.muted,
-              fontStyle: "italic",
-            }}
-          >
-            Includes actionable roadmap · Delivered within 48 hours
-          </p>
-        </div>
 
-        {/* Survey Form */}
-        <div
-          ref={reveal}
-          style={{
-            marginTop: 80,
-            padding: "56px 48px",
-            border: `1px solid ${V.border}`,
-            borderRadius: 3,
-            background: V.surface,
-            position: "relative",
-          }}
-          data-testid="section-survey"
-        >
-          <SectionNumber num="" />
-          <h2
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: 26,
-              fontWeight: 700,
-              color: "#fff",
-              marginBottom: 8,
-              lineHeight: 1.2,
-            }}
-            data-testid="heading-survey"
-          >
-            Anything else I can help with?
-          </h2>
-          <p
-            style={{
-              fontSize: 13,
-              color: V.mutedMd,
-              marginBottom: 32,
-              maxWidth: 480,
-              lineHeight: 1.7,
-            }}
-          >
-            Select any that apply — we'll follow up with relevant information.
-          </p>
-
-          {surveySubmitted ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "40px 0",
-              }}
-              data-testid="survey-success"
-            >
-              <div style={{ fontSize: 28, marginBottom: 12 }}>&#10003;</div>
-              <div
+          {!showSurvey && !surveySubmitted && (
+            <>
+              <h2
                 style={{
                   fontFamily: "'Playfair Display', serif",
-                  fontSize: 20,
+                  fontSize: 30,
+                  fontWeight: 700,
+                  color: "#fff",
+                  lineHeight: 1.25,
+                  marginBottom: 18,
+                }}
+              >
+                See the full analysis.
+              </h2>
+              <p
+                style={{
+                  fontSize: 14,
+                  color: V.mutedMd,
+                  maxWidth: 420,
+                  margin: "0 auto 40px",
+                  lineHeight: 1.75,
+                }}
+              >
+                This preview covers the surface. The full report includes every segment, every prompt,
+                competitor playbook, authority acquisition roadmap, and the exact narrative strategy to
+                fix what AI says about {brandName}.
+              </p>
+              <button
+                onClick={() => setShowSurvey(true)}
+                style={{
+                  display: "inline-block",
+                  background: V.gold,
+                  color: V.bg,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 11,
+                  fontWeight: 500,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  padding: "15px 40px",
+                  borderRadius: 2,
+                  cursor: "pointer",
+                  border: "none",
+                }}
+                data-testid="button-cta"
+              >
+                Request Full Report
+              </button>
+              <p
+                style={{
+                  marginTop: 18,
+                  fontSize: 11,
+                  color: V.muted,
+                  fontStyle: "italic",
+                }}
+              >
+                Includes actionable roadmap · Delivered within 48 hours
+              </p>
+            </>
+          )}
+
+          {showSurvey && !surveySubmitted && (
+            <div style={{ textAlign: "left", maxWidth: 520, margin: "0 auto" }} data-testid="section-survey">
+              <h2
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 26,
                   fontWeight: 700,
                   color: "#fff",
                   marginBottom: 8,
+                  lineHeight: 1.2,
+                }}
+                data-testid="heading-survey"
+              >
+                Anything else I can help with?
+              </h2>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: V.mutedMd,
+                  marginBottom: 32,
+                  maxWidth: 480,
+                  lineHeight: 1.7,
                 }}
               >
-                Thank you!
-              </div>
-              <div style={{ fontSize: 13, color: V.mutedMd }}>
-                We'll be in touch shortly.
-              </div>
-            </div>
-          ) : (
-            <>
+                Select any that apply — we'll follow up with relevant information.
+              </p>
+
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
                 {[
                   { val: "regular_report", label: "I want this report regularly" },
@@ -1901,7 +1858,33 @@ export default function ProspectTeaser() {
               >
                 {surveySubmitting ? "Submitting..." : "Submit"}
               </button>
-            </>
+            </div>
+          )}
+
+          {surveySubmitted && (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "40px 0",
+              }}
+              data-testid="survey-success"
+            >
+              <div style={{ fontSize: 28, marginBottom: 12 }}>&#10003;</div>
+              <div
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: "#fff",
+                  marginBottom: 8,
+                }}
+              >
+                Thank you!
+              </div>
+              <div style={{ fontSize: 13, color: V.mutedMd }}>
+                We'll be in touch shortly.
+              </div>
+            </div>
           )}
         </div>
       </div>
