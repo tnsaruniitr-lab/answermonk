@@ -1224,5 +1224,50 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/scoring/v2-groups/:groupKey/report", async (req, res) => {
+    try {
+      const group = await storage.getV2SegmentGroup(req.params.groupKey);
+      if (!group) {
+        res.status(404).json({ message: "V2 group not found" });
+        return;
+      }
+      if (!group.segments || group.segments.length === 0) {
+        res.status(400).json({ message: "No segments found in this session" });
+        return;
+      }
+
+      const segments = group.segments.map((job) => {
+        const profile = (job.rawData as any)?.profile;
+        const result = job.resultJson as any;
+        const rawRuns = (job.rawData as any)?.runs;
+        return {
+          persona: profile?.persona || "",
+          seedType: profile?.seedType || (profile?.persona === "restaurant" ? "restaurants" : "providers"),
+          customerType: profile?.verticals?.[0] || "",
+          location: profile?.geo || "",
+          resultCount: job.promptCount,
+          prompts: null,
+          scoringResult: result ? {
+            score: result,
+            raw_runs: rawRuns || [],
+          } : null,
+        };
+      });
+
+      const report = await generateReport({
+        id: 0,
+        brandName: group.brandName,
+        brandDomain: group.brandDomain,
+        createdAt: group.createdAt ? new Date(group.createdAt).toISOString() : undefined,
+        segments: segments as any,
+        citationReport: null,
+      });
+      res.json({ report });
+    } catch (err) {
+      console.error("Error generating V2 group report:", err);
+      res.status(500).json({ message: "Failed to generate report", error: String(err) });
+    }
+  });
+
   return httpServer;
 }

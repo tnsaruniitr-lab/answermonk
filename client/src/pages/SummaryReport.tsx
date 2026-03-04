@@ -77,9 +77,19 @@ export default function SummaryReport() {
   const sessionId = params.id;
   const [location] = useLocation();
   const isShareView = location.startsWith("/share/");
+  const isGroupKey = sessionId?.startsWith("v2auto-") || false;
+
+  const reportUrl = isGroupKey
+    ? `/api/scoring/v2-groups/${sessionId}/report`
+    : `/api/multi-segment-sessions/${sessionId}/report`;
 
   const { data, isLoading, error } = useQuery<ReportResponse>({
-    queryKey: [`/api/multi-segment-sessions/${sessionId}/report`],
+    queryKey: [reportUrl],
+    queryFn: async () => {
+      const res = await fetch(reportUrl);
+      if (!res.ok) throw new Error("Failed to load report");
+      return res.json();
+    },
     staleTime: 5 * 60 * 1000,
   });
 

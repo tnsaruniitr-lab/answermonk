@@ -512,6 +512,7 @@ async function exportPDF(report: any) {
 interface ReportViewerProps {
   sessionId: number | null;
   brandName: string;
+  groupKey?: string | null;
 }
 
 const ENGINE_LABELS: Record<string, string> = {
@@ -534,17 +535,25 @@ const STRENGTH_BG: Record<string, string> = {
   unknown: "bg-secondary",
 };
 
-export function ReportViewer({ sessionId, brandName }: ReportViewerProps) {
+export function ReportViewer({ sessionId, brandName, groupKey }: ReportViewerProps) {
   const [showReport, setShowReport] = useState(false);
 
+  const effectiveGroupKey = groupKey && groupKey.length > 0 ? groupKey : null;
+  const reportUrl = effectiveGroupKey
+    ? `/api/scoring/v2-groups/${effectiveGroupKey}/report`
+    : `/api/multi-segment-sessions/${sessionId}/report`;
+  const hasValidId = effectiveGroupKey ? true : sessionId !== null;
+
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["/api/multi-segment-sessions", sessionId, "report"],
+    queryKey: effectiveGroupKey
+      ? ["/api/scoring/v2-groups", effectiveGroupKey, "report"]
+      : ["/api/multi-segment-sessions", sessionId, "report"],
     queryFn: async () => {
-      const res = await fetch(`/api/multi-segment-sessions/${sessionId}/report`);
+      const res = await fetch(reportUrl);
       if (!res.ok) throw new Error("Failed to generate report");
       return res.json();
     },
-    enabled: showReport && sessionId !== null,
+    enabled: showReport && hasValidId,
   });
 
   const report = data?.report;

@@ -155,9 +155,9 @@ export default function V2SessionDetail() {
           />
         )}
 
-        {scored > 0 && numericId !== null && (
+        {scored > 0 && (numericId !== null || isGroupKey) && (
           <div className="flex gap-3 items-center">
-            <Link href={`/summary/${numericId}`}>
+            <Link href={`/summary/${numericId !== null ? numericId : rawId}`}>
               <Button variant="outline" className="gap-2" data-testid="button-summary-report">
                 <FileText className="w-4 h-4" />
                 Impact Summary
@@ -166,8 +166,12 @@ export default function V2SessionDetail() {
           </div>
         )}
 
-        {scored > 0 && numericId !== null && (
-          <ReportViewer sessionId={numericId} brandName={session.brandName} />
+        {scored > 0 && (numericId !== null || isGroupKey) && (
+          <ReportViewer
+            sessionId={numericId}
+            brandName={session.brandName}
+            groupKey={isGroupKey ? rawId : null}
+          />
         )}
 
         <div className="pb-16" />
