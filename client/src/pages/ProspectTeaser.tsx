@@ -1785,7 +1785,7 @@ export default function ProspectTeaser() {
                   fontStyle: "italic",
                 }}
               >
-                Includes actionable roadmap · Delivered within 48 hours
+                Includes actionable roadmap
               </p>
             </>
           )}
