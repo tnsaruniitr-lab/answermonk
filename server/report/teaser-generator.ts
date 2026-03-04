@@ -752,16 +752,27 @@ export function generateTeaserData(
   const leaderAppRate = Math.round((leaderBrand?.share || 0) * 100);
   const brandAppRate = Math.round(overallAppearance * 100);
 
+  const allAuthSources = authorityGapDomains.map(d => d.domain);
   const leaderT1Count = authorityGapDomains.filter(d => d.presence[leaderForInsights]).length;
   const brandT1Count = authorityGapDomains.filter(d => d.presence[brandName]).length;
-  if (leaderT1Count > brandT1Count) {
-    const leaderSources = authorityGapDomains
-      .filter(d => d.presence[leaderForInsights])
-      .map(d => d.domain);
+  const sourceDiff = leaderT1Count - brandT1Count;
+  if (sourceDiff > 0) {
     topPlayerInsights.push({
       title: `Present on ${leaderT1Count} of ${authorityGapDomains.length} authority sources`,
-      detail: `LLMs pull from these authority sources when building recommendations. ${leaderForInsights} appears on ${leaderT1Count - brandT1Count} more than ${brandName}. The full report details how to increase your visibility on each.`,
-      sources: leaderSources,
+      detail: `LLMs pull from these authority sources when building recommendations. ${leaderForInsights} appears on ${sourceDiff} more than ${brandName}. The full report details how to increase your visibility on each.`,
+      sources: allAuthSources,
+    });
+  } else if (authorityGapDomains.length > 0) {
+    topPlayerInsights.push({
+      title: `${authorityGapDomains.length} authority sources drive AI recommendations`,
+      detail: `These high-authority domains are cited by ChatGPT, Gemini, and Claude when recommending agencies. Presence on these sources directly influences whether a brand gets recommended. The full report maps your coverage vs competitors.`,
+      sources: allAuthSources,
+    });
+  } else {
+    topPlayerInsights.push({
+      title: "Authority source presence shapes AI recommendations",
+      detail: `AI engines pull from a network of high-authority sources when building their recommendation lists. ${leaderForInsights} has established presence across these sources. The full report identifies which sources matter most and how to get listed.`,
+      sources: [],
     });
   }
 
