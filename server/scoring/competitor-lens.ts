@@ -177,6 +177,108 @@ export function reScoreForCompetitor(
   };
 }
 
+export interface CompetitorReportSegment {
+  persona: string;
+  seedType: string;
+  customerType: string;
+  location: string;
+  resultCount: number;
+  prompts: any[] | null;
+  scoringResult: {
+    score: any;
+    raw_runs: any[];
+  } | null;
+}
+
+export function buildCompetitorReportSegments(
+  originalSegments: any[],
+  competitorName: string,
+): CompetitorReportSegment[] {
+  const compNorm = normalizeName(competitorName);
+
+  return originalSegments.map((seg) => {
+    if (!seg.scoringResult?.raw_runs?.length) {
+      return {
+        persona: seg.persona || "",
+        seedType: seg.seedType || "",
+        customerType: seg.customerType || "",
+        location: seg.location || "",
+        resultCount: seg.resultCount || 0,
+        prompts: seg.prompts || null,
+        scoringResult: null,
+      };
+    }
+
+    const rewrittenRuns = (seg.scoringResult.raw_runs as FrontendRawRun[]).map((run) => {
+      const rawCandidates = Array.isArray(run.candidates) ? run.candidates : [];
+      const normalizedCandidates = rawCandidates.map((c: any) => {
+        if (typeof c === "string") {
+          return { name_raw: c, name_norm: normalizeName(c), rank: 0 };
+        }
+        return {
+          name_raw: c.name_raw || c.name || "",
+          name_norm: c.name_norm || normalizeName(c.name_raw || c.name || ""),
+          rank: c.rank ?? 0,
+          domain: c.domain,
+        };
+      });
+
+      const nonBrandCandidates = run.brand_found && run.brand_rank !== null
+        ? normalizedCandidates.filter((c) => c.rank !== run.brand_rank)
+        : normalizedCandidates;
+
+      const compCandidate = nonBrandCandidates.find(
+        (c) => c.name_norm === compNorm || normalizeName(c.name_raw) === compNorm
+      );
+
+      return {
+        ...run,
+        brand_found: !!compCandidate,
+        brand_rank: compCandidate?.rank ?? null,
+        candidates: nonBrandCandidates.filter((c) => {
+          const cn = c.name_norm || normalizeName(c.name_raw);
+          return cn !== compNorm && normalizeName(c.name_raw) !== compNorm;
+        }),
+      };
+    });
+
+    const runDataForScoring: RunData[] = rewrittenRuns.map((run) => {
+      const hasCandidates = run.candidates && run.candidates.length > 0 || run.brand_found;
+      return {
+        prompt_id: run.prompt_id,
+        cluster: run.cluster,
+        engine: run.engine,
+        valid: hasCandidates,
+        brand: {
+          brand_found: run.brand_found,
+          brand_rank: run.brand_rank,
+          match_tier: run.brand_found ? ("exact" as const) : null,
+        },
+        competitors: run.candidates.map((c: any) => ({
+          name_raw: c.name_raw,
+          name_norm: c.name_norm || normalizeName(c.name_raw),
+          rank: c.rank,
+        })),
+      };
+    });
+
+    const score = computeGEOScore(runDataForScoring);
+
+    return {
+      persona: seg.persona || "",
+      seedType: seg.seedType || "",
+      customerType: seg.customerType || "",
+      location: seg.location || "",
+      resultCount: seg.resultCount || 0,
+      prompts: seg.prompts || null,
+      scoringResult: {
+        score,
+        raw_runs: rewrittenRuns,
+      },
+    };
+  });
+}
+
 function extractMentionSentences(rawText: string, brandName: string): string[] {
   const sentences = rawText
     .replace(/\n+/g, " ")

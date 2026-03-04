@@ -1267,6 +1267,9 @@ export default function PromptGenerator() {
   const [compLensList, setCompLensList] = useState<{ name: string; appearances: number; segments: string[] }[]>([]);
   const [compLensSelected, setCompLensSelected] = useState<string>("");
   const [compLensResult, setCompLensResult] = useState<any>(null);
+  const [compReportData, setCompReportData] = useState<any>(null);
+  const [compReportLoading, setCompReportLoading] = useState(false);
+  const [compReportOpen, setCompReportOpen] = useState(false);
 
   const updateSegment = (id: string, patch: Partial<V2Segment>) => {
     setV2Segments((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -1371,6 +1374,8 @@ export default function PromptGenerator() {
     if (Object.keys(segMap).length === 0) return;
     setCompLensLoading(true);
     setCompLensResult(null);
+    setCompReportData(null);
+    setCompReportOpen(false);
     try {
       const res = await apiRequest("POST", "/api/competitor-lens/analyse", {
         competitorName: name,
@@ -1382,6 +1387,37 @@ export default function PromptGenerator() {
       toast({ title: "Competitor analysis failed", variant: "destructive" });
     } finally {
       setCompLensLoading(false);
+    }
+  };
+
+  const generateCompetitorReport = async () => {
+    if (!compLensSelected) return;
+    setCompReportLoading(true);
+    try {
+      const segmentsPayload = v2Segments
+        .filter((s) => s.scoringResult?.raw_runs?.length)
+        .map((s) => ({
+          persona: s.persona,
+          seedType: s.seedType,
+          serviceType: s.serviceType,
+          customerType: s.customerType,
+          location: s.location,
+          resultCount: s.resultCount,
+          prompts: s.prompts,
+          scoringResult: s.scoringResult,
+        }));
+      const res = await apiRequest("POST", "/api/competitor-lens/report", {
+        competitorName: compLensSelected,
+        sessionId: v2LoadedSessionId || 0,
+        segments: segmentsPayload,
+      });
+      const data = await res.json();
+      setCompReportData(data.report);
+      setCompReportOpen(true);
+    } catch {
+      toast({ title: "Report generation failed", variant: "destructive" });
+    } finally {
+      setCompReportLoading(false);
     }
   };
 
@@ -3415,6 +3451,146 @@ export default function PromptGenerator() {
                                 </div>
                               </div>
                             )}
+
+                            <div className="pt-3 border-t mt-3">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  if (compReportData) {
+                                    setCompReportOpen(!compReportOpen);
+                                  } else {
+                                    generateCompetitorReport();
+                                  }
+                                }}
+                                disabled={compReportLoading}
+                                data-testid="button-competitor-full-report"
+                                className="w-full"
+                              >
+                                {compReportLoading ? (
+                                  <>
+                                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                                    Generating Report...
+                                  </>
+                                ) : compReportData ? (
+                                  <>
+                                    <FileText className="w-3.5 h-3.5 mr-1.5" />
+                                    {compReportOpen ? "Hide Full Report" : "Show Full Report"}
+                                  </>
+                                ) : (
+                                  <>
+                                    <FileText className="w-3.5 h-3.5 mr-1.5" />
+                                    Generate Full Report for {compLensResult.competitorName}
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+
+                          {compReportOpen && compReportData && (
+                            <div className="mt-4 border rounded-lg p-4 bg-background space-y-6" data-testid="competitor-full-report">
+                              <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-semibold flex items-center gap-2">
+                                  <FileText className="w-4 h-4 text-primary" />
+                                  Full GEO Report — {compReportData.meta?.brandName}
+                                </h3>
+                                <Badge variant="secondary" className="text-[10px]">
+                                  {compReportData.meta?.segmentCount} segments · {compReportData.meta?.totalRuns} runs
+                                </Badge>
+                              </div>
+
+                              <div className="grid grid-cols-3 gap-3">
+                                <div className="border rounded-md p-3 text-center">
+                                  <div className="text-lg font-bold text-primary">{Math.round((compReportData.section1?.overall?.appearanceRate || 0) * 100)}%</div>
+                                  <div className="text-[10px] text-muted-foreground">Appearance Rate</div>
+                                </div>
+                                <div className="border rounded-md p-3 text-center">
+                                  <div className="text-lg font-bold text-primary">{Math.round((compReportData.section1?.overall?.primaryRate || 0) * 100)}%</div>
+                                  <div className="text-[10px] text-muted-foreground">Primary Rate</div>
+                                </div>
+                                <div className="border rounded-md p-3 text-center">
+                                  <div className="text-lg font-bold text-primary">{compReportData.section1?.overall?.avgRank != null ? `#${compReportData.section1.overall.avgRank.toFixed(1)}` : "—"}</div>
+                                  <div className="text-[10px] text-muted-foreground">Avg Rank</div>
+                                </div>
+                              </div>
+
+                              {compReportData.section1?.engineHeatmap && (
+                                <div>
+                                  <h4 className="text-xs font-medium text-muted-foreground mb-2">Engine Breakdown</h4>
+                                  <div className="grid grid-cols-3 gap-2">
+                                    {Object.entries(compReportData.section1.engineHeatmap).map(([engine, data]: [string, any]) => (
+                                      <div key={engine} className="border rounded-md p-2">
+                                        <div className="text-[10px] text-muted-foreground mb-0.5">{engine}</div>
+                                        <div className="text-sm font-semibold">{Math.round((data.appearanceRate || 0) * 100)}%</div>
+                                        <div className="text-[10px] text-muted-foreground">
+                                          Rank {data.avgRank != null ? `#${data.avgRank.toFixed(1)}` : "—"} · {data.runs || 0} runs
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {compReportData.section2?.topCompetitors?.length > 0 && (
+                                <div>
+                                  <h4 className="text-xs font-medium text-muted-foreground mb-2">Top Competitors (from {compReportData.meta?.brandName}'s perspective)</h4>
+                                  <div className="border rounded-md overflow-hidden">
+                                    {compReportData.section2.topCompetitors.slice(0, 10).map((c: any, i: number) => (
+                                      <div key={c.name} className={`flex items-center gap-2 px-3 py-1.5 text-xs ${i > 0 ? "border-t" : ""}`}>
+                                        <span className="text-muted-foreground font-mono w-4">{i + 1}</span>
+                                        <span className="flex-1 truncate">{c.name}</span>
+                                        <div className="w-16 bg-secondary/50 rounded-full h-1.5">
+                                          <div className="bg-primary/60 h-1.5 rounded-full" style={{ width: `${Math.round((c.weightedShare || c.share || 0) * 100)}%` }} />
+                                        </div>
+                                        <span className="text-muted-foreground w-8 text-right">{Math.round((c.weightedShare || c.share || 0) * 100)}%</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {compReportData.section3?.quickWins?.length > 0 && (
+                                <div>
+                                  <h4 className="text-xs font-medium text-muted-foreground mb-2">Quick Wins</h4>
+                                  <ul className="space-y-1">
+                                    {compReportData.section3.quickWins.slice(0, 5).map((w: any, i: number) => (
+                                      <li key={i} className="text-xs flex items-start gap-2">
+                                        <ChevronRight className="w-3 h-3 mt-0.5 text-primary shrink-0" />
+                                        <span>{typeof w === "string" ? w : w.recommendation || w.text || JSON.stringify(w)}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {compReportData.section3?.gaps?.length > 0 && (
+                                <div>
+                                  <h4 className="text-xs font-medium text-muted-foreground mb-2">Gap Analysis</h4>
+                                  <div className="space-y-2">
+                                    {compReportData.section3.gaps.slice(0, 5).map((g: any, i: number) => (
+                                      <div key={i} className="border rounded-md p-2">
+                                        <div className="text-xs font-medium">{g.gapType || g.type}</div>
+                                        <div className="text-[10px] text-muted-foreground mt-0.5">{g.description || g.detail}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {compReportData.competitorPlaybook?.narratives?.length > 0 && (
+                                <div>
+                                  <h4 className="text-xs font-medium text-muted-foreground mb-2">Competitor Playbook</h4>
+                                  <div className="space-y-2">
+                                    {compReportData.competitorPlaybook.narratives.slice(0, 3).map((n: any, i: number) => (
+                                      <div key={i} className="border rounded-md p-2">
+                                        <div className="text-xs font-medium">{n.competitorName}</div>
+                                        <div className="text-[10px] text-muted-foreground mt-0.5">{n.narrative}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
                           </div>
                         )}
                       </div>
