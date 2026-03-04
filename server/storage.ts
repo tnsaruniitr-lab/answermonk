@@ -35,6 +35,7 @@ export interface IStorage {
   createMultiSegmentSession(session: InsertMultiSegmentSession): Promise<MultiSegmentSession>;
   listMultiSegmentSessions(): Promise<MultiSegmentSession[]>;
   getMultiSegmentSession(id: number): Promise<MultiSegmentSession | undefined>;
+  getMultiSegmentSessionBySlug(slug: string): Promise<MultiSegmentSession | undefined>;
   updateMultiSegmentSessionSegments(sessionId: number, segments: any): Promise<void>;
   updateCitationReport(sessionId: number, report: any): Promise<void>;
   createV2Config(config: InsertSavedV2Config): Promise<SavedV2Config>;
@@ -193,6 +194,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(multiSegmentSessions)
       .where(eq(multiSegmentSessions.id, id));
+    return result;
+  }
+
+  async getMultiSegmentSessionBySlug(slug: string): Promise<MultiSegmentSession | undefined> {
+    const [result] = await db
+      .select()
+      .from(multiSegmentSessions)
+      .where(eq(multiSegmentSessions.slug, slug));
     return result;
   }
 

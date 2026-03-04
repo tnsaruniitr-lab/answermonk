@@ -47,6 +47,7 @@ export const multiSegmentSessions = pgTable("multi_segment_sessions", {
   id: serial("id").primaryKey(),
   brandName: text("brand_name").notNull(),
   brandDomain: text("brand_domain"),
+  slug: text("slug"),
   promptsPerSegment: integer("prompts_per_segment").notNull().default(3),
   segments: jsonb("segments").notNull(),
   citationReport: jsonb("citation_report"),

@@ -32,11 +32,16 @@ function AdminRouter() {
   );
 }
 
+function SlugTeaser({ params }: { params: { slug: string } }) {
+  return <ProspectTeaser slug={params.slug} />;
+}
+
 function PublicRouter() {
   return (
     <Switch>
       <Route path="/share/summary/:id" component={SummaryReport} />
       <Route path="/share/teaser/:id" component={ProspectTeaser} />
+      <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
       <Route>
         <Login onSuccess={() => window.location.reload()} />
       </Route>
@@ -68,6 +73,11 @@ function AuthGate() {
         <Switch>
           <Route path="/share/summary/:id" component={SummaryReport} />
           <Route path="/share/teaser/:id" component={ProspectTeaser} />
+          <Route path="/:slug">{(params) => {
+            const adminPaths = ["history", "prompts", "scoring", "v2", "summary", "teaser", "leads", "share"];
+            if (adminPaths.includes(params.slug)) return null;
+            return <SlugTeaser params={params} />;
+          }}</Route>
           <Route><AdminRouter /></Route>
         </Switch>
       </>
