@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 
@@ -137,8 +137,17 @@ function useScrollReveal() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            (entry.target as HTMLElement).style.opacity = "1";
-            (entry.target as HTMLElement).style.transform = "translateY(0)";
+            const el = entry.target as HTMLElement;
+            el.style.opacity = "1";
+            el.style.transform = "translateY(0)";
+            const staggerChildren = el.querySelectorAll("[data-stagger]");
+            staggerChildren.forEach((child, i) => {
+              const c = child as HTMLElement;
+              setTimeout(() => {
+                c.style.opacity = "1";
+                c.style.transform = "translateY(0)";
+              }, 90 * (i + 1));
+            });
             observer.current?.unobserve(entry.target);
           }
         });
@@ -153,8 +162,8 @@ function useScrollReveal() {
     if (el && !refs.current.has(el)) {
       refs.current.add(el);
       el.style.opacity = "0";
-      el.style.transform = "translateY(18px)";
-      el.style.transition = "opacity 0.65s ease, transform 0.65s ease";
+      el.style.transform = "translateY(24px)";
+      el.style.transition = "opacity 0.7s ease, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)";
       observer.current?.observe(el);
     }
   }, []);
@@ -195,6 +204,111 @@ function useAnimatedBars() {
 
   return registerBar;
 }
+
+function useCountUp(target: number, duration = 1400) {
+  const [value, setValue] = useState(0);
+  const ref = useRef<HTMLElement | null>(null);
+  const triggered = useRef(false);
+  const rafId = useRef(0);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    triggered.current = false;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !triggered.current) {
+          triggered.current = true;
+          const start = performance.now();
+          const tick = (now: number) => {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setValue(Math.round(eased * target));
+            if (progress < 1) rafId.current = requestAnimationFrame(tick);
+          };
+          rafId.current = requestAnimationFrame(tick);
+          obs.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    obs.observe(ref.current);
+    return () => { obs.disconnect(); cancelAnimationFrame(rafId.current); };
+  }, [target, duration]);
+
+  return { value, ref };
+}
+
+function useCountUpDecimal(target: number, duration = 1400) {
+  const [value, setValue] = useState("0.0");
+  const ref = useRef<HTMLElement | null>(null);
+  const triggered = useRef(false);
+  const rafId = useRef(0);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    triggered.current = false;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !triggered.current) {
+          triggered.current = true;
+          const start = performance.now();
+          const tick = (now: number) => {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setValue((eased * target).toFixed(1));
+            if (progress < 1) rafId.current = requestAnimationFrame(tick);
+          };
+          rafId.current = requestAnimationFrame(tick);
+          obs.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    obs.observe(ref.current);
+    return () => { obs.disconnect(); cancelAnimationFrame(rafId.current); };
+  }, [target, duration]);
+
+  return { value, ref };
+}
+
+const TEASER_KEYFRAMES = `
+@keyframes teaser-spin { to { transform: rotate(360deg); } }
+@keyframes teaser-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@keyframes teaser-glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+@keyframes teaser-score-enter {
+  0% { transform: scale(1.4); filter: blur(8px); opacity: 0; }
+  60% { transform: scale(1.02); filter: blur(0); opacity: 1; }
+  100% { transform: scale(1); filter: blur(0); opacity: 1; }
+}
+@keyframes teaser-fade-in-up {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes teaser-border-glow {
+  0%, 100% { border-color: rgba(201,168,76,0.08); }
+  50% { border-color: rgba(201,168,76,0.22); }
+}
+.teaser-locked-hover:hover {
+  transform: scale(1.008);
+  border-color: rgba(201,168,76,0.18) !important;
+}
+.teaser-locked-hover {
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+[data-stagger] {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+`;
 
 const S = {
   wrapper: {
@@ -249,6 +363,7 @@ function SectionNumber({ num }: { num: string }) {
 function LockedOverlay({ count, label }: { count: number; label: string }) {
   return (
     <div
+      className="teaser-locked-hover"
       style={{
         position: "absolute",
         inset: 0,
@@ -259,15 +374,27 @@ function LockedOverlay({ count, label }: { count: number; label: string }) {
         background:
           "radial-gradient(ellipse at center, rgba(7,9,15,0.55) 0%, rgba(7,9,15,0.92) 65%)",
         zIndex: 2,
+        cursor: "default",
+        overflow: "hidden",
       }}
       data-testid={`locked-overlay-${label.replace(/\s+/g, "-").substring(0, 30)}`}
     >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.03) 50%, transparent 100%)",
+          animation: "teaser-shimmer 4s ease-in-out infinite",
+          pointerEvents: "none",
+        }}
+      />
       <div
         style={{
           fontSize: 22,
           opacity: 0.25,
           marginBottom: 14,
           fontFamily: "'JetBrains Mono', monospace",
+          animation: "teaser-glow-pulse 3s ease-in-out infinite",
         }}
       >
         &#9670;
@@ -316,10 +443,26 @@ export default function ProspectTeaser() {
         "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=JetBrains+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap";
       document.head.appendChild(link);
     }
+    if (!document.querySelector('style[data-teaser-keyframes]')) {
+      const style = document.createElement("style");
+      style.setAttribute("data-teaser-keyframes", "1");
+      style.textContent = TEASER_KEYFRAMES;
+      document.head.appendChild(style);
+    }
   }, []);
 
   const reveal = useScrollReveal();
   const animBar = useAnimatedBars();
+
+  const scoreTarget = data?.teaser?.overallScore?.appearanceRate ?? 0;
+  const rankTarget = data?.teaser?.overallScore?.marketRank ?? 0;
+  const avgRankTarget = data?.teaser?.overallScore?.avgRank ?? 0;
+  const primaryTarget = data?.teaser?.overallScore?.primaryRate ?? 0;
+
+  const scoreCount = useCountUp(scoreTarget, 1600);
+  const rankCount = useCountUp(rankTarget, 1200);
+  const avgRankCount = useCountUpDecimal(avgRankTarget, 1200);
+  const primaryCount = useCountUp(primaryTarget, 1400);
 
   if (isLoading) {
     return (
@@ -345,7 +488,7 @@ export default function ProspectTeaser() {
             animation: "teaser-spin 0.8s linear infinite",
           }}
         />
-        <style>{`@keyframes teaser-spin { to { transform: rotate(360deg); } }`}</style>
+        <style>{TEASER_KEYFRAMES}</style>
         <p
           style={{
             fontFamily: "'JetBrains Mono', monospace",
@@ -574,6 +717,7 @@ export default function ProspectTeaser() {
           />
           <div style={{ ...S.eyebrow, color: V.muted }}>Overall AI Visibility Score</div>
           <div
+            ref={scoreCount.ref as any}
             style={{
               fontFamily: "'Playfair Display', serif",
               fontSize: 88,
@@ -581,10 +725,11 @@ export default function ProspectTeaser() {
               color: V.goldLight,
               lineHeight: 1,
               marginBottom: 6,
+              animation: "teaser-score-enter 1.2s cubic-bezier(0.16, 1, 0.3, 1) both",
             }}
             data-testid="text-score-num"
           >
-            {t.overallScore.appearanceRate}
+            {scoreCount.value}
             <sup style={{ fontSize: 40, verticalAlign: "super" }}>%</sup>
           </div>
           <div
@@ -608,8 +753,9 @@ export default function ProspectTeaser() {
               paddingTop: 28,
             }}
           >
-            <div style={{ paddingRight: 24 }}>
+            <div style={{ paddingRight: 24 }} data-stagger>
               <div
+                ref={rankCount.ref as any}
                 style={{
                   fontFamily: "'JetBrains Mono', monospace",
                   fontSize: 24,
@@ -619,7 +765,7 @@ export default function ProspectTeaser() {
                 }}
                 data-testid="text-market-rank"
               >
-                #{t.overallScore.marketRank}
+                #{rankCount.value}
               </div>
               <div style={{ fontSize: 11, color: V.muted, lineHeight: 1.4 }}>
                 Overall market rank
@@ -627,8 +773,9 @@ export default function ProspectTeaser() {
                 out of {t.overallScore.competitorCount} competitors
               </div>
             </div>
-            <div style={{ paddingRight: 24 }}>
+            <div style={{ paddingRight: 24 }} data-stagger>
               <div
+                ref={avgRankCount.ref as any}
                 style={{
                   fontFamily: "'JetBrains Mono', monospace",
                   fontSize: 24,
@@ -638,7 +785,7 @@ export default function ProspectTeaser() {
                 }}
                 data-testid="text-avg-rank"
               >
-                #{t.overallScore.avgRank != null ? t.overallScore.avgRank : "N/A"}
+                #{t.overallScore.avgRank != null ? avgRankCount.value : "N/A"}
               </div>
               <div style={{ fontSize: 11, color: V.muted, lineHeight: 1.4 }}>
                 Avg rank when mentioned
@@ -646,8 +793,9 @@ export default function ProspectTeaser() {
                 across all engines
               </div>
             </div>
-            <div>
+            <div data-stagger>
               <div
+                ref={primaryCount.ref as any}
                 style={{
                   fontFamily: "'JetBrains Mono', monospace",
                   fontSize: 24,
@@ -657,7 +805,7 @@ export default function ProspectTeaser() {
                 }}
                 data-testid="text-primary-rate"
               >
-                {t.overallScore.primaryRate}%
+                {primaryCount.value}%
               </div>
               <div style={{ fontSize: 11, color: V.muted, lineHeight: 1.4 }}>
                 Top-3 recommendation rate
@@ -680,6 +828,7 @@ export default function ProspectTeaser() {
             return (
               <div
                 key={eng.engine}
+                data-stagger
                 style={{ padding: "20px 0", borderBottom: `1px solid ${V.border}` }}
                 data-testid={`engine-row-${eng.engine}`}
               >
@@ -788,6 +937,7 @@ export default function ProspectTeaser() {
               {visibleInsights.map((insight, i) => (
                 <div
                   key={i}
+                  data-stagger
                   style={{
                     background: V.surface,
                     border: `1px solid ${V.border}`,
@@ -922,6 +1072,7 @@ export default function ProspectTeaser() {
               return (
                 <div
                   key={i}
+                  data-stagger
                   style={{
                     background: V.surface,
                     border: `1px solid ${ps.border}`,
@@ -1010,6 +1161,7 @@ export default function ProspectTeaser() {
                   ))}
                 </div>
                 <div
+                  className="teaser-locked-hover"
                   style={{
                     position: "absolute",
                     inset: 0,
@@ -1020,15 +1172,26 @@ export default function ProspectTeaser() {
                     background:
                       "radial-gradient(ellipse at center, rgba(7,9,15,0.55) 0%, rgba(7,9,15,0.92) 65%)",
                     zIndex: 2,
+                    overflow: "hidden",
                   }}
                   data-testid="locked-overlay-actions"
                 >
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background: "linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.03) 50%, transparent 100%)",
+                      animation: "teaser-shimmer 4s ease-in-out infinite",
+                      pointerEvents: "none",
+                    }}
+                  />
                   <div
                     style={{
                       fontSize: 22,
                       opacity: 0.25,
                       marginBottom: 14,
                       fontFamily: "'JetBrains Mono', monospace",
+                      animation: "teaser-glow-pulse 3s ease-in-out infinite",
                     }}
                   >
                     &#9670;
@@ -1298,6 +1461,7 @@ export default function ProspectTeaser() {
               return (
                 <div
                   key={i}
+                  data-stagger
                   style={{
                     display: "grid",
                     gridTemplateColumns: "190px 48px 1fr 100px 130px",
@@ -1507,7 +1671,7 @@ export default function ProspectTeaser() {
             const showProximity = isBrand && t.proximityNote;
 
             return (
-              <div key={entry.name}>
+              <div key={entry.name} data-stagger>
                 {isBrand && i > 0 && <div style={{ height: 8 }} />}
                 <div
                   style={{
@@ -1591,6 +1755,7 @@ export default function ProspectTeaser() {
             background: "rgba(255,255,255,0.015)",
             position: "relative",
             overflow: "hidden",
+            animation: "teaser-border-glow 4s ease-in-out infinite",
           }}
           data-testid="section-full-analysis-teaser"
         >
@@ -1633,6 +1798,7 @@ export default function ProspectTeaser() {
             ].map((item) => (
               <div
                 key={item.num}
+                data-stagger
                 style={{
                   display: "flex",
                   gap: 14,
