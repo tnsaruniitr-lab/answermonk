@@ -96,6 +96,7 @@ interface TeaserData {
   topPlayerInsights: Array<{
     title: string;
     detail: string;
+    sources?: string[];
   }>;
   keyActions: Array<{
     title: string;
@@ -1010,6 +1011,43 @@ export default function ProspectTeaser() {
                   <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.7 }} data-testid={`text-insight-detail-${i}`}>
                     {insight.detail}
                   </div>
+                  {insight.sources && insight.sources.length > 0 && (
+                    <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {insight.sources.slice(0, 2).map((src, si) => (
+                        <div
+                          key={si}
+                          style={{
+                            fontFamily: "'JetBrains Mono', monospace",
+                            fontSize: 11,
+                            padding: "6px 12px",
+                            borderRadius: 3,
+                            background: "rgba(201,168,76,0.06)",
+                            border: `1px solid rgba(201,168,76,0.18)`,
+                            color: V.goldLight,
+                          }}
+                          data-testid={`source-visible-${si}`}
+                        >
+                          {src}
+                        </div>
+                      ))}
+                      {insight.sources.length > 2 && (
+                        <div
+                          style={{
+                            fontFamily: "'JetBrains Mono', monospace",
+                            fontSize: 11,
+                            padding: "6px 12px",
+                            borderRadius: 3,
+                            background: "rgba(255,255,255,0.02)",
+                            border: `1px solid ${V.border}`,
+                            color: V.muted,
+                          }}
+                          data-testid="source-locked"
+                        >
+                          +{insight.sources.length - 2} more in full report
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div
                     style={{
                       marginTop: 14,
@@ -1021,7 +1059,7 @@ export default function ProspectTeaser() {
                     }}
                     data-testid={`link-insight-cta-${i}`}
                   >
-                    {i === 0 ? "see authority sources \u00BB" : "see details \u00BB"}
+                    {insight.sources ? "see all authority sources \u00BB" : "see details \u00BB"}
                   </div>
                 </div>
               ))}

@@ -126,6 +126,7 @@ export interface TeaserData {
   topPlayerInsights: Array<{
     title: string;
     detail: string;
+    sources?: string[];
   }>;
   keyActions: Array<{
     title: string;
@@ -754,9 +755,13 @@ export function generateTeaserData(
   const leaderT1Count = authorityGapDomains.filter(d => d.presence[leaderForInsights]).length;
   const brandT1Count = authorityGapDomains.filter(d => d.presence[brandName]).length;
   if (leaderT1Count > brandT1Count) {
+    const leaderSources = authorityGapDomains
+      .filter(d => d.presence[leaderForInsights])
+      .map(d => d.domain);
     topPlayerInsights.push({
       title: `Present on ${leaderT1Count} of ${authorityGapDomains.length} authority sources`,
-      detail: `${leaderForInsights} appears on ${leaderT1Count - brandT1Count} more T1/T2 citation sources than ${brandName}. AI engines retrieve from these domains when building recommendations.`,
+      detail: `LLMs pull from these authority sources when building recommendations. ${leaderForInsights} appears on ${leaderT1Count - brandT1Count} more than ${brandName}. The full report details how to increase your visibility on each.`,
+      sources: leaderSources,
     });
   }
 
