@@ -57,6 +57,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Link, useLocation } from "wouter";
 import { SegmentCitationAnalyzer } from "@/components/SegmentCitationAnalyzer";
+import { Section1, Section2, CompetitorPlaybookSection, Section3, AppendixSection } from "@/components/ReportViewer";
 
 interface Prompt {
   id: string;
@@ -1270,6 +1271,7 @@ export default function PromptGenerator() {
   const [compReportData, setCompReportData] = useState<any>(null);
   const [compReportLoading, setCompReportLoading] = useState(false);
   const [compReportOpen, setCompReportOpen] = useState(false);
+  const [compSessionId, setCompSessionId] = useState<number | null>(null);
 
   const updateSegment = (id: string, patch: Partial<V2Segment>) => {
     setV2Segments((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -1376,6 +1378,7 @@ export default function PromptGenerator() {
     setCompLensResult(null);
     setCompReportData(null);
     setCompReportOpen(false);
+    setCompSessionId(null);
     try {
       const res = await apiRequest("POST", "/api/competitor-lens/analyse", {
         competitorName: name,
@@ -1417,6 +1420,7 @@ export default function PromptGenerator() {
       setCompReportData(data.report);
       setCompReportOpen(true);
       if (data.competitorSessionId) {
+        setCompSessionId(data.competitorSessionId);
         toast({ title: `Competitor report saved — Session #${data.competitorSessionId}`, description: `${compLensSelected} report is now in History` });
         queryClient.invalidateQueries({ queryKey: ["/api/multisegment/sessions"] });
       }
@@ -3360,8 +3364,9 @@ export default function PromptGenerator() {
                                   <span className="text-center">{brandName}</span>
                                   <span className="text-center">{compLensResult.competitorName}</span>
                                 </div>
-                                {Object.entries(compLensResult.perSegment).map(([segLabel, segScore]: [string, any]) => {
-                                  const ourSeg = v2Segments.find((s) => {
+                                {Object.entries(compLensResult.perSegment).map(([segLabel, segScore]: [string, any], segIdx) => {
+                                  const segWithRuns = v2Segments.filter(s => s.scoringResult?.raw_runs?.length);
+                                  const ourSeg = segWithRuns[segIdx] || v2Segments.find((s) => {
                                     const label = `${s.persona.replace(/_/g, " ")}${s.serviceType ? ` · ${s.serviceType}` : ""}${s.customerType && s.customerType !== "__none__" ? ` · ${s.customerType}` : ""}${s.location ? ` · ${s.location}` : ""}`;
                                     return label === segLabel;
                                   });
@@ -3493,7 +3498,7 @@ export default function PromptGenerator() {
                             </div>
 
                           {compReportOpen && compReportData && (
-                            <div className="mt-4 border rounded-lg p-4 bg-background space-y-6" data-testid="competitor-full-report">
+                            <div className="mt-4 space-y-4" data-testid="competitor-full-report">
                               <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-semibold flex items-center gap-2">
                                   <FileText className="w-4 h-4 text-primary" />
@@ -3503,97 +3508,23 @@ export default function PromptGenerator() {
                                   {compReportData.meta?.segmentCount} segments · {compReportData.meta?.totalRuns} runs
                                 </Badge>
                               </div>
-
-                              <div className="grid grid-cols-3 gap-3">
-                                <div className="border rounded-md p-3 text-center">
-                                  <div className="text-lg font-bold text-primary">{Math.round((compReportData.section1?.overall?.appearanceRate || 0) * 100)}%</div>
-                                  <div className="text-[10px] text-muted-foreground">Appearance Rate</div>
-                                </div>
-                                <div className="border rounded-md p-3 text-center">
-                                  <div className="text-lg font-bold text-primary">{Math.round((compReportData.section1?.overall?.primaryRate || 0) * 100)}%</div>
-                                  <div className="text-[10px] text-muted-foreground">Primary Rate</div>
-                                </div>
-                                <div className="border rounded-md p-3 text-center">
-                                  <div className="text-lg font-bold text-primary">{compReportData.section1?.overall?.avgRank != null ? `#${compReportData.section1.overall.avgRank.toFixed(1)}` : "—"}</div>
-                                  <div className="text-[10px] text-muted-foreground">Avg Rank</div>
-                                </div>
-                              </div>
-
-                              {compReportData.section1?.engineHeatmap && (
-                                <div>
-                                  <h4 className="text-xs font-medium text-muted-foreground mb-2">Engine Breakdown</h4>
-                                  <div className="grid grid-cols-3 gap-2">
-                                    {Object.entries(compReportData.section1.engineHeatmap).map(([engine, data]: [string, any]) => (
-                                      <div key={engine} className="border rounded-md p-2">
-                                        <div className="text-[10px] text-muted-foreground mb-0.5">{engine}</div>
-                                        <div className="text-sm font-semibold">{Math.round((data.appearanceRate || 0) * 100)}%</div>
-                                        <div className="text-[10px] text-muted-foreground">
-                                          Rank {data.avgRank != null ? `#${data.avgRank.toFixed(1)}` : "—"} · {data.runs || 0} runs
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {compReportData.section2?.topCompetitors?.length > 0 && (
-                                <div>
-                                  <h4 className="text-xs font-medium text-muted-foreground mb-2">Top Competitors (from {compReportData.meta?.brandName}'s perspective)</h4>
-                                  <div className="border rounded-md overflow-hidden">
-                                    {compReportData.section2.topCompetitors.slice(0, 10).map((c: any, i: number) => (
-                                      <div key={c.name} className={`flex items-center gap-2 px-3 py-1.5 text-xs ${i > 0 ? "border-t" : ""}`}>
-                                        <span className="text-muted-foreground font-mono w-4">{i + 1}</span>
-                                        <span className="flex-1 truncate">{c.name}</span>
-                                        <div className="w-16 bg-secondary/50 rounded-full h-1.5">
-                                          <div className="bg-primary/60 h-1.5 rounded-full" style={{ width: `${Math.round((c.weightedShare || c.share || 0) * 100)}%` }} />
-                                        </div>
-                                        <span className="text-muted-foreground w-8 text-right">{Math.round((c.weightedShare || c.share || 0) * 100)}%</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {compReportData.section3?.quickWins?.length > 0 && (
-                                <div>
-                                  <h4 className="text-xs font-medium text-muted-foreground mb-2">Quick Wins</h4>
-                                  <ul className="space-y-1">
-                                    {compReportData.section3.quickWins.slice(0, 5).map((w: any, i: number) => (
-                                      <li key={i} className="text-xs flex items-start gap-2">
-                                        <ChevronRight className="w-3 h-3 mt-0.5 text-primary shrink-0" />
-                                        <span>{typeof w === "string" ? w : w.recommendation || w.text || JSON.stringify(w)}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-
-                              {compReportData.section3?.gaps?.length > 0 && (
-                                <div>
-                                  <h4 className="text-xs font-medium text-muted-foreground mb-2">Gap Analysis</h4>
-                                  <div className="space-y-2">
-                                    {compReportData.section3.gaps.slice(0, 5).map((g: any, i: number) => (
-                                      <div key={i} className="border rounded-md p-2">
-                                        <div className="text-xs font-medium">{g.gapType || g.type}</div>
-                                        <div className="text-[10px] text-muted-foreground mt-0.5">{g.description || g.detail}</div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {compReportData.competitorPlaybook?.narratives?.length > 0 && (
-                                <div>
-                                  <h4 className="text-xs font-medium text-muted-foreground mb-2">Competitor Playbook</h4>
-                                  <div className="space-y-2">
-                                    {compReportData.competitorPlaybook.narratives.slice(0, 3).map((n: any, i: number) => (
-                                      <div key={i} className="border rounded-md p-2">
-                                        <div className="text-xs font-medium">{n.competitorName}</div>
-                                        <div className="text-[10px] text-muted-foreground mt-0.5">{n.narrative}</div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
+                              {compReportData.section1 && <Section1 data={compReportData.section1} />}
+                              {compReportData.section2 && <Section2 data={compReportData.section2} brandName={compReportData.meta?.brandName || compLensSelected} />}
+                              {compReportData.competitorPlaybook && <CompetitorPlaybookSection data={compReportData.competitorPlaybook} brandName={compReportData.meta?.brandName || compLensSelected} />}
+                              {compReportData.section3 && <Section3 data={compReportData.section3} />}
+                              {compReportData.appendix && <AppendixSection data={compReportData.appendix} />}
+                              {compSessionId && (
+                                <SegmentCitationAnalyzer
+                                  brandName={compLensSelected}
+                                  sessionId={compSessionId}
+                                  segments={v2Segments.filter(s => s.scoringResult).map(s => ({
+                                    id: s.id,
+                                    seedType: s.seedType,
+                                    customerType: s.customerType,
+                                    location: s.location,
+                                    scoringResult: s.scoringResult,
+                                  }))}
+                                />
                               )}
                             </div>
                           )}

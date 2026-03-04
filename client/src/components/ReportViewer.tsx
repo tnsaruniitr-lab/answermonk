@@ -729,7 +729,7 @@ export function ReportViewer({ sessionId, brandName, groupKey }: ReportViewerPro
   );
 }
 
-function Section1({ data }: { data: any }) {
+export function Section1({ data }: { data: any }) {
   const [open, setOpen] = useState(true);
 
   return (
@@ -829,7 +829,7 @@ function Section1({ data }: { data: any }) {
   );
 }
 
-function Section2({ data, brandName }: { data: any; brandName: string }) {
+export function Section2({ data, brandName }: { data: any; brandName: string }) {
   const [open, setOpen] = useState(true);
 
   return (
@@ -1049,7 +1049,7 @@ function CompetitorDeepDive({ dd }: { dd: any }) {
   );
 }
 
-function CompetitorPlaybookSection({ data, brandName }: { data: any; brandName: string }) {
+export function CompetitorPlaybookSection({ data, brandName }: { data: any; brandName: string }) {
   const [open, setOpen] = useState(true);
 
   return (
@@ -1403,7 +1403,7 @@ function AuthoritySourceRow({ src }: { src: any }) {
   );
 }
 
-function Section3({ data }: { data: any }) {
+export function Section3({ data }: { data: any }) {
   const [open, setOpen] = useState(true);
 
   return (
@@ -1564,7 +1564,7 @@ const TIER_LABELS: Record<string, { label: string; color: string }> = {
   brand_owned: { label: "Brand Owned", color: "text-purple-700 dark:text-purple-400" },
 };
 
-function AppendixSection({ data }: { data: any }) {
+export function AppendixSection({ data }: { data: any }) {
   const [open, setOpen] = useState(false);
 
   const tiers = ["T1", "T2", "T3", "T4", "brand_owned"] as const;
