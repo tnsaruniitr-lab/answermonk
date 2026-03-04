@@ -744,6 +744,14 @@ export async function registerRoutes(
       });
       const parsed = schema.parse(req.body);
 
+      if (parsed.sessionId) {
+        const parentSession = await storage.getMultiSegmentSession(parsed.sessionId);
+        if (parentSession && (parentSession as any).sessionType === "competitor") {
+          res.status(400).json({ message: "Cannot generate competitor reports from a competitor session. Use the original brand session instead." });
+          return;
+        }
+      }
+
       const competitorSegments = buildCompetitorReportSegments(
         parsed.segments,
         parsed.competitorName,
