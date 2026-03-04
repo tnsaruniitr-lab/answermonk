@@ -1,0 +1,145 @@
+Citation Analysis — SEO sherpa
+125 URLs crawled
+93 accessible
+Re-run
+Global Model Familiarity
+High
+Mentioned across 8 third-party domains
+
+SEO agency Providers for F&B
+vs Bird Marketing & NEXA
+1st
+Winner
+Factor
+You
+SEO sherpa
+Bird Marketing
+NEXA
+Retrieved Authority
+Show evidence
+absent
+Not found on any third-party supporting sources
+absent
+absent
+Context Consistency
+Show evidence
+absent
+0% category match, 0% audience match across 23 snippets
+absent
+absent
+Comparison Presence
+Show evidence
+absent
+Absent from all 14 decision surfaces
+medium
+medium
+The model understands SEO sherpa as
+"Generic mentions without category context"
+Recommended Action
+Add explicit "providers" wording to your homepage H1, first 200 words, and directory profiles (G2, Crunchbase). Include "f&b" in the same sentence as your category.
+
+Get listed on comparison and directory sites where competitors appear. Look for listicles, review sites, and industry directories in your segment.
+
+
+SEO agency Providers for enterprise customers
+vs Chain Reaction & Traffic Digital
+1st
+Winner
+Factor
+You
+SEO sherpa
+Chain Reaction
+Traffic Digital
+Retrieved Authority
+Show evidence
+absent
+Not found on any third-party supporting sources
+absent
+absent
+Context Consistency
+Show evidence
+weak
+3% category match, 0% audience match across 38 snippets
+absent
+absent
+Comparison Presence
+Show evidence
+absent
+Absent from all 15 decision surfaces
+strong
+medium
+The model understands SEO sherpa as
+"providers"
+Recommended Action
+Add explicit "providers" wording to your homepage H1, first 200 words, and directory profiles (G2, Crunchbase). Include "enterprise customers" in the same sentence as your category.
+
+Get listed on comparison surfaces where competitors appear: linkedin.com. Prioritize Tier 1/2 domains.
+
+
+SEO agency Providers for banks
+vs Bird Marketing & NEXA
+1st
+Winner
+Factor
+You
+SEO sherpa
+Bird Marketing
+NEXA
+Retrieved Authority
+Show evidence
+absent
+Not found on any third-party supporting sources
+absent
+absent
+Context Consistency
+Show evidence
+weak
+2% category match, 0% audience match across 51 snippets
+absent
+absent
+Comparison Presence
+Show evidence
+strong
+On 3/13 decision surfaces (score: 9.0)
+medium
+strong
+The model understands SEO sherpa as
+"providers"
+Recommended Action
+Add explicit "providers" wording to your homepage H1, first 200 words, and directory profiles (G2, Crunchbase). Include "banks" in the same sentence as your category.
+
+
+SEO agency Providers for ecommerce
+vs Digital Gravity & United SEO (USEO)
+1st
+Winner
+Factor
+You
+SEO sherpa
+Digital Gravity
+United SEO (USEO)
+Retrieved Authority
+Show evidence
+absent
+Not found on any third-party supporting sources
+absent
+absent
+Context Consistency
+Show evidence
+weak
+3% category match, 7% audience match across 31 snippets
+weak
+absent
+Comparison Presence
+Show evidence
+absent
+Absent from all 5 decision surfaces
+absent
+absent
+The model understands SEO sherpa as
+"providers"
+Recommended Action
+Add explicit "providers" wording to your homepage H1, first 200 words, and directory profiles (G2, Crunchbase). Include "ecommerce", "e-commerce", "online store" in the same sentence as your category.
+
+Get listed on comparison and directory sites where competitors appear. Look for listicles, review sites, and industry directories in your segment.
+
