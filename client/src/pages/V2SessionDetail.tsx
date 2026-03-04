@@ -32,6 +32,7 @@ import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { SegmentCitationAnalyzer } from "@/components/SegmentCitationAnalyzer";
 import { ReportViewer } from "@/components/ReportViewer";
+import { mergeCompetitors } from "@/lib/competitor-merge";
 
 const ENGINE_LABELS: Record<string, string> = {
   chatgpt: "ChatGPT",
@@ -319,7 +320,8 @@ function SegmentCard({ seg, idx, brandName }: { seg: SegmentData; idx: number; b
             <div className="flex items-center gap-2 shrink-0">
               {(() => {
                 const brandShare = score.appearance_rate;
-                const compShares = score.competitors.map((c: any) => c.share);
+                const mergedComps = mergeCompetitors(seg.scoringResult?.raw_runs, score.competitors, score.valid_runs || 0);
+                const compShares = mergedComps.map((c: any) => c.share);
                 const rank = 1 + compShares.filter((s: number) => s > brandShare).length;
                 const trophyColor = rank === 1 ? "text-amber-500" : rank === 2 ? "text-slate-400" : "text-orange-500";
                 const badgeStyle = rank === 1
@@ -430,7 +432,9 @@ function SegmentCard({ seg, idx, brandName }: { seg: SegmentData; idx: number; b
 
                 {(() => {
                   const brandEntry = { name: brandName, share: score.appearance_rate, isBrand: true as const };
-                  const allEntries = [brandEntry, ...score.competitors.map(c => ({ ...c, isBrand: false as const }))]
+                  const mergedComps = mergeCompetitors(seg.scoringResult?.raw_runs, score.competitors, score.valid_runs || 0);
+                  const brandLC = brandName.toLowerCase();
+                  const allEntries = [brandEntry, ...mergedComps.filter(c => !c.name.toLowerCase().includes(brandLC) && !brandLC.includes(c.name.toLowerCase())).map(c => ({ ...c, isBrand: false as const }))]
                     .sort((a, b) => b.share - a.share);
                   return allEntries.length > 0 && (
                     <div>

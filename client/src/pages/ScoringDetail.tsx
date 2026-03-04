@@ -4,6 +4,7 @@ import { useScoringResult } from "@/hooks/use-analysis";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { deduplicateStoredCompetitors } from "@/lib/competitor-merge";
 import {
   ArrowLeft,
   Copy,
@@ -540,7 +541,8 @@ export default function ScoringDetail() {
                 appearances: 0,
                 isBrand: true as const,
               };
-              const allEntries = [brandEntry, ...score.competitors.map(c => ({ ...c, isBrand: false as const }))]
+              const dedupedComps = deduplicateStoredCompetitors(score.competitors);
+              const allEntries = [brandEntry, ...dedupedComps.map(c => ({ ...c, isBrand: false as const }))]
                 .sort((a, b) => b.share - a.share);
               return allEntries.length > 0 && (
                 <div className="mb-8">

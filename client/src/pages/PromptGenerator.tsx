@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { deduplicateStoredCompetitors } from "@/lib/competitor-merge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -784,7 +785,8 @@ function ResultsDashboard({ score, brandName, mode, promptsUsed, rawRuns, onNewA
           appearances: 0,
           isBrand: true as const,
         };
-        const allEntries = [brandEntry, ...score.competitors.map(c => ({ ...c, isBrand: false as const }))]
+        const dedupedComps = deduplicateStoredCompetitors(score.competitors);
+        const allEntries = [brandEntry, ...dedupedComps.map(c => ({ ...c, isBrand: false as const }))]
           .sort((a, b) => b.share - a.share);
         return allEntries.length > 0 && (
           <div className="mb-8">
@@ -935,7 +937,8 @@ function SegmentResultsDashboard({ score, brandName, rawRuns, segmentLabel, cost
           appearances: 0,
           isBrand: true as const,
         };
-        const allEntries = [brandEntry, ...score.competitors.map(c => ({ ...c, isBrand: false as const }))]
+        const dedupedComps = deduplicateStoredCompetitors(score.competitors);
+        const allEntries = [brandEntry, ...dedupedComps.map(c => ({ ...c, isBrand: false as const }))]
           .sort((a, b) => b.share - a.share);
         return allEntries.length > 0 && (
           <div>
