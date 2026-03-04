@@ -333,76 +333,95 @@ export async function fetchWithBrowser(url: string): Promise<{ html: string; fin
   }
 }
 
+const SINGLE_URL_TIMEOUT = 30000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T | null> {
+  return Promise.race([
+    promise,
+    new Promise<null>((resolve) => {
+      setTimeout(() => {
+        console.log(`[crawler] TIMEOUT after ${ms}ms: ${label}`);
+        resolve(null);
+      }, ms);
+    }),
+  ]);
+}
+
 export async function crawlSingleUrl(url: string): Promise<CrawledPage> {
-  let result = await fetchWithHttp(url);
-
-  if (result) {
-    const text = extractTextFromHTML(result.html);
-    if (text.split(/\s+/).length < MIN_TEXT_LENGTH / 5) {
-      const browserResult = await fetchWithBrowser(url);
-      if (browserResult) {
-        result = browserResult;
-      }
-    }
-  } else {
-    result = await fetchWithBrowser(url);
-  }
-
-  if (!result) {
-    return {
-      url,
-      resolvedUrl: url,
-      canonicalUrl: canonicalizeUrl(url),
-      domain: canonicalizeDomain(url),
-      title: "",
-      metaDescription: "",
-      publishDate: null,
-      cleanText: "",
-      rawHtml: "",
-      contentHash: "",
-      accessible: false,
-      wordCount: 0,
-      headings: [],
-      listItems: [],
-      tableRows: [],
-    };
-  }
-
-  const resolvedUrl = result.finalUrl || url;
-  const canonical = canonicalizeUrl(resolvedUrl);
-  const domain = canonicalizeDomain(resolvedUrl);
-
-  const cleanText = extractTextFromHTML(result.html);
-  const title = extractTitle(result.html);
-  const metaDescription = extractMetaDescription(result.html);
-  const publishDate = extractPublishDate(result.html, resolvedUrl);
-  const contentHash = computeContentHash(cleanText);
-  const wordCount = cleanText.split(/\s+/).length;
-  const headings = extractHeadings(result.html);
-  const listItems = extractListItems(result.html);
-  const tableRows = extractTableRows(result.html);
-
-  if (resolvedUrl !== url) {
-    console.log(`[crawler] Redirect resolved: ${url} -> ${resolvedUrl}`);
-  }
-
-  return {
-    url: resolvedUrl,
-    resolvedUrl,
-    canonicalUrl: canonical,
-    domain,
-    title,
-    metaDescription,
-    publishDate,
-    cleanText,
-    rawHtml: result.html,
-    contentHash,
-    accessible: true,
-    wordCount,
-    headings,
-    listItems,
-    tableRows,
+  const failResult: CrawledPage = {
+    url,
+    resolvedUrl: url,
+    canonicalUrl: canonicalizeUrl(url),
+    domain: canonicalizeDomain(url),
+    title: "",
+    metaDescription: "",
+    publishDate: null,
+    cleanText: "",
+    rawHtml: "",
+    contentHash: "",
+    accessible: false,
+    wordCount: 0,
+    headings: [],
+    listItems: [],
+    tableRows: [],
   };
+
+  const doWork = async (): Promise<CrawledPage> => {
+    let result = await fetchWithHttp(url);
+
+    if (result) {
+      const text = extractTextFromHTML(result.html);
+      if (text.split(/\s+/).length < MIN_TEXT_LENGTH / 5) {
+        const browserResult = await fetchWithBrowser(url);
+        if (browserResult) {
+          result = browserResult;
+        }
+      }
+    } else {
+      result = await fetchWithBrowser(url);
+    }
+
+    if (!result) return failResult;
+
+    const resolvedUrl = result.finalUrl || url;
+    const canonical = canonicalizeUrl(resolvedUrl);
+    const domain = canonicalizeDomain(resolvedUrl);
+
+    const cleanText = extractTextFromHTML(result.html);
+    const title = extractTitle(result.html);
+    const metaDescription = extractMetaDescription(result.html);
+    const publishDate = extractPublishDate(result.html, resolvedUrl);
+    const contentHash = computeContentHash(cleanText);
+    const wordCount = cleanText.split(/\s+/).length;
+    const headings = extractHeadings(result.html);
+    const listItems = extractListItems(result.html);
+    const tableRows = extractTableRows(result.html);
+
+    if (resolvedUrl !== url) {
+      console.log(`[crawler] Redirect resolved: ${url} -> ${resolvedUrl}`);
+    }
+
+    return {
+      url: resolvedUrl,
+      resolvedUrl,
+      canonicalUrl: canonical,
+      domain,
+      title,
+      metaDescription,
+      publishDate,
+      cleanText,
+      rawHtml: result.html,
+      contentHash,
+      accessible: true,
+      wordCount,
+      headings,
+      listItems,
+      tableRows,
+    };
+  };
+
+  const result = await withTimeout(doWork(), SINGLE_URL_TIMEOUT, url);
+  return result || failResult;
 }
 
 export async function crawlUrls(
@@ -423,10 +442,28 @@ export async function crawlUrls(
   console.log(`[crawler] Crawling ${uniqueUrls.length} unique URLs (from ${urls.length} total)`);
 
   const results: CrawledPage[] = [];
+  let successCount = 0;
+  let failCount = 0;
+  let timeoutCount = 0;
+
   for (let i = 0; i < uniqueUrls.length; i += MAX_CONCURRENT) {
     const batch = uniqueUrls.slice(i, i + MAX_CONCURRENT);
+    const batchNum = Math.floor(i / MAX_CONCURRENT) + 1;
+    const totalBatches = Math.ceil(uniqueUrls.length / MAX_CONCURRENT);
+    console.log(`[crawler] Batch ${batchNum}/${totalBatches} — crawling ${batch.length} URLs (${i + 1}-${Math.min(i + MAX_CONCURRENT, uniqueUrls.length)} of ${uniqueUrls.length})`);
+
     const batchResults = await Promise.all(batch.map(url => crawlSingleUrl(url)));
+
+    for (const page of batchResults) {
+      if (page.accessible) {
+        successCount++;
+      } else {
+        failCount++;
+      }
+    }
+
     results.push(...batchResults);
+    console.log(`[crawler] Progress: ${results.length}/${uniqueUrls.length} done (${successCount} ok, ${failCount} failed)`);
     onProgress?.(results.length, uniqueUrls.length);
   }
 
@@ -439,13 +476,12 @@ export async function crawlUrls(
       continue;
     }
     if (hashSeen.has(page.contentHash)) {
-      console.log(`[crawler] Dedup: ${page.url} (same content as previous page)`);
       continue;
     }
     hashSeen.set(page.contentHash, deduplicated.length);
     deduplicated.push(page);
   }
 
-  console.log(`[crawler] ${deduplicated.length} pages after deduplication`);
+  console.log(`[crawler] Complete: ${deduplicated.length} pages after dedup (${successCount} crawled, ${failCount} failed, ${results.length - successCount - failCount} skipped)`);
   return deduplicated;
 }
