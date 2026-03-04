@@ -8,6 +8,7 @@ import {
   multiSegmentSessions,
   savedV2Configs,
   reportCache,
+  teaserLeads,
   type InsertAnalysisResult,
   type AnalysisResult,
   type InsertScoringJob,
@@ -18,6 +19,8 @@ import {
   type MultiSegmentSession,
   type InsertSavedV2Config,
   type SavedV2Config,
+  type InsertTeaserLead,
+  type TeaserLead,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -57,6 +60,8 @@ export interface IStorage {
   deleteMultiSegmentSession(id: number): Promise<void>;
   getReportCache(cacheKey: string): Promise<any | null>;
   setReportCache(cacheKey: string, data: any): Promise<void>;
+  createTeaserLead(lead: InsertTeaserLead): Promise<TeaserLead>;
+  listTeaserLeads(): Promise<TeaserLead[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -320,6 +325,21 @@ export class DatabaseStorage implements IStorage {
         target: reportCache.cacheKey,
         set: { reportData: data, createdAt: sql`NOW()` },
       });
+  }
+
+  async createTeaserLead(lead: InsertTeaserLead): Promise<TeaserLead> {
+    const [result] = await db
+      .insert(teaserLeads)
+      .values(lead)
+      .returning();
+    return result;
+  }
+
+  async listTeaserLeads(): Promise<TeaserLead[]> {
+    return db
+      .select()
+      .from(teaserLeads)
+      .orderBy(desc(teaserLeads.createdAt));
   }
 }
 

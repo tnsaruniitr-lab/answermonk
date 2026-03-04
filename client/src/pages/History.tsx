@@ -93,12 +93,19 @@ export default function HistoryPage() {
           <Link href="/">
             <span className="text-base font-semibold tracking-tight" data-testid="text-logo">BrandSense</span>
           </Link>
-          <Link href="/">
-            <Button variant="ghost" className="gap-1.5 text-sm" data-testid="button-back">
-              <ArrowLeft className="w-3.5 h-3.5" />
-              Analyzer
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/leads">
+              <Button variant="ghost" className="text-sm" data-testid="button-leads">
+                Leads
+              </Button>
+            </Link>
+            <Link href="/">
+              <Button variant="ghost" className="gap-1.5 text-sm" data-testid="button-back">
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Analyzer
+              </Button>
+            </Link>
+          </div>
         </div>
       </nav>
 

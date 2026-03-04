@@ -12,6 +12,7 @@ import ScoringDetail from "@/pages/ScoringDetail";
 import V2SessionDetail from "@/pages/V2SessionDetail";
 import SummaryReport from "@/pages/SummaryReport";
 import ProspectTeaser from "@/pages/ProspectTeaser";
+import Leads from "@/pages/Leads";
 import Login from "@/pages/Login";
 import { Loader2 } from "lucide-react";
 
@@ -25,6 +26,7 @@ function AdminRouter() {
       <Route path="/v2/:id" component={V2SessionDetail} />
       <Route path="/summary/:id" component={SummaryReport} />
       <Route path="/teaser/:id" component={ProspectTeaser} />
+      <Route path="/leads" component={Leads} />
       <Route component={NotFound} />
     </Switch>
   );

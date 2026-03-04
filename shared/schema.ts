@@ -83,6 +83,19 @@ export const insertSavedV2ConfigSchema = createInsertSchema(savedV2Configs).omit
 export type SavedV2Config = typeof savedV2Configs.$inferSelect;
 export type InsertSavedV2Config = z.infer<typeof insertSavedV2ConfigSchema>;
 
+export const teaserLeads = pgTable("teaser_leads", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").notNull(),
+  brandName: text("brand_name").notNull(),
+  interests: text("interests").array().notNull(),
+  comments: text("comments"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertTeaserLeadSchema = createInsertSchema(teaserLeads).omit({ id: true, createdAt: true });
+export type TeaserLead = typeof teaserLeads.$inferSelect;
+export type InsertTeaserLead = z.infer<typeof insertTeaserLeadSchema>;
+
 // We'll store search history/results here
 export const analysisResults = pgTable("analysis_results", {
   id: serial("id").primaryKey(),

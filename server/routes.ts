@@ -1424,5 +1424,45 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/share/teaser/:id/lead", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.id, 10);
+      if (isNaN(sessionId)) {
+        res.status(400).json({ message: "Invalid session ID" });
+        return;
+      }
+      const { interests, comments } = req.body;
+      if (!Array.isArray(interests) || interests.length === 0) {
+        res.status(400).json({ message: "At least one interest is required" });
+        return;
+      }
+      const session = await storage.getMultiSegmentSession(sessionId);
+      if (!session) {
+        res.status(404).json({ message: "Session not found" });
+        return;
+      }
+      const lead = await storage.createTeaserLead({
+        sessionId,
+        brandName: session.brandName,
+        interests,
+        comments: comments || null,
+      });
+      res.json({ success: true, lead });
+    } catch (err) {
+      console.error("Lead submission error:", err);
+      res.status(500).json({ message: "Failed to submit" });
+    }
+  });
+
+  app.get("/api/teaser-leads", async (_req, res) => {
+    try {
+      const leads = await storage.listTeaserLeads();
+      res.json({ leads });
+    } catch (err) {
+      console.error("Lead listing error:", err);
+      res.status(500).json({ message: "Failed to list leads" });
+    }
+  });
+
   return httpServer;
 }

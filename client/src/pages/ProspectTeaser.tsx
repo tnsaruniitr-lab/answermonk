@@ -454,6 +454,31 @@ export default function ProspectTeaser() {
   const reveal = useScrollReveal();
   const animBar = useAnimatedBars();
 
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [surveyComments, setSurveyComments] = useState("");
+  const [surveySubmitted, setSurveySubmitted] = useState(false);
+  const [surveySubmitting, setSurveySubmitting] = useState(false);
+
+  const toggleInterest = (val: string) => {
+    setSelectedInterests(prev =>
+      prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
+    );
+  };
+
+  const submitSurvey = async () => {
+    if (selectedInterests.length === 0) return;
+    setSurveySubmitting(true);
+    try {
+      const res = await fetch(`/api/share/teaser/${sessionId}/lead`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interests: selectedInterests, comments: surveyComments || null }),
+      });
+      if (res.ok) setSurveySubmitted(true);
+    } catch {}
+    setSurveySubmitting(false);
+  };
+
   const scoreTarget = data?.teaser?.overallScore?.appearanceRate ?? 0;
   const rankTarget = data?.teaser?.overallScore?.marketRank ?? 0;
   const avgRankTarget = data?.teaser?.overallScore?.avgRank ?? 0;
@@ -1652,8 +1677,18 @@ export default function ProspectTeaser() {
             competitor playbook, authority acquisition roadmap, and the exact narrative strategy to
             fix what AI says about {brandName}.
           </p>
-          <a
-            href="#"
+          <button
+            onClick={async () => {
+              try {
+                await fetch(`/api/share/teaser/${sessionId}/lead`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ interests: ["full_report_request"], comments: null }),
+                });
+              } catch {}
+              const survey = document.querySelector('[data-testid="section-survey"]');
+              if (survey) survey.scrollIntoView({ behavior: "smooth" });
+            }}
             style={{
               display: "inline-block",
               background: V.gold,
@@ -1667,12 +1702,11 @@ export default function ProspectTeaser() {
               borderRadius: 2,
               cursor: "pointer",
               border: "none",
-              textDecoration: "none",
             }}
             data-testid="button-cta"
           >
             Request Full Report
-          </a>
+          </button>
           <p
             style={{
               marginTop: 18,
@@ -1683,6 +1717,191 @@ export default function ProspectTeaser() {
           >
             Includes actionable roadmap · Delivered within 48 hours
           </p>
+        </div>
+
+        {/* Survey Form */}
+        <div
+          ref={reveal}
+          style={{
+            marginTop: 80,
+            padding: "56px 48px",
+            border: `1px solid ${V.border}`,
+            borderRadius: 3,
+            background: V.surface,
+            position: "relative",
+          }}
+          data-testid="section-survey"
+        >
+          <SectionNumber num="" />
+          <h2
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 26,
+              fontWeight: 700,
+              color: "#fff",
+              marginBottom: 8,
+              lineHeight: 1.2,
+            }}
+            data-testid="heading-survey"
+          >
+            Anything else I can help with?
+          </h2>
+          <p
+            style={{
+              fontSize: 13,
+              color: V.mutedMd,
+              marginBottom: 32,
+              maxWidth: 480,
+              lineHeight: 1.7,
+            }}
+          >
+            Select any that apply — we'll follow up with relevant information.
+          </p>
+
+          {surveySubmitted ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "40px 0",
+              }}
+              data-testid="survey-success"
+            >
+              <div style={{ fontSize: 28, marginBottom: 12 }}>&#10003;</div>
+              <div
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: "#fff",
+                  marginBottom: 8,
+                }}
+              >
+                Thank you!
+              </div>
+              <div style={{ fontSize: 13, color: V.mutedMd }}>
+                We'll be in touch shortly.
+              </div>
+            </div>
+          ) : (
+            <>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
+                {[
+                  { val: "regular_report", label: "I want this report regularly" },
+                  { val: "improve_visibility", label: "I want to improve my AI visibility" },
+                  { val: "other_automations", label: "I want help with other automations" },
+                  { val: "analysis_for_others", label: "I want to do this analysis for others" },
+                ].map((opt) => {
+                  const selected = selectedInterests.includes(opt.val);
+                  return (
+                    <div
+                      key={opt.val}
+                      onClick={() => toggleInterest(opt.val)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 14,
+                        padding: "16px 20px",
+                        borderRadius: 3,
+                        border: `1px solid ${selected ? "rgba(201,168,76,0.35)" : V.border}`,
+                        background: selected ? "rgba(201,168,76,0.06)" : "transparent",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                      data-testid={`survey-option-${opt.val}`}
+                    >
+                      <div
+                        style={{
+                          width: 18,
+                          height: 18,
+                          borderRadius: 3,
+                          border: `1.5px solid ${selected ? V.gold : V.borderMd}`,
+                          background: selected ? V.gold : "transparent",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        {selected && (
+                          <span style={{ color: V.bg, fontSize: 12, fontWeight: 700, lineHeight: 1 }}>&#10003;</span>
+                        )}
+                      </div>
+                      <span
+                        style={{
+                          fontSize: 14,
+                          color: selected ? V.goldLight : V.text,
+                          fontWeight: selected ? 500 : 300,
+                        }}
+                      >
+                        {opt.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ marginBottom: 28 }}>
+                <div
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 9,
+                    letterSpacing: "0.15em",
+                    textTransform: "uppercase",
+                    color: V.muted,
+                    marginBottom: 10,
+                  }}
+                >
+                  Comments (optional)
+                </div>
+                <textarea
+                  value={surveyComments}
+                  onChange={(e) => setSurveyComments(e.target.value)}
+                  placeholder="Anything specific you'd like us to know..."
+                  rows={3}
+                  style={{
+                    width: "100%",
+                    background: V.bg,
+                    border: `1px solid ${V.border}`,
+                    borderRadius: 3,
+                    padding: "14px 16px",
+                    color: V.text,
+                    fontSize: 13,
+                    fontFamily: "'DM Sans', sans-serif",
+                    lineHeight: 1.6,
+                    resize: "vertical",
+                    outline: "none",
+                    boxSizing: "border-box",
+                  }}
+                  data-testid="input-survey-comments"
+                />
+              </div>
+
+              <button
+                onClick={submitSurvey}
+                disabled={selectedInterests.length === 0 || surveySubmitting}
+                style={{
+                  display: "inline-block",
+                  background: selectedInterests.length > 0 ? V.gold : V.borderMd,
+                  color: selectedInterests.length > 0 ? V.bg : V.muted,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 11,
+                  fontWeight: 500,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  padding: "14px 36px",
+                  borderRadius: 2,
+                  cursor: selectedInterests.length > 0 ? "pointer" : "default",
+                  border: "none",
+                  opacity: surveySubmitting ? 0.6 : 1,
+                  transition: "all 0.2s ease",
+                }}
+                data-testid="button-survey-submit"
+              >
+                {surveySubmitting ? "Submitting..." : "Submit"}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
