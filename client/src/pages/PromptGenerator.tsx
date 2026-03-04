@@ -3607,6 +3607,7 @@ export default function PromptGenerator() {
                 {mode === "quickv2" && v2Segments.some((s) => s.scoringResult) && !v2IsAnalysing && (
                   <SegmentCitationAnalyzer
                     brandName={brandName}
+                    sessionId={v2LoadedSessionId}
                     segments={v2Segments.filter(s => s.scoringResult).map(s => ({
                       id: s.id,
                       seedType: s.seedType,

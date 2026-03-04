@@ -162,6 +162,7 @@ export default function V2SessionDetail() {
           <SegmentCitationAnalyzer
             brandName={session.brandName}
             sessionId={numericId}
+            groupKey={isGroupKey ? rawId : null}
             segments={segments
               .filter(s => s.scoringResult)
               .map((s, i) => ({

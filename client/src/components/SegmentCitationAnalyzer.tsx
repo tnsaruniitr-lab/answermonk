@@ -170,6 +170,7 @@ interface FullAnalysisReport {
 interface SegmentCitationAnalyzerProps {
   brandName: string;
   sessionId?: number | null;
+  groupKey?: string | null;
   segments: {
     id: string;
     persona?: string;
@@ -244,7 +245,7 @@ const factorIcons: Record<string, typeof Shield> = {
   comparative: BarChart3,
 };
 
-export function SegmentCitationAnalyzer({ brandName, sessionId, segments }: SegmentCitationAnalyzerProps) {
+export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segments }: SegmentCitationAnalyzerProps) {
   const [report, setReport] = useState<FullAnalysisReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingPersisted, setLoadingPersisted] = useState(false);
@@ -252,12 +253,13 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, segments }: Segm
   const [expandedSegments, setExpandedSegments] = useState<Set<string>>(new Set());
 
   const segmentsWithScores = segments.filter(s => s.scoringResult);
+  const cacheId = sessionId || groupKey;
 
   useEffect(() => {
-    if (!sessionId) return;
+    if (!cacheId) return;
     let cancelled = false;
     setLoadingPersisted(true);
-    fetch(`/api/multi-segment-sessions/${sessionId}/citation-report`)
+    fetch(`/api/multi-segment-sessions/${cacheId}/citation-report`)
       .then(r => r.json())
       .then(data => {
         if (cancelled) return;
@@ -270,7 +272,7 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, segments }: Segm
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoadingPersisted(false); });
     return () => { cancelled = true; };
-  }, [sessionId]);
+  }, [cacheId]);
 
   const runAnalysis = async () => {
     setLoading(true);
@@ -289,6 +291,7 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, segments }: Segm
         brandName,
         segments: payload,
         sessionId: sessionId || undefined,
+        groupKey: groupKey || undefined,
       });
       const data = await res.json();
       setReport(data);

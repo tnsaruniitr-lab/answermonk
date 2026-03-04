@@ -1139,7 +1139,7 @@ export async function registerRoutes(
 
   app.post("/api/segment-analysis/analyze", async (req, res) => {
     try {
-      const { brandName, segments, brandDomain, sessionId } = req.body;
+      const { brandName, segments, brandDomain, sessionId, groupKey } = req.body;
       if (!brandName || !segments || !Array.isArray(segments)) {
         res.status(400).json({ message: "brandName and segments array required" });
         return;
@@ -1176,6 +1176,14 @@ export async function registerRoutes(
         } catch (persistErr) {
           console.error("Failed to persist citation report:", persistErr);
         }
+      } else if (groupKey && typeof groupKey === "string") {
+        try {
+          const cacheKey = `group:${groupKey}:citation`;
+          await storage.setReportCache(cacheKey, report);
+          console.log(`[segment-analysis] Persisted citation report for group key ${groupKey}`);
+        } catch (persistErr) {
+          console.error("Failed to persist citation report for group key:", persistErr);
+        }
       }
 
       res.json(report);
@@ -1187,12 +1195,19 @@ export async function registerRoutes(
 
   app.get("/api/multi-segment-sessions/:id/citation-report", async (req, res) => {
     try {
-      const id = parseInt(req.params.id, 10);
-      if (isNaN(id)) {
+      const id = req.params.id;
+      if (id.startsWith("v2auto-")) {
+        const cacheKey = `group:${id}:citation`;
+        const cached = await storage.getReportCache(cacheKey);
+        res.json({ report: cached || null });
+        return;
+      }
+      const numId = parseInt(id, 10);
+      if (isNaN(numId)) {
         res.status(400).json({ message: "Invalid session ID" });
         return;
       }
-      const session = await storage.getMultiSegmentSession(id);
+      const session = await storage.getMultiSegmentSession(numId);
       if (!session) {
         res.status(404).json({ message: "Session not found" });
         return;
