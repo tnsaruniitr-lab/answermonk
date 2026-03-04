@@ -1162,13 +1162,28 @@ export async function registerRoutes(
       .map(([name]) => name);
   }
 
+  const analysisProgress = new Map<string, { step: string; detail: string; pct: number; startedAt: number }>();
+
+  app.get("/api/segment-analysis/progress/:key", (req, res) => {
+    const key = req.params.key;
+    const progress = analysisProgress.get(key);
+    if (!progress) {
+      res.json({ step: "unknown", detail: "No active analysis", pct: 0 });
+      return;
+    }
+    res.json(progress);
+  });
+
   app.post("/api/segment-analysis/analyze", async (req, res) => {
+    let progressKey = `temp-${Date.now()}`;
     try {
-      const { brandName, segments, brandDomain, sessionId, groupKey } = req.body;
+      const { brandName, segments, brandDomain, sessionId, groupKey, progressKey: clientProgressKey } = req.body;
       if (!brandName || !segments || !Array.isArray(segments)) {
         res.status(400).json({ message: "brandName and segments array required" });
         return;
       }
+
+      progressKey = clientProgressKey || (sessionId ? `session-${sessionId}` : groupKey ? `group-${groupKey}` : `temp-${Date.now()}`);
 
       const normalizedSegments = segments.map((seg: any) => ({
         id: seg.id,
@@ -1190,8 +1205,11 @@ export async function registerRoutes(
         } : undefined,
       }));
 
+      analysisProgress.set(progressKey, { step: "starting", detail: "Initializing analysis...", pct: 0, startedAt: Date.now() });
+
       const report = await runSegmentAnalysis(brandName, normalizedSegments, (step, detail, pct) => {
         console.log(`[segment-analysis] ${step}: ${detail} (${pct}%)`);
+        analysisProgress.set(progressKey, { step, detail, pct, startedAt: analysisProgress.get(progressKey)?.startedAt || Date.now() });
       }, brandDomain || undefined);
 
       if (sessionId && typeof sessionId === "number") {
@@ -1211,9 +1229,14 @@ export async function registerRoutes(
         }
       }
 
-      res.json(report);
+      analysisProgress.set(progressKey, { step: "complete", detail: `Done — ${report.totalAccessible} pages crawled, ${report.totalCitationsCrawled - report.totalAccessible} failed`, pct: 100, startedAt: analysisProgress.get(progressKey)?.startedAt || Date.now() });
+      setTimeout(() => analysisProgress.delete(progressKey), 60000);
+
+      res.json({ ...report, progressKey });
     } catch (err) {
       console.error("Segment analysis error:", err);
+      analysisProgress.set(progressKey, { step: "error", detail: String(err), pct: 0, startedAt: analysisProgress.get(progressKey)?.startedAt || Date.now() });
+      setTimeout(() => analysisProgress.delete(progressKey), 30000);
       res.status(500).json({ message: "Analysis failed", error: String(err) });
     }
   });

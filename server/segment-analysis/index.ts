@@ -130,9 +130,9 @@ export async function runSegmentAnalysis(
   );
 
   onProgress?.("crawling", "Crawling citation URLs...", 15);
-  const pages = await crawlCitations(validSegments, (done, total) => {
-    const pct = 15 + Math.round((done / total) * 40);
-    onProgress?.("crawling", `Crawled ${done}/${total} pages...`, pct);
+  const pages = await crawlCitations(validSegments, (progress) => {
+    const pct = 15 + Math.round((progress.done / progress.total) * 40);
+    onProgress?.("crawling", `Crawled ${progress.done}/${progress.total} pages (${progress.success} ok, ${progress.failed} failed)`, pct);
   });
 
   const totalCitationsCrawled = pages.length;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -251,6 +251,9 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
   const [loadingPersisted, setLoadingPersisted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedSegments, setExpandedSegments] = useState<Set<string>>(new Set());
+  const [progress, setProgress] = useState<{ step: string; detail: string; pct: number } | null>(null);
+  const [crawlResult, setCrawlResult] = useState<{ crawled: number; failed: number } | null>(null);
+  const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const segmentsWithScores = segments.filter(s => s.scoringResult);
   const cacheId = sessionId || groupKey;
@@ -274,9 +277,32 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
     return () => { cancelled = true; };
   }, [cacheId]);
 
+  const startProgressPolling = (key: string) => {
+    if (progressInterval.current) clearInterval(progressInterval.current);
+    progressInterval.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/segment-analysis/progress/${key}`);
+        const data = await res.json();
+        setProgress(data);
+        if (data.step === "complete") {
+          if (progressInterval.current) clearInterval(progressInterval.current);
+          progressInterval.current = null;
+        }
+      } catch {}
+    }, 1500);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (progressInterval.current) clearInterval(progressInterval.current);
+    };
+  }, []);
+
   const runAnalysis = async () => {
     setLoading(true);
     setError(null);
+    setProgress({ step: "starting", detail: "Initializing analysis...", pct: 0 });
+    setCrawlResult(null);
     try {
       const payload: SegmentInput[] = segmentsWithScores.map(s => ({
         id: s.id,
@@ -287,20 +313,41 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
         scoringResult: s.scoringResult,
       }));
 
+      const progressKey = sessionId ? `session-${sessionId}` : groupKey ? `group-${groupKey}` : `temp-${Date.now()}`;
+      startProgressPolling(progressKey);
+
       const res = await apiRequest("POST", "/api/segment-analysis/analyze", {
         brandName,
         segments: payload,
         sessionId: sessionId || undefined,
         groupKey: groupKey || undefined,
+        progressKey,
       });
       const data = await res.json();
+
+      if (progressInterval.current) {
+        clearInterval(progressInterval.current);
+        progressInterval.current = null;
+      }
+
+      setCrawlResult({
+        crawled: data.totalAccessible || 0,
+        failed: (data.totalCitationsCrawled || 0) - (data.totalAccessible || 0),
+      });
+
       setReport(data);
       const allIds = new Set(data.segments.map((s: SegmentAnalysisResult) => s.segmentId));
       setExpandedSegments(allIds);
+      setProgress({ step: "complete", detail: "Analysis complete", pct: 100 });
     } catch (err) {
       setError(String(err));
+      setProgress(null);
     } finally {
       setLoading(false);
+      if (progressInterval.current) {
+        clearInterval(progressInterval.current);
+        progressInterval.current = null;
+      }
     }
   };
 
@@ -352,13 +399,38 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
   }
 
   if (loading) {
+    const pct = progress?.pct ?? 0;
+    const stepLabels: Record<string, string> = {
+      starting: "Initializing...",
+      targets: "Selecting comparison targets",
+      dictionaries: "Building intent dictionaries",
+      crawling: "Crawling citation URLs",
+      snippets: "Extracting brand snippets",
+      classifying: "Classifying sources",
+      scoring: "Scoring brands per segment",
+      global: "Computing global authority",
+      complete: "Complete",
+    };
+    const stepLabel = progress ? (stepLabels[progress.step] || progress.step) : "Starting...";
     return (
       <Card className="p-6 mt-4">
-        <div className="flex flex-col items-center justify-center py-8 gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <div className="text-sm font-medium">Analyzing citation sources...</div>
-          <div className="text-xs text-muted-foreground">
-            Crawling URLs, extracting snippets, classifying sources, and scoring brands
+        <div className="flex flex-col py-6 gap-4">
+          <div className="flex items-center gap-3">
+            <Loader2 className="w-5 h-5 animate-spin text-primary flex-shrink-0" />
+            <div className="flex-1">
+              <div className="text-sm font-medium" data-testid="text-analysis-step">{stepLabel}</div>
+              {progress?.detail && (
+                <div className="text-xs text-muted-foreground mt-0.5" data-testid="text-analysis-detail">{progress.detail}</div>
+              )}
+            </div>
+            <div className="text-xs font-mono text-muted-foreground" data-testid="text-analysis-pct">{pct}%</div>
+          </div>
+          <div className="w-full h-2 bg-muted rounded-full overflow-hidden" data-testid="progress-bar-container">
+            <div
+              className="h-full bg-primary rounded-full transition-all duration-700 ease-out"
+              style={{ width: `${pct}%` }}
+              data-testid="progress-bar-fill"
+            />
           </div>
         </div>
       </Card>
@@ -397,8 +469,16 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
           Citation Analysis — {report.brandName}
         </h3>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span>{report.totalCitationsCrawled} URLs crawled</span>
-          <span>{report.totalAccessible} accessible</span>
+          <span className="flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3 text-green-500" />
+            {report.totalAccessible} crawled
+          </span>
+          {(report.totalCitationsCrawled - report.totalAccessible) > 0 && (
+            <span className="flex items-center gap-1 text-orange-500">
+              <AlertTriangle className="w-3 h-3" />
+              {report.totalCitationsCrawled - report.totalAccessible} failed
+            </span>
+          )}
           <Button onClick={runAnalysis} size="sm" variant="ghost" className="h-7 text-xs" data-testid="button-rerun-citation-analysis">
             Re-run
           </Button>

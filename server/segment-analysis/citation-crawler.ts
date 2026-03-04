@@ -1,4 +1,4 @@
-import { crawlUrls, type CrawledPage } from "../crawler";
+import { crawlUrls, type CrawledPage, type CrawlProgress } from "../crawler";
 
 export interface RawRunInput {
   prompt: string;
@@ -69,7 +69,7 @@ export function extractCitationUrlsPerSegment(segments: SegmentInput[]): Map<str
 
 export async function crawlCitations(
   segments: SegmentInput[],
-  onProgress?: (done: number, total: number) => void,
+  onProgress?: (progress: CrawlProgress) => void,
 ): Promise<CrawledPage[]> {
   const allUrls = extractCitationUrls(segments);
   if (allUrls.length === 0) return [];

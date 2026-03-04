@@ -6,7 +6,7 @@ const FETCH_TIMEOUT = 12000;
 const BROWSER_TIMEOUT = 20000;
 const MAX_HTML_SIZE = 500000;
 const MIN_TEXT_LENGTH = 200;
-const MAX_CONCURRENT = 5;
+const MAX_CONCURRENT = 20;
 
 export interface CrawledPage {
   url: string;
@@ -424,9 +424,16 @@ export async function crawlSingleUrl(url: string): Promise<CrawledPage> {
   return result || failResult;
 }
 
+export interface CrawlProgress {
+  done: number;
+  total: number;
+  success: number;
+  failed: number;
+}
+
 export async function crawlUrls(
   urls: string[],
-  onProgress?: (done: number, total: number) => void,
+  onProgress?: (progress: CrawlProgress) => void,
 ): Promise<CrawledPage[]> {
   const canonicalSeen = new Map<string, number>();
   const uniqueUrls: string[] = [];
@@ -439,40 +446,74 @@ export async function crawlUrls(
     }
   }
 
-  console.log(`[crawler] Crawling ${uniqueUrls.length} unique URLs (from ${urls.length} total)`);
+  console.log(`[crawler] Crawling ${uniqueUrls.length} unique URLs (from ${urls.length} total) — concurrency ${MAX_CONCURRENT}`);
 
-  const results: CrawledPage[] = [];
+  const results: CrawledPage[] = new Array(uniqueUrls.length);
+  let doneCount = 0;
   let successCount = 0;
   let failCount = 0;
-  let timeoutCount = 0;
 
-  for (let i = 0; i < uniqueUrls.length; i += MAX_CONCURRENT) {
-    const batch = uniqueUrls.slice(i, i + MAX_CONCURRENT);
-    const batchNum = Math.floor(i / MAX_CONCURRENT) + 1;
-    const totalBatches = Math.ceil(uniqueUrls.length / MAX_CONCURRENT);
-    console.log(`[crawler] Batch ${batchNum}/${totalBatches} — crawling ${batch.length} URLs (${i + 1}-${Math.min(i + MAX_CONCURRENT, uniqueUrls.length)} of ${uniqueUrls.length})`);
+  let activeCount = 0;
+  let nextIndex = 0;
 
-    const batchResults = await Promise.all(batch.map(url => crawlSingleUrl(url)));
+  const emitProgress = () => {
+    const p: CrawlProgress = { done: doneCount, total: uniqueUrls.length, success: successCount, failed: failCount };
+    onProgress?.(p);
+  };
 
-    for (const page of batchResults) {
-      if (page.accessible) {
-        successCount++;
-      } else {
-        failCount++;
+  await new Promise<void>((resolveAll) => {
+    const onComplete = (idx: number, page: CrawledPage) => {
+      results[idx] = page;
+      doneCount++;
+      if (page.accessible) successCount++;
+      else failCount++;
+      activeCount--;
+
+      if (doneCount % 20 === 0 || doneCount === uniqueUrls.length) {
+        console.log(`[crawler] Progress: ${doneCount}/${uniqueUrls.length} done (${successCount} ok, ${failCount} failed)`);
+        emitProgress();
       }
-    }
 
-    results.push(...batchResults);
-    console.log(`[crawler] Progress: ${results.length}/${uniqueUrls.length} done (${successCount} ok, ${failCount} failed)`);
-    onProgress?.(results.length, uniqueUrls.length);
-  }
+      if (doneCount === uniqueUrls.length) {
+        resolveAll();
+      } else {
+        tryLaunch();
+      }
+    };
+
+    const tryLaunch = () => {
+      while (activeCount < MAX_CONCURRENT && nextIndex < uniqueUrls.length) {
+        const idx = nextIndex++;
+        activeCount++;
+        crawlSingleUrl(uniqueUrls[idx])
+          .then((page) => onComplete(idx, page))
+          .catch(() => {
+            onComplete(idx, {
+              url: uniqueUrls[idx],
+              resolvedUrl: uniqueUrls[idx],
+              canonicalUrl: canonicalizeUrl(uniqueUrls[idx]),
+              domain: canonicalizeDomain(uniqueUrls[idx]),
+              title: "", metaDescription: "", publishDate: null,
+              cleanText: "", rawHtml: "", contentHash: "",
+              accessible: false, wordCount: 0,
+              headings: [], listItems: [], tableRows: [],
+            });
+          });
+      }
+    };
+    if (uniqueUrls.length === 0) {
+      resolveAll();
+    } else {
+      tryLaunch();
+    }
+  });
 
   const hashSeen = new Map<string, number>();
   const deduplicated: CrawledPage[] = [];
 
   for (const page of results) {
-    if (!page.accessible || !page.contentHash) {
-      deduplicated.push(page);
+    if (!page || !page.accessible || !page.contentHash) {
+      if (page) deduplicated.push(page);
       continue;
     }
     if (hashSeen.has(page.contentHash)) {
@@ -482,6 +523,6 @@ export async function crawlUrls(
     deduplicated.push(page);
   }
 
-  console.log(`[crawler] Complete: ${deduplicated.length} pages after dedup (${successCount} crawled, ${failCount} failed, ${results.length - successCount - failCount} skipped)`);
+  console.log(`[crawler] Complete: ${deduplicated.length} pages after dedup (${successCount} crawled, ${failCount} failed)`);
   return deduplicated;
 }
