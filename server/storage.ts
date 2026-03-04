@@ -211,6 +211,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteMultiSegmentSession(id: number): Promise<void> {
+    await db.delete(reportCache).where(
+      or(
+        eq(reportCache.cacheKey, `teaser:${id}`),
+        eq(reportCache.cacheKey, `report:${id}`),
+      )!
+    );
+    await db.delete(teaserLeads).where(eq(teaserLeads.sessionId, id));
     await db.delete(multiSegmentSessions).where(eq(multiSegmentSessions.id, id));
   }
 
