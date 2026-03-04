@@ -3,7 +3,8 @@ import { useHistory, useScoringHistory, useMultiSegmentSessions, useV2SegmentGro
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { ArrowLeft, Calendar, Zap, Search, BarChart3, Users, Trash2 } from "lucide-react";
+import { ArrowLeft, Calendar, Zap, Search, BarChart3, Users, Trash2, Sparkles } from "lucide-react";
+import { useLocation } from "wouter";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,8 @@ export default function HistoryPage() {
   const { data: v2Sessions, isLoading: v2Loading } = useMultiSegmentSessions();
   const { data: v2Groups, isLoading: v2GroupsLoading } = useV2SegmentGroups();
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [generatingTeaserId, setGeneratingTeaserId] = useState<number | null>(null);
+  const [, navigate] = useLocation();
   const { toast } = useToast();
 
   const handleDeleteSession = async (id: number, e: React.MouseEvent) => {
@@ -30,6 +33,21 @@ export default function HistoryPage() {
       toast({ title: "Failed to delete session", variant: "destructive" });
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleGenerateTeaser = async (id: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (generatingTeaserId) return;
+    setGeneratingTeaserId(id);
+    try {
+      await apiRequest("POST", `/api/multi-segment-sessions/${id}/teaser`);
+      navigate(`/teaser/${id}`);
+    } catch {
+      toast({ title: "Failed to generate teaser", variant: "destructive" });
+    } finally {
+      setGeneratingTeaserId(null);
     }
   };
 
@@ -217,6 +235,19 @@ export default function HistoryPage() {
                         <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Scored</div>
                         <div className="text-lg font-semibold tabular-nums">{scored}/{segCount}</div>
                       </div>
+                      {!isCompetitor && scored > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-2 text-xs gap-1"
+                          onClick={(e) => handleGenerateTeaser(d.id, e)}
+                          disabled={generatingTeaserId === d.id}
+                          data-testid={`button-teaser-v2-${d.id}`}
+                        >
+                          <Sparkles className={`w-3 h-3 ${generatingTeaserId === d.id ? "animate-spin" : ""}`} />
+                          {generatingTeaserId === d.id ? "Generating..." : "Teaser"}
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
