@@ -900,6 +900,18 @@ export function generateTeaserData(
     ? new Date(session.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })
     : new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
+  const promptSegmentLabels = new Map<string, Set<string>>();
+  for (const seg of segments) {
+    const segLabel = buildSegmentLabel(seg);
+    const segRuns = seg.scoringResult!.raw_runs || [];
+    for (const run of segRuns) {
+      const pt = run.prompt_text || run.prompt_id;
+      if (!pt) continue;
+      if (!promptSegmentLabels.has(pt)) promptSegmentLabels.set(pt, new Set());
+      promptSegmentLabels.get(pt)!.add(segLabel);
+    }
+  }
+
   const promptGroups = new Map<string, RawRun[]>();
   for (const run of allRuns) {
     const pt = run.prompt_text || run.prompt_id;
@@ -913,14 +925,54 @@ export function generateTeaserData(
     .map(([promptText, runs]) => {
       const brandFoundCount = runs.filter(r => r.brand_found).length;
       const hasMultipleEngines = new Set(runs.map(r => r.engine)).size >= 2;
-      return { promptText, runs, brandFoundCount, hasMultipleEngines };
+      const segLabels = promptSegmentLabels.get(promptText) || new Set(["unknown"]);
+      const segmentLabel = Array.from(segLabels)[0];
+      return { promptText, runs, brandFoundCount, hasMultipleEngines, segmentLabel, segLabels };
     })
     .sort((a, b) => {
       if (a.hasMultipleEngines !== b.hasMultipleEngines) return a.hasMultipleEngines ? -1 : 1;
       return b.brandFoundCount - a.brandFoundCount;
     });
 
-  for (const candidate of showdownCandidates.slice(0, 3)) {
+  const normalizePrompt = (p: string) => p.toLowerCase().replace(/[^a-z0-9 ]/g, "").split(/\s+/);
+  const wordOverlap = (a: string[], b: string[]) => {
+    const setB = new Set(b);
+    const common = a.filter(w => setB.has(w) && w.length > 3).length;
+    return common / Math.max(a.length, b.length, 1);
+  };
+
+  const diverseCandidates: typeof showdownCandidates = [];
+  const usedSegments = new Set<string>();
+  if (showdownCandidates.length > 0) {
+    diverseCandidates.push(showdownCandidates[0]);
+    showdownCandidates[0].segLabels.forEach(s => usedSegments.add(s));
+  }
+  for (let round = 0; round < 2 && diverseCandidates.length < 3; round++) {
+    let bestCandidate: typeof showdownCandidates[0] | null = null;
+    let bestScore = -1;
+    for (const c of showdownCandidates) {
+      if (diverseCandidates.includes(c)) continue;
+      const words = normalizePrompt(c.promptText);
+      const maxOverlap = diverseCandidates.reduce((max, sel) => {
+        return Math.max(max, wordOverlap(words, normalizePrompt(sel.promptText)));
+      }, 0);
+      const diversityScore = (1 - maxOverlap) * 100;
+      const hasNewSegment = Array.from(c.segLabels).some(s => !usedSegments.has(s));
+      const segmentBonus = hasNewSegment ? 30 : 0;
+      const brandBonus = c.brandFoundCount > 0 ? 10 : 0;
+      const score = diversityScore + segmentBonus + brandBonus;
+      if (score > bestScore) {
+        bestScore = score;
+        bestCandidate = c;
+      }
+    }
+    if (bestCandidate) {
+      diverseCandidates.push(bestCandidate);
+      bestCandidate.segLabels.forEach(s => usedSegments.add(s));
+    }
+  }
+
+  for (const candidate of diverseCandidates.slice(0, 3)) {
     const results: TeaserData["promptShowdown"][0]["results"] = [];
     const seenEngines = new Set<string>();
     for (const run of candidate.runs) {

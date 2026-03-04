@@ -1219,9 +1219,24 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
             >
               Prompt Showdown
             </h2>
+            <div style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 11,
+              letterSpacing: "0.08em",
+              color: V.gold,
+              marginBottom: 14,
+              padding: "8px 14px",
+              background: V.goldDim,
+              border: `1px solid rgba(201,168,76,0.18)`,
+              borderRadius: 3,
+              display: "inline-block",
+              fontWeight: 600,
+            }} data-testid="text-total-prompts">
+              {t.meta.totalQueries} PROMPTS TESTED ACROSS {t.engineSplit.length} ENGINES
+            </div>
             <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 32, maxWidth: 560, lineHeight: 1.75 }}>
-              Real prompts your prospects type into AI — and who wins each one.
-              In our runs ({t.promptShowdown[0]?.dateLabel}), these were the results.
+              We tested {t.meta.totalQueries} real prompts across {t.engineSplit.length} AI engines.
+              Here are {t.promptShowdown.length} samples from different search contexts — who wins each one.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {t.promptShowdown.slice(0, 3).map((prompt, pi) => (
@@ -1307,7 +1322,7 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
               color: V.muted,
               letterSpacing: "0.08em",
             }}>
-              {t.meta.totalQueries - t.promptShowdown.length} more prompts tested in full audit
+              {t.promptShowdown.length} of {t.meta.totalQueries} prompts shown &middot; full audit includes all {t.meta.totalQueries} with rankings
             </div>
           </div>
         )}

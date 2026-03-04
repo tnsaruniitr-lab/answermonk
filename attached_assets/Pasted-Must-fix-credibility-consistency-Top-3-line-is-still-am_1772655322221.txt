@@ -1,0 +1,96 @@
+Must-fix (credibility / consistency)
+
+Top-3 line is still ambiguous
+
+“21% Top-3 recommendation rate — leader is at 82%”
+
+Clarify what “leader” refers to (top-3? visibility? best-in-class segment?).
+
+Suggested: “Top-3 rate: 21% (best-in-class in this cohort: 82%).”
+Or drop the “leader” line entirely if you can’t defend it cleanly.
+
+ChatGPT “strongest platform — near-perfect” is still wrong
+
+With 17% Top-3, it’s not strongest or near-perfect.
+
+Replace with: “High inclusion, low preference.”
+
+Make Gemini the “strongest platform”.
+
+Your brand defining sentence is broken
+
+It reads like a parsing bug: United SEO (USEO (Dubai — ...
+
+Rewrite to one clean sentence. Example:
+
+“United SEO is positioned as a Dubai-focused, bilingual (Arabic/English) agency with a large local footprint and broad industry coverage, including finance.”
+
+Citation scale mismatch vs your earlier numbers
+
+Earlier you said 447 crawled citation pages; now it says 1,053 citations crawled.
+
+Both can be true (citations ≠ unique pages), but you should present both:
+
+“1,053 citations extracted → 447 unique cited pages crawled” (if that’s accurate).
+
+Otherwise a sharp reader will spot inconsistency across teasers.
+
+Authority section contradiction
+
+You say “Top authority sources — present on 7 of 7” but the table shows agencies.semrush.com marked “T2”.
+
+If “T2” means tier, fine, but then say so. If not, fix the label.
+
+Also: “present on 7 of 7” makes the earlier story (“why competitors win”) weaker. If USEO is present on all, authority coverage isn’t the bottleneck. Your bottleneck is Claude absence + narrative weakness. Align the story.
+
+Strong improvements (conversion)
+
+Heatmap presentation
+
+Right now it’s a text table with 0/100/80 etc. Good, but add one line interpretation:
+
+“Pattern: Gemini is near-saturated across contexts; Claude is a total blind spot across all 7 segments.”
+
+Prompt Showdown: reduce repetition, add a disclaimer
+
+Three prompts are very similar (“top/best/most popular”). Keep 2 and make the third a different intent:
+
+e.g., “for enterprise”, “for ecommerce”, “for financial services”.
+
+Add a small footnote:
+
+“AI outputs vary by time/location; these results are from standardized runs in March 2026.”
+
+That protects you if they test and get a different ordering.
+
+Move Competitive Ranking below “Visibility by Search Context”
+
+After they’ve seen heatmap + prompt proof, the leaderboard is less important. Keep it, but it shouldn’t interrupt the narrative flow.
+
+CTA: change from “improve what AI says” to “increase Top-3 + fix Claude”
+
+For USEO, the pain is not being present on Claude and not being top-3 on ChatGPT.
+
+Replace CTA paragraph with:
+
+“…a prioritized fix plan to increase Top-3 recommendations and eliminate the Claude 0% gap.”
+
+Micro copy / polish (fast wins)
+
+Fix “SEO agency agencies” → “SEO agencies”
+
+Standardize capitalization: SEO Sherpa, United SEO, Nexa/NEXA (pick one)
+
+Remove “Try it yourself” after every prompt; keep it once at the end of the section.
+
+Suggested corrected engine lines (copy/paste)
+
+Gemini: “96% visibility · 46% Top-3. Strong inclusion; moderate preference.”
+
+ChatGPT: “77% visibility · 17% Top-3. Often mentioned, rarely recommended.”
+
+Claude: “0% visibility. Not appearing at all — highest-priority gap.”
+
+Suggested corrected citations line (if you have both numbers)
+
+“We extracted 1,053 citations from AI answers and crawled 447 unique cited pages across 210 runs.”
