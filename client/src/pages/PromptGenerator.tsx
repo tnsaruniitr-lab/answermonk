@@ -1410,10 +1410,16 @@ export default function PromptGenerator() {
         competitorName: compLensSelected,
         sessionId: v2LoadedSessionId || 0,
         segments: segmentsPayload,
+        brandName: brandName.trim(),
+        brandDomain: brandDomain.trim() || undefined,
       });
       const data = await res.json();
       setCompReportData(data.report);
       setCompReportOpen(true);
+      if (data.competitorSessionId) {
+        toast({ title: `Competitor report saved — Session #${data.competitorSessionId}`, description: `${compLensSelected} report is now in History` });
+        queryClient.invalidateQueries({ queryKey: ["/api/multisegment/sessions"] });
+      }
     } catch {
       toast({ title: "Report generation failed", variant: "destructive" });
     } finally {

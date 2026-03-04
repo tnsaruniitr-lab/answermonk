@@ -1,7 +1,7 @@
 import { useHistory, useScoringHistory, useMultiSegmentSessions, useV2SegmentGroups } from "@/hooks/use-analysis";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { ArrowLeft, Calendar, Zap, Search, BarChart3 } from "lucide-react";
+import { ArrowLeft, Calendar, Zap, Search, BarChart3, Users } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -127,6 +127,8 @@ export default function HistoryPage() {
                 const segs = Array.isArray(d.segments) ? d.segments : [];
                 const segCount = segs.length;
                 const scored = segs.filter((s: any) => s.scoringResult).length;
+                const isCompetitor = (d as any).sessionType === "competitor";
+                const parentBrand = (d as any).parentBrandName;
 
                 return (
                   <Link
@@ -136,17 +138,29 @@ export default function HistoryPage() {
                     className="block"
                   >
                   <div
-                    className="px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap cursor-pointer hover:bg-secondary/30 transition-colors"
+                    className={`px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap cursor-pointer hover:bg-secondary/30 transition-colors ${isCompetitor ? "border-l-2 border-l-orange-400" : ""}`}
                     data-testid={`row-v2-${d.id}`}
                   >
                     <div className="space-y-1.5 min-w-0 flex-1">
                       <div className="flex items-baseline gap-2 flex-wrap">
-                        <Badge variant="secondary" className="text-[10px]">
-                          <BarChart3 className="w-2.5 h-2.5 mr-1" />
-                          Quick V2
-                        </Badge>
+                        {isCompetitor ? (
+                          <Badge variant="outline" className="text-[10px] border-orange-300 text-orange-600 dark:text-orange-400">
+                            <Users className="w-2.5 h-2.5 mr-1" />
+                            Competitor Report
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-[10px]">
+                            <BarChart3 className="w-2.5 h-2.5 mr-1" />
+                            Quick V2
+                          </Badge>
+                        )}
                         <span className="font-medium text-sm">{d.brandName}</span>
-                        <span className="text-xs text-muted-foreground">{segCount} segment{segCount !== 1 ? "s" : ""}</span>
+                        {isCompetitor && parentBrand && (
+                          <span className="text-xs text-muted-foreground">vs {parentBrand}</span>
+                        )}
+                        {!isCompetitor && (
+                          <span className="text-xs text-muted-foreground">{segCount} segment{segCount !== 1 ? "s" : ""}</span>
+                        )}
                       </div>
                       {d.createdAt && (
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

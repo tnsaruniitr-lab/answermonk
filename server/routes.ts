@@ -736,6 +736,7 @@ export async function registerRoutes(
       const schema = z.object({
         competitorName: z.string().min(1),
         sessionId: z.number().optional(),
+        groupKey: z.string().optional(),
         segments: z.array(z.any()),
         brandName: z.string().optional(),
         brandDomain: z.string().optional(),
@@ -755,7 +756,20 @@ export async function registerRoutes(
         citationReport: null,
       });
 
-      res.json({ report });
+      const promptsPerSegment = competitorSegments[0]?.resultCount || 3;
+      const compSession = await storage.createMultiSegmentSession({
+        brandName: parsed.competitorName,
+        brandDomain: null,
+        promptsPerSegment,
+        segments: competitorSegments as any,
+        sessionType: "competitor",
+        parentSessionId: parsed.sessionId || null,
+        competitorName: parsed.competitorName,
+        parentBrandName: parsed.brandName || null,
+        cachedReport: report,
+      });
+
+      res.json({ report, competitorSessionId: compSession.id });
     } catch (err) {
       console.error("Competitor report error:", err);
       res.status(500).json({ message: "Failed to generate competitor report" });

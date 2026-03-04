@@ -51,6 +51,10 @@ export const multiSegmentSessions = pgTable("multi_segment_sessions", {
   segments: jsonb("segments").notNull(),
   citationReport: jsonb("citation_report"),
   cachedReport: jsonb("cached_report"),
+  sessionType: text("session_type").notNull().default("brand"),
+  parentSessionId: integer("parent_session_id"),
+  competitorName: text("competitor_name"),
+  parentBrandName: text("parent_brand_name"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -159,6 +159,10 @@ export class DatabaseStorage implements IStorage {
           FROM jsonb_array_elements(${multiSegmentSessions.segments}::jsonb) AS elem
         )`,
         createdAt: multiSegmentSessions.createdAt,
+        sessionType: multiSegmentSessions.sessionType,
+        parentSessionId: multiSegmentSessions.parentSessionId,
+        competitorName: multiSegmentSessions.competitorName,
+        parentBrandName: multiSegmentSessions.parentBrandName,
       })
       .from(multiSegmentSessions)
       .orderBy(desc(multiSegmentSessions.createdAt))
@@ -171,6 +175,10 @@ export class DatabaseStorage implements IStorage {
       segments: r.segmentsSummary || [],
       citationReport: null,
       createdAt: r.createdAt,
+      sessionType: r.sessionType,
+      parentSessionId: r.parentSessionId,
+      competitorName: r.competitorName,
+      parentBrandName: r.parentBrandName,
     }));
   }
 

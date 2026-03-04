@@ -111,6 +111,9 @@ export default function V2SessionDetail() {
 
   const segments: SegmentData[] = Array.isArray(session.segments) ? session.segments : [];
   const scored = segments.filter(s => s.scoringResult).length;
+  const isCompetitorSession = (session as any).sessionType === "competitor";
+  const parentBrand = (session as any).parentBrandName;
+  const parentSessionId = (session as any).parentSessionId;
 
   return (
     <div className="min-h-screen bg-background">
@@ -119,17 +122,34 @@ export default function V2SessionDetail() {
         <div className="pb-6 space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-xl font-semibold tracking-tight" data-testid="text-v2-detail-heading">
-              Quick V2 — {session.brandName}
+              {isCompetitorSession ? "Competitor Report" : "Quick V2"} — {session.brandName}
             </h1>
-            <Badge variant="secondary" className="text-[10px]">
-              <BarChart3 className="w-2.5 h-2.5 mr-1" />
-              {segments.length} segment{segments.length !== 1 ? "s" : ""}
-            </Badge>
+            {isCompetitorSession ? (
+              <Badge variant="outline" className="text-[10px] border-orange-300 text-orange-600 dark:text-orange-400">
+                <Target className="w-2.5 h-2.5 mr-1" />
+                vs {parentBrand}
+              </Badge>
+            ) : (
+              <Badge variant="secondary" className="text-[10px]">
+                <BarChart3 className="w-2.5 h-2.5 mr-1" />
+                {segments.length} segment{segments.length !== 1 ? "s" : ""}
+              </Badge>
+            )}
           </div>
           <p className="text-sm text-muted-foreground">
-            {session.promptsPerSegment} prompts per segment x 3 engines
+            {isCompetitorSession
+              ? `Competitor analysis from ${parentBrand}'s session data`
+              : `${session.promptsPerSegment} prompts per segment x 3 engines`}
             {session.createdAt && ` · ${format(new Date(session.createdAt), "MMM d, yyyy 'at' h:mm a")}`}
           </p>
+          {isCompetitorSession && parentSessionId && (
+            <Link href={`/v2/${parentSessionId}`}>
+              <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-muted-foreground">
+                <ArrowLeft className="w-3 h-3" />
+                Back to {parentBrand} session
+              </Button>
+            </Link>
+          )}
         </div>
 
         <div className="space-y-2.5">
