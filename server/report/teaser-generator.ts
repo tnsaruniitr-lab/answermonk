@@ -235,6 +235,50 @@ function generateVoiceProblem(quote: string, isStrong: boolean, brandName: strin
   return `<strong>Problem:</strong> The description is adequate but lacks the specificity and authority signals that top-ranked competitors receive. Compare to how AI describes the market leader.`;
 }
 
+function shouldMergeNames(a: string, b: string): boolean {
+  const na = a.toLowerCase().trim();
+  const nb = b.toLowerCase().trim();
+  if (na === nb) return true;
+  const ta = na.split(/\s+/);
+  const tb = nb.split(/\s+/);
+  if (ta.every(t => tb.includes(t))) return true;
+  if (tb.every(t => ta.includes(t))) return true;
+  if (na.length >= 4) {
+    const re = new RegExp(`\\b${na.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+    if (re.test(nb)) return true;
+  }
+  if (nb.length >= 4) {
+    const re = new RegExp(`\\b${nb.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+    if (re.test(na)) return true;
+  }
+  return false;
+}
+
+function deduplicateCompMap(compMap: Map<string, number>): Map<string, number> {
+  const entries = [...compMap.entries()].sort((a, b) => b[1] - a[1]);
+  const merged = new Map<string, number>();
+  const consumed = new Set<string>();
+
+  for (const [nameA, countA] of entries) {
+    if (consumed.has(nameA)) continue;
+    let total = countA;
+    let bestName = nameA;
+
+    for (const [nameB, countB] of entries) {
+      if (nameB === nameA || consumed.has(nameB)) continue;
+      if (shouldMergeNames(nameA, nameB)) {
+        total += countB;
+        consumed.add(nameB);
+        if (nameB.length < bestName.length) bestName = nameB;
+      }
+    }
+
+    consumed.add(nameA);
+    merged.set(bestName, total);
+  }
+  return merged;
+}
+
 export function generateTeaserData(
   session: { id: number; brandName: string; brandDomain?: string | null; createdAt?: string; segments: SegmentData[]; citationReport?: any },
 ): TeaserData {
@@ -278,7 +322,9 @@ export function generateTeaserData(
   const brandAppearances = allRuns.filter(r => r.brand_found).length;
   const brandShare = totalValidRuns > 0 ? brandAppearances / totalValidRuns : 0;
 
-  const allBrands = [...Array.from(globalCompMap.entries())
+  const dedupedCompMap = deduplicateCompMap(globalCompMap);
+
+  const allBrands = [...Array.from(dedupedCompMap.entries())
     .filter(([name]) => !name.toLowerCase().includes(brandNameLC) && !brandNameLC.includes(name.toLowerCase()))
     .map(([name, appearances]) => ({ name, share: totalValidRuns > 0 ? appearances / totalValidRuns : 0, appearances, isBrand: false })),
     { name: brandName, share: brandShare, appearances: brandAppearances, isBrand: true },
@@ -332,7 +378,26 @@ export function generateTeaserData(
 
   const segmentBreakdown = segments.map(seg => {
     const score = seg.scoringResult!.score;
-    const competitors = [...(score.competitors || [])].sort((a, b) => b.appearances - a.appearances);
+    const rawComps = score.competitors || [];
+    const dedupedSegComps: typeof rawComps = [];
+    const segConsumed = new Set<number>();
+    const sortedRawComps = [...rawComps].sort((a, b) => b.appearances - a.appearances);
+    for (let i = 0; i < sortedRawComps.length; i++) {
+      if (segConsumed.has(i)) continue;
+      let merged = { ...sortedRawComps[i] };
+      for (let j = i + 1; j < sortedRawComps.length; j++) {
+        if (segConsumed.has(j)) continue;
+        if (shouldMergeNames(merged.name, sortedRawComps[j].name)) {
+          merged.appearances += sortedRawComps[j].appearances;
+          merged.share = score.valid_runs > 0 ? Math.min(merged.appearances / score.valid_runs, 1) : 0;
+          if (sortedRawComps[j].name.length < merged.name.length) merged.name = sortedRawComps[j].name;
+          segConsumed.add(j);
+        }
+      }
+      segConsumed.add(i);
+      dedupedSegComps.push(merged);
+    }
+    const competitors = dedupedSegComps.sort((a, b) => b.appearances - a.appearances);
     const brandApp = (seg.scoringResult!.raw_runs || []).filter(r => r.brand_found).length;
     const brandVis = score.valid_runs > 0 ? brandApp / score.valid_runs : 0;
 

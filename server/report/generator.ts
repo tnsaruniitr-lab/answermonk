@@ -2,6 +2,54 @@ import { classifyTier, isAIInfraDomain, isDomainOwnedByEntity, type TierLabel } 
 import { generateCompetitorNarrative, extractAllMentionSentences } from "./competitor-narrative";
 import { resolveGroundingUrls, collectAllCitationUrls } from "./grounding-resolver";
 
+function shouldMergeCompNames(a: string, b: string): boolean {
+  const na = a.toLowerCase().trim();
+  const nb = b.toLowerCase().trim();
+  if (na === nb) return true;
+  const ta = na.split(/\s+/);
+  const tb = nb.split(/\s+/);
+  if (ta.every(t => tb.includes(t))) return true;
+  if (tb.every(t => ta.includes(t))) return true;
+  if (na.length >= 4) {
+    const re = new RegExp(`\\b${na.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+    if (re.test(nb)) return true;
+  }
+  if (nb.length >= 4) {
+    const re = new RegExp(`\\b${nb.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+    if (re.test(na)) return true;
+  }
+  return false;
+}
+
+function deduplicateCompetitorList(
+  competitors: { name: string; share: number; appearances: number }[]
+): { name: string; share: number; appearances: number }[] {
+  const sorted = [...competitors].sort((a, b) => b.appearances - a.appearances);
+  const merged: { name: string; share: number; appearances: number }[] = [];
+  const consumed = new Set<number>();
+
+  for (let i = 0; i < sorted.length; i++) {
+    if (consumed.has(i)) continue;
+    let entry = { ...sorted[i] };
+
+    for (let j = i + 1; j < sorted.length; j++) {
+      if (consumed.has(j)) continue;
+      if (shouldMergeCompNames(entry.name, sorted[j].name)) {
+        entry.appearances += sorted[j].appearances;
+        if (sorted[j].name.length < entry.name.length) {
+          entry.name = sorted[j].name;
+        }
+        consumed.add(j);
+      }
+    }
+
+    consumed.add(i);
+    merged.push(entry);
+  }
+
+  return merged.sort((a, b) => b.appearances - a.appearances);
+}
+
 interface RawRun {
   prompt_id: string;
   prompt_text?: string;
@@ -826,7 +874,8 @@ export async function generateReport(
     const segLabel = buildSegmentLabel(seg);
     const score = seg.scoringResult!.score;
     const runs = seg.scoringResult!.raw_runs || [];
-    const competitors = [...(score.competitors || [])].sort((a, b) => b.appearances - a.appearances);
+    const dedupedComps = deduplicateCompetitorList(score.competitors || []);
+    const competitors = [...dedupedComps].sort((a, b) => b.appearances - a.appearances);
 
     const brandAppearances = runs.filter((r: any) => r.brand_found).length;
     const brandShare = score.valid_runs > 0 ? Math.round((brandAppearances / score.valid_runs) * 1000) / 1000 : 0;
@@ -978,7 +1027,27 @@ export async function generateReport(
     return { segmentLabel: segLabel, top5, deepDives };
   });
 
-  const crossSegmentOverlap = Array.from(allCompetitorMap.entries())
+  const dedupedAllCompMap = new Map<string, { segments: Set<string>; totalAppearances: number }>();
+  const compMapEntries = [...allCompetitorMap.entries()].sort((a, b) => b[1].totalAppearances - a[1].totalAppearances);
+  const compMapConsumed = new Set<string>();
+  for (const [nameA, dataA] of compMapEntries) {
+    if (compMapConsumed.has(nameA)) continue;
+    const merged = { segments: new Set(dataA.segments), totalAppearances: dataA.totalAppearances };
+    let bestName = nameA;
+    for (const [nameB, dataB] of compMapEntries) {
+      if (nameB === nameA || compMapConsumed.has(nameB)) continue;
+      if (shouldMergeCompNames(nameA, nameB)) {
+        for (const s of dataB.segments) merged.segments.add(s);
+        merged.totalAppearances += dataB.totalAppearances;
+        if (nameB.length < bestName.length) bestName = nameB;
+        compMapConsumed.add(nameB);
+      }
+    }
+    compMapConsumed.add(nameA);
+    dedupedAllCompMap.set(bestName, merged);
+  }
+
+  const crossSegmentOverlap = Array.from(dedupedAllCompMap.entries())
     .filter(([, v]) => v.segments.size >= 2)
     .map(([name, v]) => ({
       name,

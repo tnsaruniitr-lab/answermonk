@@ -74,8 +74,11 @@ export function computeGEOScore(runs: RunData[]): GEOScore {
 
   const competitorFreq = new Map<string, { name_raw: string; count: number }>();
   for (const run of validRuns) {
+    const seenInRun = new Set<string>();
     for (const comp of run.competitors) {
       const existing = competitorFreq.get(comp.name_norm);
+      if (seenInRun.has(comp.name_norm)) continue;
+      seenInRun.add(comp.name_norm);
       if (existing) {
         existing.count++;
       } else {
@@ -84,7 +87,9 @@ export function computeGEOScore(runs: RunData[]): GEOScore {
     }
   }
 
-  const competitors: CompetitorScore[] = [...competitorFreq.entries()]
+  const mergedFreq = deduplicateCompetitors(competitorFreq);
+
+  const competitors: CompetitorScore[] = [...mergedFreq.entries()]
     .map(([norm, data]) => ({
       name: data.name_raw,
       share: data.count / V,
@@ -137,6 +142,56 @@ export function computeGEOScore(runs: RunData[]): GEOScore {
     cluster_breakdown: clusterBreakdown,
     engine_breakdown: engineBreakdown,
   };
+}
+
+function shouldMergeNames(normA: string, normB: string): boolean {
+  if (normA === normB) return true;
+  const tokensA = normA.split(/\s+/);
+  const tokensB = normB.split(/\s+/);
+  if (tokensA.every(t => tokensB.includes(t))) return true;
+  if (tokensB.every(t => tokensA.includes(t))) return true;
+  if (normA.length >= 4) {
+    const re = new RegExp(`\\b${normA.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+    if (re.test(normB)) return true;
+  }
+  if (normB.length >= 4) {
+    const re = new RegExp(`\\b${normB.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+    if (re.test(normA)) return true;
+  }
+  return false;
+}
+
+function deduplicateCompetitors(
+  freq: Map<string, { name_raw: string; count: number }>
+): Map<string, { name_raw: string; count: number }> {
+  const entries = [...freq.entries()].sort((a, b) => b[1].count - a[1].count);
+  const merged = new Map<string, { name_raw: string; count: number }>();
+  const consumed = new Set<string>();
+
+  for (const [normA, dataA] of entries) {
+    if (consumed.has(normA)) continue;
+
+    let mergedCount = dataA.count;
+    let bestName = dataA.name_raw;
+    let bestNorm = normA;
+
+    for (const [normB, dataB] of entries) {
+      if (normB === normA || consumed.has(normB)) continue;
+      if (shouldMergeNames(normA, normB)) {
+        mergedCount += dataB.count;
+        consumed.add(normB);
+        if (normB.length < bestNorm.length) {
+          bestName = dataB.name_raw;
+          bestNorm = normB;
+        }
+      }
+    }
+
+    consumed.add(normA);
+    merged.set(bestNorm, { name_raw: bestName, count: mergedCount });
+  }
+
+  return merged;
 }
 
 function groupBy<T>(items: T[], key: (item: T) => string): Record<string, T[]> {
