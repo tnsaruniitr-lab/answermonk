@@ -7,6 +7,8 @@ const BROWSER_TIMEOUT = 10000;
 const MAX_HTML_SIZE = 500000;
 const MIN_TEXT_LENGTH = 200;
 const MAX_CONCURRENT = 20;
+const LARGE_CRAWL_THRESHOLD = 200;
+const LARGE_CRAWL_CONCURRENT = 8;
 
 export interface CrawledPage {
   url: string;
@@ -446,7 +448,8 @@ export async function crawlUrls(
     }
   }
 
-  console.log(`[crawler] Crawling ${uniqueUrls.length} unique URLs (from ${urls.length} total) — concurrency ${MAX_CONCURRENT}`);
+  const concurrency = uniqueUrls.length > LARGE_CRAWL_THRESHOLD ? LARGE_CRAWL_CONCURRENT : MAX_CONCURRENT;
+  console.log(`[crawler] Crawling ${uniqueUrls.length} unique URLs (from ${urls.length} total) — concurrency ${concurrency}`);
 
   const results: CrawledPage[] = new Array(uniqueUrls.length);
   let doneCount = 0;
@@ -463,6 +466,7 @@ export async function crawlUrls(
 
   await new Promise<void>((resolveAll) => {
     const onComplete = (idx: number, page: CrawledPage) => {
+      page.rawHtml = "";
       results[idx] = page;
       doneCount++;
       if (page.accessible) successCount++;
@@ -482,7 +486,7 @@ export async function crawlUrls(
     };
 
     const tryLaunch = () => {
-      while (activeCount < MAX_CONCURRENT && nextIndex < uniqueUrls.length) {
+      while (activeCount < concurrency && nextIndex < uniqueUrls.length) {
         const idx = nextIndex++;
         activeCount++;
         crawlSingleUrl(uniqueUrls[idx])
