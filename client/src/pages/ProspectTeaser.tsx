@@ -831,7 +831,7 @@ export default function ProspectTeaser() {
               >
                 #{rankCount.value}
               </div>
-              <div style={{ fontSize: 11, color: V.muted, lineHeight: 1.4 }}>
+              <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.5 }}>
                 Overall market rank
                 <br />
                 out of {t.overallScore.competitorCount} competitors
@@ -851,7 +851,7 @@ export default function ProspectTeaser() {
               >
                 #{t.overallScore.avgRank != null ? avgRankCount.value : "N/A"}
               </div>
-              <div style={{ fontSize: 11, color: V.muted, lineHeight: 1.4 }}>
+              <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.5 }}>
                 Avg rank when mentioned
                 <br />
                 across all engines
@@ -871,7 +871,7 @@ export default function ProspectTeaser() {
               >
                 {primaryCount.value}%
               </div>
-              <div style={{ fontSize: 11, color: V.muted, lineHeight: 1.4 }}>
+              <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.5 }}>
                 Top-3 recommendation rate
                 <br />
                 leader is at {t.overallScore.leaderRate}%
@@ -1746,8 +1746,8 @@ export default function ProspectTeaser() {
               </h2>
               <p
                 style={{
-                  fontSize: 14,
-                  color: V.mutedMd,
+                  fontSize: 15,
+                  color: V.text,
                   maxWidth: 420,
                   margin: "0 auto 40px",
                   lineHeight: 1.75,
