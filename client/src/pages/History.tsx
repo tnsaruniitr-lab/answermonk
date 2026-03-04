@@ -235,7 +235,7 @@ export default function HistoryPage() {
                         <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Scored</div>
                         <div className="text-lg font-semibold tabular-nums">{scored}/{segCount}</div>
                       </div>
-                      {!isCompetitor && scored > 0 && (
+                      {scored > 0 && (
                         <Button
                           variant="outline"
                           size="sm"

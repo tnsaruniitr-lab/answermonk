@@ -192,7 +192,7 @@ export default function V2SessionDetail() {
                 Impact Summary
               </Button>
             </Link>
-            {numericId !== null && !isCompetitorSession && (
+            {numericId !== null && (
               <>
                 <Button
                   variant="outline"

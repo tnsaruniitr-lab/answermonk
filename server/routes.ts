@@ -1363,11 +1363,6 @@ export async function registerRoutes(
         res.status(404).json({ message: "Session not found" });
         return;
       }
-      if (session.sessionType === "competitor") {
-        res.status(400).json({ message: "Teaser is only available for brand sessions" });
-        return;
-      }
-
       const force = req.query.force === "true";
       const cacheKey = `teaser:${id}`;
       if (!force) {
@@ -1413,11 +1408,6 @@ export async function registerRoutes(
         res.status(404).json({ message: "Session not found" });
         return;
       }
-      if (session.sessionType === "competitor") {
-        res.status(400).json({ message: "Teaser not available" });
-        return;
-      }
-
       const teaser = generateTeaserData({
         id: session.id,
         brandName: session.brandName,
