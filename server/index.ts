@@ -4,7 +4,6 @@ import crypto from "crypto";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
-import { seedIfNeeded } from "./seed/run-seed";
 
 process.on("SIGHUP", () => {});
 
@@ -200,8 +199,6 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || "5000", 10);
-  seedIfNeeded().catch(err => console.error("[seed] Failed:", err));
-
   httpServer.listen(
     {
       port,
