@@ -1,20 +1,9 @@
 import { readFileSync, existsSync } from "fs";
 import { gunzipSync } from "zlib";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { join } from "path";
 import { pool } from "../db";
 
-function getSeedDir(): string {
-  try {
-    if (import.meta.dirname) return import.meta.dirname;
-  } catch {}
-  try {
-    return dirname(fileURLToPath(import.meta.url));
-  } catch {}
-  return join(process.cwd(), "server", "seed");
-}
-
-const SEED_DIR = getSeedDir();
+const SEED_DIR = join(process.cwd(), "server", "seed");
 
 async function seedIfNeeded() {
   const sessionsGz = join(SEED_DIR, "sessions.jsonl.gz");
