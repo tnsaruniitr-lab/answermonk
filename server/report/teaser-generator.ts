@@ -139,6 +139,51 @@ function extractDomain(url: string): string {
   }
 }
 
+function cleanQuoteText(text: string): string {
+  let s = text;
+  s = s.replace(/\(?\[?https?:\/\/[^\s)\]]*[)\]]*/g, "");
+  s = s.replace(/[a-z0-9./-]+\.(com|co|ae|org|net|io|dev)\b[^\s)]*\)*/gi, "");
+  s = s.replace(/utm_source=\w+\)*/g, "");
+  s = s.replace(/\(\s*\)/g, "");
+  s = s.replace(/\[\s*\]/g, "");
+  s = s.replace(/\)+/g, " ");
+  s = s.replace(/#{1,6}\s*/g, "");
+  s = s.replace(/\*+/g, "");
+  s = s.replace(/_{1,2}([^_]+)_{1,2}/g, "$1");
+  s = s.replace(/`([^`]+)`/g, "$1");
+  s = s.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+  s = s.replace(/\|/g, " ");
+  s = s.replace(/:---?\s*/g, "");
+  s = s.replace(/^[-*]\s+/gm, "");
+  s = s.replace(/^\d+\)\s*/gm, "");
+  s = s.replace(/^\d+\.\s*/gm, "");
+  s = s.replace(/---+/g, " ");
+  s = s.replace(/✓|✗|→|←/g, "");
+  s = s.replace(/\s{2,}/g, " ");
+  return s.trim();
+}
+
+function isCleanSentence(text: string): boolean {
+  if (/\|.*\|/.test(text)) return false;
+  if (/^:?---/.test(text)) return false;
+  if ((text.match(/\d+/g) || []).length > 6) return false;
+  if (/Summary Table|Ranking:|Selection Criteria/i.test(text)) return false;
+  const words = text.split(/\s+/).filter(w => w.length > 2);
+  if (words.length < 5) return false;
+  return true;
+}
+
+function cleanLeadingArtifacts(text: string): string {
+  let s = text;
+  s = s.replace(/^\d+\s+/, "");
+  s = s.replace(/^[–—-]\s*/, "");
+  s = s.replace(/^\(\s*/, "");
+  s = s.replace(/\(\s*$/g, "");
+  s = s.replace(/\s*[–—-]\s*$/g, "");
+  s = s.replace(/\s+,\s*$/g, "");
+  return s.trim();
+}
+
 function buildSegmentLabel(seg: SegmentData): string {
   const parts: string[] = [];
   if (seg.persona) parts.push(seg.persona.replace(/_/g, " "));
@@ -147,14 +192,24 @@ function buildSegmentLabel(seg: SegmentData): string {
   return parts.join(" ") || "General";
 }
 
+function splitIntoSentences(rawText: string): string[] {
+  const lines = rawText.split(/\n+/).map(l => l.trim()).filter(l => l.length > 0);
+  const sentences: string[] = [];
+  for (const line of lines) {
+    const parts = line.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 0);
+    sentences.push(...parts);
+  }
+  return sentences;
+}
+
 function extractBrandSentences(runs: RawRun[], brandName: string): Map<string, string[]> {
   const engineSentences = new Map<string, string[]>();
   const brandLC = brandName.toLowerCase();
 
   for (const run of runs) {
     if (!run.brand_found || !run.raw_text) continue;
-    const sentences = run.raw_text.split(/[.!?]+/).filter(s => s.toLowerCase().includes(brandLC));
-    const cleaned = sentences.map(s => s.trim()).filter(s => s.length > 30 && s.length < 300);
+    const sentences = splitIntoSentences(run.raw_text).filter(s => s.toLowerCase().includes(brandLC));
+    const cleaned = sentences.map(s => cleanQuoteText(s.trim())).filter(s => s.length > 30 && s.length < 300 && isCleanSentence(s));
     if (cleaned.length > 0) {
       const existing = engineSentences.get(run.engine) || [];
       existing.push(...cleaned);
@@ -170,9 +225,9 @@ function extractCompetitorDefiningSentence(runs: RawRun[], compName: string): { 
 
   for (const run of runs) {
     if (!run.raw_text) continue;
-    const sentences = run.raw_text.split(/[.!?]+/)
-      .map(s => s.trim())
-      .filter(s => s.toLowerCase().includes(compLC) && s.length > 40 && s.length < 300);
+    const sentences = splitIntoSentences(run.raw_text)
+      .map(s => cleanQuoteText(s))
+      .filter(s => s.toLowerCase().includes(compLC) && s.length > 40 && s.length < 300 && isCleanSentence(s));
 
     if (sentences.length > 0) {
       if (!engineSentences[run.engine]) engineSentences[run.engine] = [];
@@ -197,7 +252,7 @@ function extractCompetitorDefiningSentence(runs: RawRun[], compName: string): { 
     }))
     .sort((a, b) => b.score - a.score);
 
-  let best = sorted[0].text;
+  let best = cleanLeadingArtifacts(sorted[0].text);
   if (!best.startsWith('"')) best = `"${best}"`;
   else if (!best.endsWith('"')) best = `${best}"`;
 
@@ -499,7 +554,7 @@ export function generateTeaserData(
     const sorted = allBrandSentences
       .map(s => ({ text: s, len: s.length }))
       .sort((a, b) => b.len - a.len);
-    brandDefining = sorted[0].text;
+    brandDefining = cleanLeadingArtifacts(sorted[0].text);
   }
 
   const citDomainBrandMap = new Map<string, { tier: string; brands: Set<string> }>();
@@ -564,13 +619,28 @@ export function generateTeaserData(
     const engineRuns = allRuns.filter(r => r.engine === eng && r.brand_found && r.raw_text);
     if (engineRuns.length === 0) continue;
 
-    const run = engineRuns[0];
-    const sentences = run.raw_text.split(/[.!?]+/)
-      .map(s => s.trim())
-      .filter(s => s.toLowerCase().includes(brandNameLC) && s.length > 30 && s.length < 300);
+    let bestQuote = "";
+    let bestPrompt = "";
+    let bestScore = 0;
 
-    if (sentences.length === 0) continue;
-    const bestQuote = sentences.sort((a, b) => b.length - a.length)[0];
+    for (const run of engineRuns) {
+      const sentences = splitIntoSentences(run.raw_text)
+        .map(s => cleanQuoteText(s))
+        .filter(s => s.toLowerCase().includes(brandNameLC) && s.length > 30 && s.length < 300 && isCleanSentence(s));
+
+      for (const sent of sentences) {
+        const cleaned = cleanLeadingArtifacts(sent);
+        const prose = cleaned.split(/\s+/).filter(w => w.length > 3).length;
+        const score = prose + (cleaned.length > 80 ? 20 : 0) + (/known for|specialist|expertise|award|leading|recognized/i.test(cleaned) ? 15 : 0);
+        if (score > bestScore) {
+          bestScore = score;
+          bestQuote = cleaned;
+          bestPrompt = run.prompt_text || run.prompt_id || "AI search query";
+        }
+      }
+    }
+
+    if (!bestQuote) continue;
 
     const engineRate = engineAgg[eng] ? (engineAgg[eng].totalValid > 0 ? engineAgg[eng].totalApp / engineAgg[eng].totalValid : 0) : 0;
     const isStrong = engineRate >= 0.7;
@@ -578,7 +648,7 @@ export function generateTeaserData(
     brandVoice.push({
       engine: eng,
       engineLabel: ENGINE_LABELS[eng] || eng,
-      prompt: run.prompt_text || run.prompt_id || "AI search query",
+      prompt: bestPrompt,
       quote: `"${bestQuote.replace(/^[""]|[""]$/g, "")}"`,
       problem: generateVoiceProblem(bestQuote, isStrong, brandName),
       isStrong,

@@ -738,11 +738,11 @@ export default function ProspectTeaser() {
                 </div>
                 <div
                   style={{
-                    fontFamily: "'Playfair Display', serif",
-                    fontSize: 14,
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: 14.5,
                     fontStyle: "italic",
                     color: V.textBright,
-                    lineHeight: 1.65,
+                    lineHeight: 1.75,
                     marginBottom: 14,
                   }}
                 >
@@ -814,11 +814,11 @@ export default function ProspectTeaser() {
               {t.quoteContrast.brand.hasSentence ? (
                 <div
                   style={{
-                    fontFamily: "'Playfair Display', serif",
-                    fontSize: 14,
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: 14.5,
                     fontStyle: "italic",
                     color: V.textBright,
-                    lineHeight: 1.65,
+                    lineHeight: 1.75,
                     marginBottom: 14,
                   }}
                 >
@@ -828,11 +828,11 @@ export default function ProspectTeaser() {
                 <>
                   <div
                     style={{
-                      fontFamily: "'Playfair Display', serif",
-                      fontSize: 14,
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 14.5,
                       fontStyle: "italic",
                       color: V.muted,
-                      lineHeight: 1.65,
+                      lineHeight: 1.75,
                       marginBottom: 14,
                       borderBottom: "1px dashed rgba(255,255,255,0.1)",
                       paddingBottom: 12,
@@ -1448,9 +1448,10 @@ export default function ProspectTeaser() {
                 </div>
                 <div
                   style={{
-                    fontSize: 13.5,
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: 14.5,
                     color: V.text,
-                    lineHeight: 1.7,
+                    lineHeight: 1.75,
                     fontStyle: "italic",
                     marginBottom: 14,
                     borderLeft: `2px solid ${V.borderMd}`,
