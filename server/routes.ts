@@ -1521,6 +1521,47 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/internal/migrate-session", async (req, res) => {
+    try {
+      const secret = req.headers["x-migrate-key"];
+      if (secret !== process.env.ADMIN_PASSWORD) {
+        res.status(403).json({ message: "Forbidden" });
+        return;
+      }
+      const { brandName, brandDomain, promptsPerSegment, segments, cachedReport, citationReport, sessionType, parentSessionId, competitorName, parentBrandName, slug } = req.body;
+      if (!slug || !brandName) {
+        res.status(400).json({ message: "slug and brandName required" });
+        return;
+      }
+      const existing = await storage.getMultiSegmentSessionBySlug(slug);
+      if (existing) {
+        res.json({ message: "Already exists", id: existing.id });
+        return;
+      }
+      const session = await storage.createMultiSegmentSession({
+        brandName,
+        brandDomain: brandDomain || null,
+        promptsPerSegment: promptsPerSegment || 10,
+        segments: segments || [],
+        sessionType: sessionType || "competitor",
+        parentSessionId: parentSessionId || null,
+        competitorName: competitorName || null,
+        parentBrandName: parentBrandName || null,
+        slug,
+      });
+      if (cachedReport) {
+        await storage.updateCachedReport(session.id, cachedReport);
+      }
+      if (citationReport) {
+        await storage.updateCitationReport(session.id, citationReport);
+      }
+      res.json({ message: "Migrated", id: session.id });
+    } catch (err) {
+      console.error("Migration error:", err);
+      res.status(500).json({ message: "Migration failed" });
+    }
+  });
+
   app.get("/api/teaser-leads", async (_req, res) => {
     try {
       const leads = await storage.listTeaserLeads();
