@@ -649,8 +649,14 @@ export default function ProspectTeaser() {
               textTransform: "uppercase",
             }}
           >
-            AI Search Visibility ·{" "}
-            <span style={{ color: V.gold }}>{brandName}</span>
+            AI Search Visibility Audit ·{" "}
+            <span style={{
+              color: V.gold,
+              background: "rgba(201,168,76,0.10)",
+              padding: "2px 7px",
+              borderRadius: 3,
+              border: "1px solid rgba(201,168,76,0.18)",
+            }}>{brandName}</span>
           </div>
           <div
             style={{
@@ -671,7 +677,38 @@ export default function ProspectTeaser() {
         {/* 02 · Hook */}
         <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-hook">
           <SectionNumber num="01" />
-          <div style={{ ...S.eyebrow, color: V.gold }}>AI Search Visibility Audit</div>
+          <div style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(22px, 3.5vw, 32px)",
+            fontWeight: 700,
+            color: V.text,
+            lineHeight: 1.3,
+            marginBottom: 10,
+          }}>
+            AI Search Visibility Audit
+          </div>
+          <div style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 0,
+            marginBottom: 32,
+          }}>
+            <span style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: "clamp(28px, 4.5vw, 44px)",
+              fontWeight: 900,
+              color: V.gold,
+              background: "rgba(201,168,76,0.08)",
+              padding: "4px 16px 6px",
+              borderRadius: 4,
+              border: "1px solid rgba(201,168,76,0.20)",
+              letterSpacing: "-0.01em",
+              lineHeight: 1.2,
+              display: "inline-block",
+            }} data-testid="text-brand-highlight">
+              {brandName}
+            </span>
+          </div>
           <h1
             style={{
               fontFamily: "'Playfair Display', serif",
