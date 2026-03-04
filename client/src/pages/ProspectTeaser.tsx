@@ -1777,16 +1777,6 @@ export default function ProspectTeaser() {
               >
                 Request Full Audit
               </button>
-              <p
-                style={{
-                  marginTop: 18,
-                  fontSize: 11,
-                  color: V.muted,
-                  fontStyle: "italic",
-                }}
-              >
-                Includes actionable roadmap
-              </p>
             </>
           )}
 
