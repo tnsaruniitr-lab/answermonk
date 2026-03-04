@@ -1762,7 +1762,7 @@ export default function ProspectTeaser() {
                   marginBottom: 18,
                 }}
               >
-                Win AI recommendations and content
+                Win AI recommendations
               </h2>
               <p
                 style={{
