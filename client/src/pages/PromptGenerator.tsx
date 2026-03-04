@@ -49,6 +49,9 @@ import {
   Trash2,
   RefreshCw,
   DollarSign,
+  Users,
+  ArrowRight,
+  Minus,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -1259,6 +1262,12 @@ export default function PromptGenerator() {
   const [v2IsAnalysing, setV2IsAnalysing] = useState(false);
   const [v2LoadedSessionId, setV2LoadedSessionId] = useState<number | null>(null);
 
+  const [compLensOpen, setCompLensOpen] = useState(false);
+  const [compLensLoading, setCompLensLoading] = useState(false);
+  const [compLensList, setCompLensList] = useState<{ name: string; appearances: number; segments: string[] }[]>([]);
+  const [compLensSelected, setCompLensSelected] = useState<string>("");
+  const [compLensResult, setCompLensResult] = useState<any>(null);
+
   const updateSegment = (id: string, patch: Partial<V2Segment>) => {
     setV2Segments((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
   };
@@ -1331,6 +1340,48 @@ export default function PromptGenerator() {
     } catch (err: any) {
       setV2Segments((prev) => prev.map((s) => s.id === seg.id ? { ...s, prompts, isScoring: false } : s));
       toast({ title: "Scoring failed", description: err.message || "Something went wrong.", variant: "destructive" });
+    }
+  };
+
+  const buildSegmentRunsMap = () => {
+    const map: Record<string, any[]> = {};
+    v2Segments.forEach((seg, idx) => {
+      if (seg.scoringResult?.raw_runs?.length) {
+        const label = `${seg.persona.replace(/_/g, " ")}${seg.serviceType ? ` · ${seg.serviceType}` : ""}${seg.customerType && seg.customerType !== "__none__" ? ` · ${seg.customerType}` : ""}${seg.location ? ` · ${seg.location}` : ""}`;
+        map[label] = seg.scoringResult.raw_runs;
+      }
+    });
+    return map;
+  };
+
+  const loadCompetitorList = async () => {
+    const segMap = buildSegmentRunsMap();
+    if (Object.keys(segMap).length === 0) return;
+    try {
+      const res = await apiRequest("POST", "/api/competitor-lens/list", { segments: segMap });
+      const data = await res.json();
+      setCompLensList(data);
+    } catch {
+      toast({ title: "Failed to load competitors", variant: "destructive" });
+    }
+  };
+
+  const runCompetitorLens = async (name: string) => {
+    const segMap = buildSegmentRunsMap();
+    if (Object.keys(segMap).length === 0) return;
+    setCompLensLoading(true);
+    setCompLensResult(null);
+    try {
+      const res = await apiRequest("POST", "/api/competitor-lens/analyse", {
+        competitorName: name,
+        segments: segMap,
+      });
+      const data = await res.json();
+      setCompLensResult(data);
+    } catch {
+      toast({ title: "Competitor analysis failed", variant: "destructive" });
+    } finally {
+      setCompLensLoading(false);
     }
   };
 
@@ -1432,6 +1483,10 @@ export default function PromptGenerator() {
     setBrandDomain(session.brandDomain || "");
     setV2PromptsPerSegment(session.promptsPerSegment || 3);
     setV2LoadedSessionId(session.id);
+    setCompLensOpen(false);
+    setCompLensList([]);
+    setCompLensSelected("");
+    setCompLensResult(null);
     const rawSegments = Array.isArray(session.segments) ? session.segments : [];
     if (rawSegments.length === 0) {
       setV2Segments([makeSegment()]);
@@ -2544,6 +2599,10 @@ export default function PromptGenerator() {
                             setBrandName("");
                             setBrandDomain("");
                             setEnabledEngines(new Set(["chatgpt", "gemini", "claude"]));
+                            setCompLensOpen(false);
+                            setCompLensList([]);
+                            setCompLensSelected("");
+                            setCompLensResult(null);
                           }}
                           data-testid="button-v2-new-session"
                         >
@@ -3162,6 +3221,206 @@ export default function PromptGenerator() {
                     </Card>
                   );
                 })()}
+
+                {mode === "quickv2" && v2Segments.some((s) => s.scoringResult?.raw_runs?.length) && !v2IsAnalysing && (
+                  <Card className="p-4 space-y-4" data-testid="competitor-lens-section">
+                    <button
+                      className="flex items-center gap-2 w-full text-left"
+                      onClick={() => {
+                        const wasOpen = compLensOpen;
+                        setCompLensOpen(!wasOpen);
+                        if (!wasOpen && compLensList.length === 0) {
+                          loadCompetitorList();
+                        }
+                      }}
+                      data-testid="toggle-competitor-lens"
+                    >
+                      <Users className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Competitor Lens</span>
+                      <span className="text-[10px] text-muted-foreground ml-1">View any competitor's full analysis — no extra API cost</span>
+                      {compLensOpen ? <ChevronDown className="w-4 h-4 ml-auto text-muted-foreground" /> : <ChevronRight className="w-4 h-4 ml-auto text-muted-foreground" />}
+                    </button>
+
+                    {compLensOpen && (
+                      <div className="space-y-4 pt-2">
+                        <div className="flex items-center gap-3">
+                          <Select
+                            value={compLensSelected}
+                            onValueChange={(v) => {
+                              setCompLensSelected(v);
+                              runCompetitorLens(v);
+                            }}
+                          >
+                            <SelectTrigger className="w-64 bg-secondary/50" data-testid="select-competitor">
+                              <SelectValue placeholder="Select a competitor..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {compLensList.map((c) => (
+                                <SelectItem key={c.name} value={c.name}>
+                                  {c.name} ({c.appearances} mentions, {c.segments.length} seg{c.segments.length !== 1 ? "s" : ""})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {compLensLoading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+                        </div>
+
+                        {compLensResult && !compLensLoading && (
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-sm font-semibold">{compLensResult.competitorName}</h3>
+                              <Badge variant="secondary" className="text-[10px]">Competitor Analysis</Badge>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-3">
+                              <div className="bg-secondary/50 rounded-md p-2.5 text-center">
+                                <div className="text-lg font-bold">{Math.round(compLensResult.overall.appearance_rate * 100)}%</div>
+                                <div className="text-[10px] text-muted-foreground">Appearance</div>
+                              </div>
+                              <div className="bg-secondary/50 rounded-md p-2.5 text-center">
+                                <div className="text-lg font-bold">{Math.round(compLensResult.overall.primary_rate * 100)}%</div>
+                                <div className="text-[10px] text-muted-foreground">Top 3</div>
+                              </div>
+                              <div className="bg-secondary/50 rounded-md p-2.5 text-center">
+                                <div className="text-lg font-bold">{compLensResult.overall.avg_rank !== null ? `#${compLensResult.overall.avg_rank}` : "—"}</div>
+                                <div className="text-[10px] text-muted-foreground">Avg Rank</div>
+                              </div>
+                            </div>
+
+                            {Object.keys(compLensResult.overall.engine_breakdown || {}).length > 0 && (
+                              <div>
+                                <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                                  <BarChart3 className="w-3 h-3" />
+                                  By Engine
+                                </h4>
+                                <div className="grid grid-cols-3 gap-2">
+                                  {Object.entries(compLensResult.overall.engine_breakdown).map(([engine, data]: [string, any]) => (
+                                    <div key={engine} className="bg-secondary/30 rounded-md p-2 text-center">
+                                      <div className="text-[10px] text-muted-foreground mb-1">
+                                        {engine === "chatgpt" ? "ChatGPT" : engine === "claude" ? "Claude" : "Gemini"}
+                                      </div>
+                                      <div className="text-sm font-bold">{Math.round(data.appearance_rate * 100)}%</div>
+                                      <div className="text-[10px] text-muted-foreground">Top 3: {Math.round(data.primary_rate * 100)}%</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            <div>
+                              <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                                <Target className="w-3 h-3" />
+                                Head-to-Head: {brandName} vs {compLensResult.competitorName}
+                              </h4>
+                              <div className="border rounded-md overflow-hidden">
+                                <div className="grid grid-cols-[1fr_100px_100px] bg-secondary/30 px-3 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                                  <span>Segment</span>
+                                  <span className="text-center">{brandName}</span>
+                                  <span className="text-center">{compLensResult.competitorName}</span>
+                                </div>
+                                {Object.entries(compLensResult.perSegment).map(([segLabel, segScore]: [string, any]) => {
+                                  const ourSeg = v2Segments.find((s) => {
+                                    const label = `${s.persona.replace(/_/g, " ")}${s.serviceType ? ` · ${s.serviceType}` : ""}${s.customerType && s.customerType !== "__none__" ? ` · ${s.customerType}` : ""}${s.location ? ` · ${s.location}` : ""}`;
+                                    return label === segLabel;
+                                  });
+                                  const ourRate = ourSeg?.scoringResult?.score?.appearance_rate ?? 0;
+                                  const theirRate = segScore.appearance_rate;
+                                  const ourWins = ourRate > theirRate;
+                                  const theyWin = theirRate > ourRate;
+                                  return (
+                                    <div key={segLabel} className="grid grid-cols-[1fr_100px_100px] px-3 py-2 border-t text-xs items-center">
+                                      <span className="truncate text-muted-foreground" title={segLabel}>{segLabel}</span>
+                                      <span className={`text-center font-medium ${ourWins ? "text-green-600 dark:text-green-400" : ""}`}>
+                                        {Math.round(ourRate * 100)}%
+                                      </span>
+                                      <span className={`text-center font-medium ${theyWin ? "text-green-600 dark:text-green-400" : ""}`}>
+                                        {theirRate === 0 ? (
+                                          <span className="text-muted-foreground/60">~0% <span className="text-[9px]">(not in top 10)</span></span>
+                                        ) : (
+                                          `${Math.round(theirRate * 100)}%`
+                                        )}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                                <div className="grid grid-cols-[1fr_100px_100px] px-3 py-2 border-t bg-secondary/20 text-xs font-semibold items-center">
+                                  <span>Overall</span>
+                                  <span className={`text-center ${(v2Segments.reduce((s, seg) => s + (seg.scoringResult?.score?.appearance_rate || 0), 0) / Math.max(v2Segments.filter(s => s.scoringResult).length, 1)) > compLensResult.overall.appearance_rate ? "text-green-600 dark:text-green-400" : ""}`}>
+                                    {Math.round((v2Segments.reduce((s, seg) => s + (seg.scoringResult?.score?.appearance_rate || 0), 0) / Math.max(v2Segments.filter(s => s.scoringResult).length, 1)) * 100)}%
+                                  </span>
+                                  <span className={`text-center ${compLensResult.overall.appearance_rate > (v2Segments.reduce((s, seg) => s + (seg.scoringResult?.score?.appearance_rate || 0), 0) / Math.max(v2Segments.filter(s => s.scoringResult).length, 1)) ? "text-green-600 dark:text-green-400" : ""}`}>
+                                    {Math.round(compLensResult.overall.appearance_rate * 100)}%
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {compLensResult.strongestClusters?.length > 0 && (
+                              <div>
+                                <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                                  <TrendingUp className="w-3 h-3" />
+                                  Strongest Prompt Types
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {compLensResult.strongestClusters.filter((c: any) => c.rate > 0).slice(0, 6).map((c: any) => (
+                                    <Badge key={c.cluster} variant="secondary" className="text-[10px]">
+                                      {c.cluster}: {Math.round(c.rate * 100)}% ({c.appearances})
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {compLensResult.verbatimQuotes?.length > 0 && (
+                              <div>
+                                <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                                  <FileText className="w-3 h-3" />
+                                  What AI Engines Say About {compLensResult.competitorName}
+                                </h4>
+                                <div className="space-y-2 max-h-60 overflow-y-auto">
+                                  {compLensResult.verbatimQuotes.map((q: any, i: number) => (
+                                    <div key={i} className="bg-secondary/30 rounded-md p-2 text-xs">
+                                      <div className="flex items-center gap-1.5 mb-1">
+                                        <Badge variant="outline" className="text-[9px] py-0">
+                                          {q.engine === "chatgpt" ? "ChatGPT" : q.engine === "claude" ? "Claude" : "Gemini"}
+                                        </Badge>
+                                      </div>
+                                      <p className="text-muted-foreground italic">"{q.sentence}"</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {compLensResult.overall.competitors?.length > 0 && (
+                              <div>
+                                <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                                  <Globe className="w-3 h-3" />
+                                  Who Else Appears Alongside {compLensResult.competitorName}
+                                </h4>
+                                <div className="border rounded-md overflow-hidden">
+                                  {compLensResult.overall.competitors.slice(0, 8).map((c: any, i: number) => (
+                                    <div key={c.name} className={`flex items-center gap-2 px-3 py-1.5 text-xs ${i > 0 ? "border-t" : ""}`}>
+                                      <span className="text-muted-foreground font-mono w-4">{i + 1}</span>
+                                      <span className={`flex-1 truncate ${c.name === "[Original Brand]" ? "text-primary font-medium" : ""}`}>
+                                        {c.name === "[Original Brand]" ? brandName : c.name}
+                                        {c.name === "[Original Brand]" && <Badge variant="secondary" className="ml-1 text-[9px] py-0">YOU</Badge>}
+                                      </span>
+                                      <div className="w-16 bg-secondary/50 rounded-full h-1.5">
+                                        <div className="bg-primary/60 h-1.5 rounded-full" style={{ width: `${Math.round(c.share * 100)}%` }} />
+                                      </div>
+                                      <span className="text-muted-foreground w-8 text-right">{Math.round(c.share * 100)}%</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Card>
+                )}
 
                 {mode === "quickv2" && v2Segments.some((s) => s.scoringResult) && !v2IsAnalysing && (
                   <SegmentCitationAnalyzer

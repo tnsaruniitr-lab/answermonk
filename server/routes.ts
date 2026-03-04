@@ -19,6 +19,7 @@ import { BuyerIntentProfileSchema } from "./promptgen/types";
 import { getPresetsForPersona, PERSONA_CATEGORY_LABELS, MARKETING_CHANNELS, AUTOMATION_SERVICES, AUTOMATION_KNOWN_TOOLS, MARKETING_VERTICALS, AUTOMATION_VERTICALS, CORPORATE_CARDS_SERVICES, CORPORATE_CARDS_VERTICALS, CORPORATE_CARDS_MODIFIERS, EXPENSE_MANAGEMENT_SERVICES, EXPENSE_MANAGEMENT_VERTICALS, EXPENSE_MANAGEMENT_MODIFIERS, ACCOUNTING_AUTOMATION_SERVICES, ACCOUNTING_AUTOMATION_VERTICALS, ACCOUNTING_AUTOMATION_MODIFIERS, INVOICE_MANAGEMENT_SERVICES, INVOICE_MANAGEMENT_VERTICALS, INVOICE_MANAGEMENT_MODIFIERS, RESTAURANT_OFFERINGS, RESTAURANT_VERTICALS, RESTAURANT_MODIFIERS, CONSTRUCTION_MANAGEMENT_SERVICES, CONSTRUCTION_MANAGEMENT_VERTICALS, CONSTRUCTION_MANAGEMENT_MODIFIERS, HEALTHCARE_SERVICES, HEALTHCARE_VERTICALS, HEALTHCARE_MODIFIERS, WEIGHT_LOSS_SERVICES, WEIGHT_LOSS_VERTICALS, WEIGHT_LOSS_MODIFIERS, BLOOD_TEST_SERVICES, BLOOD_TEST_VERTICALS, BLOOD_TEST_MODIFIERS, BUDGET_ADJECTIVES, DECISION_MAKERS } from "./promptgen/presets";
 import { selectMiniPanel, selectMicroPanel } from "./scoring/panel";
 import { runScoring } from "./scoring/runner";
+import { getAvailableCompetitors, reScoreForCompetitor } from "./scoring/competitor-lens";
 import { insertSavedProfileSchema, insertMultiSegmentSessionSchema, insertSavedV2ConfigSchema } from "@shared/schema";
 import { analyzePanelWebsite } from "./panel/generator";
 import { runInsightsAnalysis, type InsightsInput } from "./insights";
@@ -690,6 +691,43 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Error getting multi-segment session:", err);
       res.status(500).json({ message: "Failed to load session" });
+    }
+  });
+
+  app.post("/api/competitor-lens/analyse", async (req, res) => {
+    try {
+      const schema = z.object({
+        competitorName: z.string().min(1),
+        segments: z.record(z.array(z.any())),
+      });
+      const parsed = schema.parse(req.body);
+      const result = reScoreForCompetitor(parsed.segments, parsed.competitorName);
+      res.json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors.map((e) => e.message).join(", ") });
+      } else {
+        console.error("Competitor lens error:", err);
+        res.status(500).json({ message: "Failed to analyse competitor" });
+      }
+    }
+  });
+
+  app.post("/api/competitor-lens/list", async (req, res) => {
+    try {
+      const schema = z.object({
+        segments: z.record(z.array(z.any())),
+      });
+      const parsed = schema.parse(req.body);
+      const competitors = getAvailableCompetitors(parsed.segments);
+      res.json(competitors);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors.map((e) => e.message).join(", ") });
+      } else {
+        console.error("Competitor list error:", err);
+        res.status(500).json({ message: "Failed to list competitors" });
+      }
     }
   });
 
