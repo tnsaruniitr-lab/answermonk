@@ -2,8 +2,8 @@ import puppeteer from "puppeteer-core";
 import * as fs from "fs";
 import * as crypto from "crypto";
 
-const FETCH_TIMEOUT = 12000;
-const BROWSER_TIMEOUT = 20000;
+const FETCH_TIMEOUT = 8000;
+const BROWSER_TIMEOUT = 10000;
 const MAX_HTML_SIZE = 500000;
 const MIN_TEXT_LENGTH = 200;
 const MAX_CONCURRENT = 20;
@@ -333,7 +333,7 @@ export async function fetchWithBrowser(url: string): Promise<{ html: string; fin
   }
 }
 
-const SINGLE_URL_TIMEOUT = 30000;
+const SINGLE_URL_TIMEOUT = 15000;
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T | null> {
   return Promise.race([
