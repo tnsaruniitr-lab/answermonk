@@ -1,11 +1,28 @@
 import { readFileSync, existsSync } from "fs";
 import { gunzipSync } from "zlib";
-import { join } from "path";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 import { pool } from "../db";
 
-const SEED_DIR = join(import.meta.dirname, ".");
+function getSeedDir(): string {
+  try {
+    if (import.meta.dirname) return import.meta.dirname;
+  } catch {}
+  try {
+    return dirname(fileURLToPath(import.meta.url));
+  } catch {}
+  return join(process.cwd(), "server", "seed");
+}
+
+const SEED_DIR = getSeedDir();
 
 async function seedIfNeeded() {
+  const sessionsGz = join(SEED_DIR, "sessions.jsonl.gz");
+  if (!existsSync(sessionsGz)) {
+    console.log("[seed] No seed files found, skipping.");
+    return;
+  }
+
   const client = await pool.connect();
   try {
     const check = await client.query("SELECT COUNT(*) as cnt FROM multi_segment_sessions WHERE id IN (11, 14)");
@@ -16,7 +33,6 @@ async function seedIfNeeded() {
 
     console.log("[seed] Seeding production database with demo data...");
 
-    const sessionsGz = join(SEED_DIR, "sessions.jsonl.gz");
     if (existsSync(sessionsGz)) {
       const raw = gunzipSync(readFileSync(sessionsGz)).toString("utf-8");
       for (const line of raw.trim().split("\n")) {
