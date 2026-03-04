@@ -1022,6 +1022,29 @@ export async function generateReport(
     }
   }
 
+  if (brandCitationDomainsFromReport.length === 0) {
+    const brandNameLower = session.brandName.toLowerCase();
+    const fallbackDomains: Array<{ domain: string; tier: string; mentions: number }> = [];
+    for (const [domain, entry] of appendixDomainMap) {
+      if (entry.tier === "T4" || entry.tier === "brand_owned") continue;
+      const entities = Array.from(entry.mentionedEntities).map(e => e.toLowerCase());
+      if (entities.some(e => e.includes(brandNameLower) || brandNameLower.includes(e))) {
+        fallbackDomains.push({ domain, tier: entry.tier, mentions: entry.urls.size });
+      }
+    }
+    if (fallbackDomains.length > 0) {
+      const tierOrder: Record<string, number> = { T1: 0, T2: 1, T3: 2, T4: 3 };
+      fallbackDomains.sort((a, b) =>
+        (tierOrder[a.tier] ?? 4) - (tierOrder[b.tier] ?? 4) || b.mentions - a.mentions
+      );
+      brandCitationDomainsFromReport = fallbackDomains;
+      brandUniqueDomains = fallbackDomains.length;
+      if (brandUniqueDomains >= 5) brandAuthorityLabel = "high";
+      else if (brandUniqueDomains >= 2) brandAuthorityLabel = "moderate";
+      else if (brandUniqueDomains >= 1) brandAuthorityLabel = "weak";
+    }
+  }
+
   // --- SECTION 3: Actionable Insights ---
 
   const gapAnalysis = segments.map((seg, segIdx) => {
