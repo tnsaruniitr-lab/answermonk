@@ -1,6 +1,23 @@
 import { computeGEOScore, type GEOScore, type RunData } from "./scorer";
 import { normalizeName } from "./extractor";
 
+function fuzzyMatchCompetitor(candidateNorm: string, targetNorm: string): boolean {
+  if (candidateNorm === targetNorm) return true;
+  const candidateTokens = candidateNorm.split(/\s+/);
+  const targetTokens = targetNorm.split(/\s+/);
+  if (targetTokens.every(t => candidateTokens.includes(t))) return true;
+  if (candidateTokens.every(t => targetTokens.includes(t))) return true;
+  if (targetNorm.length >= 4) {
+    const re = new RegExp(`\\b${targetNorm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+    if (re.test(candidateNorm)) return true;
+  }
+  if (candidateNorm.length >= 4) {
+    const re = new RegExp(`\\b${candidateNorm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+    if (re.test(targetNorm)) return true;
+  }
+  return false;
+}
+
 export interface CompetitorListItem {
   name: string;
   appearances: number;
@@ -94,8 +111,8 @@ export function reScoreForCompetitor(
         : (run.candidates || []);
 
       const compCandidate = nonBrandCandidates.find(
-        (c) => (c.name_norm || normalizeName(c.name_raw)) === compNorm ||
-               normalizeName(c.name_raw) === compNorm
+        (c) => fuzzyMatchCompetitor(c.name_norm || normalizeName(c.name_raw), compNorm) ||
+               fuzzyMatchCompetitor(normalizeName(c.name_raw), compNorm)
       );
 
       const brandMatch = {
@@ -107,7 +124,7 @@ export function reScoreForCompetitor(
       const others = nonBrandCandidates
         .filter((c) => {
           const cn = c.name_norm || normalizeName(c.name_raw);
-          return cn !== compNorm && normalizeName(c.name_raw) !== compNorm;
+          return !fuzzyMatchCompetitor(cn, compNorm) && !fuzzyMatchCompetitor(normalizeName(c.name_raw), compNorm);
         })
         .map((c) => ({
           name_raw: c.name_raw,
@@ -230,12 +247,12 @@ export function buildCompetitorReportSegments(
         : normalizedCandidates;
 
       const compCandidate = nonBrandCandidates.find(
-        (c) => c.name_norm === compNorm || normalizeName(c.name_raw) === compNorm
+        (c) => fuzzyMatchCompetitor(c.name_norm, compNorm) || fuzzyMatchCompetitor(normalizeName(c.name_raw), compNorm)
       );
 
       const remainingCandidates = nonBrandCandidates.filter((c) => {
         const cn = c.name_norm || normalizeName(c.name_raw);
-        return cn !== compNorm && normalizeName(c.name_raw) !== compNorm;
+        return !fuzzyMatchCompetitor(cn, compNorm) && !fuzzyMatchCompetitor(normalizeName(c.name_raw), compNorm);
       });
 
       if (run.brand_found && run.brand_rank !== null) {
