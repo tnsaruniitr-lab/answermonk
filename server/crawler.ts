@@ -436,7 +436,9 @@ export interface CrawlProgress {
 export async function crawlUrls(
   urls: string[],
   onProgress?: (progress: CrawlProgress) => void,
+  options?: { stripRawHtml?: boolean },
 ): Promise<CrawledPage[]> {
+  const stripHtml = options?.stripRawHtml ?? false;
   const canonicalSeen = new Map<string, number>();
   const uniqueUrls: string[] = [];
 
@@ -466,7 +468,7 @@ export async function crawlUrls(
 
   await new Promise<void>((resolveAll) => {
     const onComplete = (idx: number, page: CrawledPage) => {
-      page.rawHtml = "";
+      if (stripHtml) page.rawHtml = "";
       results[idx] = page;
       doneCount++;
       if (page.accessible) successCount++;

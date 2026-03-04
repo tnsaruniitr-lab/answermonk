@@ -73,5 +73,5 @@ export async function crawlCitations(
 ): Promise<CrawledPage[]> {
   const allUrls = extractCitationUrls(segments);
   if (allUrls.length === 0) return [];
-  return crawlUrls(allUrls, onProgress);
+  return crawlUrls(allUrls, onProgress, { stripRawHtml: true });
 }
