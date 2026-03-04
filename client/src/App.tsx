@@ -73,12 +73,16 @@ function AuthGate() {
         <Switch>
           <Route path="/share/summary/:id" component={SummaryReport} />
           <Route path="/share/teaser/:id" component={ProspectTeaser} />
-          <Route path="/:slug">{(params) => {
-            const adminPaths = ["history", "prompts", "scoring", "v2", "summary", "teaser", "leads", "share"];
-            if (adminPaths.includes(params.slug)) return null;
-            return <SlugTeaser params={params} />;
-          }}</Route>
-          <Route><AdminRouter /></Route>
+          <Route path="/" component={Analyzer} />
+          <Route path="/history" component={HistoryPage} />
+          <Route path="/prompts" component={PromptGenerator} />
+          <Route path="/scoring/:id" component={ScoringDetail} />
+          <Route path="/v2/:id" component={V2SessionDetail} />
+          <Route path="/summary/:id" component={SummaryReport} />
+          <Route path="/teaser/:id" component={ProspectTeaser} />
+          <Route path="/leads" component={Leads} />
+          <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
+          <Route component={NotFound} />
         </Switch>
       </>
     );
