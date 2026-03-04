@@ -254,29 +254,109 @@ function shouldMergeNames(a: string, b: string): boolean {
   return false;
 }
 
-function deduplicateCompMap(compMap: Map<string, number>): Map<string, number> {
-  const entries = [...compMap.entries()].sort((a, b) => b[1] - a[1]);
-  const merged = new Map<string, number>();
-  const consumed = new Set<string>();
+function recountCompetitorsFromRuns(
+  runs: RawRun[],
+  brandNameLC: string
+): Map<string, number> {
+  const allCandidateNames = new Set<string>();
+  for (const run of runs) {
+    for (const c of run.candidates || []) {
+      if (c.name_raw) allCandidateNames.add(c.name_raw);
+    }
+  }
 
-  for (const [nameA, countA] of entries) {
-    if (consumed.has(nameA)) continue;
-    let total = countA;
-    let bestName = nameA;
-
-    for (const [nameB, countB] of entries) {
-      if (nameB === nameA || consumed.has(nameB)) continue;
-      if (shouldMergeNames(nameA, nameB)) {
-        total += countB;
-        consumed.add(nameB);
-        if (nameB.length < bestName.length) bestName = nameB;
+  const nameToGroup = new Map<string, string>();
+  const groups: string[][] = [];
+  const nameArr = Array.from(allCandidateNames);
+  const assigned = new Set<string>();
+  for (let i = 0; i < nameArr.length; i++) {
+    if (assigned.has(nameArr[i])) continue;
+    const group = [nameArr[i]];
+    assigned.add(nameArr[i]);
+    for (let j = i + 1; j < nameArr.length; j++) {
+      if (assigned.has(nameArr[j])) continue;
+      if (group.some(g => shouldMergeNames(g, nameArr[j]))) {
+        group.push(nameArr[j]);
+        assigned.add(nameArr[j]);
       }
     }
-
-    consumed.add(nameA);
-    merged.set(bestName, total);
+    groups.push(group);
   }
-  return merged;
+
+  for (const group of groups) {
+    const canonical = group.reduce((a, b) => a.length <= b.length ? a : b);
+    for (const name of group) {
+      nameToGroup.set(name.toLowerCase(), canonical);
+    }
+  }
+
+  const result = new Map<string, number>();
+  for (const run of runs) {
+    const seenGroups = new Set<string>();
+    for (const c of run.candidates || []) {
+      if (!c.name_raw) continue;
+      const group = nameToGroup.get(c.name_raw.toLowerCase()) || c.name_raw;
+      if (seenGroups.has(group)) continue;
+      seenGroups.add(group);
+      const groupLC = group.toLowerCase();
+      if (groupLC.includes(brandNameLC) || brandNameLC.includes(groupLC)) continue;
+      result.set(group, (result.get(group) || 0) + 1);
+    }
+  }
+
+  return result;
+}
+
+function recountSegmentCompetitors(
+  runs: RawRun[],
+  validRuns: number,
+): { name: string; share: number; appearances: number }[] {
+  const allCandidateNames = new Set<string>();
+  for (const run of runs) {
+    for (const c of run.candidates || []) {
+      if (c.name_raw) allCandidateNames.add(c.name_raw);
+    }
+  }
+
+  const nameToGroup = new Map<string, string>();
+  const nameArr = Array.from(allCandidateNames);
+  const assigned = new Set<string>();
+  for (let i = 0; i < nameArr.length; i++) {
+    if (assigned.has(nameArr[i])) continue;
+    const group = [nameArr[i]];
+    assigned.add(nameArr[i]);
+    for (let j = i + 1; j < nameArr.length; j++) {
+      if (assigned.has(nameArr[j])) continue;
+      if (group.some(g => shouldMergeNames(g, nameArr[j]))) {
+        group.push(nameArr[j]);
+        assigned.add(nameArr[j]);
+      }
+    }
+    const canonical = group.reduce((a, b) => a.length <= b.length ? a : b);
+    for (const name of group) {
+      nameToGroup.set(name.toLowerCase(), canonical);
+    }
+  }
+
+  const counts = new Map<string, number>();
+  for (const run of runs) {
+    const seenGroups = new Set<string>();
+    for (const c of run.candidates || []) {
+      if (!c.name_raw) continue;
+      const group = nameToGroup.get(c.name_raw.toLowerCase()) || c.name_raw;
+      if (seenGroups.has(group)) continue;
+      seenGroups.add(group);
+      counts.set(group, (counts.get(group) || 0) + 1);
+    }
+  }
+
+  return Array.from(counts.entries())
+    .map(([name, appearances]) => ({
+      name,
+      share: validRuns > 0 ? appearances / validRuns : 0,
+      appearances,
+    }))
+    .sort((a, b) => b.appearances - a.appearances);
 }
 
 export function generateTeaserData(
@@ -291,8 +371,6 @@ export function generateTeaserData(
   let totalValidRuns = 0;
   const allRanks: number[] = [];
   const allRuns: RawRun[] = [];
-
-  const globalCompMap = new Map<string, number>();
 
   for (const seg of segments) {
     const score = seg.scoringResult!.score;
@@ -309,10 +387,6 @@ export function generateTeaserData(
         allRanks.push(run.brand_rank);
       }
     }
-
-    for (const c of score.competitors || []) {
-      globalCompMap.set(c.name, (globalCompMap.get(c.name) || 0) + c.appearances);
-    }
   }
 
   const overallAppearance = totalValidRuns > 0 ? totalWeightedAppearance / totalValidRuns : 0;
@@ -322,9 +396,9 @@ export function generateTeaserData(
   const brandAppearances = allRuns.filter(r => r.brand_found).length;
   const brandShare = totalValidRuns > 0 ? brandAppearances / totalValidRuns : 0;
 
-  const dedupedCompMap = deduplicateCompMap(globalCompMap);
+  const globalCompMap = recountCompetitorsFromRuns(allRuns, brandNameLC);
 
-  const allBrands = [...Array.from(dedupedCompMap.entries())
+  const allBrands = [...Array.from(globalCompMap.entries())
     .filter(([name]) => !name.toLowerCase().includes(brandNameLC) && !brandNameLC.includes(name.toLowerCase()))
     .map(([name, appearances]) => ({ name, share: totalValidRuns > 0 ? appearances / totalValidRuns : 0, appearances, isBrand: false })),
     { name: brandName, share: brandShare, appearances: brandAppearances, isBrand: true },
@@ -378,26 +452,8 @@ export function generateTeaserData(
 
   const segmentBreakdown = segments.map(seg => {
     const score = seg.scoringResult!.score;
-    const rawComps = score.competitors || [];
-    const dedupedSegComps: typeof rawComps = [];
-    const segConsumed = new Set<number>();
-    const sortedRawComps = [...rawComps].sort((a, b) => b.appearances - a.appearances);
-    for (let i = 0; i < sortedRawComps.length; i++) {
-      if (segConsumed.has(i)) continue;
-      let merged = { ...sortedRawComps[i] };
-      for (let j = i + 1; j < sortedRawComps.length; j++) {
-        if (segConsumed.has(j)) continue;
-        if (shouldMergeNames(merged.name, sortedRawComps[j].name)) {
-          merged.appearances += sortedRawComps[j].appearances;
-          merged.share = score.valid_runs > 0 ? Math.min(merged.appearances / score.valid_runs, 1) : 0;
-          if (sortedRawComps[j].name.length < merged.name.length) merged.name = sortedRawComps[j].name;
-          segConsumed.add(j);
-        }
-      }
-      segConsumed.add(i);
-      dedupedSegComps.push(merged);
-    }
-    const competitors = dedupedSegComps.sort((a, b) => b.appearances - a.appearances);
+    const segRuns = seg.scoringResult!.raw_runs || [];
+    const competitors = recountSegmentCompetitors(segRuns, score.valid_runs || 0);
     const brandApp = (seg.scoringResult!.raw_runs || []).filter(r => r.brand_found).length;
     const brandVis = score.valid_runs > 0 ? brandApp / score.valid_runs : 0;
 

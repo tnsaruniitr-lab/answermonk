@@ -21,33 +21,56 @@ function shouldMergeCompNames(a: string, b: string): boolean {
   return false;
 }
 
-function deduplicateCompetitorList(
-  competitors: { name: string; share: number; appearances: number }[]
+function recountCompetitorsFromRuns(
+  runs: RawRun[],
+  validRuns: number,
 ): { name: string; share: number; appearances: number }[] {
-  const sorted = [...competitors].sort((a, b) => b.appearances - a.appearances);
-  const merged: { name: string; share: number; appearances: number }[] = [];
-  const consumed = new Set<number>();
-
-  for (let i = 0; i < sorted.length; i++) {
-    if (consumed.has(i)) continue;
-    let entry = { ...sorted[i] };
-
-    for (let j = i + 1; j < sorted.length; j++) {
-      if (consumed.has(j)) continue;
-      if (shouldMergeCompNames(entry.name, sorted[j].name)) {
-        entry.appearances += sorted[j].appearances;
-        if (sorted[j].name.length < entry.name.length) {
-          entry.name = sorted[j].name;
-        }
-        consumed.add(j);
-      }
+  const allCandidateNames = new Set<string>();
+  for (const run of runs) {
+    for (const c of run.candidates || []) {
+      if (c.name_raw) allCandidateNames.add(c.name_raw);
     }
-
-    consumed.add(i);
-    merged.push(entry);
   }
 
-  return merged.sort((a, b) => b.appearances - a.appearances);
+  const nameToGroup = new Map<string, string>();
+  const nameArr = Array.from(allCandidateNames);
+  const assigned = new Set<string>();
+  for (let i = 0; i < nameArr.length; i++) {
+    if (assigned.has(nameArr[i])) continue;
+    const group = [nameArr[i]];
+    assigned.add(nameArr[i]);
+    for (let j = i + 1; j < nameArr.length; j++) {
+      if (assigned.has(nameArr[j])) continue;
+      if (group.some(g => shouldMergeCompNames(g, nameArr[j]))) {
+        group.push(nameArr[j]);
+        assigned.add(nameArr[j]);
+      }
+    }
+    const canonical = group.reduce((a, b) => a.length <= b.length ? a : b);
+    for (const name of group) {
+      nameToGroup.set(name.toLowerCase(), canonical);
+    }
+  }
+
+  const counts = new Map<string, number>();
+  for (const run of runs) {
+    const seenGroups = new Set<string>();
+    for (const c of run.candidates || []) {
+      if (!c.name_raw) continue;
+      const group = nameToGroup.get(c.name_raw.toLowerCase()) || c.name_raw;
+      if (seenGroups.has(group)) continue;
+      seenGroups.add(group);
+      counts.set(group, (counts.get(group) || 0) + 1);
+    }
+  }
+
+  return Array.from(counts.entries())
+    .map(([name, appearances]) => ({
+      name,
+      share: validRuns > 0 ? appearances / validRuns : 0,
+      appearances,
+    }))
+    .sort((a, b) => b.appearances - a.appearances);
 }
 
 interface RawRun {
@@ -874,8 +897,7 @@ export async function generateReport(
     const segLabel = buildSegmentLabel(seg);
     const score = seg.scoringResult!.score;
     const runs = seg.scoringResult!.raw_runs || [];
-    const dedupedComps = deduplicateCompetitorList(score.competitors || []);
-    const competitors = [...dedupedComps].sort((a, b) => b.appearances - a.appearances);
+    const competitors = recountCompetitorsFromRuns(runs, score.valid_runs || 0);
 
     const brandAppearances = runs.filter((r: any) => r.brand_found).length;
     const brandShare = score.valid_runs > 0 ? Math.round((brandAppearances / score.valid_runs) * 1000) / 1000 : 0;
