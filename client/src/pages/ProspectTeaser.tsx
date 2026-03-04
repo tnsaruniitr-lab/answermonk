@@ -1580,6 +1580,118 @@ export default function ProspectTeaser() {
           })}
         </div>
 
+        {/* Full Analysis Teaser Block */}
+        <div
+          ref={reveal}
+          style={{
+            margin: "60px 0 80px",
+            padding: "48px 44px",
+            border: `1px solid ${V.border}`,
+            borderRadius: 3,
+            background: "rgba(255,255,255,0.015)",
+            position: "relative",
+            overflow: "hidden",
+          }}
+          data-testid="section-full-analysis-teaser"
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 1,
+              background: `linear-gradient(90deg, transparent, ${V.borderMd}, transparent)`,
+            }}
+          />
+          <div
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 9,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: V.muted,
+              marginBottom: 22,
+            }}
+          >
+            The full report continues with
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "14px 40px",
+            }}
+          >
+            {[
+              { num: "09", label: "AI Quote Contrast", desc: "The exact sentence each competitor owns — and what yours should be" },
+              { num: "10", label: "Brand Voice Analysis", desc: "What AI actually says about you, engine by engine" },
+              { num: "11", label: "Prompt Intelligence", desc: "The real queries prospects type — and where you're missing" },
+              { num: "12", label: "Social & Community Signals", desc: "Reddit, forum and community thread visibility" },
+              { num: "13", label: "Citation Footprint", desc: "Where AI pulls its data from and who dominates each source" },
+              { num: "—", label: "Implementation Roadmap", desc: "Step-by-step actions prioritized by impact" },
+            ].map((item) => (
+              <div
+                key={item.num}
+                style={{
+                  display: "flex",
+                  gap: 14,
+                  alignItems: "flex-start",
+                  padding: "12px 0",
+                  borderBottom: `1px solid ${V.border}`,
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 10,
+                    color: V.muted,
+                    opacity: 0.5,
+                    minWidth: 20,
+                    paddingTop: 2,
+                  }}
+                >
+                  {item.num}
+                </div>
+                <div>
+                  <div
+                    style={{
+                      fontSize: 12.5,
+                      color: V.textBright,
+                      fontWeight: 500,
+                      marginBottom: 4,
+                    }}
+                  >
+                    {item.label}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: V.muted,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {item.desc}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div
+            style={{
+              marginTop: 28,
+              fontSize: 12,
+              color: V.mutedMd,
+              fontStyle: "italic",
+              lineHeight: 1.6,
+              maxWidth: 500,
+            }}
+          >
+            Each section includes detailed competitive comparisons, gap analysis, and specific
+            recommendations — approximately 8× the depth of this preview.
+          </div>
+        </div>
+
         <div style={S.divider} />
 
         {/* 09 · AI Quote Contrast — 1 competitor + brand, rest locked */}
