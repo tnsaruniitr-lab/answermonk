@@ -919,7 +919,7 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
               <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.5 }}>
                 Top-3 recommendation rate
                 <br />
-                leader is at {t.overallScore.leaderRate}%
+                best-in-class: {t.overallScore.leaderRate}%
               </div>
             </div>
           </div>
@@ -1031,6 +1031,9 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
             </h2>
             <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 28, maxWidth: 560, lineHeight: 1.75 }}>
               {brandName}'s appearance rate by engine and search context. Green = strong. Red = invisible.
+              <span style={{ display: "block", marginTop: 6, fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: V.muted }}>
+                Heatmap is per segment; engine scores above are overall across all prompts.
+              </span>
             </p>
             <div style={{ overflowX: "auto" }}>
               <div style={{ minWidth: 500 }}>
@@ -1108,6 +1111,40 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
                 </div>
               </div>
             </div>
+            {(() => {
+              const engineAvgs: Record<string, number[]> = {};
+              (t.engineSegmentHeatmap || []).forEach(row => {
+                Object.entries(row.engines).forEach(([eng, pct]) => {
+                  if (!engineAvgs[eng]) engineAvgs[eng] = [];
+                  engineAvgs[eng].push(pct);
+                });
+              });
+              const sorted = Object.entries(engineAvgs)
+                .map(([eng, vals]) => ({ eng, avg: vals.reduce((a,b) => a+b, 0) / vals.length }))
+                .sort((a, b) => b.avg - a.avg);
+              const best = sorted[0];
+              const worst = sorted[sorted.length - 1];
+              if (!best || !worst || best.eng === worst.eng) return null;
+              if (sorted.some(s => (engineAvgs[s.eng]?.length || 0) < 2)) return null;
+              return (
+                <div style={{
+                  marginTop: 18,
+                  fontSize: 13,
+                  color: V.mutedMd,
+                  lineHeight: 1.6,
+                  padding: "14px 18px",
+                  background: "rgba(201,168,76,0.03)",
+                  border: `1px solid ${V.border}`,
+                  borderRadius: 3,
+                }} data-testid="heatmap-summary">
+                  <strong style={{ color: V.text, fontWeight: 500 }}>Summary:</strong>{" "}
+                  {brandName} wins inclusion on {ENGINE_LABELS_MAP[best.eng] || best.eng} (avg {Math.round(best.avg)}%),
+                  {worst.avg === 0
+                    ? ` and is invisible on ${ENGINE_LABELS_MAP[worst.eng] || worst.eng} across every segment tested.`
+                    : ` but struggles on ${ENGINE_LABELS_MAP[worst.eng] || worst.eng} (avg ${Math.round(worst.avg)}%).`}
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -1260,7 +1297,7 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
                     borderLeft: `2px solid ${V.gold}`,
                     paddingLeft: 14,
                   }}>
-                    "{prompt.promptText}"
+                    "{prompt.promptText.replace(/\b(\w+)\s+\1\b/gi, '$1')}"
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {prompt.results.map((r, ri) => (
@@ -1302,27 +1339,32 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
                       </div>
                     ))}
                   </div>
-                  <div style={{
-                    marginTop: 14,
-                    fontSize: 11,
-                    color: V.muted,
-                    fontFamily: "'JetBrains Mono', monospace",
-                    borderTop: `1px solid ${V.border}`,
-                    paddingTop: 12,
-                  }} data-testid={`repro-${pi}`}>
-                    Try it yourself: paste this exact prompt into ChatGPT, Gemini, or Claude.
-                  </div>
                 </div>
               ))}
             </div>
             <div style={{
-              marginTop: 12,
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 10,
-              color: V.muted,
-              letterSpacing: "0.08em",
+              marginTop: 16,
+              padding: "14px 18px",
+              background: "rgba(201,168,76,0.03)",
+              border: `1px solid ${V.border}`,
+              borderRadius: 3,
             }}>
-              {t.promptShowdown.length} of {t.meta.totalQueries} prompts shown &middot; full audit includes all {t.meta.totalQueries} with rankings
+              <div style={{
+                fontSize: 11,
+                color: V.mutedMd,
+                fontFamily: "'JetBrains Mono', monospace",
+                marginBottom: 6,
+              }} data-testid="repro-note">
+                Try it yourself: paste any prompt above into ChatGPT, Gemini, or Claude.
+              </div>
+              <div style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 10,
+                color: V.muted,
+                letterSpacing: "0.08em",
+              }}>
+                {t.promptShowdown.length} of {t.meta.totalQueries} prompts shown &middot; AI outputs vary by time/location; these are standardized runs ({t.promptShowdown[0]?.dateLabel}).
+              </div>
             </div>
           </div>
         )}
@@ -1346,13 +1388,13 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
             Citation & Authority Analysis
           </h2>
           <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 28, maxWidth: 560, lineHeight: 1.75 }}>
-            We crawled {t.citationScale?.totalCitationsCrawled || 0} cited pages referenced by AI answers across {t.citationScale?.totalRuns || 0} runs.
-            Here's where {brandName} shows up — and where it doesn't.
+            We extracted {(t.citationScale?.totalCitationsCrawled || 0).toLocaleString()} citations from AI answers
+            across {t.citationScale?.totalRuns || 0} runs, spanning {(t.citationScale?.totalCitationPages || 0).toLocaleString()} unique domains.
           </p>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 32 }}>
             {[
-              { num: t.citationScale?.totalCitationsCrawled || 0, label: "citations crawled" },
+              { num: t.citationScale?.totalCitationsCrawled || 0, label: "citations extracted" },
               { num: t.citationScale?.totalCitationPages || 0, label: "unique domains" },
               { num: t.authorityGap.domains.length, label: "authority sources tracked" },
             ].map((stat, i) => (
@@ -1386,7 +1428,9 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
           {t.authorityGap.domains.length > 0 && (
             <>
               <div style={{ ...S.eyebrow, color: V.muted, marginBottom: 14 }}>
-                Top authority sources · {brandName} present on {t.authorityGap.domains.length - t.authorityGap.brandAbsentCount} of {t.authorityGap.domains.length}
+                {t.authorityGap.brandAbsentCount === 0
+                  ? `${brandName} appears on all ${t.authorityGap.domains.length} tracked sources — see how each competitor compares`
+                  : `Top authority sources · ${brandName} present on ${t.authorityGap.domains.length - t.authorityGap.brandAbsentCount} of ${t.authorityGap.domains.length}`}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                 <div
@@ -1425,8 +1469,7 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
                     data-testid={`auth-row-${i}`}
                   >
                     <div>
-                      <div style={{ fontSize: 12, color: V.textBright, fontWeight: 500, marginBottom: 2 }}>{domain.domain}</div>
-                      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: V.muted }}>{domain.tier}</div>
+                      <div style={{ fontSize: 12, color: V.textBright, fontWeight: 500 }}>{domain.domain}</div>
                     </div>
                     {authColumnNames.map((name) => {
                       const present = domain.presence[name];
@@ -1465,145 +1508,11 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
           )}
         </div>
 
-        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 20%, ${V.borderMd} 50%, transparent 80%)` }} />
-
-        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-competitive-ranking">
-          <SectionNumber num="08" />
-          <h2
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: 26,
-              fontWeight: 700,
-              color: "#fff",
-              marginBottom: 12,
-              lineHeight: 1.2,
-            }}
-            data-testid="heading-competitive-ranking"
-          >
-            Competitive Ranking
-          </h2>
-          <div style={{ ...S.eyebrow, color: V.muted, marginBottom: 24 }}>
-            Top {t.competitiveRanking.length} brands by AI share of voice
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            {t.competitiveRanking.map((entry, i) => {
-              const isBrand = entry.isBrand;
-              const isTop5 = entry.rank <= 5;
-              const showName = isBrand || isTop5;
-              const showProximity = isBrand && t.proximityNote;
-
-              return (
-                <div
-                  key={i}
-                  data-stagger
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "32px 1fr 1fr 56px",
-                    gap: 14,
-                    alignItems: "center",
-                    padding: isBrand ? "18px 18px" : "14px 18px",
-                    borderBottom: `1px solid ${V.border}`,
-                    background: isBrand ? "rgba(201,168,76,0.06)" : "transparent",
-                    borderLeft: isBrand ? `3px solid ${V.gold}` : "3px solid transparent",
-                    boxShadow: isBrand ? "inset 0 0 30px rgba(201,168,76,0.04)" : "none",
-                  }}
-                  data-testid={`ranking-row-${i}`}
-                >
-                  <div
-                    style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 11,
-                      color: isBrand ? V.gold : V.muted,
-                      textAlign: "center",
-                    }}
-                  >
-                    #{entry.rank}
-                  </div>
-                  <div>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        fontWeight: isBrand ? 600 : 400,
-                        color: isBrand ? V.gold : showName ? V.textBright : V.muted,
-                      }}
-                    >
-                      {showName ? entry.name : "\u2588".repeat(6 + (i % 3))}
-                      {isBrand && (
-                        <span
-                          style={{
-                            fontFamily: "'JetBrains Mono', monospace",
-                            fontSize: 8,
-                            letterSpacing: "0.12em",
-                            textTransform: "uppercase",
-                            marginLeft: 8,
-                            padding: "2px 6px",
-                            borderRadius: 2,
-                            background: V.goldDim,
-                            color: V.gold,
-                            border: `1px solid rgba(201,168,76,0.2)`,
-                          }}
-                        >
-                          You
-                        </span>
-                      )}
-                    </div>
-                    {showProximity && (
-                      <div
-                        style={{
-                          fontSize: 10,
-                          color: V.mutedMd,
-                          fontFamily: "'JetBrains Mono', monospace",
-                          marginTop: 3,
-                        }}
-                      >
-                        {t.proximityNote}
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div
-                      style={{
-                        flex: 1,
-                        height: 5,
-                        background: "rgba(255,255,255,0.05)",
-                        borderRadius: 3,
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div
-                        ref={animBar}
-                        data-width={`${entry.share}%`}
-                        style={{
-                          height: "100%",
-                          borderRadius: 3,
-                          background: isBrand ? V.gold : V.borderMd,
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 13,
-                      fontWeight: 500,
-                      textAlign: "right",
-                      color: isBrand ? V.gold : showName ? V.text : V.muted,
-                    }}
-                  >
-                    {showName ? `${entry.share}%` : "\u2588\u2588%"}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-
         <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 10%, ${V.borderMd} 50%, transparent 90%)` }} />
 
         {/* 10 · Segments */}
         <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-segments">
-          <SectionNumber num="09" />
+          <SectionNumber num="08" />
           <h2
             style={{
               fontFamily: "'Playfair Display', serif",
@@ -1850,6 +1759,141 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
             )}
           </div>
         </div>
+
+
+        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 20%, ${V.borderMd} 50%, transparent 80%)` }} />
+
+        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-competitive-ranking">
+          <SectionNumber num="09" />
+          <h2
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 26,
+              fontWeight: 700,
+              color: "#fff",
+              marginBottom: 12,
+              lineHeight: 1.2,
+            }}
+            data-testid="heading-competitive-ranking"
+          >
+            Competitive Ranking
+          </h2>
+          <div style={{ ...S.eyebrow, color: V.muted, marginBottom: 24 }}>
+            Top {t.competitiveRanking.length} brands by AI share of voice
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            {t.competitiveRanking.map((entry, i) => {
+              const isBrand = entry.isBrand;
+              const isTop5 = entry.rank <= 5;
+              const showName = isBrand || isTop5;
+              const showProximity = isBrand && t.proximityNote;
+
+              return (
+                <div
+                  key={i}
+                  data-stagger
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "32px 1fr 1fr 56px",
+                    gap: 14,
+                    alignItems: "center",
+                    padding: isBrand ? "18px 18px" : "14px 18px",
+                    borderBottom: `1px solid ${V.border}`,
+                    background: isBrand ? "rgba(201,168,76,0.06)" : "transparent",
+                    borderLeft: isBrand ? `3px solid ${V.gold}` : "3px solid transparent",
+                    boxShadow: isBrand ? "inset 0 0 30px rgba(201,168,76,0.04)" : "none",
+                  }}
+                  data-testid={`ranking-row-${i}`}
+                >
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 11,
+                      color: isBrand ? V.gold : V.muted,
+                      textAlign: "center",
+                    }}
+                  >
+                    #{entry.rank}
+                  </div>
+                  <div>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        fontWeight: isBrand ? 600 : 400,
+                        color: isBrand ? V.gold : showName ? V.textBright : V.muted,
+                      }}
+                    >
+                      {showName ? entry.name : "\u2588".repeat(6 + (i % 3))}
+                      {isBrand && (
+                        <span
+                          style={{
+                            fontFamily: "'JetBrains Mono', monospace",
+                            fontSize: 8,
+                            letterSpacing: "0.12em",
+                            textTransform: "uppercase",
+                            marginLeft: 8,
+                            padding: "2px 6px",
+                            borderRadius: 2,
+                            background: V.goldDim,
+                            color: V.gold,
+                            border: `1px solid rgba(201,168,76,0.2)`,
+                          }}
+                        >
+                          You
+                        </span>
+                      )}
+                    </div>
+                    {showProximity && (
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: V.mutedMd,
+                          fontFamily: "'JetBrains Mono', monospace",
+                          marginTop: 3,
+                        }}
+                      >
+                        {t.proximityNote}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div
+                      style={{
+                        flex: 1,
+                        height: 5,
+                        background: "rgba(255,255,255,0.05)",
+                        borderRadius: 3,
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        ref={animBar}
+                        data-width={`${entry.share}%`}
+                        style={{
+                          height: "100%",
+                          borderRadius: 3,
+                          background: isBrand ? V.gold : V.borderMd,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 13,
+                      fontWeight: 500,
+                      textAlign: "right",
+                      color: isBrand ? V.gold : showName ? V.text : V.muted,
+                    }}
+                  >
+                    {showName ? `${entry.share}%` : "\u2588\u2588%"}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
 
 
         {/* CTA — See full analysis (blocks the rest of the report) */}

@@ -1,0 +1,88 @@
+Must-fix (do these)
+
+“leader is at 82%” is still ambiguous
+
+You’re using it as Top-3 benchmark, but 82% is also SEO Sherpa’s share of voice in your ranking.
+
+Fix to: “Top-3 recommendation rate: 21% (best-in-class Top-3: 82%).”
+Or remove the benchmark line entirely.
+
+Your brand “defining sentence” is still broken
+
+The extra parentheses and fragments look like a bug and will kill trust.
+
+Replace with a clean single sentence. Example:
+
+“United SEO is positioned as a Dubai-focused agency with a large local footprint (claims 400+ UAE clients), bilingual Arabic/English delivery, and explicit coverage of finance and other industries.”
+
+Citation line: “crawled 1053 cited pages” is technically wrong wording
+
+1,053 sounds like citations, not pages. If it’s citations, say citations.
+
+Recommended:
+
+“We extracted 1,053 citations from AI answers across 210 runs, spanning 215 unique domains.”
+
+If you truly crawled pages, then show both:
+
+“1,053 citations extracted → 447 unique cited pages crawled” (only if true).
+
+Authority section contradicts your “where you don’t show up” framing
+
+You say “here’s where you show up — and where you don’t” and then immediately: “present on 7 of 7 authority sources.”
+
+Either:
+
+change to “present, but positioned differently”, or
+
+change the line to: “present on 7/7, but competitors dominate higher-weight signals within them.”
+
+Also explain what “T2” means or remove it.
+
+Should-fix (high leverage)
+
+Prompt phrasing has “SEO agency agencies”
+
+Replace everywhere with “SEO agencies” / “marketing agencies”.
+
+Add one variance disclaimer once, not after every prompt
+
+Keep “Try it yourself” once after the 3 prompts.
+
+Keep one footnote:
+
+“AI outputs vary by time/location; these are standardized runs (March 2026).”
+
+Gemini heatmap values are 100% while engine visibility is 96%
+
+Your heatmap shows 100% in several segments; that’s fine if it’s segment-specific.
+
+But add a tiny label: “Heatmap is per segment; engine score is overall across all prompts.”
+
+Move “Competitive Ranking” below “Visibility by Search Context”
+
+The context table is more actionable; ranking is more ego. Put ego later.
+
+Optional: one sentence that makes the story snap
+
+Right under the heatmap add:
+
+“Summary: United SEO wins inclusion on Gemini, struggles to be chosen on ChatGPT, and is invisible on Claude across every segment we tested.”
+
+Copy-ready fixes (paste these)
+
+Top-3 line
+
+“Top-3 recommendation rate: 21% (best-in-class Top-3 in this cohort: 82%).”
+
+Defining sentence (USEO)
+
+“United SEO is positioned as a Dubai-focused agency with a large local footprint (claims 400+ UAE clients), bilingual Arabic/English delivery, and explicit coverage of finance and other industries.”
+
+Citations line
+
+“We extracted 1,053 citations from AI answers across 210 runs, spanning 215 unique domains.”
+
+Authority framing
+
+“United SEO appears on 7/7 tracked authority sources, but competitors are cited more often and with stronger proof points.”

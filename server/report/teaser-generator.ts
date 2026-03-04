@@ -206,6 +206,17 @@ function cleanLeadingArtifacts(text: string): string {
   s = s.replace(/\(\s*$/g, "");
   s = s.replace(/\s*[–—-]\s*$/g, "");
   s = s.replace(/\s+,\s*$/g, "");
+  s = s.replace(/^["'"]+|["'"]+$/g, "");
+  s = s.replace(/\(\s*\)/g, "");
+  s = s.replace(/\s{2,}/g, " ");
+  s = s.replace(/\(+\s*$/g, "");
+  s = s.replace(/^\s*\)+/g, "");
+  const opens = (s.match(/\(/g) || []).length;
+  const closes = (s.match(/\)/g) || []).length;
+  if (opens > closes) s = s.replace(/\([^)]*$/, "").trim();
+  if (closes > opens) s = s.replace(/^[^(]*\)/, "").trim();
+  s = s.replace(/\s+\./g, ".").replace(/\.\s*\./g, ".");
+  if (!/[.!?]$/.test(s)) s += ".";
   return s.trim();
 }
 
