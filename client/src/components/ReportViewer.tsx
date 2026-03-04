@@ -155,12 +155,16 @@ async function exportPDF(report: any) {
     doc.text(seg.segmentLabel, margin, y);
     y += 5;
 
+    const pdfBrandNameLC = report.meta.brandName?.toLowerCase() || '';
+    const pdfIsBrand = (c: any) => c.isBrand || (pdfBrandNameLC && (c.name.toLowerCase().includes(pdfBrandNameLC) || pdfBrandNameLC.includes(c.name.toLowerCase())));
     const compRows = seg.top5.map((c: any, i: number) => [
       `${i + 1}`,
-      c.name,
+      pdfIsBrand(c) ? `${c.name} ★` : c.name,
       `${Math.round(c.share * 100)}%`,
       `${c.appearances}`,
     ]);
+
+    const brandRowIndices = seg.top5.map((c: any, i: number) => pdfIsBrand(c) ? i : -1).filter((i: number) => i >= 0);
 
     autoTable(doc, {
       startY: y,
@@ -170,6 +174,12 @@ async function exportPDF(report: any) {
       styles: { fontSize: 8, cellPadding: 2 },
       headStyles: { fillColor: [80, 80, 80], textColor: 255, fontStyle: "bold" },
       alternateRowStyles: { fillColor: [248, 248, 248] },
+      didParseCell: (data: any) => {
+        if (data.section === 'body' && brandRowIndices.includes(data.row.index)) {
+          data.cell.styles.fillColor = [220, 235, 255];
+          data.cell.styles.fontStyle = 'bold';
+        }
+      },
     });
     y = (doc as any).lastAutoTable.finalY + 6;
 
@@ -900,6 +910,14 @@ export function Section2({ data, brandName }: { data: any; brandName: string }) 
 function SegmentCompetitors({ seg, segIdx, brandName }: { seg: any; segIdx: number; brandName: string }) {
   const [showDeep, setShowDeep] = useState(false);
 
+  const isBrandEntry = (comp: any) => {
+    if (comp.isBrand) return true;
+    if (!brandName) return false;
+    const compLC = comp.name.toLowerCase();
+    const brandLC = brandName.toLowerCase();
+    return compLC.includes(brandLC) || brandLC.includes(compLC);
+  };
+
   return (
     <div data-testid={`section-segment-competitors-${segIdx}`}>
       <h4 className="text-xs font-medium mb-2">
@@ -908,20 +926,23 @@ function SegmentCompetitors({ seg, segIdx, brandName }: { seg: any; segIdx: numb
       </h4>
 
       <div className="divide-y divide-border/50 border border-border/50 rounded-md overflow-hidden mb-2">
-        {seg.top5.map((comp: any, i: number) => (
-          <div key={i} className="flex items-center justify-between px-3 py-1.5">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-muted-foreground font-mono w-4 text-right">{i + 1}</span>
-              <span className="text-xs">{comp.name}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-12 h-1 bg-secondary rounded-full overflow-hidden">
-                <div className="h-full rounded-full bg-foreground/40" style={{ width: `${Math.round(comp.share * 100)}%` }} />
+        {seg.top5.map((comp: any, i: number) => {
+          const brand = isBrandEntry(comp);
+          return (
+            <div key={i} className={`flex items-center justify-between px-3 py-1.5 ${brand ? 'bg-primary/10 border-l-2 border-l-primary' : ''}`}>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-muted-foreground font-mono w-4 text-right">{i + 1}</span>
+                <span className={`text-xs ${brand ? 'font-semibold text-primary' : ''}`}>{comp.name}{brand ? ' ★' : ''}</span>
               </div>
-              <span className="text-[10px] font-medium w-8 text-right">{Math.round(comp.share * 100)}%</span>
+              <div className="flex items-center gap-2">
+                <div className="w-12 h-1 bg-secondary rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full ${brand ? 'bg-primary' : 'bg-foreground/40'}`} style={{ width: `${Math.round(comp.share * 100)}%` }} />
+                </div>
+                <span className={`text-[10px] font-medium w-8 text-right ${brand ? 'text-primary' : ''}`}>{Math.round(comp.share * 100)}%</span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {seg.deepDives.length > 0 && (

@@ -101,7 +101,7 @@ export interface ReportData {
   section2: {
     perSegment: Array<{
       segmentLabel: string;
-      top5: Array<{ name: string; share: number; appearances: number }>;
+      top5: Array<{ name: string; share: number; appearances: number; isBrand?: boolean }>;
       deepDives: Array<{
         name: string;
         share: number;
@@ -828,11 +828,23 @@ export async function generateReport(
     const runs = seg.scoringResult!.raw_runs || [];
     const competitors = [...(score.competitors || [])].sort((a, b) => b.appearances - a.appearances);
 
-    const top5 = competitors.slice(0, 10).map(c => ({
-      name: c.name,
-      share: score.valid_runs > 0 ? Math.round((c.appearances / score.valid_runs) * 1000) / 1000 : 0,
-      appearances: c.appearances,
-    }));
+    const brandAppearances = runs.filter((r: any) => r.brand_found).length;
+    const brandShare = score.valid_runs > 0 ? Math.round((brandAppearances / score.valid_runs) * 1000) / 1000 : 0;
+    const brandEntry = { name: session.brandName, share: brandShare, appearances: brandAppearances, isBrand: true };
+
+    const brandNameLC = session.brandName.toLowerCase();
+    const competitorEntries = competitors
+      .filter(c => !c.name.toLowerCase().includes(brandNameLC) && !brandNameLC.includes(c.name.toLowerCase()))
+      .slice(0, 10)
+      .map(c => ({
+        name: c.name,
+        share: score.valid_runs > 0 ? Math.round((c.appearances / score.valid_runs) * 1000) / 1000 : 0,
+        appearances: c.appearances,
+        isBrand: false,
+      }));
+
+    const allEntries = [...competitorEntries, brandEntry].sort((a, b) => b.appearances - a.appearances);
+    const top5 = allEntries.slice(0, 10);
 
     for (const c of competitors) {
       if (!allCompetitorMap.has(c.name)) {
