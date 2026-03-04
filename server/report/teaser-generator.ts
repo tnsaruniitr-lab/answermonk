@@ -206,6 +206,18 @@ function cleanLeadingArtifacts(text: string): string {
   s = s.replace(/\(\s*$/g, "");
   s = s.replace(/\s*[–—-]\s*$/g, "");
   s = s.replace(/\s+,\s*$/g, "");
+  let opens = 0;
+  for (const ch of s) {
+    if (ch === "(") opens++;
+    if (ch === ")") opens--;
+  }
+  if (opens > 0) {
+    for (let i = 0; i < opens; i++) s += ")";
+  }
+  if (opens < 0) {
+    for (let i = 0; i < -opens; i++) s = s.replace(/\)/, "");
+  }
+  s = s.replace(/\s{2,}/g, " ");
   return s.trim();
 }
 
@@ -292,15 +304,21 @@ function extractCompetitorDefiningSentence(runs: RawRun[], compName: string): { 
 }
 
 function generateEngineNote(engine: string, label: string, rate: number, primaryRate: number, brandName: string): string {
+  const pctVis = Math.round(rate * 100);
   const pctTop3 = Math.round(primaryRate * 100);
-  if (rate >= 0.7) {
-    return `<strong>${pctTop3}% Top-3 rate.</strong> ${label} is ${brandName}'s strongest platform — near-perfect performance.`;
-  } else if (rate >= 0.3) {
-    return `<strong>${pctTop3}% Top-3 rate.</strong> Mentioned but rarely prioritised. ${label} is widely used for buyer research.`;
-  } else if (rate > 0) {
-    return `<strong>${pctTop3}% Top-3 rate.</strong> Near-invisible. ${label} is a fast-growing AI platform — this gap compounds every month.`;
+  if (rate <= 0) {
+    return `<strong>0% visibility.</strong> Not appearing at all — highest-priority gap.`;
   }
-  return `<strong>0% appearance.</strong> ${brandName} does not appear in ${label} responses at all. Critical blind spot.`;
+  if (rate >= 0.7 && primaryRate >= 0.4) {
+    return `<strong>${pctVis}% visibility · ${pctTop3}% Top-3.</strong> Strong inclusion; strong preference.`;
+  }
+  if (rate >= 0.7 && primaryRate < 0.4) {
+    return `<strong>${pctVis}% visibility · ${pctTop3}% Top-3.</strong> Often mentioned, rarely recommended.`;
+  }
+  if (rate >= 0.3) {
+    return `<strong>${pctVis}% visibility · ${pctTop3}% Top-3.</strong> Mentioned but rarely prioritised. ${label} is widely used for buyer research.`;
+  }
+  return `<strong>${pctVis}% visibility · ${pctTop3}% Top-3.</strong> Near-invisible. ${label} is a fast-growing AI platform — this gap compounds every month.`;
 }
 
 function generateVoiceProblem(quote: string, isStrong: boolean, brandName: string): string {
@@ -583,10 +601,16 @@ export function generateTeaserData(
   const allBrandSentences = Array.from(brandSentences.values()).flat();
   let brandDefining: string | null = null;
   if (allBrandSentences.length > 0) {
-    const sorted = allBrandSentences
-      .map(s => ({ text: s, len: s.length }))
-      .sort((a, b) => b.len - a.len);
-    brandDefining = cleanLeadingArtifacts(sorted[0].text);
+    const scored = allBrandSentences
+      .map(s => {
+        const parenCount = (s.match(/[()]/g) || []).length;
+        const parenPenalty = parenCount > 4 ? -50 : 0;
+        const hasProof = /award|recognised|recognized|certified|leading|top|best|specialist|known for/i.test(s) ? 20 : 0;
+        const lenScore = Math.min(s.length, 200);
+        return { text: s, score: lenScore + hasProof + parenPenalty };
+      })
+      .sort((a, b) => b.score - a.score);
+    brandDefining = cleanLeadingArtifacts(scored[0].text);
   }
 
   const citDomainBrandMap = new Map<string, { tier: string; brands: Set<string> }>();
