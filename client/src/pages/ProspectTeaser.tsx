@@ -412,7 +412,7 @@ function LockedOverlay({ count, label }: { count: number; label: string }) {
         }}
         data-testid={`text-locked-count-${count}`}
       >
-        {count} {label} in the full report
+        {count} more {label} included in the full audit
       </div>
     </div>
   );
@@ -993,7 +993,7 @@ export default function ProspectTeaser() {
               }}
             >
               Your top competitors aren't winning by accident. These are the specific structural
-              advantages driving their AI visibility — the patterns the full report breaks down
+              advantages driving their AI visibility — the patterns the full audit breaks down
               in detail.
             </p>
 
@@ -1080,7 +1080,7 @@ export default function ProspectTeaser() {
                           }}
                           data-testid="source-locked"
                         >
-                          +{insight.sources.length - 2} more in full report
+                          +{insight.sources.length - 2} more in full audit
                         </div>
                       )}
                     </div>
@@ -1096,7 +1096,7 @@ export default function ProspectTeaser() {
                     }}
                     data-testid={`link-insight-cta-${i}`}
                   >
-                    {insight.sources ? "see all authority sources \u00BB" : "see details \u00BB"}
+                    {insight.sources ? "all sources in full audit \u00BB" : "included in full audit \u00BB"}
                   </div>
                 </div>
               ))}
@@ -1165,7 +1165,7 @@ export default function ProspectTeaser() {
               }}
             >
               Based on the audit data, these are the highest-leverage actions to improve {brandName}'s
-              AI visibility. The full report includes implementation roadmaps for each.
+              AI visibility. The full audit includes implementation roadmaps for each.
             </p>
 
             {visibleActions.map((action, i) => {
@@ -1309,7 +1309,7 @@ export default function ProspectTeaser() {
                     }}
                     data-testid="text-locked-actions"
                   >
-                    More actions with implementation roadmaps in the full report
+                    More actions with implementation roadmaps in the full audit
                   </div>
                 </div>
               </div>
@@ -1753,7 +1753,7 @@ export default function ProspectTeaser() {
                   lineHeight: 1.75,
                 }}
               >
-                This preview covers the surface. The full report includes every segment, every prompt,
+                This preview covers the surface. The full audit includes every segment, every prompt,
                 competitor playbook, authority acquisition roadmap, and the exact narrative strategy to
                 fix what AI says about {brandName}.
               </p>
@@ -1775,7 +1775,7 @@ export default function ProspectTeaser() {
                 }}
                 data-testid="button-cta"
               >
-                Request Full Report
+                Request Full Audit
               </button>
               <p
                 style={{

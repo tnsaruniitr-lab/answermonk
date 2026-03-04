@@ -290,7 +290,7 @@ function generateEngineNote(engine: string, label: string, rate: number, primary
 
 function generateVoiceProblem(quote: string, isStrong: boolean, brandName: string): string {
   if (isStrong) {
-    return `<strong style="color: var(--green);">Strongest engine for ${brandName}.</strong> This description assigns a clearer identity with specific capabilities. The full report shows how to replicate this language pattern on other engines.`;
+    return `<strong style="color: var(--green);">Strongest engine for ${brandName}.</strong> This description assigns a clearer identity with specific capabilities. The full audit shows how to replicate this language pattern on other engines.`;
   }
   const hasGeneric = /full.?service|based in|offering|experience across|multiple verticals/i.test(quote);
   const hasNoProof = !/award|recognised|recognized|certified|partner|leading|top|best|specialist/i.test(quote);
@@ -759,19 +759,19 @@ export function generateTeaserData(
   if (sourceDiff > 0) {
     topPlayerInsights.push({
       title: `Present on ${leaderT1Count} of ${authorityGapDomains.length} authority sources`,
-      detail: `LLMs pull from these authority sources when building recommendations. ${leaderForInsights} appears on ${sourceDiff} more than ${brandName}. The full report details how to increase your visibility on each.`,
+      detail: `LLMs pull from these authority sources when building recommendations. ${leaderForInsights} appears on ${sourceDiff} more than ${brandName}. The full audit details how to increase your visibility on each.`,
       sources: allAuthSources,
     });
   } else if (authorityGapDomains.length > 0) {
     topPlayerInsights.push({
       title: `${authorityGapDomains.length} authority sources drive AI recommendations`,
-      detail: `These high-authority domains are cited by ChatGPT, Gemini, and Claude when recommending agencies. Presence on these sources directly influences whether a brand gets recommended. The full report maps your coverage vs competitors.`,
+      detail: `These high-authority domains are cited by ChatGPT, Gemini, and Claude when recommending agencies. Presence on these sources directly influences whether a brand gets recommended. The full audit maps your coverage vs competitors.`,
       sources: allAuthSources,
     });
   } else {
     topPlayerInsights.push({
       title: "Authority source presence shapes AI recommendations",
-      detail: `AI engines pull from a network of high-authority sources when building their recommendation lists. ${leaderForInsights} has established presence across these sources. The full report identifies which sources matter most and how to get listed.`,
+      detail: `AI engines pull from a network of high-authority sources when building their recommendation lists. ${leaderForInsights} has established presence across these sources. The full audit identifies which sources matter most and how to get listed.`,
       sources: [],
     });
   }
@@ -814,7 +814,7 @@ export function generateTeaserData(
   if (weakestEngine && weakestEngine.appearanceRate < 0.5) {
     keyActions.push({
       title: `Fix ${weakestEngine.label} visibility (currently ${Math.round(weakestEngine.appearanceRate * 100)}%)`,
-      detail: `${weakestEngine.label} is ${brandName}'s weakest engine. The full report maps exactly which content signals ${weakestEngine.label} prioritises and how to optimise for them.`,
+      detail: `${weakestEngine.label} is ${brandName}'s weakest engine. The full audit maps exactly which content signals ${weakestEngine.label} prioritises and how to optimise for them.`,
       priority: "critical",
     });
   }
@@ -823,7 +823,7 @@ export function generateTeaserData(
   if (missingT1) {
     keyActions.push({
       title: `Get listed on ${missingT1.domain}`,
-      detail: `This T1 authority source is cited by AI engines across all 3 platforms. Your top competitors appear here — ${brandName} does not. The full report includes the acquisition strategy.`,
+      detail: `This T1 authority source is cited by AI engines across all 3 platforms. Your top competitors appear here — ${brandName} does not. The full audit includes the acquisition strategy.`,
       priority: "critical",
     });
   }
@@ -831,13 +831,13 @@ export function generateTeaserData(
   if (!brandDefining || brandDefining.length < 50) {
     keyActions.push({
       title: "Build a defining AI narrative",
-      detail: `${brandName} has no consistent "signature sentence" that AI engines repeat. Top competitors have one. The full report defines exactly what this sentence should be.`,
+      detail: `${brandName} has no consistent "signature sentence" that AI engines repeat. Top competitors have one. The full audit defines exactly what this sentence should be.`,
       priority: "high",
     });
   } else {
     keyActions.push({
       title: "Strengthen your AI narrative",
-      detail: `${brandName} has a basic narrative but it lacks the specificity and proof points that drive AI selection. The full report shows how to upgrade it.`,
+      detail: `${brandName} has a basic narrative but it lacks the specificity and proof points that drive AI selection. The full audit shows how to upgrade it.`,
       priority: "high",
     });
   }
@@ -846,7 +846,7 @@ export function generateTeaserData(
   if (highOppSegment) {
     keyActions.push({
       title: `Close the gap in "${highOppSegment.label}"`,
-      detail: `Only ${highOppSegment.gapPoints} points from #1 in this segment. This is your quickest win — the full report includes the specific actions to close it.`,
+      detail: `Only ${highOppSegment.gapPoints} points from #1 in this segment. This is your quickest win — the full audit includes the specific actions to close it.`,
       priority: highOppSegment.opportunity === "high" ? "high" : "medium",
     });
   }
@@ -854,7 +854,7 @@ export function generateTeaserData(
   if (socialMentionCount < 3) {
     keyActions.push({
       title: "Increase social & forum presence",
-      detail: `${brandName} appears in only ${socialMentionCount} social/forum threads that AI engines cite. Competitors are mentioned in significantly more. The full report maps the specific threads and platforms.`,
+      detail: `${brandName} appears in only ${socialMentionCount} social/forum threads that AI engines cite. Competitors are mentioned in significantly more. The full audit maps the specific threads and platforms.`,
       priority: "medium",
     });
   }
