@@ -1,0 +1,238 @@
+Section 1: Visibility Dashboard
+Per Segment
+#1seo agency(dubai)
+37% vis
+Top3 30%
+#1.6
+#2marketing agency(dubai)
+47% vis
+Top3 37%
+#2
+#3seo agency(dubai)
+60% vis
+Top3 33%
+#3.6
+#4seo agency(dubai)
+57% vis
+Top3 50%
+#1.6
+#5seo agency(dubai)
+50% vis
+Top3 33%
+#3.3
+#6seo agency(dubai)
+47% vis
+Top3 33%
+#3.1
+#7seo agency(dubai)
+47% vis
+Top3 37%
+#2.3
+Engine Heatmap
+Segment	ChatGPT	Gemini	Claude
+Seo Agency Agencies	0%	10%	100%
+Marketing Agency Agencies	40%	0%	100%
+Seo Agency Agencies for F&B	50%	20%	100%
+Seo Agency Agencies for retail	40%	0%	100%
+Seo Agency Agencies for ecommerce	40%	10%	100%
+Seo Agency Agencies for financial services	40%	0%	100%
+Seo Agency Agencies for enterprise customers	60%	20%	100%
+Citation Grounding
+Claude
+0%
+0/70 with citations
+Gemini
+100%
+70/70 with citations
+ChatGPT
+100%
+70/70 with citations
+
+Section 2: Competitive Landscape
+#1Seo Agency Agencies
+1
+SEO Sherpa
+87%
+2
+Prism Digital
+67%
+3
+Digital Gravity
+60%
+4
+Chain Reaction
+50%
+5
+Bird Marketing
+43%
+6
+Traffic Digital
+43%
+7
+United SEO (USEO)
+40%
+8
+Digital Nexa
+33%
+9
+Be On Top
+30%
+10
+Blue Beetle
+30%
+Deep Dives (3)
+#2Marketing Agency Agencies
+1
+SEO Sherpa
+83%
+2
+Digital Gravity
+77%
+3
+Chain Reaction
+53%
+4
+United SEO (USEO)
+53%
+5
+Blue Beetle
+47%
+6
+Prism Digital
+43%
+7
+Digital Nexa
+37%
+8
+Bird Marketing
+37%
+9
+Traffic Digital
+37%
+10
+Square Marketing
+20%
+Deep Dives (3)
+#3Seo Agency Agencies for enterprise customers
+1
+SEO Sherpa
+80%
+2
+Digital Gravity
+67%
+3
+Traffic Digital
+63%
+4
+Chain Reaction
+60%
+5
+Bird Marketing
+37%
+6
+United SEO (USEO)
+30%
+7
+Digital Nexa
+30%
+8
+Prism Digital
+27%
+9
+Digital Marketing Agency (DMA)
+27%
+10
+United SEO
+23%
+Deep Dives (3)
+#4Seo Agency Agencies for F&B
+1
+Digital Gravity
+67%
+2
+SEO Sherpa
+63%
+3
+Bird Marketing
+57%
+4
+Prism Digital
+37%
+5
+Chain Reaction
+33%
+6
+Traffic Digital
+33%
+7
+United SEO / USEO
+27%
+8
+United SEO
+23%
+9
+Blue Beetle
+23%
+10
+Donut Media
+17%
+Deep Dives (3)
+#5Seo Agency Agencies for ecommerce
+1
+SEO Sherpa
+80%
+2
+Digital Gravity
+77%
+3
+Chain Reaction
+53%
+4
+Digital Nexa
+53%
+5
+Traffic Digital
+50%
+6
+Prism Digital
+43%
+7
+United SEO (USEO)
+40%
+8
+Blue Beetle
+30%
+9
+Bird Marketing
+27%
+10
+United SEO
+23%
+Deep Dives (3)
+#6Seo Agency Agencies for retail
+1
+SEO Sherpa
+97%
+2
+Chain Reaction
+60%
+3
+Digital Gravity
+60%
+4
+Traffic Digital
+53%
+5
+Prism Digital
+50%
+6
+United SEO (USEO)
+43%
+7
+Digital Nexa
+27%
+8
+Assembly MENA
+23%
+9
+Bird Marketing
