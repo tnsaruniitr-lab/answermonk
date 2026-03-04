@@ -1164,6 +1164,16 @@ export async function registerRoutes(
 
   const analysisProgress = new Map<string, { step: string; detail: string; pct: number; startedAt: number }>();
 
+  (globalThis as any).__getActiveAnalyses = () => {
+    const active: any[] = [];
+    analysisProgress.forEach((v, k) => {
+      if (v.step !== "complete" && v.step !== "error") {
+        active.push({ key: k, ...v });
+      }
+    });
+    return active;
+  };
+
   app.get("/api/segment-analysis/progress/:key", (req, res) => {
     const key = req.params.key;
     const progress = analysisProgress.get(key);

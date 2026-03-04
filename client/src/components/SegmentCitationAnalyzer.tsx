@@ -277,18 +277,39 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
     return () => { cancelled = true; };
   }, [cacheId]);
 
+  const unknownCount = useRef(0);
   const startProgressPolling = (key: string) => {
     if (progressInterval.current) clearInterval(progressInterval.current);
+    unknownCount.current = 0;
     progressInterval.current = setInterval(async () => {
       try {
         const res = await fetch(`/api/segment-analysis/progress/${key}`);
         const data = await res.json();
+        if (data.step === "unknown") {
+          unknownCount.current++;
+          if (unknownCount.current >= 3) {
+            setProgress({ step: "lost", detail: "Server connection lost — analysis may have been interrupted by a deployment. Please re-run.", pct: 0 });
+            if (progressInterval.current) clearInterval(progressInterval.current);
+            progressInterval.current = null;
+            setLoading(false);
+          }
+          return;
+        }
+        unknownCount.current = 0;
         setProgress(data);
-        if (data.step === "complete") {
+        if (data.step === "complete" || data.step === "error") {
           if (progressInterval.current) clearInterval(progressInterval.current);
           progressInterval.current = null;
         }
-      } catch {}
+      } catch {
+        unknownCount.current++;
+        if (unknownCount.current >= 3) {
+          setProgress({ step: "lost", detail: "Server connection lost — analysis may have been interrupted. Please re-run.", pct: 0 });
+          if (progressInterval.current) clearInterval(progressInterval.current);
+          progressInterval.current = null;
+          setLoading(false);
+        }
+      }
     }, 1500);
   };
 
@@ -410,13 +431,21 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
       scoring: "Scoring brands per segment",
       global: "Computing global authority",
       complete: "Complete",
+      lost: "Connection Lost",
+      error: "Error",
     };
     const stepLabel = progress ? (stepLabels[progress.step] || progress.step) : "Starting...";
+    const isLost = progress?.step === "lost";
+    const isError = progress?.step === "error";
     return (
-      <Card className="p-6 mt-4">
+      <Card className={`p-6 mt-4 ${isLost || isError ? "border-destructive/50" : ""}`}>
         <div className="flex flex-col py-6 gap-4">
           <div className="flex items-center gap-3">
-            <Loader2 className="w-5 h-5 animate-spin text-primary flex-shrink-0" />
+            {isLost || isError ? (
+              <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0" />
+            ) : (
+              <Loader2 className="w-5 h-5 animate-spin text-primary flex-shrink-0" />
+            )}
             <div className="flex-1">
               <div className="text-sm font-medium" data-testid="text-analysis-step">{stepLabel}</div>
               {progress?.detail && (

@@ -9,6 +9,14 @@ process.on("SIGHUP", () => {});
 
 process.on("SIGTERM", () => {
   console.log("[server] SIGTERM received, shutting down gracefully");
+  const getActiveAnalyses = (globalThis as any).__getActiveAnalyses;
+  if (typeof getActiveAnalyses === "function") {
+    const active = getActiveAnalyses();
+    if (active.length > 0) {
+      console.log(`[server] WARNING: ${active.length} active analysis job(s) will be terminated:`);
+      active.forEach((a: any) => console.log(`[server]   - ${a.key}: ${a.step} (${a.pct}%) started ${Math.round((Date.now() - a.startedAt) / 1000)}s ago`));
+    }
+  }
   process.exit(0);
 });
 
