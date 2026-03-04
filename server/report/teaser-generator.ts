@@ -123,6 +123,15 @@ export interface TeaserData {
     thirdPartyDomains: number;
     socialMentions: number;
   };
+  topPlayerInsights: Array<{
+    title: string;
+    detail: string;
+  }>;
+  keyActions: Array<{
+    title: string;
+    detail: string;
+    priority: "critical" | "high" | "medium";
+  }>;
 }
 
 const ENGINE_LABELS: Record<string, string> = {
@@ -730,6 +739,103 @@ export function generateTeaserData(
   const engineCount = Object.keys(engineAgg).length;
   const queriesPerEngine = engineCount > 0 ? Math.round(totalValidRuns / engineCount) : 0;
 
+  const topPlayerInsights: TeaserData["topPlayerInsights"] = [];
+  const leaderForInsights = leaderBrand?.name || "the market leader";
+  const leaderAppRate = Math.round((leaderBrand?.share || 0) * 100);
+  const brandAppRate = Math.round(overallAppearance * 100);
+
+  const leaderT1Count = authorityGapDomains.filter(d => d.presence[leaderForInsights]).length;
+  const brandT1Count = authorityGapDomains.filter(d => d.presence[brandName]).length;
+  if (leaderT1Count > brandT1Count) {
+    topPlayerInsights.push({
+      title: `Present on ${leaderT1Count} of ${authorityGapDomains.length} authority sources`,
+      detail: `${leaderForInsights} appears on ${leaderT1Count - brandT1Count} more T1/T2 citation sources than ${brandName}. AI engines retrieve from these domains when building recommendations.`,
+    });
+  }
+
+  const leaderEngineConsistency = Object.values(engineAgg).filter(e => e.totalValid > 0).map(e => e.totalApp / e.totalValid);
+  const leaderMinEngine = leaderEngineConsistency.length > 0 ? Math.min(...leaderEngineConsistency) : 0;
+  if (leaderMinEngine > 0.5) {
+    topPlayerInsights.push({
+      title: "Consistent visibility across all 3 engines",
+      detail: `${leaderForInsights} maintains strong presence on ChatGPT, Gemini, and Claude simultaneously. No blind spots means prospects find them regardless of which AI they use.`,
+    });
+  } else {
+    const bestEngineEntry = engineSplit[0];
+    if (bestEngineEntry) {
+      topPlayerInsights.push({
+        title: `Dominates ${bestEngineEntry.label} with ${Math.round(bestEngineEntry.appearanceRate * 100)}% visibility`,
+        detail: `Top competitors concentrate their presence on the highest-traffic AI platform, ensuring they capture the majority of AI-driven buyer research.`,
+      });
+    }
+  }
+
+  if (quoteContrastCompetitors.length > 0 && quoteContrastCompetitors[0].engines.length >= 2) {
+    topPlayerInsights.push({
+      title: "AI repeats a defining sentence about them",
+      detail: `${quoteContrastCompetitors[0].name} has a consistent narrative that AI engines repeat unprompted. This "signature line" drives selection when prospects compare options.`,
+    });
+  }
+
+  const bestSegment = segmentBreakdown.reduce((best, seg) => seg.leaderScore > best.leaderScore ? seg : best, segmentBreakdown[0]);
+  if (bestSegment && bestSegment.leaderScore > brandAppRate) {
+    topPlayerInsights.push({
+      title: `${bestSegment.leaderScore}% visibility in their strongest segment`,
+      detail: `In the "${bestSegment.label}" segment, ${bestSegment.leaderName} achieves ${bestSegment.leaderScore}% visibility vs ${brandName}'s ${bestSegment.brandVisibility}%. Segment-specific optimization drives this gap.`,
+    });
+  }
+
+  const keyActions: TeaserData["keyActions"] = [];
+
+  const weakestEngine = engineSplit.reduce((w, e) => e.appearanceRate < w.appearanceRate ? e : w, engineSplit[0]);
+  if (weakestEngine && weakestEngine.appearanceRate < 0.5) {
+    keyActions.push({
+      title: `Fix ${weakestEngine.label} visibility (currently ${Math.round(weakestEngine.appearanceRate * 100)}%)`,
+      detail: `${weakestEngine.label} is ${brandName}'s weakest engine. The full report maps exactly which content signals ${weakestEngine.label} prioritises and how to optimise for them.`,
+      priority: "critical",
+    });
+  }
+
+  const missingT1 = authorityGapDomains.find(d => !d.presence[brandName] && d.tier === "T1");
+  if (missingT1) {
+    keyActions.push({
+      title: `Get listed on ${missingT1.domain}`,
+      detail: `This T1 authority source is cited by AI engines across all 3 platforms. Your top competitors appear here — ${brandName} does not. The full report includes the acquisition strategy.`,
+      priority: "critical",
+    });
+  }
+
+  if (!brandDefining || brandDefining.length < 50) {
+    keyActions.push({
+      title: "Build a defining AI narrative",
+      detail: `${brandName} has no consistent "signature sentence" that AI engines repeat. Top competitors have one. The full report defines exactly what this sentence should be.`,
+      priority: "high",
+    });
+  } else {
+    keyActions.push({
+      title: "Strengthen your AI narrative",
+      detail: `${brandName} has a basic narrative but it lacks the specificity and proof points that drive AI selection. The full report shows how to upgrade it.`,
+      priority: "high",
+    });
+  }
+
+  const highOppSegment = segmentBreakdown.find(s => s.opportunity === "high" || s.opportunity === "closeable");
+  if (highOppSegment) {
+    keyActions.push({
+      title: `Close the gap in "${highOppSegment.label}"`,
+      detail: `Only ${highOppSegment.gapPoints} points from #1 in this segment. This is your quickest win — the full report includes the specific actions to close it.`,
+      priority: highOppSegment.opportunity === "high" ? "high" : "medium",
+    });
+  }
+
+  if (socialMentionCount < 3) {
+    keyActions.push({
+      title: "Increase social & forum presence",
+      detail: `${brandName} appears in only ${socialMentionCount} social/forum threads that AI engines cite. Competitors are mentioned in significantly more. The full report maps the specific threads and platforms.`,
+      priority: "medium",
+    });
+  }
+
   return {
     meta: {
       brandName,
@@ -772,5 +878,7 @@ export function generateTeaserData(
       thirdPartyDomains: brandCitDomains.size,
       socialMentions: socialMentionCount,
     },
+    topPlayerInsights,
+    keyActions,
   };
 }

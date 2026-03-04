@@ -93,6 +93,15 @@ interface TeaserData {
     thirdPartyDomains: number;
     socialMentions: number;
   };
+  topPlayerInsights: Array<{
+    title: string;
+    detail: string;
+  }>;
+  keyActions: Array<{
+    title: string;
+    detail: string;
+    priority: "critical" | "high" | "medium";
+  }>;
 }
 
 const V = {
@@ -205,7 +214,7 @@ const S = {
   divider: {
     height: 1,
     background: V.border,
-    margin: "64px 0",
+    margin: "80px 0",
   },
   tag: {
     display: "inline-block",
@@ -218,6 +227,68 @@ const S = {
     border: "1px solid",
   },
 };
+
+function SectionNumber({ num }: { num: string }) {
+  return (
+    <div
+      style={{
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: 9,
+        color: "rgba(255,255,255,0.06)",
+        letterSpacing: "0.15em",
+        marginBottom: 14,
+        userSelect: "none",
+      }}
+      data-testid={`section-num-${num || "cta"}`}
+    >
+      {num}
+    </div>
+  );
+}
+
+function LockedOverlay({ count, label }: { count: number; label: string }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        background:
+          "radial-gradient(ellipse at center, rgba(7,9,15,0.55) 0%, rgba(7,9,15,0.92) 65%)",
+        zIndex: 2,
+      }}
+      data-testid={`locked-overlay-${label.replace(/\s+/g, "-").substring(0, 30)}`}
+    >
+      <div
+        style={{
+          fontSize: 22,
+          opacity: 0.25,
+          marginBottom: 14,
+          fontFamily: "'JetBrains Mono', monospace",
+        }}
+      >
+        &#9670;
+      </div>
+      <div
+        style={{
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: 10,
+          color: V.mutedMd,
+          letterSpacing: "0.12em",
+          textAlign: "center",
+          maxWidth: 320,
+          lineHeight: 1.7,
+        }}
+        data-testid={`text-locked-count-${count}`}
+      >
+        {count} {label} in the full report
+      </div>
+    </div>
+  );
+}
 
 export default function ProspectTeaser() {
   const params = useParams<{ id: string }>();
@@ -318,18 +389,6 @@ export default function ProspectTeaser() {
     .map((c) => c.name);
   const authColumnNames = [...topCompNames, brandName];
 
-  const visibleSegments = t.segmentBreakdown.slice(0, 3);
-  const lockedSegments = t.segmentBreakdown.slice(3);
-
-  const visibleAuthDomains = t.authorityGap.domains.slice(0, 4);
-  const lockedAuthDomains = t.authorityGap.domains.slice(4);
-
-  const visiblePrompts = t.samplePrompts.slice(0, 4);
-  const lockedPrompts = t.samplePrompts.slice(4);
-
-  const visibleThreads = t.socialThreads.slice(0, 2);
-  const lockedThreads = t.socialThreads.slice(2);
-
   const verdictText = t.overallScore.appearanceRate >= 70
     ? `Strong visibility. ${brandName} appears in most relevant AI responses.`
     : t.overallScore.appearanceRate >= 30
@@ -347,6 +406,32 @@ export default function ProspectTeaser() {
   const oppLabel = (opp: string) => (opp === "high" ? "opportunity" : opp === "closeable" ? "closeable" : "stretch");
 
   const segColor = (vis: number) => (vis >= 50 ? V.green : vis >= 30 ? V.gold : V.red);
+
+  const priorityStyle = (p: string) => {
+    if (p === "critical") return { color: V.red, bg: V.redDim, border: "rgba(217,95,95,0.3)" };
+    if (p === "high") return { color: V.gold, bg: V.goldDim, border: "rgba(201,168,76,0.3)" };
+    return { color: V.mutedMd, bg: "rgba(255,255,255,0.04)", border: V.borderMd };
+  };
+
+  const visibleInsights = (t.topPlayerInsights || []).slice(0, 2);
+  const lockedInsights = (t.topPlayerInsights || []).slice(2);
+  const visibleActions = (t.keyActions || []).slice(0, 1);
+  const lockedActions = (t.keyActions || []).slice(1);
+
+  const visibleQuoteComps = t.quoteContrast.competitors.slice(0, 1);
+  const lockedQuoteComps = t.quoteContrast.competitors.slice(1);
+
+  const visibleVoice = t.brandVoice.slice(0, 1);
+  const lockedVoice = t.brandVoice.slice(1);
+
+  const visibleSegments = t.segmentBreakdown.slice(0, 1);
+  const lockedSegments = t.segmentBreakdown.slice(1);
+
+  const visibleAuthDomains = t.authorityGap.domains.slice(0, 1);
+  const lockedAuthDomains = t.authorityGap.domains.slice(1);
+
+  const visiblePrompts = t.samplePrompts.slice(0, 1);
+  const lockedPrompts = t.samplePrompts.slice(1);
 
   return (
     <div
@@ -372,7 +457,7 @@ export default function ProspectTeaser() {
       />
 
       <div style={S.wrapper}>
-        {/* Header */}
+        {/* 01 · Header */}
         <div
           ref={reveal}
           style={{
@@ -413,8 +498,9 @@ export default function ProspectTeaser() {
           </div>
         </div>
 
-        {/* Hook */}
-        <div ref={reveal} style={{ marginBottom: 80 }} data-testid="section-hook">
+        {/* 02 · Hook */}
+        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-hook">
+          <SectionNumber num="01" />
           <div style={{ ...S.eyebrow, color: V.gold }}>AI Search Visibility Audit</div>
           <h1
             style={{
@@ -450,20 +536,21 @@ export default function ProspectTeaser() {
           </p>
         </div>
 
-        {/* Score Card */}
+        {/* 03 · Score Card */}
         <div
           ref={reveal}
           style={{
             background: V.surface,
             border: `1px solid ${V.border}`,
             borderRadius: 3,
-            padding: "44px 48px",
-            marginBottom: 80,
+            padding: "48px 48px",
+            marginBottom: 100,
             position: "relative",
             overflow: "hidden",
           }}
           data-testid="section-score-card"
         >
+          <SectionNumber num="02" />
           <div
             style={{
               position: "absolute",
@@ -581,8 +668,9 @@ export default function ProspectTeaser() {
           </div>
         </div>
 
-        {/* Engine Split */}
-        <div ref={reveal} style={{ marginBottom: 80 }} data-testid="section-engine-split">
+        {/* 04 · Engine Split */}
+        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-engine-split">
+          <SectionNumber num="03" />
           <div style={{ ...S.eyebrow, color: V.muted }}>
             Visibility by AI Engine · {t.meta.queriesPerEngine} queries each
           </div>
@@ -592,7 +680,7 @@ export default function ProspectTeaser() {
             return (
               <div
                 key={eng.engine}
-                style={{ padding: "18px 0", borderBottom: `1px solid ${V.border}` }}
+                style={{ padding: "20px 0", borderBottom: `1px solid ${V.border}` }}
                 data-testid={`engine-row-${eng.engine}`}
               >
                 <div
@@ -663,10 +751,328 @@ export default function ProspectTeaser() {
           })}
         </div>
 
+        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, ${V.borderMd} 0%, transparent 80%)` }} />
+
+        {/* 05 · What Top Players Are Doing Right */}
+        {visibleInsights.length > 0 && (
+          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-top-player-insights">
+            <SectionNumber num="04" />
+            <div style={{ ...S.eyebrow, color: V.gold, marginBottom: 10 }}>
+              What Top Players Are Doing Right
+            </div>
+            <p
+              style={{
+                fontSize: 14,
+                color: V.mutedMd,
+                marginBottom: 32,
+                maxWidth: 560,
+                lineHeight: 1.75,
+              }}
+            >
+              Your top competitors aren't winning by accident. These are the specific structural
+              advantages driving their AI visibility — the patterns the full report breaks down
+              in detail.
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {visibleInsights.map((insight, i) => (
+                <div
+                  key={i}
+                  style={{
+                    background: V.surface,
+                    border: `1px solid ${V.border}`,
+                    borderRadius: 3,
+                    padding: "28px 32px",
+                    position: "relative",
+                  }}
+                  data-testid={`insight-card-${i}`}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: 2,
+                      background: V.borderMd,
+                    }}
+                  />
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 10,
+                      color: V.gold,
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                      marginBottom: 10,
+                    }}
+                  >
+                    Insight {String(i + 1).padStart(2, "0")}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 15,
+                      color: V.textBright,
+                      fontWeight: 500,
+                      marginBottom: 8,
+                      lineHeight: 1.45,
+                    }}
+                    data-testid={`text-insight-title-${i}`}
+                  >
+                    {insight.title}
+                  </div>
+                  <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.7 }} data-testid={`text-insight-detail-${i}`}>
+                    {insight.detail}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {lockedInsights.length > 0 && (
+              <div style={{ position: "relative", marginTop: 10 }}>
+                <div
+                  style={{
+                    filter: "blur(5px)",
+                    pointerEvents: "none",
+                    userSelect: "none",
+                    opacity: 0.25,
+                  }}
+                >
+                  {lockedInsights.map((insight, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        background: V.surface,
+                        border: `1px solid ${V.border}`,
+                        borderRadius: 3,
+                        padding: "28px 32px",
+                        marginBottom: 10,
+                      }}
+                    >
+                      <div style={{ fontSize: 15, color: V.textBright }}>
+                        {"\u2588".repeat(12)}
+                      </div>
+                      <div style={{ fontSize: 13, color: V.mutedMd, marginTop: 8 }}>
+                        {"\u2588".repeat(30)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <LockedOverlay count={lockedInsights.length} label="more competitor insights" />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 06 · Key Actions For You */}
+        {visibleActions.length > 0 && (
+          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-key-actions">
+            <SectionNumber num="05" />
+            <div style={{ ...S.eyebrow, color: V.red, marginBottom: 10 }}>
+              Key Actions For {brandName}
+            </div>
+            <p
+              style={{
+                fontSize: 14,
+                color: V.mutedMd,
+                marginBottom: 32,
+                maxWidth: 560,
+                lineHeight: 1.75,
+              }}
+            >
+              Based on the audit data, these are the highest-leverage actions to improve {brandName}'s
+              AI visibility. The full report includes implementation roadmaps for each.
+            </p>
+
+            {visibleActions.map((action, i) => {
+              const ps = priorityStyle(action.priority);
+              return (
+                <div
+                  key={i}
+                  style={{
+                    background: V.surface,
+                    border: `1px solid ${ps.border}`,
+                    borderRadius: 3,
+                    padding: "28px 32px",
+                    position: "relative",
+                    marginBottom: 10,
+                  }}
+                  data-testid={`action-card-${i}`}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: 2,
+                      background: ps.color,
+                      opacity: 0.5,
+                    }}
+                  />
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                    <span
+                      style={{
+                        ...S.tag,
+                        color: ps.color,
+                        borderColor: ps.border,
+                        background: ps.bg,
+                      }}
+                    >
+                      {action.priority}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 15,
+                      color: V.textBright,
+                      fontWeight: 500,
+                      marginBottom: 8,
+                      lineHeight: 1.45,
+                    }}
+                    data-testid={`text-action-title-${i}`}
+                  >
+                    {action.title}
+                  </div>
+                  <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.7 }} data-testid={`text-action-detail-${i}`}>
+                    {action.detail}
+                  </div>
+                </div>
+              );
+            })}
+
+            {lockedActions.length > 0 && (
+              <div style={{ position: "relative", marginTop: 10 }}>
+                <div
+                  style={{
+                    filter: "blur(5px)",
+                    pointerEvents: "none",
+                    userSelect: "none",
+                    opacity: 0.25,
+                  }}
+                >
+                  {lockedActions.map((action, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        background: V.surface,
+                        border: `1px solid ${V.border}`,
+                        borderRadius: 3,
+                        padding: "28px 32px",
+                        marginBottom: 10,
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                        <span style={{ ...S.tag, color: V.muted, borderColor: V.borderMd }}>
+                          {action.priority}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 15, color: V.textBright }}>
+                        {"\u2588".repeat(14)}
+                      </div>
+                      <div style={{ fontSize: 13, color: V.mutedMd, marginTop: 8 }}>
+                        {"\u2588".repeat(32)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <LockedOverlay count={lockedActions.length} label="more actions with implementation roadmaps" />
+              </div>
+            )}
+          </div>
+        )}
+
+        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 20%, ${V.borderMd} 50%, transparent 80%)` }} />
+
+        {/* 07 · Competitive Ranking */}
+        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-competitive-ranking">
+          <SectionNumber num="06" />
+          <div style={{ ...S.eyebrow, color: V.muted }}>
+            Competitive Ranking · Overall Visibility
+          </div>
+          {t.competitiveRanking.map((entry, i) => {
+            const isBrand = entry.isBrand;
+            const showProximity = isBrand && t.proximityNote;
+
+            return (
+              <div key={entry.name}>
+                {isBrand && i > 0 && <div style={{ height: 8 }} />}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "32px 1fr 60px",
+                    gap: 16,
+                    alignItems: "center",
+                    padding: "16px 18px",
+                    borderRadius: 2,
+                    marginBottom: 3,
+                    ...(isBrand
+                      ? {
+                          background: "rgba(201,168,76,0.06)",
+                          border: "1px solid rgba(201,168,76,0.18)",
+                        }
+                      : {}),
+                  }}
+                  data-testid={`rank-row-${i}`}
+                >
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 11,
+                      color: isBrand ? V.gold : i < t.competitiveRanking.findIndex((e) => e.isBrand) ? V.textBright : V.muted,
+                    }}
+                  >
+                    {String(entry.rank).padStart(2, "0")}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: isBrand ? V.gold : i === 0 ? V.textBright : i < t.competitiveRanking.findIndex((e) => e.isBrand) ? V.text : V.muted,
+                      fontWeight: isBrand ? 500 : 400,
+                    }}
+                  >
+                    {entry.name}
+                    {isBrand && (
+                      <span style={{ fontSize: 11, fontWeight: 300, opacity: 0.7, marginLeft: 8 }}>
+                        &larr; you are here
+                      </span>
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 13,
+                      textAlign: "right",
+                      color: isBrand ? V.gold : i === 0 ? V.text : i < t.competitiveRanking.findIndex((e) => e.isBrand) ? V.text : V.muted,
+                    }}
+                  >
+                    {entry.share}%
+                  </div>
+                </div>
+                {showProximity && (
+                  <div
+                    style={{
+                      margin: "2px 0 8px 48px",
+                      fontSize: 11,
+                      color: V.muted,
+                      fontStyle: "italic",
+                    }}
+                    data-testid="text-proximity-note"
+                  >
+                    {t.proximityNote}
+                  </div>
+                )}
+                {isBrand && <div style={{ height: 8 }} />}
+              </div>
+            );
+          })}
+        </div>
+
         <div style={S.divider} />
 
-        {/* AI Quote Contrast */}
-        <div ref={reveal} style={{ marginBottom: 80 }} data-testid="section-quote-contrast">
+        {/* 08 · AI Quote Contrast — 1 competitor + brand, rest locked */}
+        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-quote-contrast">
+          <SectionNumber num="07" />
           <div style={{ ...S.eyebrow, color: V.muted }}>
             The Sentence That Wins Recommendations
           </div>
@@ -690,7 +1096,7 @@ export default function ProspectTeaser() {
               gap: 12,
             }}
           >
-            {t.quoteContrast.competitors.map((comp) => (
+            {visibleQuoteComps.map((comp) => (
               <div
                 key={comp.name}
                 style={{
@@ -851,96 +1257,200 @@ export default function ProspectTeaser() {
               )}
             </div>
           </div>
-        </div>
 
-        {/* Competitive Ranking */}
-        <div ref={reveal} style={{ marginBottom: 80 }} data-testid="section-competitive-ranking">
-          <div style={{ ...S.eyebrow, color: V.muted }}>
-            Competitive Ranking · Overall Visibility
-          </div>
-          {t.competitiveRanking.map((entry, i) => {
-            const isBrand = entry.isBrand;
-            const brandIdx = t.competitiveRanking.findIndex((e) => e.isBrand);
-            const showProximity = isBrand && t.proximityNote;
-
-            return (
-              <div key={entry.name}>
-                {isBrand && i > 0 && <div style={{ height: 8 }} />}
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "32px 1fr 60px",
-                    gap: 16,
-                    alignItems: "center",
-                    padding: "14px 18px",
-                    borderRadius: 2,
-                    marginBottom: 3,
-                    ...(isBrand
-                      ? {
-                          background: "rgba(201,168,76,0.06)",
-                          border: "1px solid rgba(201,168,76,0.18)",
-                        }
-                      : {}),
-                  }}
-                  data-testid={`rank-row-${i}`}
-                >
+          {lockedQuoteComps.length > 0 && (
+            <div style={{ position: "relative", marginTop: 12 }}>
+              <div
+                style={{
+                  filter: "blur(5px)",
+                  pointerEvents: "none",
+                  userSelect: "none",
+                  opacity: 0.2,
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 12,
+                }}
+              >
+                {lockedQuoteComps.map((comp, i) => (
                   <div
+                    key={i}
                     style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 11,
-                      color: isBrand ? V.gold : i < brandIdx ? V.textBright : V.muted,
+                      background: V.surface,
+                      border: `1px solid ${V.border}`,
+                      borderRadius: 3,
+                      padding: "28px 30px",
                     }}
                   >
-                    {String(entry.rank).padStart(2, "0")}
+                    <div style={{ fontSize: 10, color: V.muted, marginBottom: 14 }}>
+                      #{comp.rank} · {comp.name}
+                    </div>
+                    <div style={{ fontSize: 14, color: V.textBright, fontStyle: "italic" }}>
+                      {"\u2588".repeat(20)}
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      color: isBrand ? V.gold : i === 0 ? V.textBright : i < brandIdx ? V.text : V.muted,
-                      fontWeight: isBrand ? 500 : 400,
-                    }}
-                  >
-                    {entry.name}
-                    {isBrand && (
-                      <span style={{ fontSize: 11, fontWeight: 300, opacity: 0.7, marginLeft: 8 }}>
-                        &larr; you are here
-                      </span>
-                    )}
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 13,
-                      textAlign: "right",
-                      color: isBrand ? V.gold : i === 0 ? V.text : i < brandIdx ? V.text : V.muted,
-                    }}
-                  >
-                    {entry.share}%
-                  </div>
-                </div>
-                {showProximity && (
-                  <div
-                    style={{
-                      margin: "2px 0 8px 48px",
-                      fontSize: 11,
-                      color: V.muted,
-                      fontStyle: "italic",
-                    }}
-                    data-testid="text-proximity-note"
-                  >
-                    {t.proximityNote}
-                  </div>
-                )}
-                {isBrand && <div style={{ height: 8 }} />}
+                ))}
               </div>
-            );
-          })}
+              <LockedOverlay count={lockedQuoteComps.length} label="more competitor narratives" />
+            </div>
+          )}
         </div>
 
         <div style={S.divider} />
 
-        {/* Segment Heatmap */}
-        <div ref={reveal} style={{ marginBottom: 80 }} data-testid="section-segments">
+        {/* 09 · What AI Says About You — 1 voice card visible */}
+        {t.brandVoice.length > 0 && (
+          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-brand-voice">
+            <SectionNumber num="08" />
+            <div style={{ ...S.eyebrow, color: V.muted }}>
+              What AI Says About {brandName} · When it does recommend you
+            </div>
+            <p
+              style={{
+                fontSize: 14,
+                color: V.mutedMd,
+                marginBottom: 28,
+                maxWidth: 580,
+                lineHeight: 1.75,
+              }}
+            >
+              Being mentioned is one thing. What AI <em>says</em> about you when it does mention
+              you determines whether a prospect clicks through or skips. Here's the language being
+              used — and what's missing from it.
+            </p>
+
+            {visibleVoice.map((voice) => (
+              <div
+                key={voice.engine}
+                style={{
+                  background: voice.isStrong ? "rgba(76,175,130,0.03)" : V.surface,
+                  border: `1px solid ${voice.isStrong ? "rgba(76,175,130,0.2)" : V.border}`,
+                  borderRadius: 3,
+                  padding: "28px 32px",
+                  marginBottom: 10,
+                  position: "relative",
+                }}
+                data-testid={`voice-card-${voice.engine}`}
+              >
+                <div
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 9,
+                    letterSpacing: "0.15em",
+                    textTransform: "uppercase",
+                    color: V.muted,
+                    marginBottom: 12,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                  }}
+                >
+                  <span
+                    style={{
+                      ...S.tag,
+                      ...(voice.isStrong
+                        ? {
+                            color: V.green,
+                            borderColor: "rgba(76,175,130,0.3)",
+                            background: V.greenDim,
+                          }
+                        : {
+                            color: V.mutedMd,
+                            borderColor: V.borderMd,
+                          }),
+                    }}
+                  >
+                    {voice.engineLabel}
+                  </span>
+                  Prompt: {voice.prompt}
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: 14.5,
+                    color: V.text,
+                    lineHeight: 1.75,
+                    fontStyle: "italic",
+                    marginBottom: 14,
+                    borderLeft: `2px solid ${V.borderMd}`,
+                    paddingLeft: 14,
+                  }}
+                >
+                  {voice.quote}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11.5,
+                    color: V.mutedMd,
+                    lineHeight: 1.55,
+                    padding: "10px 14px",
+                    background: voice.isStrong
+                      ? "rgba(76,175,130,0.06)"
+                      : "rgba(217,95,95,0.06)",
+                    borderRadius: 2,
+                    borderLeft: voice.isStrong
+                      ? "2px solid rgba(76,175,130,0.3)"
+                      : "2px solid rgba(217,95,95,0.35)",
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html: voice.problem
+                      .replace(
+                        /<strong>/g,
+                        `<strong style="color:${V.red};font-weight:400;">`
+                      )
+                      .replace(
+                        /color: var\(--green\)/g,
+                        `color:${V.green}`
+                      )
+                      .replace(
+                        /color: var\(--red\)/g,
+                        `color:${V.red}`
+                      ),
+                  }}
+                />
+              </div>
+            ))}
+
+            {lockedVoice.length > 0 && (
+              <div style={{ position: "relative", marginTop: 10 }}>
+                <div
+                  style={{
+                    filter: "blur(5px)",
+                    pointerEvents: "none",
+                    userSelect: "none",
+                    opacity: 0.25,
+                  }}
+                >
+                  {lockedVoice.map((v, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        background: V.surface,
+                        border: `1px solid ${V.border}`,
+                        borderRadius: 3,
+                        padding: "28px 32px",
+                        marginBottom: 10,
+                      }}
+                    >
+                      <div style={{ fontSize: 9, color: V.muted, marginBottom: 12 }}>
+                        {v.engineLabel} · {"\u2588".repeat(12)}
+                      </div>
+                      <div style={{ fontSize: 14, color: V.text, fontStyle: "italic" }}>
+                        {"\u2588".repeat(25)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <LockedOverlay count={lockedVoice.length} label={`more engine analyses`} />
+              </div>
+            )}
+          </div>
+        )}
+
+        <div style={S.divider} />
+
+        {/* 10 · Segment Heatmap — 1 row visible */}
+        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-segments">
+          <SectionNumber num="09" />
           <div style={{ ...S.eyebrow, color: V.muted }}>Your Rank · Segment by Segment</div>
           <p
             style={{
@@ -996,7 +1506,7 @@ export default function ProspectTeaser() {
                     gridTemplateColumns: "190px 48px 1fr 100px 130px",
                     gap: 14,
                     alignItems: "center",
-                    padding: "13px 18px",
+                    padding: "15px 18px",
                     borderRadius: 2,
                     border: "1px solid rgba(201,168,76,0.15)",
                     background: "rgba(201,168,76,0.05)",
@@ -1086,7 +1596,6 @@ export default function ProspectTeaser() {
               );
             })}
 
-            {/* Locked segments */}
             {lockedSegments.length > 0 && (
               <div style={{ position: "relative", marginTop: 3 }}>
                 <div
@@ -1094,10 +1603,10 @@ export default function ProspectTeaser() {
                     filter: "blur(4px)",
                     pointerEvents: "none",
                     userSelect: "none",
-                    opacity: 0.3,
+                    opacity: 0.25,
                   }}
                 >
-                  {lockedSegments.map((seg, i) => (
+                  {lockedSegments.slice(0, 3).map((seg, i) => (
                     <div
                       key={i}
                       style={{
@@ -1105,7 +1614,7 @@ export default function ProspectTeaser() {
                         gridTemplateColumns: "190px 48px 1fr 100px 130px",
                         gap: 14,
                         alignItems: "center",
-                        padding: "13px 18px",
+                        padding: "15px 18px",
                         borderRadius: 2,
                         border: "1px solid rgba(201,168,76,0.15)",
                         background: "rgba(201,168,76,0.05)",
@@ -1166,39 +1675,7 @@ export default function ProspectTeaser() {
                     </div>
                   ))}
                 </div>
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 12,
-                    background:
-                      "radial-gradient(ellipse at center, rgba(7,9,15,0.45) 0%, rgba(7,9,15,0.88) 70%)",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 14,
-                      opacity: 0.3,
-                    }}
-                  >
-                    &#9670;
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 10,
-                      color: V.mutedMd,
-                      letterSpacing: "0.12em",
-                    }}
-                  >
-                    {lockedSegments.length} more segments · ranks, scores & gap analysis in the full
-                    report
-                  </span>
-                </div>
+                <LockedOverlay count={lockedSegments.length} label="more segments · ranks, scores & gap analysis" />
               </div>
             )}
           </div>
@@ -1206,8 +1683,9 @@ export default function ProspectTeaser() {
 
         <div style={S.divider} />
 
-        {/* Authority Source Gap */}
-        <div ref={reveal} style={{ marginBottom: 80 }} data-testid="section-authority-gap">
+        {/* 11 · Authority Source Gap — heading + 1 row */}
+        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-authority-gap">
+          <SectionNumber num="10" />
           <div style={{ ...S.eyebrow, color: V.muted }}>
             Authority Source Gap · Where AI retrieves from
           </div>
@@ -1318,55 +1796,67 @@ export default function ProspectTeaser() {
                   ))}
                 </tr>
               ))}
-              {lockedAuthDomains.map((d, i) => (
-                <tr
-                  key={`locked-${i}`}
-                  style={{
-                    filter: "blur(4px)",
-                    pointerEvents: "none",
-                    userSelect: "none",
-                    opacity: 0.3,
-                  }}
-                >
-                  <td
-                    style={{
-                      padding: "15px 16px",
-                      borderBottom: `1px solid ${V.border}`,
-                      paddingLeft: 0,
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: 12,
-                        color: V.textBright,
-                      }}
-                    >
-                      {d.domain}
-                    </div>
-                    <div style={{ fontSize: 11, color: V.mutedMd, marginTop: 3 }}>
-                      {d.tier} · {"\u2588".repeat(24)}
-                    </div>
-                  </td>
-                  {authColumnNames.map((name) => (
-                    <td
-                      key={name}
-                      style={{
-                        padding: "15px 16px",
-                        borderBottom: `1px solid ${V.border}`,
-                      }}
-                    >
-                      {d.presence[name] ? (
-                        <span style={{ color: V.green, fontSize: 14 }}>&#10003;</span>
-                      ) : (
-                        <span style={{ color: V.red, fontSize: 13 }}>—</span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
             </tbody>
           </table>
+
+          {lockedAuthDomains.length > 0 && (
+            <div style={{ position: "relative", marginTop: 4 }}>
+              <div
+                style={{
+                  filter: "blur(4px)",
+                  pointerEvents: "none",
+                  userSelect: "none",
+                  opacity: 0.25,
+                }}
+              >
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <tbody>
+                    {lockedAuthDomains.map((d, i) => (
+                      <tr key={i}>
+                        <td
+                          style={{
+                            padding: "15px 16px",
+                            borderBottom: `1px solid ${V.border}`,
+                            paddingLeft: 0,
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontFamily: "'JetBrains Mono', monospace",
+                              fontSize: 12,
+                              color: V.textBright,
+                            }}
+                          >
+                            {d.domain}
+                          </div>
+                          <div style={{ fontSize: 11, color: V.mutedMd, marginTop: 3 }}>
+                            {d.tier} · {"\u2588".repeat(24)}
+                          </div>
+                        </td>
+                        {authColumnNames.map((name) => (
+                          <td
+                            key={name}
+                            style={{
+                              padding: "15px 16px",
+                              borderBottom: `1px solid ${V.border}`,
+                            }}
+                          >
+                            {d.presence[name] ? (
+                              <span style={{ color: V.green, fontSize: 14 }}>&#10003;</span>
+                            ) : (
+                              <span style={{ color: V.red, fontSize: 13 }}>—</span>
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <LockedOverlay count={lockedAuthDomains.length} label="more authority sources" />
+            </div>
+          )}
+
           <p
             style={{
               marginTop: 18,
@@ -1382,122 +1872,12 @@ export default function ProspectTeaser() {
           </p>
         </div>
 
-        {/* What AI Says About You */}
-        {t.brandVoice.length > 0 && (
-          <div ref={reveal} style={{ marginBottom: 80 }} data-testid="section-brand-voice">
-            <div style={{ ...S.eyebrow, color: V.muted }}>
-              What AI Says About {brandName} · When it does recommend you
-            </div>
-            <p
-              style={{
-                fontSize: 14,
-                color: V.mutedMd,
-                marginBottom: 24,
-                maxWidth: 580,
-                lineHeight: 1.75,
-              }}
-            >
-              Being mentioned is one thing. What AI <em>says</em> about you when it does mention
-              you determines whether a prospect clicks through or skips. Here's the language being
-              used — and what's missing from it.
-            </p>
-            {t.brandVoice.map((voice) => (
-              <div
-                key={voice.engine}
-                style={{
-                  background: voice.isStrong ? "rgba(76,175,130,0.03)" : V.surface,
-                  border: `1px solid ${voice.isStrong ? "rgba(76,175,130,0.2)" : V.border}`,
-                  borderRadius: 3,
-                  padding: "26px 30px",
-                  marginBottom: 10,
-                  position: "relative",
-                }}
-                data-testid={`voice-card-${voice.engine}`}
-              >
-                <div
-                  style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 9,
-                    letterSpacing: "0.15em",
-                    textTransform: "uppercase",
-                    color: V.muted,
-                    marginBottom: 12,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                  }}
-                >
-                  <span
-                    style={{
-                      ...S.tag,
-                      ...(voice.isStrong
-                        ? {
-                            color: V.green,
-                            borderColor: "rgba(76,175,130,0.3)",
-                            background: V.greenDim,
-                          }
-                        : {
-                            color: V.mutedMd,
-                            borderColor: V.borderMd,
-                          }),
-                    }}
-                  >
-                    {voice.engineLabel}
-                  </span>
-                  Prompt: {voice.prompt}
-                </div>
-                <div
-                  style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 14.5,
-                    color: V.text,
-                    lineHeight: 1.75,
-                    fontStyle: "italic",
-                    marginBottom: 14,
-                    borderLeft: `2px solid ${V.borderMd}`,
-                    paddingLeft: 14,
-                  }}
-                >
-                  {voice.quote}
-                </div>
-                <div
-                  style={{
-                    fontSize: 11.5,
-                    color: V.mutedMd,
-                    lineHeight: 1.55,
-                    padding: "10px 14px",
-                    background: voice.isStrong
-                      ? "rgba(76,175,130,0.06)"
-                      : "rgba(217,95,95,0.06)",
-                    borderRadius: 2,
-                    borderLeft: voice.isStrong
-                      ? "2px solid rgba(76,175,130,0.3)"
-                      : "2px solid rgba(217,95,95,0.35)",
-                  }}
-                  dangerouslySetInnerHTML={{
-                    __html: voice.problem
-                      .replace(
-                        /<strong>/g,
-                        `<strong style="color:${V.red};font-weight:400;">`
-                      )
-                      .replace(
-                        /color: var\(--green\)/g,
-                        `color:${V.green}`
-                      )
-                      .replace(
-                        /color: var\(--red\)/g,
-                        `color:${V.red}`
-                      ),
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+        <div style={S.divider} />
 
-        {/* Actual Prompts */}
+        {/* 12 · Actual Prompts — 1 visible */}
         {t.samplePrompts.length > 0 && (
-          <div ref={reveal} style={{ marginBottom: 80 }} data-testid="section-prompts">
+          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-prompts">
+            <SectionNumber num="11" />
             <div style={{ ...S.eyebrow, color: V.muted }}>
               The Actual Queries · What your prospects are typing
             </div>
@@ -1520,7 +1900,7 @@ export default function ProspectTeaser() {
                   background: V.surface,
                   border: `1px solid ${V.border}`,
                   borderRadius: 3,
-                  padding: "22px 28px",
+                  padding: "24px 28px",
                   marginBottom: 8,
                   display: "grid",
                   gridTemplateColumns: "1fr auto",
@@ -1580,17 +1960,17 @@ export default function ProspectTeaser() {
                     filter: "blur(5px)",
                     pointerEvents: "none",
                     userSelect: "none",
-                    opacity: 0.3,
+                    opacity: 0.25,
                   }}
                 >
-                  {lockedPrompts.map((p, i) => (
+                  {lockedPrompts.slice(0, 3).map((p, i) => (
                     <div
                       key={i}
                       style={{
                         background: V.surface,
                         border: `1px solid ${V.border}`,
                         borderRadius: 3,
-                        padding: "22px 28px",
+                        padding: "24px 28px",
                         marginBottom: 8,
                         display: "grid",
                         gridTemplateColumns: "1fr auto",
@@ -1612,38 +1992,7 @@ export default function ProspectTeaser() {
                     </div>
                   ))}
                 </div>
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 12,
-                    background:
-                      "radial-gradient(ellipse at center, rgba(7,9,15,0.5) 0%, rgba(7,9,15,0.88) 70%)",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 14,
-                      opacity: 0.3,
-                    }}
-                  >
-                    &#9670;
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 10,
-                      color: V.mutedMd,
-                      letterSpacing: "0.12em",
-                    }}
-                  >
-                    {lockedPrompts.length} more prompts in the full report
-                  </span>
-                </div>
+                <LockedOverlay count={lockedPrompts.length} label="more prompts in the full report" />
               </div>
             )}
           </div>
@@ -1651,204 +2000,95 @@ export default function ProspectTeaser() {
 
         <div style={S.divider} />
 
-        {/* Social Threads */}
+        {/* 13 · Social Threads — heading + count, fully shaded */}
         {t.socialThreads.length > 0 && (
-          <div ref={reveal} style={{ marginBottom: 80 }} data-testid="section-social-threads">
+          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-social-threads">
+            <SectionNumber num="12" />
             <div style={{ ...S.eyebrow, color: V.muted }}>
               Social Threads · Where competitors appear organically
             </div>
-            {visibleThreads.map((thread, i) => (
-              <div
-                key={i}
-                style={{
-                  background: V.surface,
-                  border: `1px solid ${V.border}`,
-                  borderRadius: 3,
-                  marginBottom: 12,
-                  overflow: "hidden",
-                }}
-                data-testid={`thread-card-${i}`}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "14px 20px",
-                    borderBottom: `1px solid ${V.border}`,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 9,
-                      letterSpacing: "0.12em",
-                      textTransform: "uppercase",
-                      color: V.muted,
-                    }}
-                  >
-                    {thread.platform}
-                  </span>
-                  <span
-                    style={{
-                      width: 4,
-                      height: 4,
-                      borderRadius: "50%",
-                      background: V.borderMd,
-                    }}
-                  />
-                  <span style={{ fontSize: 12, color: V.text, flex: 1 }}>{thread.title}</span>
-                </div>
-                <div style={{ padding: "18px 20px" }}>
-                  <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.65, marginBottom: 14 }}>
-                    Competitors mentioned:{" "}
-                    <span style={{ color: V.textBright, fontWeight: 500 }}>
-                      {thread.competitorsMentioned.join(", ")}
-                    </span>
-                    {!thread.brandMentioned && (
-                      <span
-                        style={{
-                          color: V.red,
-                          fontSize: 11,
-                          display: "block",
-                          marginTop: 8,
-                          fontStyle: "italic",
-                        }}
-                      >
-                        {brandName} is not mentioned in this thread.
-                      </span>
-                    )}
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 16,
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 9,
-                      color: V.muted,
-                      letterSpacing: "0.08em",
-                    }}
-                  >
-                    {thread.engines.map((e) => (
-                      <span key={e}>{e}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
+            <p
+              style={{
+                fontSize: 14,
+                color: V.mutedMd,
+                marginBottom: 24,
+                maxWidth: 580,
+                lineHeight: 1.75,
+              }}
+            >
+              AI engines cite social platforms (Reddit, YouTube, Quora) as authority sources. We found{" "}
+              <strong style={{ color: V.textBright, fontWeight: 500 }}>{t.socialThreads.length} threads</strong>{" "}
+              where competitors are mentioned. Here's what that landscape looks like.
+            </p>
 
-            {lockedThreads.length > 0 && (
-              <div style={{ position: "relative", marginTop: 12 }}>
-                <div
-                  style={{
-                    filter: "blur(6px)",
-                    pointerEvents: "none",
-                    userSelect: "none",
-                    opacity: 0.35,
-                  }}
-                >
-                  {lockedThreads.slice(0, 2).map((thread, i) => (
+            <div style={{ position: "relative" }}>
+              <div
+                style={{
+                  filter: "blur(6px)",
+                  pointerEvents: "none",
+                  userSelect: "none",
+                  opacity: 0.3,
+                }}
+              >
+                {t.socialThreads.slice(0, 3).map((thread, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      background: V.surface,
+                      border: `1px solid ${V.border}`,
+                      borderRadius: 3,
+                      marginBottom: 8,
+                      overflow: "hidden",
+                    }}
+                  >
                     <div
-                      key={i}
                       style={{
-                        background: V.surface,
-                        border: `1px solid ${V.border}`,
-                        borderRadius: 3,
-                        marginBottom: 8,
-                        overflow: "hidden",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "14px 20px",
+                        borderBottom: `1px solid ${V.border}`,
                       }}
                     >
-                      <div
+                      <span
                         style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 10,
-                          padding: "14px 20px",
-                          borderBottom: `1px solid ${V.border}`,
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize: 9,
+                          color: V.muted,
                         }}
                       >
-                        <span
-                          style={{
-                            fontFamily: "'JetBrains Mono', monospace",
-                            fontSize: 9,
-                            color: V.muted,
-                          }}
-                        >
-                          {thread.platform}
-                        </span>
-                        <span style={{ fontSize: 12, color: V.text }}>{thread.title}</span>
-                      </div>
-                      <div style={{ padding: "18px 20px" }}>
-                        <div style={{ fontSize: 13, color: V.mutedMd }}>
-                          {"\u2588".repeat(40)}
-                        </div>
+                        {thread.platform}
+                      </span>
+                      <span style={{ fontSize: 12, color: V.text }}>{thread.title}</span>
+                    </div>
+                    <div style={{ padding: "18px 20px" }}>
+                      <div style={{ fontSize: 13, color: V.mutedMd }}>
+                        {"\u2588".repeat(40)}
                       </div>
                     </div>
-                  ))}
-                </div>
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background:
-                      "radial-gradient(ellipse at center, rgba(7,9,15,0.6) 0%, rgba(7,9,15,0.92) 70%)",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 20,
-                      opacity: 0.4,
-                      marginBottom: 12,
-                      fontFamily: "'JetBrains Mono', monospace",
-                    }}
-                  >
-                    &#9670;
                   </div>
-                  <div
-                    style={{
-                      fontFamily: "'Playfair Display', serif",
-                      fontSize: 16,
-                      color: "#fff",
-                      marginBottom: 6,
-                      textAlign: "center",
-                    }}
-                  >
-                    Full analysis available
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: V.mutedMd,
-                      textAlign: "center",
-                      maxWidth: 280,
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {lockedThreads.length} more social threads with competitive mentions in the
-                    complete report.
-                  </div>
-                </div>
+                ))}
               </div>
-            )}
+              <LockedOverlay count={t.socialThreads.length} label="social threads with competitive mentions" />
+            </div>
           </div>
         )}
 
-        {/* Web Citation Footprint */}
+        <div style={S.divider} />
+
+        {/* 14 · Web Citation Footprint */}
         <div
           ref={reveal}
           style={{
             background: V.surface,
             border: `1px solid ${V.border}`,
             borderRadius: 3,
-            padding: "32px 40px",
-            marginBottom: 80,
+            padding: "36px 40px",
+            marginBottom: 100,
           }}
           data-testid="section-citation-footprint"
         >
+          <SectionNumber num="13" />
           <div style={{ ...S.eyebrow, color: V.muted }}>Web Citation Footprint</div>
           <div
             style={{
@@ -1909,12 +2149,12 @@ export default function ProspectTeaser() {
           </p>
         </div>
 
-        {/* CTA Block */}
+        {/* 15 · CTA Block */}
         <div
           ref={reveal}
           style={{
             textAlign: "center",
-            padding: "64px 48px",
+            padding: "72px 48px",
             border: `1px solid ${V.border}`,
             borderRadius: 3,
             background: V.surface,
@@ -1923,6 +2163,7 @@ export default function ProspectTeaser() {
           }}
           data-testid="section-cta"
         >
+          <SectionNumber num="" />
           <div
             style={{
               position: "absolute",
