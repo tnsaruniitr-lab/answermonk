@@ -133,6 +133,21 @@ export interface TeaserData {
     detail: string;
     priority: "critical" | "high" | "medium";
   }>;
+  engineSegmentHeatmap: Array<{
+    segmentLabel: string;
+    engines: Record<string, number>;
+  }>;
+  citationScale: {
+    totalCitationsCrawled: number;
+    totalCitationPages: number;
+    totalRuns: number;
+    totalEngines: number;
+  };
+  promptShowdown: Array<{
+    promptText: string;
+    results: Array<{ engine: string; engineLabel: string; brandRank: number | null; brandFound: boolean; topResult: string }>;
+    dateLabel: string;
+  }>;
 }
 
 const ENGINE_LABELS: Record<string, string> = {
@@ -859,10 +874,83 @@ export function generateTeaserData(
     });
   }
 
+  const engineSegmentHeatmap: TeaserData["engineSegmentHeatmap"] = segments.map(seg => {
+    const eb = seg.scoringResult!.score.engine_breakdown;
+    const engines: Record<string, number> = {};
+    for (const [eng, stats] of Object.entries(eb)) {
+      engines[eng] = Math.round((stats.valid_runs > 0 ? stats.appearance_rate : 0) * 100);
+    }
+    return {
+      segmentLabel: buildSegmentLabel(seg),
+      engines,
+    };
+  });
+
+  const totalCitations = allRuns.reduce((sum, r) => sum + (r.citations?.length || 0), 0);
+  const citDomainCount = citDomainBrandMap.size;
+  const citationScale: TeaserData["citationScale"] = {
+    totalCitationsCrawled: totalCitations,
+    totalCitationPages: citDomainCount,
+    totalRuns: totalValidRuns,
+    totalEngines: Object.keys(engineAgg).length,
+  };
+
+  const promptShowdown: TeaserData["promptShowdown"] = [];
+  const dateLabel = session.createdAt
+    ? new Date(session.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })
+    : new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+  const promptGroups = new Map<string, RawRun[]>();
+  for (const run of allRuns) {
+    const pt = run.prompt_text || run.prompt_id;
+    if (!pt) continue;
+    if (!promptGroups.has(pt)) promptGroups.set(pt, []);
+    promptGroups.get(pt)!.push(run);
+  }
+
+  const showdownCandidates = Array.from(promptGroups.entries())
+    .filter(([, runs]) => runs.length >= 2)
+    .map(([promptText, runs]) => {
+      const brandFoundCount = runs.filter(r => r.brand_found).length;
+      const hasMultipleEngines = new Set(runs.map(r => r.engine)).size >= 2;
+      return { promptText, runs, brandFoundCount, hasMultipleEngines };
+    })
+    .sort((a, b) => {
+      if (a.hasMultipleEngines !== b.hasMultipleEngines) return a.hasMultipleEngines ? -1 : 1;
+      return b.brandFoundCount - a.brandFoundCount;
+    });
+
+  for (const candidate of showdownCandidates.slice(0, 3)) {
+    const results: TeaserData["promptShowdown"][0]["results"] = [];
+    const seenEngines = new Set<string>();
+    for (const run of candidate.runs) {
+      if (seenEngines.has(run.engine)) continue;
+      seenEngines.add(run.engine);
+      const candidates = Array.isArray(run.candidates) ? run.candidates : [];
+      let topResult = "Unknown";
+      if (candidates.length > 0) {
+        const sorted = [...candidates].sort((a: any, b: any) => (a.rank || 99) - (b.rank || 99));
+        topResult = typeof sorted[0] === "string" ? sorted[0] : (sorted[0]?.name_raw || sorted[0]?.name || "Unknown");
+      }
+      results.push({
+        engine: run.engine,
+        engineLabel: ENGINE_LABELS[run.engine] || run.engine,
+        brandRank: run.brand_rank,
+        brandFound: run.brand_found,
+        topResult,
+      });
+    }
+    promptShowdown.push({
+      promptText: candidate.promptText,
+      results,
+      dateLabel,
+    });
+  }
+
   return {
     meta: {
       brandName,
-      date: session.createdAt ? new Date(session.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+      date: dateLabel,
       totalQueries,
       queriesPerEngine,
     },
@@ -903,5 +991,8 @@ export function generateTeaserData(
     },
     topPlayerInsights,
     keyActions,
+    engineSegmentHeatmap,
+    citationScale,
+    promptShowdown,
   };
 }

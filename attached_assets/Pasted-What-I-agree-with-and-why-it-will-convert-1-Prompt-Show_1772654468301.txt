@@ -1,0 +1,74 @@
+What I agree with (and why it will convert)
+
+1) Prompt Showdown (2–3 prompts) — highest impact
+
+This is the best “proof of work” because it’s checkable by the reader in 30 seconds.
+
+It also demonstrates you’re not hand-waving with “visibility scores”; you’re mapping real buyer language to outcomes.
+
+2) Move “How AI perceives your brand” up
+
+This is the moment that creates urgency even when they’re doing “fine.”
+
+Keep it tight: competitor sentence + your sentence + “what’s missing” in one line.
+
+3) Show the real scale: 447 crawled citation pages
+
+Strong credibility marker. But phrase it carefully:
+
+“We crawled 447 cited pages referenced by AI answers” (so it’s clear these came from model citations, not arbitrary crawling).
+
+4) Engine × segment heatmap
+
+CEOs love this because it turns the whole problem into a single picture.
+
+It naturally sets up the paid ask: “Why are we red here? What fixes it?”
+
+Where I’d slightly disagree / tweak
+
+A) Don’t fully remove “Top Players are doing right” — compress it into “Evidence-backed drivers”
+Generic insights feel like filler, yes. But you still want 1–2 “drivers” to bridge from measurement to cause.
+
+Keep one driver: authority source coverage (with named domains + your coverage vs competitor).
+
+Kill anything that isn’t tied to numbers or named sources.
+
+B) Be careful with “winner” language in Prompt Showdown
+If you say “Winner: NEXA (#1)” and the reader types it and gets a different result due to model variance/localization, you risk trust loss.
+Safer:
+
+“In our runs (March 2026), top results were: …”
+
+Or “Most frequent #1 across 5 repeats: …” if you have repeats.
+
+C) “10 candidates per run” can confuse
+It’s internally meaningful, but externally it can raise questions (“why 10?” “how chosen?”).
+Better to report:
+
+“We captured top 10 recommendations per prompt” (simple).
+
+The best restructure (your order is basically correct)
+
+I’d do this sequence:
+
+Scorecard (overall + rank + top-3 + engine split)
+
+Heatmap: Engines × Segments (3×7)
+
+How AI describes you vs competitor (defining sentences)
+
+Prompt Showdown (2–3 real prompts + ranks across engines)
+
+Citation scale proof (447 cited pages crawled + 1,053 citations)
+
+Authority sources (top 7 domains) + your coverage vs competitor
+
+CTA: Full audit includes prompts+transcripts, per-segment breakdown, competitor narrative map, authority roadmap, prioritized fixes, retest plan.
+
+One extra thing that will make this land harder
+
+Add a tiny “Repro steps” box under Prompt Showdown:
+
+“Try it yourself: paste this exact prompt into ChatGPT/Gemini/Claude.”
+
+If you can, include the exact prompt wording + date.

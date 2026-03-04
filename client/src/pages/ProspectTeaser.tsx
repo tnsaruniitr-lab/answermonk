@@ -103,7 +103,28 @@ interface TeaserData {
     detail: string;
     priority: "critical" | "high" | "medium";
   }>;
+  engineSegmentHeatmap: Array<{
+    segmentLabel: string;
+    engines: Record<string, number>;
+  }>;
+  citationScale: {
+    totalCitationsCrawled: number;
+    totalCitationPages: number;
+    totalRuns: number;
+    totalEngines: number;
+  };
+  promptShowdown: Array<{
+    promptText: string;
+    results: Array<{ engine: string; engineLabel: string; brandRank: number | null; brandFound: boolean; topResult: string }>;
+    dateLabel: string;
+  }>;
 }
+
+const ENGINE_LABELS_MAP: Record<string, string> = {
+  chatgpt: "ChatGPT",
+  gemini: "Gemini",
+  claude: "Claude",
+};
 
 const V = {
   bg: "#07090f",
@@ -991,182 +1012,10 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
 
         <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, ${V.borderMd} 0%, transparent 80%)` }} />
 
-        {/* 05 · What Top Players Are Doing Right */}
-        {visibleInsights.length > 0 && (
-          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-top-player-insights">
+        {/* 04 · Engine × Segment Heatmap */}
+        {t.engineSegmentHeatmap && t.engineSegmentHeatmap.length > 0 && (
+          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-heatmap">
             <SectionNumber num="04" />
-            <h2
-              style={{
-                fontFamily: "'Playfair Display', serif",
-                fontSize: 28,
-                fontWeight: 700,
-                color: "#fff",
-                marginBottom: 12,
-                lineHeight: 1.2,
-              }}
-              data-testid="heading-top-players"
-            >
-              What Top Players Are Doing Right
-            </h2>
-            <p
-              style={{
-                fontSize: 14,
-                color: V.mutedMd,
-                marginBottom: 32,
-                maxWidth: 560,
-                lineHeight: 1.75,
-              }}
-            >
-              Your top competitors aren't winning by accident. These are the specific structural
-              advantages driving their AI visibility — the patterns the full audit breaks down
-              in detail.
-            </p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {visibleInsights.map((insight, i) => (
-                <div
-                  key={i}
-                  data-stagger
-                  style={{
-                    background: V.surface,
-                    border: `1px solid ${V.border}`,
-                    borderRadius: 3,
-                    padding: "28px 32px",
-                    position: "relative",
-                  }}
-                  data-testid={`insight-card-${i}`}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: 2,
-                      background: V.borderMd,
-                    }}
-                  />
-                  <div
-                    style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 10,
-                      color: V.gold,
-                      letterSpacing: "0.12em",
-                      textTransform: "uppercase",
-                      marginBottom: 10,
-                    }}
-                  >
-                    Insight {String(i + 1).padStart(2, "0")}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 15,
-                      color: V.textBright,
-                      fontWeight: 500,
-                      marginBottom: 8,
-                      lineHeight: 1.45,
-                    }}
-                    data-testid={`text-insight-title-${i}`}
-                  >
-                    {insight.title}
-                  </div>
-                  <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.7 }} data-testid={`text-insight-detail-${i}`}>
-                    {insight.detail}
-                  </div>
-                  {insight.sources && insight.sources.length > 0 && (
-                    <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 }}>
-                      {insight.sources.slice(0, 2).map((src, si) => (
-                        <div
-                          key={si}
-                          style={{
-                            fontFamily: "'JetBrains Mono', monospace",
-                            fontSize: 11,
-                            padding: "6px 12px",
-                            borderRadius: 3,
-                            background: "rgba(201,168,76,0.06)",
-                            border: `1px solid rgba(201,168,76,0.18)`,
-                            color: V.goldLight,
-                          }}
-                          data-testid={`source-visible-${si}`}
-                        >
-                          {src}
-                        </div>
-                      ))}
-                      {insight.sources.length > 2 && (
-                        <div
-                          style={{
-                            fontFamily: "'JetBrains Mono', monospace",
-                            fontSize: 11,
-                            padding: "6px 12px",
-                            borderRadius: 3,
-                            background: "rgba(255,255,255,0.02)",
-                            border: `1px solid ${V.border}`,
-                            color: V.muted,
-                          }}
-                          data-testid="source-locked"
-                        >
-                          +{insight.sources.length - 2} more in full audit
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  <div
-                    style={{
-                      marginTop: 14,
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 10,
-                      letterSpacing: "0.08em",
-                      color: V.gold,
-                      cursor: "pointer",
-                    }}
-                    data-testid={`link-insight-cta-${i}`}
-                  >
-                    {insight.sources ? "all sources in full audit \u00BB" : "included in full audit \u00BB"}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {lockedInsights.length > 0 && (
-              <div style={{ position: "relative", marginTop: 10 }}>
-                <div
-                  style={{
-                    filter: "blur(8px)",
-                    pointerEvents: "none",
-                    userSelect: "none",
-                    opacity: 0.2,
-                  }}
-                >
-                  {lockedInsights.map((insight, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        background: V.surface,
-                        border: `1px solid ${V.border}`,
-                        borderRadius: 3,
-                        padding: "28px 32px",
-                        marginBottom: 10,
-                      }}
-                    >
-                      <div style={{ fontSize: 15, color: V.textBright }}>
-                        {"\u2588".repeat(12)}
-                      </div>
-                      <div style={{ fontSize: 13, color: V.mutedMd, marginTop: 8 }}>
-                        {"\u2588".repeat(30)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <LockedOverlay count={lockedInsights.length} label="more competitor insights" />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* 06 · Key Actions For You */}
-        {visibleActions.length > 0 && (
-          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-key-actions">
-            <SectionNumber num="05" />
             <h2
               style={{
                 fontFamily: "'Playfair Display', serif",
@@ -1176,178 +1025,435 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
                 marginBottom: 12,
                 lineHeight: 1.2,
               }}
-              data-testid="heading-key-actions"
+              data-testid="heading-heatmap"
             >
-              Key Actions For {brandName}
+              Visibility Heatmap
             </h2>
-            <p
-              style={{
-                fontSize: 14,
-                color: V.mutedMd,
-                marginBottom: 32,
-                maxWidth: 560,
-                lineHeight: 1.75,
-              }}
-            >
-              Based on the audit data, these are the highest-leverage actions to improve {brandName}'s
-              AI visibility. The full audit includes implementation roadmaps for each.
+            <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 28, maxWidth: 560, lineHeight: 1.75 }}>
+              {brandName}'s appearance rate by engine and search context. Green = strong. Red = invisible.
             </p>
-
-            {visibleActions.map((action, i) => {
-              const ps = priorityStyle(action.priority);
-              return (
-                <div
-                  key={i}
-                  data-stagger
-                  style={{
-                    background: V.surface,
-                    border: `1px solid ${ps.border}`,
-                    borderRadius: 3,
-                    padding: "28px 32px",
-                    position: "relative",
-                    marginBottom: 10,
-                  }}
-                  data-testid={`action-card-${i}`}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: 2,
-                      background: ps.color,
-                      opacity: 0.5,
-                    }}
-                  />
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                    <span
-                      style={{
-                        ...S.tag,
-                        color: ps.color,
-                        borderColor: ps.border,
-                        background: ps.bg,
-                      }}
-                    >
-                      {action.priority}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 15,
-                      color: V.textBright,
-                      fontWeight: 500,
-                      marginBottom: 8,
-                      lineHeight: 1.45,
-                    }}
-                    data-testid={`text-action-title-${i}`}
-                  >
-                    {action.title}
-                  </div>
-                  <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.7 }} data-testid={`text-action-detail-${i}`}>
-                    {action.detail}
-                  </div>
-                </div>
-              );
-            })}
-
-            {lockedActions.length > 0 && (
-              <div style={{ position: "relative", marginTop: 10 }}>
+            <div style={{ overflowX: "auto" }}>
+              <div style={{ minWidth: 500 }}>
                 <div
                   style={{
-                    filter: "blur(8px)",
-                    pointerEvents: "none",
-                    userSelect: "none",
-                    opacity: 0.2,
+                    display: "grid",
+                    gridTemplateColumns: `180px repeat(${Object.keys(t.engineSegmentHeatmap[0]?.engines || {}).length}, 1fr)`,
+                    gap: 0,
                   }}
                 >
-                  {lockedActions.map((action, i) => (
+                  <div style={{ padding: "10px 12px" }} />
+                  {Object.keys(t.engineSegmentHeatmap[0]?.engines || {}).map(eng => (
                     <div
-                      key={i}
+                      key={eng}
                       style={{
-                        background: V.surface,
-                        border: `1px solid ${V.border}`,
-                        borderRadius: 3,
-                        padding: "28px 32px",
-                        marginBottom: 10,
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: 10,
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                        color: V.mutedMd,
+                        textAlign: "center",
+                        padding: "10px 8px",
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                        <span style={{ ...S.tag, color: V.muted, borderColor: V.borderMd }}>
-                          {action.priority}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: 15, color: V.textBright }}>
-                        {"\u2588".repeat(14)}
-                      </div>
-                      <div style={{ fontSize: 13, color: V.mutedMd, marginTop: 8 }}>
-                        {"\u2588".repeat(32)}
-                      </div>
+                      {ENGINE_LABELS_MAP[eng] || eng}
                     </div>
                   ))}
+                  {t.engineSegmentHeatmap.map((row, ri) => {
+                    const engines = Object.entries(row.engines);
+                    return engines.map(([eng, pct], ci) => (
+                      ci === 0 ? (
+                        <div key={`row-${ri}`} style={{ display: "contents" }}>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: V.text,
+                              padding: "10px 12px",
+                              borderTop: `1px solid ${V.border}`,
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            {row.segmentLabel.length > 28 ? row.segmentLabel.slice(0, 28) + "..." : row.segmentLabel}
+                          </div>
+                          {engines.map(([e, p]) => {
+                            const heatColor = p >= 70 ? V.green : p >= 30 ? V.gold : p > 0 ? V.red : "rgba(255,255,255,0.06)";
+                            const textColor = p >= 70 ? "#fff" : p >= 30 ? "#fff" : p > 0 ? "#fff" : V.muted;
+                            return (
+                              <div
+                                key={e}
+                                style={{
+                                  textAlign: "center",
+                                  padding: "10px 8px",
+                                  borderTop: `1px solid ${V.border}`,
+                                  background: `${heatColor}18`,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontFamily: "'JetBrains Mono', monospace",
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    color: heatColor,
+                                  }}
+                                >
+                                  {p}%
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : null
+                    ));
+                  })}
                 </div>
-                <div
-                  className="teaser-locked-hover"
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background:
-                      "radial-gradient(ellipse at center, rgba(7,9,15,0.50) 0%, rgba(7,9,15,0.95) 60%)",
-                    zIndex: 2,
-                    overflow: "hidden",
-                  }}
-                  data-testid="locked-overlay-actions"
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      background: "linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.03) 50%, transparent 100%)",
-                      animation: "teaser-shimmer 4s ease-in-out infinite",
-                      pointerEvents: "none",
-                    }}
-                  />
-                  <div
-                    style={{
-                      fontSize: 22,
-                      opacity: 0.25,
-                      marginBottom: 14,
-                      fontFamily: "'JetBrains Mono', monospace",
-                      animation: "teaser-glow-pulse 3s ease-in-out infinite",
-                    }}
-                  >
-                    &#9670;
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 10%, ${V.borderMd} 50%, transparent 90%)` }} />
+
+        {/* 05 · How AI Describes You vs Competitors (moved up) */}
+        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-quote-contrast">
+          <SectionNumber num="05" />
+          <h2
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 26,
+              fontWeight: 700,
+              color: "#fff",
+              marginBottom: 12,
+              lineHeight: 1.2,
+            }}
+            data-testid="heading-quote-contrast"
+          >
+            How AI Describes You vs. Competitors
+          </h2>
+          <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 32, maxWidth: 560, lineHeight: 1.75 }}>
+            AI engines build a "defining sentence" for every brand they recommend.
+            This is the narrative that shapes whether a prospect picks you or someone else.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {visibleQuoteComps.map((comp, i) => (
+              <div
+                key={i}
+                data-stagger
+                style={{
+                  background: V.surface,
+                  border: `1px solid ${V.border}`,
+                  borderRadius: 3,
+                  padding: "28px 32px",
+                }}
+                data-testid={`quote-comp-${i}`}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: V.gold, letterSpacing: "0.12em" }}>
+                    #{comp.rank} COMPETITOR
+                  </span>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: V.textBright }}>{comp.name}</span>
+                </div>
+                <div style={{ fontSize: 14, color: V.text, lineHeight: 1.7, fontStyle: "italic", borderLeft: `2px solid ${V.gold}`, paddingLeft: 16, marginBottom: 8 }}>
+                  {comp.sentence}
+                </div>
+                {comp.engines.length > 0 && (
+                  <div style={{ fontSize: 11, color: V.muted, fontFamily: "'JetBrains Mono', monospace" }}>
+                    Cited by: {comp.engines.join(", ")}
                   </div>
-                  <div
-                    style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 10,
-                      color: V.mutedMd,
-                      letterSpacing: "0.12em",
-                      textAlign: "center",
-                      maxWidth: 320,
-                      lineHeight: 1.7,
-                    }}
-                    data-testid="text-locked-actions"
-                  >
-                    More actions with implementation roadmaps in the full audit
-                  </div>
+                )}
+              </div>
+            ))}
+
+            {t.quoteContrast.brand.hasSentence && (
+              <div
+                data-stagger
+                style={{
+                  background: "rgba(201,168,76,0.04)",
+                  border: `1px solid rgba(201,168,76,0.18)`,
+                  borderRadius: 3,
+                  padding: "28px 32px",
+                }}
+                data-testid="quote-brand"
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                  <span style={{ ...S.tag, color: V.gold, borderColor: "rgba(201,168,76,0.3)", background: V.goldDim }}>YOUR BRAND</span>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: V.gold }}>{brandName}</span>
+                </div>
+                <div style={{ fontSize: 14, color: V.text, lineHeight: 1.7, fontStyle: "italic", borderLeft: `2px solid ${V.borderMd}`, paddingLeft: 16 }}>
+                  {t.quoteContrast.brand.sentence}
                 </div>
               </div>
             )}
           </div>
+
+          {lockedQuoteComps.length > 0 && (
+            <div style={{ position: "relative", marginTop: 10 }}>
+              <div style={{ filter: "blur(8px)", pointerEvents: "none", userSelect: "none", opacity: 0.2 }}>
+                {lockedQuoteComps.map((comp, i) => (
+                  <div key={i} style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 3, padding: "28px 32px", marginBottom: 10 }}>
+                    <div style={{ fontSize: 14, color: V.textBright }}>{"\u2588".repeat(10)}</div>
+                    <div style={{ fontSize: 13, color: V.mutedMd, marginTop: 8 }}>{"\u2588".repeat(28)}</div>
+                  </div>
+                ))}
+              </div>
+              <LockedOverlay count={lockedQuoteComps.length} label="more competitor narratives" />
+            </div>
+          )}
+        </div>
+
+        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 10%, ${V.borderMd} 50%, transparent 90%)` }} />
+
+        {/* 06 · Prompt Showdown */}
+        {t.promptShowdown && t.promptShowdown.length > 0 && (
+          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-prompt-showdown">
+            <SectionNumber num="06" />
+            <h2
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 26,
+                fontWeight: 700,
+                color: "#fff",
+                marginBottom: 12,
+                lineHeight: 1.2,
+              }}
+              data-testid="heading-prompt-showdown"
+            >
+              Prompt Showdown
+            </h2>
+            <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 32, maxWidth: 560, lineHeight: 1.75 }}>
+              Real prompts your prospects type into AI — and who wins each one.
+              In our runs ({t.promptShowdown[0]?.dateLabel}), these were the results.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {t.promptShowdown.slice(0, 3).map((prompt, pi) => (
+                <div
+                  key={pi}
+                  data-stagger
+                  style={{
+                    background: V.surface,
+                    border: `1px solid ${V.border}`,
+                    borderRadius: 3,
+                    padding: "24px 28px",
+                  }}
+                  data-testid={`showdown-${pi}`}
+                >
+                  <div style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 12,
+                    color: V.goldLight,
+                    marginBottom: 16,
+                    lineHeight: 1.5,
+                    borderLeft: `2px solid ${V.gold}`,
+                    paddingLeft: 14,
+                  }}>
+                    "{prompt.promptText}"
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {prompt.results.map((r, ri) => (
+                      <div
+                        key={ri}
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "90px 1fr 120px",
+                          gap: 12,
+                          alignItems: "center",
+                          padding: "8px 12px",
+                          borderRadius: 2,
+                          background: r.brandFound ? "rgba(201,168,76,0.04)" : "rgba(217,95,95,0.04)",
+                          border: `1px solid ${r.brandFound ? "rgba(201,168,76,0.12)" : "rgba(217,95,95,0.12)"}`,
+                        }}
+                      >
+                        <div style={{
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize: 11,
+                          color: V.mutedMd,
+                          letterSpacing: "0.06em",
+                        }}>
+                          {r.engineLabel}
+                        </div>
+                        <div style={{ fontSize: 12, color: V.text }}>
+                          Top result: <span style={{ color: V.textBright, fontWeight: 500 }}>{r.topResult}</span>
+                        </div>
+                        <div style={{
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize: 11,
+                          textAlign: "right",
+                          color: r.brandFound ? V.gold : V.red,
+                          fontWeight: 500,
+                        }}>
+                          {r.brandFound
+                            ? `${brandName} #${r.brandRank}`
+                            : `Not found`}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{
+                    marginTop: 14,
+                    fontSize: 11,
+                    color: V.muted,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    borderTop: `1px solid ${V.border}`,
+                    paddingTop: 12,
+                  }} data-testid={`repro-${pi}`}>
+                    Try it yourself: paste this exact prompt into ChatGPT, Gemini, or Claude.
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{
+              marginTop: 12,
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 10,
+              color: V.muted,
+              letterSpacing: "0.08em",
+            }}>
+              {t.meta.totalQueries - t.promptShowdown.length} more prompts tested in full audit
+            </div>
+          </div>
         )}
 
+        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 10%, ${V.borderMd} 50%, transparent 90%)` }} />
+
+        {/* 07 · Citation Scale + Authority Sources */}
+        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-citation-authority">
+          <SectionNumber num="07" />
+          <h2
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 26,
+              fontWeight: 700,
+              color: "#fff",
+              marginBottom: 12,
+              lineHeight: 1.2,
+            }}
+            data-testid="heading-citations"
+          >
+            Citation & Authority Analysis
+          </h2>
+          <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 28, maxWidth: 560, lineHeight: 1.75 }}>
+            We crawled {t.citationScale?.totalCitationsCrawled || 0} cited pages referenced by AI answers across {t.citationScale?.totalRuns || 0} runs.
+            Here's where {brandName} shows up — and where it doesn't.
+          </p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 32 }}>
+            {[
+              { num: t.citationScale?.totalCitationsCrawled || 0, label: "citations crawled" },
+              { num: t.citationScale?.totalCitationPages || 0, label: "unique domains" },
+              { num: t.authorityGap.domains.length, label: "authority sources tracked" },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                data-stagger
+                style={{
+                  background: V.surface,
+                  border: `1px solid ${V.border}`,
+                  borderRadius: 3,
+                  padding: "22px 20px",
+                  textAlign: "center",
+                }}
+              >
+                <div style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 28,
+                  fontWeight: 700,
+                  color: V.goldLight,
+                  marginBottom: 4,
+                }}>
+                  {stat.num.toLocaleString()}
+                </div>
+                <div style={{ fontSize: 11, color: V.mutedMd, fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.06em" }}>
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {t.authorityGap.domains.length > 0 && (
+            <>
+              <div style={{ ...S.eyebrow, color: V.muted, marginBottom: 14 }}>
+                Top authority sources · {brandName} present on {t.authorityGap.domains.length - t.authorityGap.brandAbsentCount} of {t.authorityGap.domains.length}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: `160px repeat(${authColumnNames.length}, 1fr)`,
+                    gap: 8,
+                    padding: "10px 14px",
+                    borderBottom: `1px solid ${V.border}`,
+                    marginBottom: 4,
+                  }}
+                >
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: V.muted }}>
+                    Source
+                  </div>
+                  {authColumnNames.map((name) => (
+                    <div key={name} style={{
+                      fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase",
+                      color: name === brandName ? V.gold : V.muted, textAlign: "center",
+                    }}>
+                      {name.length > 10 ? name.slice(0, 10) + ".." : name}
+                    </div>
+                  ))}
+                </div>
+                {visibleAuthDomains.map((domain, i) => (
+                  <div
+                    key={i}
+                    data-stagger
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: `160px repeat(${authColumnNames.length}, 1fr)`,
+                      gap: 8, padding: "12px 14px",
+                      borderBottom: `1px solid ${V.border}`,
+                      background: "rgba(201,168,76,0.03)",
+                    }}
+                    data-testid={`auth-row-${i}`}
+                  >
+                    <div>
+                      <div style={{ fontSize: 12, color: V.textBright, fontWeight: 500, marginBottom: 2 }}>{domain.domain}</div>
+                      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: V.muted }}>{domain.tier}</div>
+                    </div>
+                    {authColumnNames.map((name) => {
+                      const present = domain.presence[name];
+                      return (
+                        <div key={name} style={{ textAlign: "center" }}>
+                          <span style={{ fontSize: 14, color: present ? V.green : V.red, opacity: present ? 1 : 0.5 }}>
+                            {present ? "\u2713" : "\u2717"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+              {lockedAuthDomains.length > 0 && (
+                <div style={{ position: "relative", marginTop: 4 }}>
+                  <div style={{ filter: "blur(8px)", pointerEvents: "none", userSelect: "none", opacity: 0.2 }}>
+                    {lockedAuthDomains.slice(0, 3).map((domain, i) => (
+                      <div key={i} style={{
+                        display: "grid",
+                        gridTemplateColumns: `160px repeat(${authColumnNames.length}, 1fr)`,
+                        gap: 8, padding: "12px 14px",
+                        borderBottom: `1px solid ${V.border}`,
+                      }}>
+                        <div style={{ fontSize: 12, color: V.textBright }}>{i === 0 ? domain.domain : "\u2588".repeat(8)}</div>
+                        {authColumnNames.map((name, j) => (
+                          <div key={j} style={{ textAlign: "center", color: V.muted, fontSize: 14 }}>{"\u2588"}</div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                  <LockedOverlay count={lockedAuthDomains.length} label="more authority sources with coverage mapping" />
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
         <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 20%, ${V.borderMd} 50%, transparent 80%)` }} />
 
-        {/* 06 · Competitive Ranking */}
         <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-competitive-ranking">
-          <SectionNumber num="06" />
+          <SectionNumber num="08" />
           <h2
             style={{
               fontFamily: "'Playfair Display', serif",
@@ -1477,275 +1583,12 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
           </div>
         </div>
 
-        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 10%, ${V.borderMd} 50%, transparent 90%)` }} />
-
-        {/* 08 · Quote Contrast */}
-        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-quote-contrast">
-          <SectionNumber num="08" />
-          <h2
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: 26,
-              fontWeight: 700,
-              color: "#fff",
-              marginBottom: 12,
-              lineHeight: 1.2,
-            }}
-            data-testid="heading-quote-contrast"
-          >
-            How AI Describes You vs. Competitors
-          </h2>
-          <p
-            style={{
-              fontSize: 14,
-              color: V.mutedMd,
-              marginBottom: 32,
-              maxWidth: 560,
-              lineHeight: 1.75,
-            }}
-          >
-            AI engines build a "defining sentence" for every brand they recommend.
-            This is the narrative that shapes whether a prospect picks you or someone else.
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {visibleQuoteComps.map((comp, i) => (
-              <div
-                key={i}
-                data-stagger
-                style={{
-                  background: V.surface,
-                  border: `1px solid ${V.border}`,
-                  borderRadius: 3,
-                  padding: "28px 32px",
-                }}
-                data-testid={`quote-comp-${i}`}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                  <span style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 10,
-                    color: V.gold,
-                    letterSpacing: "0.12em",
-                  }}>
-                    #{comp.rank} COMPETITOR
-                  </span>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: V.textBright }}>{comp.name}</span>
-                </div>
-                <div style={{
-                  fontSize: 14,
-                  color: V.text,
-                  lineHeight: 1.7,
-                  fontStyle: "italic",
-                  borderLeft: `2px solid ${V.gold}`,
-                  paddingLeft: 16,
-                  marginBottom: 8,
-                }}>
-                  {comp.sentence}
-                </div>
-                {comp.engines.length > 0 && (
-                  <div style={{ fontSize: 11, color: V.muted, fontFamily: "'JetBrains Mono', monospace" }}>
-                    Cited by: {comp.engines.join(", ")}
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {t.quoteContrast.brand.hasSentence && (
-              <div
-                data-stagger
-                style={{
-                  background: "rgba(201,168,76,0.04)",
-                  border: `1px solid rgba(201,168,76,0.18)`,
-                  borderRadius: 3,
-                  padding: "28px 32px",
-                }}
-                data-testid="quote-brand"
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                  <span style={{
-                    ...S.tag,
-                    color: V.gold,
-                    borderColor: "rgba(201,168,76,0.3)",
-                    background: V.goldDim,
-                  }}>
-                    YOUR BRAND
-                  </span>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: V.gold }}>{brandName}</span>
-                </div>
-                <div style={{
-                  fontSize: 14,
-                  color: V.text,
-                  lineHeight: 1.7,
-                  fontStyle: "italic",
-                  borderLeft: `2px solid ${V.borderMd}`,
-                  paddingLeft: 16,
-                }}>
-                  {t.quoteContrast.brand.sentence}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {lockedQuoteComps.length > 0 && (
-            <div style={{ position: "relative", marginTop: 10 }}>
-              <div
-                style={{
-                  filter: "blur(8px)",
-                  pointerEvents: "none",
-                  userSelect: "none",
-                  opacity: 0.2,
-                }}
-              >
-                {lockedQuoteComps.map((comp, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: V.surface,
-                      border: `1px solid ${V.border}`,
-                      borderRadius: 3,
-                      padding: "28px 32px",
-                      marginBottom: 10,
-                    }}
-                  >
-                    <div style={{ fontSize: 14, color: V.textBright }}>{"\u2588".repeat(10)}</div>
-                    <div style={{ fontSize: 13, color: V.mutedMd, marginTop: 8 }}>{"\u2588".repeat(28)}</div>
-                  </div>
-                ))}
-              </div>
-              <LockedOverlay count={lockedQuoteComps.length} label="more competitor narratives" />
-            </div>
-          )}
-        </div>
-
-        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 10%, ${V.borderMd} 50%, transparent 90%)` }} />
-
-        {/* 09 · What AI Says About You */}
-        {visibleVoice.length > 0 && (
-          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-brand-voice">
-            <SectionNumber num="09" />
-            <h2
-              style={{
-                fontFamily: "'Playfair Display', serif",
-                fontSize: 26,
-                fontWeight: 700,
-                color: "#fff",
-                marginBottom: 12,
-                lineHeight: 1.2,
-              }}
-              data-testid="heading-brand-voice"
-            >
-              What AI Says About {brandName}
-            </h2>
-            <p
-              style={{
-                fontSize: 14,
-                color: V.mutedMd,
-                marginBottom: 32,
-                maxWidth: 560,
-                lineHeight: 1.75,
-              }}
-            >
-              Each AI engine builds its own description of your brand. Some are helpful. Some are generic.
-              Here's exactly what each engine says — and why it matters.
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {visibleVoice.map((voice, i) => (
-                <div
-                  key={i}
-                  data-stagger
-                  style={{
-                    background: V.surface,
-                    border: `1px solid ${voice.isStrong ? "rgba(76,175,130,0.25)" : V.border}`,
-                    borderRadius: 3,
-                    padding: "28px 32px",
-                  }}
-                  data-testid={`voice-card-${i}`}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-                    <span style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 12,
-                      fontWeight: 500,
-                      color: voice.isStrong ? V.green : V.textBright,
-                      letterSpacing: "0.04em",
-                    }}>
-                      {voice.engineLabel}
-                    </span>
-                    {voice.isStrong && (
-                      <span style={{ ...S.tag, color: V.green, borderColor: "rgba(76,175,130,0.3)", background: V.greenDim }}>
-                        STRONGEST
-                      </span>
-                    )}
-                  </div>
-                  <div style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 10,
-                    color: V.muted,
-                    letterSpacing: "0.08em",
-                    marginBottom: 10,
-                  }}>
-                    QUERY: {voice.prompt}
-                  </div>
-                  <div style={{
-                    fontSize: 14,
-                    color: V.text,
-                    lineHeight: 1.7,
-                    fontStyle: "italic",
-                    borderLeft: `2px solid ${voice.isStrong ? V.green : V.borderMd}`,
-                    paddingLeft: 16,
-                    marginBottom: 14,
-                  }}>
-                    {voice.quote}
-                  </div>
-                  <div
-                    style={{ fontSize: 12.5, color: V.mutedMd, lineHeight: 1.65 }}
-                    dangerouslySetInnerHTML={{
-                      __html: voice.problem
-                        .replace(/<strong>/g, `<strong style="color:${V.text};font-weight:500;">`)
-                        .replace(/style="color: var\(--green\);"/g, `style="color:${V.green};"`)
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-
-            {lockedVoice.length > 0 && (
-              <div style={{ position: "relative", marginTop: 10 }}>
-                <div
-                  style={{
-                    filter: "blur(8px)",
-                    pointerEvents: "none",
-                    userSelect: "none",
-                    opacity: 0.2,
-                  }}
-                >
-                  {lockedVoice.map((voice, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        background: V.surface,
-                        border: `1px solid ${V.border}`,
-                        borderRadius: 3,
-                        padding: "28px 32px",
-                        marginBottom: 10,
-                      }}
-                    >
-                      <div style={{ fontSize: 14, color: V.textBright, fontWeight: 500 }}>{voice.engineLabel}</div>
-                      <div style={{ fontSize: 13, color: V.mutedMd, marginTop: 10 }}>{"\u2588".repeat(30)}</div>
-                    </div>
-                  ))}
-                </div>
-                <LockedOverlay count={lockedVoice.length} label="more engine voice analyses" />
-              </div>
-            )}
-          </div>
-        )}
 
         <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 10%, ${V.borderMd} 50%, transparent 90%)` }} />
 
         {/* 10 · Segments */}
         <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-segments">
-          <SectionNumber num="10" />
+          <SectionNumber num="09" />
           <h2
             style={{
               fontFamily: "'Playfair Display', serif",
@@ -1992,6 +1835,7 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
             )}
           </div>
         </div>
+
 
         {/* CTA — See full analysis (blocks the rest of the report) */}
         <div
