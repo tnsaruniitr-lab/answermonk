@@ -75,6 +75,7 @@ export function getAvailableCompetitors(
 export function reScoreForCompetitor(
   segmentRuns: Record<string, FrontendRawRun[]>,
   competitorName: string,
+  originalBrandName?: string,
 ): CompetitorLensResult {
   const compNorm = normalizeName(competitorName);
 
@@ -115,9 +116,10 @@ export function reScoreForCompetitor(
         }));
 
       if (run.brand_found && run.brand_rank !== null) {
+        const origCandidate = (run.candidates || []).find((c) => c.rank === run.brand_rank);
         others.push({
-          name_raw: "[Original Brand]",
-          name_norm: "[original_brand]",
+          name_raw: originalBrandName || origCandidate?.name_raw || "[Original Brand]",
+          name_norm: originalBrandName ? normalizeName(originalBrandName) : (origCandidate?.name_norm || "[original_brand]"),
           rank: run.brand_rank,
         });
       }
@@ -231,14 +233,23 @@ export function buildCompetitorReportSegments(
         (c) => c.name_norm === compNorm || normalizeName(c.name_raw) === compNorm
       );
 
+      const remainingCandidates = nonBrandCandidates.filter((c) => {
+        const cn = c.name_norm || normalizeName(c.name_raw);
+        return cn !== compNorm && normalizeName(c.name_raw) !== compNorm;
+      });
+
+      if (run.brand_found && run.brand_rank !== null) {
+        const originalBrandCandidate = normalizedCandidates.find((c) => c.rank === run.brand_rank);
+        if (originalBrandCandidate) {
+          remainingCandidates.push(originalBrandCandidate);
+        }
+      }
+
       return {
         ...run,
         brand_found: !!compCandidate,
         brand_rank: compCandidate?.rank ?? null,
-        candidates: nonBrandCandidates.filter((c) => {
-          const cn = c.name_norm || normalizeName(c.name_raw);
-          return cn !== compNorm && normalizeName(c.name_raw) !== compNorm;
-        }),
+        candidates: remainingCandidates,
       };
     });
 

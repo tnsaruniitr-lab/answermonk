@@ -1383,6 +1383,7 @@ export default function PromptGenerator() {
       const res = await apiRequest("POST", "/api/competitor-lens/analyse", {
         competitorName: name,
         segments: segMap,
+        brandName: brandName.trim(),
       });
       const data = await res.json();
       setCompLensResult(data);

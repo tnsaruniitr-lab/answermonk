@@ -699,9 +699,10 @@ export async function registerRoutes(
       const schema = z.object({
         competitorName: z.string().min(1),
         segments: z.record(z.array(z.any())),
+        brandName: z.string().optional(),
       });
       const parsed = schema.parse(req.body);
-      const result = reScoreForCompetitor(parsed.segments, parsed.competitorName);
+      const result = reScoreForCompetitor(parsed.segments, parsed.competitorName, parsed.brandName);
       res.json(result);
     } catch (err) {
       if (err instanceof z.ZodError) {
