@@ -1742,7 +1742,7 @@ export default function ProspectTeaser() {
                   marginBottom: 18,
                 }}
               >
-                See the full analysis.
+                Be the best... because AI said so :)
               </h2>
               <p
                 style={{
