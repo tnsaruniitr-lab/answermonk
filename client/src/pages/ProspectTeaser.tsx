@@ -625,20 +625,14 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
   const visibleVoice = t.brandVoice.slice(0, 1);
   const lockedVoice = t.brandVoice.slice(1);
 
-  const visibleSegments = t.segmentBreakdown.slice(0, 1);
-  const lockedSegments = t.segmentBreakdown.slice(1);
+  const visibleSegments = t.segmentBreakdown.slice(0, 4);
+  const lockedSegments = t.segmentBreakdown.slice(4);
 
   const visibleAuthDomains = t.authorityGap.domains.slice(0, 1);
   const lockedAuthDomains = t.authorityGap.domains.slice(1);
 
-  const visiblePromptShowdown = (t.promptShowdown || []).slice(0, 1);
-  const lockedPromptShowdown = (t.promptShowdown || []).slice(1);
-
-  const socialCount = (t.socialThreads || []).length;
-
-  const Divider = () => (
-    <div style={{ height: 2, background: `linear-gradient(90deg, transparent 5%, ${V.borderMd} 50%, transparent 95%)`, margin: "90px 0" }} />
-  );
+  const visiblePrompts = t.samplePrompts.slice(0, 1);
+  const lockedPrompts = t.samplePrompts.slice(1);
 
   return (
     <div
@@ -787,7 +781,7 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
             background: V.surface,
             border: `1px solid ${V.border}`,
             borderRadius: 3,
-            padding: "52px 48px",
+            padding: "48px 48px",
             marginBottom: 100,
             position: "relative",
             overflow: "hidden",
@@ -795,49 +789,137 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
           data-testid="section-score-card"
         >
           <SectionNumber num="02" />
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${V.gold} 0%, transparent 65%)` }} />
-          <div style={{ position: "absolute", top: -80, right: -80, width: 260, height: 260, background: "radial-gradient(circle, rgba(201,168,76,0.04) 0%, transparent 70%)", pointerEvents: "none" }} />
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 2,
+              background: `linear-gradient(90deg, ${V.gold} 0%, transparent 65%)`,
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: -80,
+              right: -80,
+              width: 260,
+              height: 260,
+              background: "radial-gradient(circle, rgba(201,168,76,0.04) 0%, transparent 70%)",
+              pointerEvents: "none",
+            }}
+          />
           <div style={{ ...S.eyebrow, color: V.muted }}>Overall AI Visibility Score</div>
           <div style={{ position: "relative", display: "inline-block" }}>
-            <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 180, height: 180, borderRadius: "50%", background: "radial-gradient(circle, rgba(201,168,76,0.10) 0%, rgba(201,168,76,0.03) 50%, transparent 70%)", pointerEvents: "none" }} />
+            <div style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 180,
+              height: 180,
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(201,168,76,0.10) 0%, rgba(201,168,76,0.03) 50%, transparent 70%)",
+              pointerEvents: "none",
+            }} />
             <div
               ref={scoreCount.ref as any}
-              style={{ fontFamily: "'Playfair Display', serif", fontSize: 96, fontWeight: 700, color: V.goldLight, lineHeight: 1, marginBottom: 6, position: "relative", animation: "teaser-score-enter 1.2s cubic-bezier(0.16, 1, 0.3, 1) both" }}
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 96,
+                fontWeight: 700,
+                color: V.goldLight,
+                lineHeight: 1,
+                marginBottom: 6,
+                position: "relative",
+                animation: "teaser-score-enter 1.2s cubic-bezier(0.16, 1, 0.3, 1) both",
+              }}
               data-testid="text-score-num"
             >
               {scoreCount.value}
               <sup style={{ fontSize: 42, verticalAlign: "super" }}>%</sup>
             </div>
           </div>
-          <div style={{ fontSize: 13, color: V.mutedMd, marginBottom: 36 }}>
+          <div
+            style={{ fontSize: 13, color: V.mutedMd, marginBottom: 36 }}
+          >
             <strong style={{ color: V.gold, fontWeight: 500 }}>
-              {t.overallScore.appearanceRate >= 70 ? "Strong visibility." : t.overallScore.appearanceRate >= 30 ? "Moderate visibility." : "Low visibility."}
+              {t.overallScore.appearanceRate >= 70
+                ? "Strong visibility."
+                : t.overallScore.appearanceRate >= 30
+                ? "Moderate visibility."
+                : "Low visibility."}
             </strong>{" "}
             {verdictText.split(". ").slice(1).join(". ")}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 0, borderTop: `1px solid ${V.border}`, paddingTop: 28 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              gap: 0,
+              borderTop: `1px solid ${V.border}`,
+              paddingTop: 28,
+            }}
+          >
             <div style={{ paddingRight: 24 }} data-stagger>
-              <div ref={rankCount.ref as any} style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 24, fontWeight: 500, color: V.textBright, marginBottom: 5 }} data-testid="text-market-rank">
+              <div
+                ref={rankCount.ref as any}
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 24,
+                  fontWeight: 500,
+                  color: V.textBright,
+                  marginBottom: 5,
+                }}
+                data-testid="text-market-rank"
+              >
                 #{rankCount.value}
               </div>
               <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.5 }}>
-                Overall market rank<br />out of {t.overallScore.competitorCount} competitors
+                Overall market rank
+                <br />
+                out of {t.overallScore.competitorCount} competitors
               </div>
             </div>
             <div style={{ paddingRight: 24 }} data-stagger>
-              <div ref={avgRankCount.ref as any} style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 24, fontWeight: 500, color: V.textBright, marginBottom: 5 }} data-testid="text-avg-rank">
+              <div
+                ref={avgRankCount.ref as any}
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 24,
+                  fontWeight: 500,
+                  color: V.textBright,
+                  marginBottom: 5,
+                }}
+                data-testid="text-avg-rank"
+              >
                 #{t.overallScore.avgRank != null ? avgRankCount.value : "N/A"}
               </div>
               <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.5 }}>
-                Avg rank when mentioned<br />across all engines
+                Avg rank when mentioned
+                <br />
+                across all engines
               </div>
             </div>
             <div data-stagger>
-              <div ref={primaryCount.ref as any} style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 24, fontWeight: 500, color: V.textBright, marginBottom: 5 }} data-testid="text-primary-rate">
+              <div
+                ref={primaryCount.ref as any}
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 24,
+                  fontWeight: 500,
+                  color: V.textBright,
+                  marginBottom: 5,
+                }}
+                data-testid="text-primary-rate"
+              >
                 {primaryCount.value}%
               </div>
               <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.5 }}>
-                Top-3 rate<br />best in cohort: {t.overallScore.leaderRate}%
+                Top-3 recommendation rate
+                <br />
+                leader is at {t.overallScore.leaderRate}%
               </div>
             </div>
           </div>
@@ -853,140 +935,551 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
             const pct = Math.round(eng.appearanceRate * 100);
             const c = colorMap[eng.color] || V.gold;
             return (
-              <div key={eng.engine} data-stagger style={{ padding: "22px 0", borderBottom: `1px solid ${V.border}` }} data-testid={`engine-row-${eng.engine}`}>
-                <div style={{ display: "grid", gridTemplateColumns: "100px 1fr 56px", gap: 16, alignItems: "center", marginBottom: 10 }}>
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 14, color: V.textBright, letterSpacing: "0.04em", fontWeight: 500 }}>
+              <div
+                key={eng.engine}
+                data-stagger
+                style={{ padding: "20px 0", borderBottom: `1px solid ${V.border}` }}
+                data-testid={`engine-row-${eng.engine}`}
+              >
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "100px 1fr 56px",
+                    gap: 16,
+                    alignItems: "center",
+                    marginBottom: 10,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 14,
+                      color: V.textBright,
+                      letterSpacing: "0.04em",
+                      fontWeight: 500,
+                    }}
+                  >
                     {eng.label}
                   </div>
-                  <div style={{ height: 7, background: "rgba(255,255,255,0.05)", borderRadius: 4, overflow: "hidden" }}>
-                    <div ref={animBar} data-width={`${pct}%`} style={{ height: "100%", borderRadius: 4, background: c }} />
+                  <div
+                    style={{
+                      height: 7,
+                      background: "rgba(255,255,255,0.05)",
+                      borderRadius: 4,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      ref={animBar}
+                      data-width={`${pct}%`}
+                      style={{
+                        height: "100%",
+                        borderRadius: 4,
+                        background: c,
+                      }}
+                    />
                   </div>
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 16, fontWeight: 600, textAlign: "right", color: c }}>
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 16,
+                      fontWeight: 600,
+                      textAlign: "right",
+                      color: c,
+                    }}
+                  >
                     {pct}%
                   </div>
                 </div>
                 <div
-                  style={{ fontSize: 12, color: eng.color === "red" ? V.red : V.mutedMd, lineHeight: 1.6, paddingLeft: 116 }}
-                  dangerouslySetInnerHTML={{ __html: eng.note.replace(/<strong>/g, `<strong style="color:${V.text};font-weight:500;">`) }}
+                  style={{
+                    fontSize: 12,
+                    color: eng.color === "red" ? V.red : V.mutedMd,
+                    lineHeight: 1.6,
+                    paddingLeft: 116,
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html: eng.note.replace(
+                      /<strong>/g,
+                      `<strong style="color:${V.text};font-weight:500;">`
+                    ),
+                  }}
                 />
               </div>
             );
           })}
         </div>
 
-        <Divider />
+        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, ${V.borderMd} 0%, transparent 80%)` }} />
 
-        {/* 05 · What Top Players Are Doing Right */}
-        {visibleInsights.length > 0 && (
-          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-top-player-insights">
+        {/* 04 · Engine × Segment Heatmap */}
+        {t.engineSegmentHeatmap && t.engineSegmentHeatmap.length > 0 && (
+          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-heatmap">
             <SectionNumber num="04" />
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 12, lineHeight: 1.2 }} data-testid="heading-top-players">
-              What Top Players Are Doing Right
+            <h2
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 26,
+                fontWeight: 700,
+                color: "#fff",
+                marginBottom: 12,
+                lineHeight: 1.2,
+              }}
+              data-testid="heading-heatmap"
+            >
+              Visibility Heatmap
             </h2>
-            <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 32, maxWidth: 560, lineHeight: 1.75 }}>
-              Based on {t.meta.totalQueries} queries, here's what separates the top-ranked brands from everyone else.
+            <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 28, maxWidth: 560, lineHeight: 1.75 }}>
+              {brandName}'s appearance rate by engine and search context. Green = strong. Red = invisible.
             </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {visibleInsights.map((insight, i) => (
+            <div style={{ overflowX: "auto" }}>
+              <div style={{ minWidth: 500 }}>
                 <div
-                  key={i}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: `180px repeat(${Object.keys(t.engineSegmentHeatmap[0]?.engines || {}).length}, 1fr)`,
+                    gap: 0,
+                  }}
+                >
+                  <div style={{ padding: "10px 12px" }} />
+                  {Object.keys(t.engineSegmentHeatmap[0]?.engines || {}).map(eng => (
+                    <div
+                      key={eng}
+                      style={{
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: 10,
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                        color: V.mutedMd,
+                        textAlign: "center",
+                        padding: "10px 8px",
+                      }}
+                    >
+                      {ENGINE_LABELS_MAP[eng] || eng}
+                    </div>
+                  ))}
+                  {t.engineSegmentHeatmap.map((row, ri) => {
+                    const engines = Object.entries(row.engines);
+                    return engines.map(([eng, pct], ci) => (
+                      ci === 0 ? (
+                        <div key={`row-${ri}`} style={{ display: "contents" }}>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: V.text,
+                              padding: "10px 12px",
+                              borderTop: `1px solid ${V.border}`,
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            {row.segmentLabel.length > 28 ? row.segmentLabel.slice(0, 28) + "..." : row.segmentLabel}
+                          </div>
+                          {engines.map(([e, p]) => {
+                            const heatColor = p >= 70 ? V.green : p >= 30 ? V.gold : p > 0 ? V.red : "rgba(255,255,255,0.06)";
+                            const textColor = p >= 70 ? "#fff" : p >= 30 ? "#fff" : p > 0 ? "#fff" : V.muted;
+                            return (
+                              <div
+                                key={e}
+                                style={{
+                                  textAlign: "center",
+                                  padding: "10px 8px",
+                                  borderTop: `1px solid ${V.border}`,
+                                  background: `${heatColor}18`,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontFamily: "'JetBrains Mono', monospace",
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    color: heatColor,
+                                  }}
+                                >
+                                  {p}%
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : null
+                    ));
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 10%, ${V.borderMd} 50%, transparent 90%)` }} />
+
+        {/* 05 · How AI Describes You vs Competitors (moved up) */}
+        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-quote-contrast">
+          <SectionNumber num="05" />
+          <h2
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 26,
+              fontWeight: 700,
+              color: "#fff",
+              marginBottom: 12,
+              lineHeight: 1.2,
+            }}
+            data-testid="heading-quote-contrast"
+          >
+            How AI Describes You vs. Competitors
+          </h2>
+          <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 32, maxWidth: 560, lineHeight: 1.75 }}>
+            AI engines build a "defining sentence" for every brand they recommend.
+            This is the narrative that shapes whether a prospect picks you or someone else.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {visibleQuoteComps.map((comp, i) => (
+              <div
+                key={i}
+                data-stagger
+                style={{
+                  background: V.surface,
+                  border: `1px solid ${V.border}`,
+                  borderRadius: 3,
+                  padding: "28px 32px",
+                }}
+                data-testid={`quote-comp-${i}`}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: V.gold, letterSpacing: "0.12em" }}>
+                    #{comp.rank} COMPETITOR
+                  </span>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: V.textBright }}>{comp.name}</span>
+                </div>
+                <div style={{ fontSize: 14, color: V.text, lineHeight: 1.7, fontStyle: "italic", borderLeft: `2px solid ${V.gold}`, paddingLeft: 16, marginBottom: 8 }}>
+                  {comp.sentence}
+                </div>
+                {comp.engines.length > 0 && (
+                  <div style={{ fontSize: 11, color: V.muted, fontFamily: "'JetBrains Mono', monospace" }}>
+                    Cited by: {comp.engines.join(", ")}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {t.quoteContrast.brand.hasSentence && (
+              <div
+                data-stagger
+                style={{
+                  background: "rgba(201,168,76,0.04)",
+                  border: `1px solid rgba(201,168,76,0.18)`,
+                  borderRadius: 3,
+                  padding: "28px 32px",
+                }}
+                data-testid="quote-brand"
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                  <span style={{ ...S.tag, color: V.gold, borderColor: "rgba(201,168,76,0.3)", background: V.goldDim }}>YOUR BRAND</span>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: V.gold }}>{brandName}</span>
+                </div>
+                <div style={{ fontSize: 14, color: V.text, lineHeight: 1.7, fontStyle: "italic", borderLeft: `2px solid ${V.borderMd}`, paddingLeft: 16 }}>
+                  {t.quoteContrast.brand.sentence}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {lockedQuoteComps.length > 0 && (
+            <div style={{ position: "relative", marginTop: 10 }}>
+              <div style={{ filter: "blur(8px)", pointerEvents: "none", userSelect: "none", opacity: 0.2 }}>
+                {lockedQuoteComps.map((comp, i) => (
+                  <div key={i} style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 3, padding: "28px 32px", marginBottom: 10 }}>
+                    <div style={{ fontSize: 14, color: V.textBright }}>{"\u2588".repeat(10)}</div>
+                    <div style={{ fontSize: 13, color: V.mutedMd, marginTop: 8 }}>{"\u2588".repeat(28)}</div>
+                  </div>
+                ))}
+              </div>
+              <LockedOverlay count={lockedQuoteComps.length} label="more competitor narratives" />
+            </div>
+          )}
+        </div>
+
+        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 10%, ${V.borderMd} 50%, transparent 90%)` }} />
+
+        {/* 06 · Prompt Showdown */}
+        {t.promptShowdown && t.promptShowdown.length > 0 && (
+          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-prompt-showdown">
+            <SectionNumber num="06" />
+            <h2
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 26,
+                fontWeight: 700,
+                color: "#fff",
+                marginBottom: 12,
+                lineHeight: 1.2,
+              }}
+              data-testid="heading-prompt-showdown"
+            >
+              Prompt Showdown
+            </h2>
+            <div style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 11,
+              letterSpacing: "0.08em",
+              color: V.gold,
+              marginBottom: 14,
+              padding: "8px 14px",
+              background: V.goldDim,
+              border: `1px solid rgba(201,168,76,0.18)`,
+              borderRadius: 3,
+              display: "inline-block",
+              fontWeight: 600,
+            }} data-testid="text-total-prompts">
+              {t.meta.totalQueries} PROMPTS TESTED ACROSS {t.engineSplit.length} ENGINES
+            </div>
+            <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 32, maxWidth: 560, lineHeight: 1.75 }}>
+              We tested {t.meta.totalQueries} real prompts across {t.engineSplit.length} AI engines.
+              Here are {t.promptShowdown.length} samples from different search contexts — who wins each one.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {t.promptShowdown.slice(0, 3).map((prompt, pi) => (
+                <div
+                  key={pi}
                   data-stagger
                   style={{
                     background: V.surface,
                     border: `1px solid ${V.border}`,
                     borderRadius: 3,
-                    padding: "28px 32px",
-                    borderLeft: `3px solid ${V.gold}`,
+                    padding: "24px 28px",
                   }}
-                  data-testid={`insight-${i}`}
+                  data-testid={`showdown-${pi}`}
                 >
-                  <div style={{ fontSize: 14, fontWeight: 600, color: V.textBright, marginBottom: 8 }}>
-                    {insight.title}
+                  <div style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 12,
+                    color: V.goldLight,
+                    marginBottom: 16,
+                    lineHeight: 1.5,
+                    borderLeft: `2px solid ${V.gold}`,
+                    paddingLeft: 14,
+                  }}>
+                    "{prompt.promptText}"
                   </div>
-                  <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.7 }}>
-                    {insight.detail}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {prompt.results.map((r, ri) => (
+                      <div
+                        key={ri}
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "90px 1fr 120px",
+                          gap: 12,
+                          alignItems: "center",
+                          padding: "8px 12px",
+                          borderRadius: 2,
+                          background: r.brandFound ? "rgba(201,168,76,0.04)" : "rgba(217,95,95,0.04)",
+                          border: `1px solid ${r.brandFound ? "rgba(201,168,76,0.12)" : "rgba(217,95,95,0.12)"}`,
+                        }}
+                      >
+                        <div style={{
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize: 11,
+                          color: V.mutedMd,
+                          letterSpacing: "0.06em",
+                        }}>
+                          {r.engineLabel}
+                        </div>
+                        <div style={{ fontSize: 12, color: V.text }}>
+                          Top result: <span style={{ color: V.textBright, fontWeight: 500 }}>{r.topResult}</span>
+                        </div>
+                        <div style={{
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize: 11,
+                          textAlign: "right",
+                          color: r.brandFound ? V.gold : V.red,
+                          fontWeight: 500,
+                        }}>
+                          {r.brandFound
+                            ? `${brandName} #${r.brandRank}`
+                            : `Not found`}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{
+                    marginTop: 14,
+                    fontSize: 11,
+                    color: V.muted,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    borderTop: `1px solid ${V.border}`,
+                    paddingTop: 12,
+                  }} data-testid={`repro-${pi}`}>
+                    Try it yourself: paste this exact prompt into ChatGPT, Gemini, or Claude.
                   </div>
                 </div>
               ))}
             </div>
-            {lockedInsights.length > 0 && (
-              <div style={{ position: "relative", marginTop: 12 }}>
-                <div style={{ filter: "blur(8px)", pointerEvents: "none", userSelect: "none", opacity: 0.2 }}>
-                  {lockedInsights.slice(0, 2).map((ins, i) => (
-                    <div key={i} style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 3, padding: "28px 32px", marginBottom: 10, borderLeft: `3px solid ${V.borderMd}` }}>
-                      <div style={{ fontSize: 14, color: V.textBright }}>{"\u2588".repeat(14)}</div>
-                      <div style={{ fontSize: 13, color: V.mutedMd, marginTop: 8 }}>{"\u2588".repeat(30)}</div>
-                    </div>
-                  ))}
-                </div>
-                <LockedOverlay count={lockedInsights.length} label="more insights about what leaders do differently" />
-              </div>
-            )}
+            <div style={{
+              marginTop: 12,
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 10,
+              color: V.muted,
+              letterSpacing: "0.08em",
+            }}>
+              {t.promptShowdown.length} of {t.meta.totalQueries} prompts shown &middot; full audit includes all {t.meta.totalQueries} with rankings
+            </div>
           </div>
         )}
 
-        <Divider />
+        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 10%, ${V.borderMd} 50%, transparent 90%)` }} />
 
-        {/* 06 · Key Actions For You */}
-        {visibleActions.length > 0 && (
-          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-key-actions">
-            <SectionNumber num="05" />
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 12, lineHeight: 1.2 }} data-testid="heading-key-actions">
-              Key Actions For {brandName}
-            </h2>
-            <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 32, maxWidth: 560, lineHeight: 1.75 }}>
-              Prioritized fixes based on your biggest visibility gaps. The full audit includes implementation details for each.
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {visibleActions.map((action, i) => {
-                const ps = priorityStyle(action.priority);
-                return (
+        {/* 07 · Citation Scale + Authority Sources */}
+        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-citation-authority">
+          <SectionNumber num="07" />
+          <h2
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 26,
+              fontWeight: 700,
+              color: "#fff",
+              marginBottom: 12,
+              lineHeight: 1.2,
+            }}
+            data-testid="heading-citations"
+          >
+            Citation & Authority Analysis
+          </h2>
+          <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 28, maxWidth: 560, lineHeight: 1.75 }}>
+            We crawled {t.citationScale?.totalCitationsCrawled || 0} cited pages referenced by AI answers across {t.citationScale?.totalRuns || 0} runs.
+            Here's where {brandName} shows up — and where it doesn't.
+          </p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 32 }}>
+            {[
+              { num: t.citationScale?.totalCitationsCrawled || 0, label: "citations crawled" },
+              { num: t.citationScale?.totalCitationPages || 0, label: "unique domains" },
+              { num: t.authorityGap.domains.length, label: "authority sources tracked" },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                data-stagger
+                style={{
+                  background: V.surface,
+                  border: `1px solid ${V.border}`,
+                  borderRadius: 3,
+                  padding: "22px 20px",
+                  textAlign: "center",
+                }}
+              >
+                <div style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 28,
+                  fontWeight: 700,
+                  color: V.goldLight,
+                  marginBottom: 4,
+                }}>
+                  {stat.num.toLocaleString()}
+                </div>
+                <div style={{ fontSize: 11, color: V.mutedMd, fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.06em" }}>
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {t.authorityGap.domains.length > 0 && (
+            <>
+              <div style={{ ...S.eyebrow, color: V.muted, marginBottom: 14 }}>
+                Top authority sources · {brandName} present on {t.authorityGap.domains.length - t.authorityGap.brandAbsentCount} of {t.authorityGap.domains.length}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: `160px repeat(${authColumnNames.length}, 1fr)`,
+                    gap: 8,
+                    padding: "10px 14px",
+                    borderBottom: `1px solid ${V.border}`,
+                    marginBottom: 4,
+                  }}
+                >
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: V.muted }}>
+                    Source
+                  </div>
+                  {authColumnNames.map((name) => (
+                    <div key={name} style={{
+                      fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase",
+                      color: name === brandName ? V.gold : V.muted, textAlign: "center",
+                    }}>
+                      {name.length > 10 ? name.slice(0, 10) + ".." : name}
+                    </div>
+                  ))}
+                </div>
+                {visibleAuthDomains.map((domain, i) => (
                   <div
                     key={i}
                     data-stagger
                     style={{
-                      background: V.surface,
-                      border: `1px solid ${ps.border}`,
-                      borderRadius: 3,
-                      padding: "28px 32px",
+                      display: "grid",
+                      gridTemplateColumns: `160px repeat(${authColumnNames.length}, 1fr)`,
+                      gap: 8, padding: "12px 14px",
+                      borderBottom: `1px solid ${V.border}`,
+                      background: "rgba(201,168,76,0.03)",
                     }}
-                    data-testid={`action-${i}`}
+                    data-testid={`auth-row-${i}`}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                      <span style={{ ...S.tag, color: ps.color, borderColor: ps.border, background: ps.bg, fontSize: 8, letterSpacing: "0.14em" }}>
-                        {action.priority.toUpperCase()}
-                      </span>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: V.textBright }}>{action.title}</span>
+                    <div>
+                      <div style={{ fontSize: 12, color: V.textBright, fontWeight: 500, marginBottom: 2 }}>{domain.domain}</div>
+                      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: V.muted }}>{domain.tier}</div>
                     </div>
-                    <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.7 }}>
-                      {action.detail}
-                    </div>
+                    {authColumnNames.map((name) => {
+                      const present = domain.presence[name];
+                      return (
+                        <div key={name} style={{ textAlign: "center" }}>
+                          <span style={{ fontSize: 14, color: present ? V.green : V.red, opacity: present ? 1 : 0.5 }}>
+                            {present ? "\u2713" : "\u2717"}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
-            {lockedActions.length > 0 && (
-              <div style={{ position: "relative", marginTop: 10 }}>
-                <div style={{ filter: "blur(8px)", pointerEvents: "none", userSelect: "none", opacity: 0.2 }}>
-                  {lockedActions.slice(0, 3).map((a, i) => (
-                    <div key={i} style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 3, padding: "28px 32px", marginBottom: 10 }}>
-                      <div style={{ fontSize: 14, color: V.textBright }}>{"\u2588".repeat(12)}</div>
-                      <div style={{ fontSize: 13, color: V.mutedMd, marginTop: 8 }}>{"\u2588".repeat(28)}</div>
-                    </div>
-                  ))}
-                </div>
-                <LockedOverlay count={lockedActions.length} label="more prioritized actions with implementation details" />
+                ))}
               </div>
-            )}
-          </div>
-        )}
+              {lockedAuthDomains.length > 0 && (
+                <div style={{ position: "relative", marginTop: 4 }}>
+                  <div style={{ filter: "blur(8px)", pointerEvents: "none", userSelect: "none", opacity: 0.2 }}>
+                    {lockedAuthDomains.slice(0, 3).map((domain, i) => (
+                      <div key={i} style={{
+                        display: "grid",
+                        gridTemplateColumns: `160px repeat(${authColumnNames.length}, 1fr)`,
+                        gap: 8, padding: "12px 14px",
+                        borderBottom: `1px solid ${V.border}`,
+                      }}>
+                        <div style={{ fontSize: 12, color: V.textBright }}>{i === 0 ? domain.domain : "\u2588".repeat(8)}</div>
+                        {authColumnNames.map((name, j) => (
+                          <div key={j} style={{ textAlign: "center", color: V.muted, fontSize: 14 }}>{"\u2588"}</div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                  <LockedOverlay count={lockedAuthDomains.length} label="more authority sources with coverage mapping" />
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
-        <Divider />
+        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 20%, ${V.borderMd} 50%, transparent 80%)` }} />
 
-        {/* 07 · Competitive Ranking */}
         <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-competitive-ranking">
-          <SectionNumber num="06" />
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 12, lineHeight: 1.2 }} data-testid="heading-competitive-ranking">
+          <SectionNumber num="08" />
+          <h2
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 26,
+              fontWeight: 700,
+              color: "#fff",
+              marginBottom: 12,
+              lineHeight: 1.2,
+            }}
+            data-testid="heading-competitive-ranking"
+          >
             Competitive Ranking
           </h2>
           <div style={{ ...S.eyebrow, color: V.muted, marginBottom: 24 }}>
@@ -998,6 +1491,7 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
               const isTop5 = entry.rank <= 5;
               const showName = isBrand || isTop5;
               const showProximity = isBrand && t.proximityNote;
+
               return (
                 <div
                   key={i}
@@ -1015,30 +1509,87 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
                   }}
                   data-testid={`ranking-row-${i}`}
                 >
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: isBrand ? V.gold : V.muted, textAlign: "center" }}>
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 11,
+                      color: isBrand ? V.gold : V.muted,
+                      textAlign: "center",
+                    }}
+                  >
                     #{entry.rank}
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: isBrand ? 600 : 400, color: isBrand ? V.gold : showName ? V.textBright : V.muted }}>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        fontWeight: isBrand ? 600 : 400,
+                        color: isBrand ? V.gold : showName ? V.textBright : V.muted,
+                      }}
+                    >
                       {showName ? entry.name : "\u2588".repeat(6 + (i % 3))}
                       {isBrand && (
-                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, letterSpacing: "0.12em", textTransform: "uppercase", marginLeft: 8, padding: "2px 6px", borderRadius: 2, background: V.goldDim, color: V.gold, border: `1px solid rgba(201,168,76,0.2)` }}>
+                        <span
+                          style={{
+                            fontFamily: "'JetBrains Mono', monospace",
+                            fontSize: 8,
+                            letterSpacing: "0.12em",
+                            textTransform: "uppercase",
+                            marginLeft: 8,
+                            padding: "2px 6px",
+                            borderRadius: 2,
+                            background: V.goldDim,
+                            color: V.gold,
+                            border: `1px solid rgba(201,168,76,0.2)`,
+                          }}
+                        >
                           You
                         </span>
                       )}
                     </div>
                     {showProximity && (
-                      <div style={{ fontSize: 10, color: V.mutedMd, fontFamily: "'JetBrains Mono', monospace", marginTop: 3 }}>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: V.mutedMd,
+                          fontFamily: "'JetBrains Mono', monospace",
+                          marginTop: 3,
+                        }}
+                      >
                         {t.proximityNote}
                       </div>
                     )}
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
-                      <div ref={animBar} data-width={`${entry.share}%`} style={{ height: "100%", borderRadius: 3, background: isBrand ? V.gold : V.borderMd }} />
+                    <div
+                      style={{
+                        flex: 1,
+                        height: 5,
+                        background: "rgba(255,255,255,0.05)",
+                        borderRadius: 3,
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        ref={animBar}
+                        data-width={`${entry.share}%`}
+                        style={{
+                          height: "100%",
+                          borderRadius: 3,
+                          background: isBrand ? V.gold : V.borderMd,
+                        }}
+                      />
                     </div>
                   </div>
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, fontWeight: 500, textAlign: "right", color: isBrand ? V.gold : showName ? V.text : V.muted }}>
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 13,
+                      fontWeight: 500,
+                      textAlign: "right",
+                      color: isBrand ? V.gold : showName ? V.text : V.muted,
+                    }}
+                  >
                     {showName ? `${entry.share}%` : "\u2588\u2588%"}
                   </div>
                 </div>
@@ -1047,398 +1598,261 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
           </div>
         </div>
 
-        <Divider />
 
-        {/* 08 · Quote Contrast */}
-        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-quote-contrast">
-          <SectionNumber num="07" />
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 12, lineHeight: 1.2 }} data-testid="heading-quote-contrast">
-            How AI Describes You vs. Competitors
-          </h2>
-          <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 32, maxWidth: 560, lineHeight: 1.75 }}>
-            AI engines build a "defining sentence" for every brand they recommend.
-            This is the narrative that shapes whether a prospect picks you or someone else.
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {visibleQuoteComps.map((comp, i) => (
-              <div key={i} data-stagger style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 3, padding: "28px 32px" }} data-testid={`quote-comp-${i}`}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: V.gold, letterSpacing: "0.12em" }}>
-                    #{comp.rank} COMPETITOR
-                  </span>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: V.textBright }}>{comp.name}</span>
-                </div>
-                <div style={{ fontSize: 14, color: V.text, lineHeight: 1.7, fontStyle: "italic", borderLeft: `2px solid ${V.gold}`, paddingLeft: 16, marginBottom: 8 }}>
-                  {comp.sentence}
-                </div>
-                {comp.engines.length > 0 && (
-                  <div style={{ fontSize: 11, color: V.muted, fontFamily: "'JetBrains Mono', monospace" }}>
-                    Cited by: {comp.engines.join(", ")}
-                  </div>
-                )}
-              </div>
-            ))}
-            {t.quoteContrast.brand.hasSentence && (
-              <div data-stagger style={{ background: "rgba(201,168,76,0.04)", border: `1px solid rgba(201,168,76,0.18)`, borderRadius: 3, padding: "28px 32px" }} data-testid="quote-brand">
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                  <span style={{ ...S.tag, color: V.gold, borderColor: "rgba(201,168,76,0.3)", background: V.goldDim }}>YOUR BRAND</span>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: V.gold }}>{brandName}</span>
-                </div>
-                <div style={{ fontSize: 14, color: V.text, lineHeight: 1.7, fontStyle: "italic", borderLeft: `2px solid ${V.borderMd}`, paddingLeft: 16 }}>
-                  {t.quoteContrast.brand.sentence}
-                </div>
-              </div>
-            )}
-          </div>
-          {lockedQuoteComps.length > 0 && (
-            <div style={{ position: "relative", marginTop: 10 }}>
-              <div style={{ filter: "blur(8px)", pointerEvents: "none", userSelect: "none", opacity: 0.2 }}>
-                {lockedQuoteComps.map((comp, i) => (
-                  <div key={i} style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 3, padding: "28px 32px", marginBottom: 10 }}>
-                    <div style={{ fontSize: 14, color: V.textBright }}>{"\u2588".repeat(10)}</div>
-                    <div style={{ fontSize: 13, color: V.mutedMd, marginTop: 8 }}>{"\u2588".repeat(28)}</div>
-                  </div>
-                ))}
-              </div>
-              <LockedOverlay count={lockedQuoteComps.length} label="more competitor narratives" />
-            </div>
-          )}
-        </div>
-
-        <Divider />
-
-        {/* 09 · What AI Says (Brand Voice) */}
-        {t.brandVoice.length > 0 && (
-          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-brand-voice">
-            <SectionNumber num="08" />
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 12, lineHeight: 1.2 }} data-testid="heading-brand-voice">
-              What AI Says About {brandName}
-            </h2>
-            <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 32, maxWidth: 560, lineHeight: 1.75 }}>
-              Real excerpts from AI responses. Each engine frames {brandName} differently — some helpful, some damaging.
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {visibleVoice.map((v, i) => (
-                <div
-                  key={i}
-                  data-stagger
-                  style={{
-                    background: V.surface,
-                    border: `1px solid ${v.isStrong ? "rgba(76,175,130,0.20)" : "rgba(217,95,95,0.15)"}`,
-                    borderRadius: 3,
-                    padding: "28px 32px",
-                  }}
-                  data-testid={`voice-card-${i}`}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: V.mutedMd, letterSpacing: "0.08em" }}>
-                      {v.engineLabel}
-                    </span>
-                    <span style={{ ...S.tag, color: v.isStrong ? V.green : V.red, borderColor: v.isStrong ? "rgba(76,175,130,0.3)" : "rgba(217,95,95,0.3)", background: v.isStrong ? V.greenDim : V.redDim }}>
-                      {v.isStrong ? "STRONG" : "WEAK"}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 13, color: V.text, lineHeight: 1.7, fontStyle: "italic", borderLeft: `2px solid ${v.isStrong ? V.green : V.red}`, paddingLeft: 14, marginBottom: 10 }}>
-                    "{v.quote}"
-                  </div>
-                  <div style={{ fontSize: 11, color: V.mutedMd, fontFamily: "'JetBrains Mono', monospace", marginBottom: 6 }}>
-                    Prompt: {v.prompt.length > 80 ? v.prompt.slice(0, 80) + "..." : v.prompt}
-                  </div>
-                  <div style={{ fontSize: 12, color: v.isStrong ? V.green : V.red, lineHeight: 1.6 }}>
-                    {v.problem}
-                  </div>
-                </div>
-              ))}
-            </div>
-            {lockedVoice.length > 0 && (
-              <div style={{ position: "relative", marginTop: 12 }}>
-                <div style={{ filter: "blur(8px)", pointerEvents: "none", userSelect: "none", opacity: 0.2 }}>
-                  {lockedVoice.slice(0, 2).map((v, i) => (
-                    <div key={i} style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 3, padding: "28px 32px", marginBottom: 10 }}>
-                      <div style={{ fontSize: 13, color: V.mutedMd }}>{"\u2588".repeat(20)}</div>
-                      <div style={{ fontSize: 12, color: V.muted, marginTop: 8 }}>{"\u2588".repeat(35)}</div>
-                    </div>
-                  ))}
-                </div>
-                <LockedOverlay count={lockedVoice.length} label="more AI voice samples with analysis" />
-              </div>
-            )}
-          </div>
-        )}
-
-        <Divider />
+        <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, transparent 10%, ${V.borderMd} 50%, transparent 90%)` }} />
 
         {/* 10 · Segments */}
         <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-segments">
           <SectionNumber num="09" />
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 12, lineHeight: 1.2 }} data-testid="heading-customer-type">
+          <h2
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 26,
+              fontWeight: 700,
+              color: "#fff",
+              marginBottom: 12,
+              lineHeight: 1.2,
+            }}
+            data-testid="heading-customer-type"
+          >
             Visibility by Search Context
           </h2>
-          <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 28, maxWidth: 580, lineHeight: 1.75 }}>
-            How {brandName} performs across {t.segmentBreakdown.length} search contexts — who beats you, by how much, and where you're closest to breaking through.
+          <div style={{ ...S.eyebrow, color: V.muted, marginBottom: 24 }}>
+            How AI ranks you across different queries
+          </div>
+          <p
+            style={{
+              fontSize: 14,
+              color: V.mutedMd,
+              marginBottom: 28,
+              maxWidth: 580,
+              lineHeight: 1.75,
+            }}
+          >
+            Overall rank is a blunt instrument. Here's how {brandName} performs when AI is asked
+            about different service types and customer personas — SEO agency, performance marketing,
+            enterprise clients, ecommerce, financial services, and more. Who beats you, by how much,
+            and where you're closest to breaking through.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "190px 48px 1fr 100px 130px", gap: 14, alignItems: "center", padding: "13px 18px", borderBottom: `1px solid ${V.border}`, paddingBottom: 10, marginBottom: 4 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "190px 48px 1fr 100px 130px",
+                gap: 14,
+                alignItems: "center",
+                padding: "13px 18px",
+                borderBottom: `1px solid ${V.border}`,
+                paddingBottom: 10,
+                marginBottom: 4,
+              }}
+            >
               {["Search Context", "Rank", "Visibility", "Score", "Gap to #1"].map((h, i) => (
-                <div key={h} style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: V.muted, textAlign: i >= 3 ? "right" : i === 1 ? "center" : "left" }}>
+                <div
+                  key={h}
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 9,
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    color: V.muted,
+                    textAlign: i >= 3 ? "right" : i === 1 ? "center" : "left",
+                  }}
+                >
                   {h}
                 </div>
               ))}
             </div>
+
             {visibleSegments.map((seg, i) => {
               const c = segColor(seg.brandVisibility);
               return (
-                <div key={i} data-stagger style={{ display: "grid", gridTemplateColumns: "190px 48px 1fr 100px 130px", gap: 14, alignItems: "center", padding: "15px 18px", borderRadius: 2, border: "1px solid rgba(201,168,76,0.15)", background: "rgba(201,168,76,0.05)", marginBottom: 3 }} data-testid={`segment-row-${i}`}>
+                <div
+                  key={i}
+                  data-stagger
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "190px 48px 1fr 100px 130px",
+                    gap: 14,
+                    alignItems: "center",
+                    padding: "15px 18px",
+                    borderRadius: 2,
+                    border: "1px solid rgba(201,168,76,0.15)",
+                    background: "rgba(201,168,76,0.05)",
+                    marginBottom: 3,
+                  }}
+                  data-testid={`segment-row-${i}`}
+                >
                   <div style={{ fontSize: 12.5, color: V.gold, fontWeight: 500 }}>
                     {seg.label}
-                    <span style={{ display: "inline-block", fontFamily: "'JetBrains Mono', monospace", fontSize: 8, letterSpacing: "0.1em", textTransform: "uppercase", padding: "2px 6px", borderRadius: 2, marginLeft: 6, verticalAlign: "middle", ...oppBadgeStyle(seg.opportunity) }}>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: 8,
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase",
+                        padding: "2px 6px",
+                        borderRadius: 2,
+                        marginLeft: 6,
+                        verticalAlign: "middle",
+                        ...oppBadgeStyle(seg.opportunity),
+                      }}
+                    >
                       {oppLabel(seg.opportunity)}
                     </span>
                   </div>
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, fontWeight: 500, textAlign: "center", color: c }}>
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 13,
+                      fontWeight: 500,
+                      textAlign: "center",
+                      color: c,
+                    }}
+                  >
                     #{seg.brandRank}
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{ flex: 1, height: 3, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
-                      <div ref={animBar} data-width={`${seg.brandVisibility}%`} style={{ height: "100%", borderRadius: 2, background: c }} />
+                    <div
+                      style={{
+                        flex: 1,
+                        height: 3,
+                        background: "rgba(255,255,255,0.05)",
+                        borderRadius: 2,
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        ref={animBar}
+                        data-width={`${seg.brandVisibility}%`}
+                        style={{
+                          height: "100%",
+                          borderRadius: 2,
+                          background: c,
+                        }}
+                      />
                     </div>
                   </div>
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: V.mutedMd, whiteSpace: "nowrap", textAlign: "right" }}>
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 12,
+                      color: V.mutedMd,
+                      whiteSpace: "nowrap",
+                      textAlign: "right",
+                    }}
+                  >
                     {seg.brandVisibility}%
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", whiteSpace: "nowrap", color: seg.gapPoints <= 15 ? V.gold : V.mutedMd }}>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontFamily: "'JetBrains Mono', monospace",
+                        whiteSpace: "nowrap",
+                        color: seg.gapPoints <= 15 ? V.gold : V.mutedMd,
+                      }}
+                    >
                       -{seg.gapPoints}pts
                     </div>
-                    <div style={{ fontSize: 10, color: V.muted, marginTop: 2, whiteSpace: "nowrap" }}>
+                    <div
+                      style={{ fontSize: 10, color: V.muted, marginTop: 2, whiteSpace: "nowrap" }}
+                    >
                       {seg.leaderName} {seg.leaderScore}%
                     </div>
                   </div>
                 </div>
               );
             })}
+
             {lockedSegments.length > 0 && (
               <div style={{ position: "relative", marginTop: 3 }}>
-                <div style={{ filter: "blur(8px)", pointerEvents: "none", userSelect: "none", opacity: 0.2 }}>
+                <div
+                  style={{
+                    filter: "blur(8px)",
+                    pointerEvents: "none",
+                    userSelect: "none",
+                    opacity: 0.2,
+                  }}
+                >
                   {lockedSegments.slice(0, 3).map((seg, i) => (
-                    <div key={i} style={{ display: "grid", gridTemplateColumns: "190px 48px 1fr 100px 130px", gap: 14, alignItems: "center", padding: "15px 18px", borderRadius: 2, border: "1px solid rgba(201,168,76,0.15)", background: "rgba(201,168,76,0.05)", marginBottom: 3 }}>
-                      <div style={{ fontSize: 12.5, color: V.gold, fontWeight: 500 }}>{"\u2588".repeat(8)}</div>
-                      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, fontWeight: 500, textAlign: "center", color: V.gold }}>#{"\u2588"}</div>
+                    <div
+                      key={i}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "190px 48px 1fr 100px 130px",
+                        gap: 14,
+                        alignItems: "center",
+                        padding: "15px 18px",
+                        borderRadius: 2,
+                        border: "1px solid rgba(201,168,76,0.15)",
+                        background: "rgba(201,168,76,0.05)",
+                        marginBottom: 3,
+                      }}
+                    >
+                      <div style={{ fontSize: 12.5, color: V.gold, fontWeight: 500 }}>
+                        {i === 0 ? seg.label : "\u2588".repeat(8)}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize: 13,
+                          fontWeight: 500,
+                          textAlign: "center",
+                          color: V.gold,
+                        }}
+                      >
+                        #{i === 0 ? seg.brandRank : "\u2588"}
+                      </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <div style={{ flex: 1, height: 3, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
-                          <div style={{ width: `${30 - i * 5}%`, height: "100%", background: V.muted, borderRadius: 2 }} />
+                        <div
+                          style={{
+                            flex: 1,
+                            height: 3,
+                            background: "rgba(255,255,255,0.05)",
+                            borderRadius: 2,
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${i === 0 ? seg.brandVisibility : 30 - i * 5}%`,
+                              height: "100%",
+                              background: V.muted,
+                              borderRadius: 2,
+                            }}
+                          />
                         </div>
                       </div>
-                      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: V.mutedMd }}>{"\u2588\u2588%"}</div>
+                      <div
+                        style={{
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize: 12,
+                          color: V.mutedMd,
+                        }}
+                      >
+                        {i === 0 ? `${seg.brandVisibility}%` : "\u2588\u2588%"}
+                      </div>
                       <div style={{ textAlign: "right" }}>
-                        <div style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }}>{`-\u2588\u2588pts`}</div>
-                        <div style={{ fontSize: 10, color: V.muted, marginTop: 2 }}>{`\u2588\u2588\u2588\u2588\u2588 \u2588\u2588%`}</div>
+                        <div style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }}>
+                          {i === 0 ? `-${seg.gapPoints}pts` : `-\u2588\u2588pts`}
+                        </div>
+                        <div style={{ fontSize: 10, color: V.muted, marginTop: 2 }}>
+                          {i === 0 ? `${seg.leaderName} ${seg.leaderScore}%` : `\u2588\u2588\u2588\u2588\u2588 \u2588\u2588%`}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
-                <LockedOverlay count={lockedSegments.length} label="more search contexts with ranks, scores & gap analysis" />
+                <LockedOverlay count={lockedSegments.length} label="more search contexts · ranks, scores & gap analysis" />
               </div>
             )}
           </div>
         </div>
 
-        <Divider />
 
-        {/* 11 · Authority Gap */}
-        {t.authorityGap.domains.length > 0 && (
-          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-authority-gap">
-            <SectionNumber num="10" />
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 12, lineHeight: 1.2 }} data-testid="heading-authority">
-              Authority Source Mapping
-            </h2>
-            <div style={{ ...S.eyebrow, color: V.muted, marginBottom: 14 }}>
-              {t.authorityGap.brandAbsentCount > 0
-                ? `${brandName} present on ${t.authorityGap.domains.length - t.authorityGap.brandAbsentCount} of ${t.authorityGap.domains.length} authority sources`
-                : `${brandName} present on all ${t.authorityGap.domains.length} authority sources`}
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-              <div style={{ display: "grid", gridTemplateColumns: `160px repeat(${authColumnNames.length}, 1fr)`, gap: 8, padding: "10px 14px", borderBottom: `1px solid ${V.border}`, marginBottom: 4 }}>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: V.muted }}>Source</div>
-                {authColumnNames.map((name) => (
-                  <div key={name} style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: name === brandName ? V.gold : V.muted, textAlign: "center" }}>
-                    {name.length > 10 ? name.slice(0, 10) + ".." : name}
-                  </div>
-                ))}
-              </div>
-              {visibleAuthDomains.map((domain, i) => (
-                <div key={i} data-stagger style={{ display: "grid", gridTemplateColumns: `160px repeat(${authColumnNames.length}, 1fr)`, gap: 8, padding: "12px 14px", borderBottom: `1px solid ${V.border}`, background: "rgba(201,168,76,0.03)" }} data-testid={`auth-row-${i}`}>
-                  <div>
-                    <div style={{ fontSize: 12, color: V.textBright, fontWeight: 500, marginBottom: 2 }}>{domain.domain}</div>
-                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: V.muted }}>{domain.tier}</div>
-                  </div>
-                  {authColumnNames.map((name) => {
-                    const present = domain.presence[name];
-                    return (
-                      <div key={name} style={{ textAlign: "center" }}>
-                        <span style={{ fontSize: 14, color: present ? V.green : V.red, opacity: present ? 1 : 0.5 }}>
-                          {present ? "\u2713" : "\u2717"}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-            {lockedAuthDomains.length > 0 && (
-              <div style={{ position: "relative", marginTop: 4 }}>
-                <div style={{ filter: "blur(8px)", pointerEvents: "none", userSelect: "none", opacity: 0.2 }}>
-                  {lockedAuthDomains.slice(0, 3).map((domain, i) => (
-                    <div key={i} style={{ display: "grid", gridTemplateColumns: `160px repeat(${authColumnNames.length}, 1fr)`, gap: 8, padding: "12px 14px", borderBottom: `1px solid ${V.border}` }}>
-                      <div style={{ fontSize: 12, color: V.textBright }}>{"\u2588".repeat(8)}</div>
-                      {authColumnNames.map((name, j) => (
-                        <div key={j} style={{ textAlign: "center", color: V.muted, fontSize: 14 }}>{"\u2588"}</div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-                <LockedOverlay count={lockedAuthDomains.length} label="more authority sources with coverage mapping" />
-              </div>
-            )}
-          </div>
-        )}
-
-        <Divider />
-
-        {/* 12 · Prompts */}
-        {(t.promptShowdown || []).length > 0 && (
-          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-prompt-showdown">
-            <SectionNumber num="11" />
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 12, lineHeight: 1.2 }} data-testid="heading-prompt-showdown">
-              Prompt Showdown
-            </h2>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, letterSpacing: "0.08em", color: V.gold, marginBottom: 14, padding: "8px 14px", background: V.goldDim, border: `1px solid rgba(201,168,76,0.18)`, borderRadius: 3, display: "inline-block", fontWeight: 600 }} data-testid="text-total-prompts">
-              {t.meta.totalQueries} PROMPTS TESTED ACROSS {t.engineSplit.length} ENGINES
-            </div>
-            <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 32, maxWidth: 560, lineHeight: 1.75 }}>
-              We tested {t.meta.totalQueries} real prompts. Here's 1 sample — the full audit includes every prompt with engine-by-engine results.
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {visiblePromptShowdown.map((prompt, pi) => (
-                <div key={pi} data-stagger style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 3, padding: "24px 28px" }} data-testid={`showdown-${pi}`}>
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: V.goldLight, marginBottom: 16, lineHeight: 1.5, borderLeft: `2px solid ${V.gold}`, paddingLeft: 14 }}>
-                    "{prompt.promptText}"
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    {prompt.results.map((r, ri) => (
-                      <div key={ri} style={{ display: "grid", gridTemplateColumns: "90px 1fr 120px", gap: 12, alignItems: "center", padding: "8px 12px", borderRadius: 2, background: r.brandFound ? "rgba(201,168,76,0.04)" : "rgba(217,95,95,0.04)", border: `1px solid ${r.brandFound ? "rgba(201,168,76,0.12)" : "rgba(217,95,95,0.12)"}` }}>
-                        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: V.mutedMd, letterSpacing: "0.06em" }}>
-                          {r.engineLabel}
-                        </div>
-                        <div style={{ fontSize: 12, color: V.text }}>
-                          Top result: <span style={{ color: V.textBright, fontWeight: 500 }}>{r.topResult}</span>
-                        </div>
-                        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, textAlign: "right", color: r.brandFound ? V.gold : V.red, fontWeight: 500 }}>
-                          {r.brandFound ? `${brandName} #${r.brandRank}` : `Not found`}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-            {lockedPromptShowdown.length > 0 && (
-              <div style={{ position: "relative", marginTop: 14 }}>
-                <div style={{ filter: "blur(8px)", pointerEvents: "none", userSelect: "none", opacity: 0.2 }}>
-                  {lockedPromptShowdown.slice(0, 2).map((p, i) => (
-                    <div key={i} style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 3, padding: "24px 28px", marginBottom: 10 }}>
-                      <div style={{ fontSize: 12, color: V.goldLight }}>{"\u2588".repeat(25)}</div>
-                      <div style={{ fontSize: 11, color: V.muted, marginTop: 10 }}>{"\u2588".repeat(18)}</div>
-                    </div>
-                  ))}
-                </div>
-                <LockedOverlay count={t.meta.totalQueries - 1} label={`more prompts with full engine-by-engine results`} />
-              </div>
-            )}
-            <div style={{ marginTop: 18, fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: V.mutedMd, letterSpacing: "0.06em", lineHeight: 1.8 }}>
-              <div>Try it yourself: paste the prompt above into ChatGPT, Gemini, or Claude.</div>
-              <div style={{ marginTop: 8, color: V.muted, fontSize: 9 }}>AI outputs vary by time and location. These results are from standardized runs in {t.promptShowdown[0]?.dateLabel || "March 2026"}.</div>
-            </div>
-          </div>
-        )}
-
-        <Divider />
-
-        {/* 13 · Social */}
-        {socialCount > 0 && (
-          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-social">
-            <SectionNumber num="12" />
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 12, lineHeight: 1.2 }} data-testid="heading-social">
-              Social & Forum Presence
-            </h2>
-            <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 24, maxWidth: 560, lineHeight: 1.75 }}>
-              AI engines cite social threads and forum discussions when recommending brands.
-              We found {socialCount} relevant threads across Reddit, Quora, and other platforms.
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-              <div data-stagger style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 3, padding: "22px 20px", textAlign: "center" }}>
-                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: V.goldLight, marginBottom: 4 }}>
-                  {socialCount}
-                </div>
-                <div style={{ fontSize: 11, color: V.mutedMd, fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.06em" }}>
-                  threads found
-                </div>
-              </div>
-              <div data-stagger style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 3, padding: "22px 20px", textAlign: "center" }}>
-                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: V.goldLight, marginBottom: 4 }}>
-                  {t.socialThreads.filter(s => s.brandMentioned).length}
-                </div>
-                <div style={{ fontSize: 11, color: V.mutedMd, fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.06em" }}>
-                  mention {brandName}
-                </div>
-              </div>
-            </div>
-            <div style={{ position: "relative" }}>
-              <div style={{ filter: "blur(8px)", pointerEvents: "none", userSelect: "none", opacity: 0.2 }}>
-                {t.socialThreads.slice(0, 3).map((thread, i) => (
-                  <div key={i} style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 3, padding: "18px 22px", marginBottom: 8 }}>
-                    <div style={{ fontSize: 12, color: V.textBright }}>{"\u2588".repeat(16)}</div>
-                    <div style={{ fontSize: 10, color: V.muted, marginTop: 6 }}>{"\u2588".repeat(10)}</div>
-                  </div>
-                ))}
-              </div>
-              <LockedOverlay count={socialCount} label="social threads with competitor mentions and platform breakdown" />
-            </div>
-          </div>
-        )}
-
-        <Divider />
-
-        {/* 14 · Citation Footprint */}
-        <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-citation-footprint">
-          <SectionNumber num="13" />
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 12, lineHeight: 1.2 }} data-testid="heading-citation-footprint">
-            Citation Footprint
-          </h2>
-          <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 28, maxWidth: 560, lineHeight: 1.75 }}>
-            We extracted {t.citationScale?.totalCitationsCrawled || 0} citations from AI answers across {t.citationScale?.totalRuns || 0} runs.
-          </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-            {[
-              { num: t.citationFootprint.brandSources, label: `${brandName} sources cited` },
-              { num: t.citationFootprint.leaderSources, label: `${t.citationFootprint.leaderName} sources cited` },
-              { num: t.citationFootprint.thirdPartyDomains, label: "third-party domains" },
-            ].map((stat, i) => (
-              <div key={i} data-stagger style={{ background: V.surface, border: `1px solid ${V.border}`, borderRadius: 3, padding: "22px 20px", textAlign: "center" }}>
-                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: V.goldLight, marginBottom: 4 }}>
-                  {stat.num.toLocaleString()}
-                </div>
-                <div style={{ fontSize: 11, color: V.mutedMd, fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.06em" }}>
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <Divider />
-
-        {/* 15 · CTA */}
+        {/* CTA — See full analysis (blocks the rest of the report) */}
         <div
           ref={reveal}
           style={{
@@ -1450,24 +1864,51 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
             background: V.surface,
             position: "relative",
             overflow: "hidden",
-            marginTop: 20,
+            marginTop: 60,
             boxShadow: "0 0 60px rgba(201,168,76,0.04)",
           }}
           data-testid="section-cta"
         >
-          <SectionNumber num="" />
-          <div style={{ position: "absolute", bottom: -80, left: "50%", transform: "translateX(-50%)", width: 400, height: 400, background: "radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 65%)", pointerEvents: "none" }} />
+          <div
+            style={{
+              position: "absolute",
+              bottom: -80,
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: 400,
+              height: 400,
+              background:
+                "radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 65%)",
+              pointerEvents: "none",
+            }}
+          />
 
           {!showSurvey && !surveySubmitted && (
             <>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: "#fff", lineHeight: 1.25, marginBottom: 18 }}>
+              <h2
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 30,
+                  fontWeight: 700,
+                  color: "#fff",
+                  lineHeight: 1.25,
+                  marginBottom: 18,
+                }}
+              >
                 Win AI recommendations
               </h2>
-              <p style={{ fontSize: 15, color: V.text, maxWidth: 480, margin: "0 auto 40px", lineHeight: 1.75 }}>
-                This preview is a snapshot. The full audit includes all {t.meta.totalQueries} prompts, engine-by-engine
+              <p
+                style={{
+                  fontSize: 15,
+                  color: V.text,
+                  maxWidth: 480,
+                  margin: "0 auto 40px",
+                  lineHeight: 1.75,
+                }}
+              >
+                This preview is a snapshot. The full audit includes the full prompt set, engine-by-engine
                 transcripts, segment breakdowns, competitor narrative analysis, an authority roadmap,
-                and a prioritized fix plan to increase Top-3 recommendations
-                {t.engineSplit.some(e => e.appearanceRate === 0) && ` and eliminate the ${t.engineSplit.filter(e => e.appearanceRate === 0).map(e => e.label).join("/")} 0% gap`}.
+                and a prioritized fix plan to improve what AI says about {brandName}.
               </p>
               <button
                 onClick={() => setShowSurvey(true)}
@@ -1498,12 +1939,31 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
 
           {showSurvey && !surveySubmitted && (
             <div style={{ textAlign: "left", maxWidth: 520, margin: "0 auto" }} data-testid="section-survey">
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 8, lineHeight: 1.2 }} data-testid="heading-survey">
+              <h2
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 26,
+                  fontWeight: 700,
+                  color: "#fff",
+                  marginBottom: 8,
+                  lineHeight: 1.2,
+                }}
+                data-testid="heading-survey"
+              >
                 Anything else I can help with?
               </h2>
-              <p style={{ fontSize: 13, color: V.mutedMd, marginBottom: 32, maxWidth: 480, lineHeight: 1.7 }}>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: V.mutedMd,
+                  marginBottom: 32,
+                  maxWidth: 480,
+                  lineHeight: 1.7,
+                }}
+              >
                 Select any that apply — we'll follow up with relevant information.
               </p>
+
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
                 {[
                   { val: "regular_report", label: "I want this report regularly" },
@@ -1516,21 +1976,62 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
                     <div
                       key={opt.val}
                       onClick={() => toggleInterest(opt.val)}
-                      style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 20px", borderRadius: 3, border: `1px solid ${selected ? "rgba(201,168,76,0.35)" : V.border}`, background: selected ? "rgba(201,168,76,0.06)" : "transparent", cursor: "pointer", transition: "all 0.2s ease" }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 14,
+                        padding: "16px 20px",
+                        borderRadius: 3,
+                        border: `1px solid ${selected ? "rgba(201,168,76,0.35)" : V.border}`,
+                        background: selected ? "rgba(201,168,76,0.06)" : "transparent",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
                       data-testid={`survey-option-${opt.val}`}
                     >
-                      <div style={{ width: 18, height: 18, borderRadius: 3, border: `1.5px solid ${selected ? V.gold : V.borderMd}`, background: selected ? V.gold : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.2s ease" }}>
-                        {selected && <span style={{ color: V.bg, fontSize: 12, fontWeight: 700, lineHeight: 1 }}>&#10003;</span>}
+                      <div
+                        style={{
+                          width: 18,
+                          height: 18,
+                          borderRadius: 3,
+                          border: `1.5px solid ${selected ? V.gold : V.borderMd}`,
+                          background: selected ? V.gold : "transparent",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        {selected && (
+                          <span style={{ color: V.bg, fontSize: 12, fontWeight: 700, lineHeight: 1 }}>&#10003;</span>
+                        )}
                       </div>
-                      <span style={{ fontSize: 14, color: selected ? V.goldLight : V.text, fontWeight: selected ? 500 : 300 }}>
+                      <span
+                        style={{
+                          fontSize: 14,
+                          color: selected ? V.goldLight : V.text,
+                          fontWeight: selected ? 500 : 300,
+                        }}
+                      >
                         {opt.label}
                       </span>
                     </div>
                   );
                 })}
               </div>
+
               <div style={{ marginBottom: 28 }}>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: "0.15em", textTransform: "uppercase", color: V.muted, marginBottom: 10 }}>
+                <div
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 9,
+                    letterSpacing: "0.15em",
+                    textTransform: "uppercase",
+                    color: V.muted,
+                    marginBottom: 10,
+                  }}
+                >
                   Comments (optional)
                 </div>
                 <textarea
@@ -1538,14 +2039,43 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
                   onChange={(e) => setSurveyComments(e.target.value)}
                   placeholder="Anything specific you'd like us to know..."
                   rows={3}
-                  style={{ width: "100%", background: V.bg, border: `1px solid ${V.border}`, borderRadius: 3, padding: "14px 16px", color: V.text, fontSize: 13, fontFamily: "'DM Sans', sans-serif", lineHeight: 1.6, resize: "vertical", outline: "none", boxSizing: "border-box" }}
+                  style={{
+                    width: "100%",
+                    background: V.bg,
+                    border: `1px solid ${V.border}`,
+                    borderRadius: 3,
+                    padding: "14px 16px",
+                    color: V.text,
+                    fontSize: 13,
+                    fontFamily: "'DM Sans', sans-serif",
+                    lineHeight: 1.6,
+                    resize: "vertical",
+                    outline: "none",
+                    boxSizing: "border-box",
+                  }}
                   data-testid="input-survey-comments"
                 />
               </div>
+
               <button
                 onClick={submitSurvey}
                 disabled={selectedInterests.length === 0 || surveySubmitting}
-                style={{ display: "inline-block", background: selectedInterests.length > 0 ? V.gold : V.borderMd, color: selectedInterests.length > 0 ? V.bg : V.muted, fontFamily: "'JetBrains Mono', monospace", fontSize: 11, fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 36px", borderRadius: 2, cursor: selectedInterests.length > 0 ? "pointer" : "default", border: "none", opacity: surveySubmitting ? 0.6 : 1, transition: "all 0.2s ease" }}
+                style={{
+                  display: "inline-block",
+                  background: selectedInterests.length > 0 ? V.gold : V.borderMd,
+                  color: selectedInterests.length > 0 ? V.bg : V.muted,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 11,
+                  fontWeight: 500,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  padding: "14px 36px",
+                  borderRadius: 2,
+                  cursor: selectedInterests.length > 0 ? "pointer" : "default",
+                  border: "none",
+                  opacity: surveySubmitting ? 0.6 : 1,
+                  transition: "all 0.2s ease",
+                }}
                 data-testid="button-survey-submit"
               >
                 {surveySubmitting ? "Submitting..." : "Submit"}
@@ -1554,9 +2084,23 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
           )}
 
           {surveySubmitted && (
-            <div style={{ textAlign: "center", padding: "40px 0" }} data-testid="survey-success">
+            <div
+              style={{
+                textAlign: "center",
+                padding: "40px 0",
+              }}
+              data-testid="survey-success"
+            >
               <div style={{ fontSize: 28, marginBottom: 12 }}>&#10003;</div>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 8 }}>
+              <div
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: "#fff",
+                  marginBottom: 8,
+                }}
+              >
                 Thank you!
               </div>
               <div style={{ fontSize: 13, color: V.mutedMd }}>
@@ -1564,13 +2108,6 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
               </div>
             </div>
           )}
-        </div>
-
-        <div style={{ textAlign: "center", marginTop: 60, paddingBottom: 40 }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: V.muted, letterSpacing: "0.12em", lineHeight: 1.8 }}>
-            AI outputs vary by time and location. Results from standardized runs in {t.meta.date}.<br />
-            {t.meta.totalQueries} prompts · {t.engineSplit.length} engines · {t.segmentBreakdown.length + (lockedSegments?.length || 0)} search contexts
-          </div>
         </div>
       </div>
     </div>
