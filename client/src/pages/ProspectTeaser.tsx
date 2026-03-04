@@ -593,8 +593,8 @@ export default function ProspectTeaser() {
   const visibleVoice = t.brandVoice.slice(0, 1);
   const lockedVoice = t.brandVoice.slice(1);
 
-  const visibleSegments = t.segmentBreakdown.slice(0, 1);
-  const lockedSegments = t.segmentBreakdown.slice(1);
+  const visibleSegments = t.segmentBreakdown.slice(0, 4);
+  const lockedSegments = t.segmentBreakdown.slice(4);
 
   const visibleAuthDomains = t.authorityGap.domains.slice(0, 1);
   const lockedAuthDomains = t.authorityGap.domains.slice(1);
@@ -1267,8 +1267,8 @@ export default function ProspectTeaser() {
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
             {t.competitiveRanking.map((entry, i) => {
               const isBrand = entry.isBrand;
-              const isTopBrand = entry.rank === 1;
-              const showName = isBrand || isTopBrand;
+              const isTop5 = entry.rank <= 5;
+              const showName = isBrand || isTop5;
               const showProximity = isBrand && t.proximityNote;
 
               return (
