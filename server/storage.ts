@@ -54,6 +54,7 @@ export interface IStorage {
     createdAt: Date;
   } | undefined>;
   updateCachedReport(sessionId: number, report: any): Promise<void>;
+  deleteMultiSegmentSession(id: number): Promise<void>;
   getReportCache(cacheKey: string): Promise<any | null>;
   setReportCache(cacheKey: string, data: any): Promise<void>;
 }
@@ -202,6 +203,10 @@ export class DatabaseStorage implements IStorage {
       .update(multiSegmentSessions)
       .set({ citationReport: report, cachedReport: null })
       .where(eq(multiSegmentSessions.id, sessionId));
+  }
+
+  async deleteMultiSegmentSession(id: number): Promise<void> {
+    await db.delete(multiSegmentSessions).where(eq(multiSegmentSessions.id, id));
   }
 
   async createV2Config(config: InsertSavedV2Config): Promise<SavedV2Config> {

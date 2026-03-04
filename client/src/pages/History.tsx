@@ -1,16 +1,37 @@
+import { useState } from "react";
 import { useHistory, useScoringHistory, useMultiSegmentSessions, useV2SegmentGroups } from "@/hooks/use-analysis";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { ArrowLeft, Calendar, Zap, Search, BarChart3, Users } from "lucide-react";
+import { ArrowLeft, Calendar, Zap, Search, BarChart3, Users, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 export default function HistoryPage() {
   const { data: history, isLoading: historyLoading } = useHistory();
   const { data: scoringHistory, isLoading: scoringLoading } = useScoringHistory();
   const { data: v2Sessions, isLoading: v2Loading } = useMultiSegmentSessions();
   const { data: v2Groups, isLoading: v2GroupsLoading } = useV2SegmentGroups();
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const { toast } = useToast();
+
+  const handleDeleteSession = async (id: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (deletingId) return;
+    setDeletingId(id);
+    try {
+      await apiRequest("DELETE", `/api/multisegment/sessions/${id}`);
+      queryClient.invalidateQueries({ queryKey: ["/api/multisegment/sessions"] });
+      toast({ title: "Session deleted" });
+    } catch {
+      toast({ title: "Failed to delete session", variant: "destructive" });
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const isLoading = historyLoading || scoringLoading || v2Loading || v2GroupsLoading;
 
@@ -196,6 +217,16 @@ export default function HistoryPage() {
                         <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Scored</div>
                         <div className="text-lg font-semibold tabular-nums">{scored}/{segCount}</div>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                        onClick={(e) => handleDeleteSession(d.id, e)}
+                        disabled={deletingId === d.id}
+                        data-testid={`button-delete-v2-${d.id}`}
+                      >
+                        <Trash2 className={`w-3.5 h-3.5 ${deletingId === d.id ? "animate-pulse" : ""}`} />
+                      </Button>
                     </div>
                   </div>
                   </Link>

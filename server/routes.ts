@@ -801,6 +801,21 @@ export async function registerRoutes(
     }
   });
 
+  app.delete("/api/multisegment/sessions/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid session ID" });
+        return;
+      }
+      await storage.deleteMultiSegmentSession(id);
+      res.status(204).end();
+    } catch (err) {
+      console.error("Error deleting multi-segment session:", err);
+      res.status(500).json({ message: "Failed to delete session" });
+    }
+  });
+
   app.delete("/api/v2configs/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
