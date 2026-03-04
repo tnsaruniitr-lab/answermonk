@@ -4,11 +4,11 @@ import * as crypto from "crypto";
 
 const FETCH_TIMEOUT = 8000;
 const BROWSER_TIMEOUT = 10000;
-const MAX_HTML_SIZE = 500000;
+const MAX_HTML_SIZE = 200000;
 const MIN_TEXT_LENGTH = 200;
 const MAX_CONCURRENT = 20;
 const LARGE_CRAWL_THRESHOLD = 200;
-const LARGE_CRAWL_CONCURRENT = 8;
+const LARGE_CRAWL_CONCURRENT = 5;
 
 export interface CrawledPage {
   url: string;
