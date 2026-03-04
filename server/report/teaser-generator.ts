@@ -195,9 +195,16 @@ function cleanLeadingArtifacts(text: string): string {
 
 function buildSegmentLabel(seg: SegmentData): string {
   const parts: string[] = [];
-  if (seg.persona) parts.push(seg.persona.replace(/_/g, " "));
-  if (seg.customerType) parts.push(`for ${seg.customerType}`);
-  if (seg.location) parts.push(`in ${seg.location}`);
+  if (seg.persona) {
+    const persona = seg.persona.replace(/_/g, " ");
+    parts.push(persona.charAt(0).toUpperCase() + persona.slice(1));
+  }
+  if (seg.customerType) {
+    parts.push(parts.length > 0 ? `· ${seg.customerType}` : seg.customerType);
+  }
+  if (seg.location) {
+    parts.push(parts.length > 0 ? `· ${seg.location}` : seg.location);
+  }
   return parts.join(" ") || "General";
 }
 

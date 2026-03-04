@@ -1389,10 +1389,10 @@ export default function ProspectTeaser() {
             }}
             data-testid="heading-customer-type"
           >
-            Customer Type Analysis
+            Visibility by Search Context
           </h2>
           <div style={{ ...S.eyebrow, color: V.muted, marginBottom: 24 }}>
-            Where you rank by segment
+            How AI ranks you across different queries
           </div>
           <p
             style={{
@@ -1403,9 +1403,10 @@ export default function ProspectTeaser() {
               lineHeight: 1.75,
             }}
           >
-            Overall rank is a blunt instrument. Here's where {brandName} actually stands inside
-            each customer segment — who's beating you, by how much, and which segments are closest
-            to a top-3 position.
+            Overall rank is a blunt instrument. Here's how {brandName} performs when AI is asked
+            about different service types and customer personas — SEO agency, performance marketing,
+            enterprise clients, ecommerce, financial services, and more. Who beats you, by how much,
+            and where you're closest to breaking through.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
             <div
@@ -1420,7 +1421,7 @@ export default function ProspectTeaser() {
                 marginBottom: 4,
               }}
             >
-              {["Segment", "Rank", "Visibility", "Score", "Gap to #1"].map((h, i) => (
+              {["Search Context", "Rank", "Visibility", "Score", "Gap to #1"].map((h, i) => (
                 <div
                   key={h}
                   style={{
@@ -1618,7 +1619,7 @@ export default function ProspectTeaser() {
                     </div>
                   ))}
                 </div>
-                <LockedOverlay count={lockedSegments.length} label="more segments · ranks, scores & gap analysis" />
+                <LockedOverlay count={lockedSegments.length} label="more search contexts · ranks, scores & gap analysis" />
               </div>
             )}
           </div>
