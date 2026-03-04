@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useRoute, Link } from "wouter";
+import { useRoute, Link, useLocation } from "wouter";
 import { useMultiSegmentSession, useV2GroupDetail } from "@/hooks/use-analysis";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -23,6 +23,10 @@ import {
   Target,
   TrendingUp,
   AlertTriangle,
+  Sparkles,
+  Loader2,
+  Copy,
+  Check,
 } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
@@ -76,6 +80,9 @@ export default function V2SessionDetail() {
   const rawId = params?.id || null;
   const isGroupKey = rawId ? rawId.startsWith("v2auto-") : false;
   const numericId = rawId && !isGroupKey ? parseInt(rawId, 10) : null;
+  const [, navigate] = useLocation();
+  const [teaserLoading, setTeaserLoading] = useState(false);
+  const [teaserCopied, setTeaserCopied] = useState(false);
 
   const { data: sessionData, isLoading: sessionLoading, error: sessionError } = useMultiSegmentSession(numericId);
   const { data: groupData, isLoading: groupLoading, error: groupError } = useV2GroupDetail(isGroupKey ? rawId : null);
@@ -177,13 +184,52 @@ export default function V2SessionDetail() {
         )}
 
         {scored > 0 && (numericId !== null || isGroupKey) && (
-          <div className="flex gap-3 items-center">
+          <div className="flex gap-3 items-center flex-wrap">
             <Link href={`/summary/${numericId !== null ? numericId : rawId}`}>
               <Button variant="outline" className="gap-2" data-testid="button-summary-report">
                 <FileText className="w-4 h-4" />
                 Impact Summary
               </Button>
             </Link>
+            {numericId !== null && !isCompetitorSession && (
+              <>
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  data-testid="button-prospect-teaser"
+                  disabled={teaserLoading}
+                  onClick={async () => {
+                    setTeaserLoading(true);
+                    try {
+                      const res = await fetch(`/api/multi-segment-sessions/${numericId}/teaser`, { method: "POST" });
+                      if (!res.ok) throw new Error("Failed to generate teaser");
+                      navigate(`/teaser/${numericId}`);
+                    } catch (err) {
+                      console.error("Teaser generation failed:", err);
+                    } finally {
+                      setTeaserLoading(false);
+                    }
+                  }}
+                >
+                  {teaserLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  Prospect Teaser
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9"
+                  data-testid="button-copy-teaser-link"
+                  onClick={() => {
+                    const url = `${window.location.origin}/share/teaser/${numericId}`;
+                    navigator.clipboard.writeText(url);
+                    setTeaserCopied(true);
+                    setTimeout(() => setTeaserCopied(false), 2000);
+                  }}
+                >
+                  {teaserCopied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                </Button>
+              </>
+            )}
           </div>
         )}
 

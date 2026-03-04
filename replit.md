@@ -70,8 +70,9 @@ The application adopts a monorepo structure, separating concerns into `client/` 
 - `wouter`: Client-side routing.
 
 ### Authentication & Sharing
-- **Auth System**: Password-based admin gate using `ADMIN_PASSWORD` env var. Cookie-based (`geo_admin_token`), in-memory token store (resets on server restart — re-login required). All `/api/*` routes require auth except `/api/auth/*` and `/api/multi-segment-sessions/:id/report` (public for share links).
-- **Share Links**: `/share/summary/:id` renders SummaryReport without internal navigation (no "Full Report" back button, no admin links). Uses the same report API endpoint. Share links work without login.
+- **Auth System**: Password-based admin gate using `ADMIN_PASSWORD` env var. Cookie-based (`geo_admin_token`), in-memory token store (resets on server restart — re-login required). All `/api/*` routes require auth except `/api/auth/*`, `/api/multi-segment-sessions/:id/report`, and `/api/share/teaser/:id` (public for share links).
+- **Share Links**: `/share/summary/:id` renders SummaryReport without internal navigation (no "Full Report" back button, no admin links). `/share/teaser/:id` renders ProspectTeaser dark-themed page. Both use public API endpoints. Share links work without login.
+- **Prospect Teaser**: Dark-themed shareable teaser page (`client/src/pages/ProspectTeaser.tsx`) showing a brand's AI visibility analysis in a compelling format with locked/blurred sections. Data generated from existing session data via `server/report/teaser-generator.ts` (no extra AI calls). Cached in `report_cache` with key `teaser:{sessionId}`. API: `POST /api/multi-segment-sessions/:id/teaser` (auth, generates + caches), `GET /api/share/teaser/:id` (public, generates if not cached). Button in V2SessionDetail next to Impact Summary for brand sessions only.
 - **Login Page**: `client/src/pages/Login.tsx` — simple password form, gates all non-share frontend routes.
 - **Frontend Auth Gate**: `client/src/App.tsx` — checks `/api/auth/check` on load, shows Login or AdminRouter/PublicRouter accordingly.
 

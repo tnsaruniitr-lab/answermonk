@@ -25,6 +25,7 @@ import { analyzePanelWebsite } from "./panel/generator";
 import { runInsightsAnalysis, type InsightsInput } from "./insights";
 import { runSegmentAnalysis } from "./segment-analysis";
 import { generateReport } from "./report/generator";
+import { generateTeaserData } from "./report/teaser-generator";
 
 /** ------------------------
  * Scoring helpers (From user provided logic)
@@ -1347,6 +1348,89 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Error generating V2 group report:", err);
       res.status(500).json({ message: "Failed to generate report", error: String(err) });
+    }
+  });
+
+  app.post("/api/multi-segment-sessions/:id/teaser", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid session ID" });
+        return;
+      }
+      const session = await storage.getMultiSegmentSession(id);
+      if (!session) {
+        res.status(404).json({ message: "Session not found" });
+        return;
+      }
+      if (session.sessionType === "competitor") {
+        res.status(400).json({ message: "Teaser is only available for brand sessions" });
+        return;
+      }
+
+      const force = req.query.force === "true";
+      const cacheKey = `teaser:${id}`;
+      if (!force) {
+        const cached = await storage.getReportCache(cacheKey);
+        if (cached) {
+          res.json({ teaser: cached, cached: true });
+          return;
+        }
+      }
+
+      const teaser = generateTeaserData({
+        id: session.id,
+        brandName: session.brandName,
+        brandDomain: session.brandDomain,
+        createdAt: session.createdAt ? new Date(session.createdAt).toISOString() : undefined,
+        segments: Array.isArray(session.segments) ? session.segments as any : [],
+        citationReport: session.citationReport as any || null,
+      });
+      await storage.setReportCache(cacheKey, teaser);
+      res.json({ teaser });
+    } catch (err) {
+      console.error("Teaser generation error:", err);
+      res.status(500).json({ message: "Failed to generate teaser", error: String(err) });
+    }
+  });
+
+  app.get("/api/share/teaser/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid session ID" });
+        return;
+      }
+      const cacheKey = `teaser:${id}`;
+      const cached = await storage.getReportCache(cacheKey);
+      if (cached) {
+        res.json({ teaser: cached, cached: true });
+        return;
+      }
+
+      const session = await storage.getMultiSegmentSession(id);
+      if (!session) {
+        res.status(404).json({ message: "Session not found" });
+        return;
+      }
+      if (session.sessionType === "competitor") {
+        res.status(400).json({ message: "Teaser not available" });
+        return;
+      }
+
+      const teaser = generateTeaserData({
+        id: session.id,
+        brandName: session.brandName,
+        brandDomain: session.brandDomain,
+        createdAt: session.createdAt ? new Date(session.createdAt).toISOString() : undefined,
+        segments: Array.isArray(session.segments) ? session.segments as any : [],
+        citationReport: session.citationReport as any || null,
+      });
+      await storage.setReportCache(cacheKey, teaser);
+      res.json({ teaser });
+    } catch (err) {
+      console.error("Teaser share error:", err);
+      res.status(500).json({ message: "Failed to load teaser", error: String(err) });
     }
   });
 
