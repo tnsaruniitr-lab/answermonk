@@ -8,6 +8,7 @@ interface TeaserData {
     date: string;
     totalQueries: number;
     queriesPerEngine: number;
+    zeroVisibility?: boolean;
   };
   overallScore: {
     appearanceRate: number;
@@ -117,6 +118,15 @@ interface TeaserData {
     promptText: string;
     results: Array<{ engine: string; engineLabel: string; brandRank: number | null; brandFound: boolean; topResult: string }>;
     dateLabel: string;
+  }>;
+  topPlayerHeatmaps?: Array<{
+    playerName: string;
+    playerRank: number;
+    playerShare: number;
+    segments: Array<{
+      segmentLabel: string;
+      engines: Record<string, number>;
+    }>;
   }>;
 }
 
@@ -584,6 +594,7 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
 
   const t = data.teaser;
   const brandName = t.meta.brandName;
+  const isZero = !!t.meta.zeroVisibility;
   const topCompNames = t.competitiveRanking
     .filter((c) => !c.isBrand)
     .slice(0, 3)
@@ -867,22 +878,24 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
           >
             <div style={{ paddingRight: 24 }} data-stagger>
               <div
-                ref={rankCount.ref as any}
+                ref={isZero ? undefined : rankCount.ref as any}
                 style={{
                   fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 24,
+                  fontSize: isZero ? 18 : 24,
                   fontWeight: 500,
-                  color: V.textBright,
+                  color: isZero ? V.red : V.textBright,
                   marginBottom: 5,
                 }}
                 data-testid="text-market-rank"
               >
-                #{rankCount.value}
+                {isZero ? "Not ranked" : `#${rankCount.value}`}
               </div>
               <div style={{ fontSize: 13, color: V.mutedMd, lineHeight: 1.5 }}>
-                Overall market rank
-                <br />
-                out of {t.overallScore.competitorCount} competitors
+                {isZero ? (
+                  <>Not found in any AI response<br />across {t.overallScore.competitorCount} competitors tracked</>
+                ) : (
+                  <>Overall market rank<br />out of {t.overallScore.competitorCount} competitors</>
+                )}
               </div>
             </div>
             <div style={{ paddingRight: 24 }} data-stagger>
@@ -1016,7 +1029,132 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
         <div style={{ ...S.divider, height: 2, background: `linear-gradient(90deg, ${V.borderMd} 0%, transparent 80%)` }} />
 
         {/* 04 · Engine × Segment Heatmap */}
-        {t.engineSegmentHeatmap && t.engineSegmentHeatmap.length > 0 && (
+        {isZero && t.topPlayerHeatmaps && t.topPlayerHeatmaps.length > 0 ? (
+          <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-heatmap">
+            <SectionNumber num="04" />
+            <h2
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 26,
+                fontWeight: 700,
+                color: "#fff",
+                marginBottom: 12,
+                lineHeight: 1.2,
+              }}
+              data-testid="heading-heatmap"
+            >
+              Who Dominates This Space
+            </h2>
+            <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 28, maxWidth: 560, lineHeight: 1.75 }}>
+              {brandName} has 0% visibility. Here's what strong AI presence looks like — the top {t.topPlayerHeatmaps.length} players by engine and search context.
+              <span style={{ display: "block", marginTop: 6, fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: V.muted }}>
+                Green = strong. Red = weak. This is what your customers see when they ask AI.
+              </span>
+            </p>
+            {t.topPlayerHeatmaps.map((player, pi) => (
+              <div key={pi} style={{ marginBottom: pi < t.topPlayerHeatmaps!.length - 1 ? 32 : 0 }}>
+                <div style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 11,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: V.gold,
+                  marginBottom: 12,
+                  padding: "6px 12px",
+                  background: V.goldDim,
+                  border: `1px solid rgba(201,168,76,0.18)`,
+                  borderRadius: 3,
+                  display: "inline-block",
+                }}>
+                  #{player.playerRank} · {player.playerName} · {player.playerShare}% visibility
+                </div>
+                <div style={{ overflowX: "auto" }}>
+                  <div style={{ minWidth: 500 }}>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: `180px repeat(${Object.keys(player.segments[0]?.engines || {}).length}, 1fr)`,
+                        gap: 0,
+                      }}
+                    >
+                      <div style={{ padding: "10px 12px" }} />
+                      {Object.keys(player.segments[0]?.engines || {}).map(eng => (
+                        <div
+                          key={eng}
+                          style={{
+                            fontFamily: "'JetBrains Mono', monospace",
+                            fontSize: 10,
+                            letterSpacing: "0.12em",
+                            textTransform: "uppercase",
+                            color: V.mutedMd,
+                            textAlign: "center",
+                            padding: "10px 8px",
+                          }}
+                        >
+                          {ENGINE_LABELS_MAP[eng] || eng}
+                        </div>
+                      ))}
+                      {player.segments.map((row, ri) => (
+                        <div key={`row-${ri}`} style={{ display: "contents" }}>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: V.text,
+                              padding: "10px 12px",
+                              borderTop: `1px solid ${V.border}`,
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            {row.segmentLabel.length > 28 ? row.segmentLabel.slice(0, 28) + "..." : row.segmentLabel}
+                          </div>
+                          {Object.entries(row.engines).map(([e, p]) => {
+                            const heatColor = p >= 70 ? V.green : p >= 30 ? V.gold : p > 0 ? V.red : "rgba(255,255,255,0.06)";
+                            return (
+                              <div
+                                key={e}
+                                style={{
+                                  textAlign: "center",
+                                  padding: "10px 8px",
+                                  borderTop: `1px solid ${V.border}`,
+                                  background: `${heatColor}18`,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontFamily: "'JetBrains Mono', monospace",
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    color: heatColor,
+                                  }}
+                                >
+                                  {p}%
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            <div style={{
+              marginTop: 18,
+              fontSize: 13,
+              color: V.mutedMd,
+              lineHeight: 1.6,
+              padding: "14px 18px",
+              background: "rgba(217,95,95,0.04)",
+              border: `1px solid rgba(217,95,95,0.15)`,
+              borderRadius: 3,
+            }} data-testid="heatmap-summary">
+              <strong style={{ color: V.red, fontWeight: 500 }}>{brandName}:</strong>{" "}
+              0% across every engine and segment. When prospects ask AI for these services, only your competitors appear.
+            </div>
+          </div>
+        ) : t.engineSegmentHeatmap && t.engineSegmentHeatmap.length > 0 && (
           <div ref={reveal} style={{ marginBottom: 100 }} data-testid="section-heatmap">
             <SectionNumber num="04" />
             <h2
@@ -1257,7 +1395,7 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
               }}
               data-testid="heading-prompt-showdown"
             >
-              Prompt Showdown
+              {isZero ? "What AI Recommends Instead" : "Prompt Showdown"}
             </h2>
             <div style={{
               fontFamily: "'JetBrains Mono', monospace",
@@ -1275,8 +1413,9 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
               {t.meta.totalQueries} PROMPTS TESTED ACROSS {t.engineSplit.length} ENGINES
             </div>
             <p style={{ fontSize: 14, color: V.mutedMd, marginBottom: 32, maxWidth: 560, lineHeight: 1.75 }}>
-              We tested {t.meta.totalQueries} real prompts across {t.engineSplit.length} AI engines.
-              Here are {t.promptShowdown.length} samples from different search contexts — who wins each one.
+              {isZero
+                ? `We tested ${t.meta.totalQueries} real prompts across ${t.engineSplit.length} AI engines. ${brandName} appeared in none. Here's who AI recommends when your customers search.`
+                : `We tested ${t.meta.totalQueries} real prompts across ${t.engineSplit.length} AI engines. Here are ${t.promptShowdown.length} samples from different search contexts — who wins each one.`}
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {t.promptShowdown.slice(0, 3).map((prompt, pi) => (
@@ -1530,7 +1669,7 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
             Visibility by Search Context
           </h2>
           <div style={{ ...S.eyebrow, color: V.muted, marginBottom: 24 }}>
-            How AI ranks you across different queries
+            {isZero ? "Who leads each search segment" : "How AI ranks you across different queries"}
           </div>
           <p
             style={{
@@ -1541,10 +1680,9 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
               lineHeight: 1.75,
             }}
           >
-            Overall rank is a blunt instrument. Here's how {brandName} performs when AI is asked
-            about different service types and customer personas — SEO agency, performance marketing,
-            enterprise clients, ecommerce, financial services, and more. Who beats you, by how much,
-            and where you're closest to breaking through.
+            {isZero
+              ? `${brandName} is not ranked in any segment. Here's who dominates each search context — the leaders, their visibility scores, and the gap between them and where ${brandName} would need to be.`
+              : `Overall rank is a blunt instrument. Here's how ${brandName} performs when AI is asked about different service types and customer personas — SEO agency, performance marketing, enterprise clients, ecommerce, financial services, and more. Who beats you, by how much, and where you're closest to breaking through.`}
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
             <div
@@ -1779,10 +1917,12 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
             }}
             data-testid="heading-competitive-ranking"
           >
-            Competitive Ranking
+            {isZero ? "Who AI Recommends Instead" : "Competitive Ranking"}
           </h2>
           <div style={{ ...S.eyebrow, color: V.muted, marginBottom: 24 }}>
-            Top {t.competitiveRanking.length} brands by AI share of voice
+            {isZero
+              ? `Top ${t.competitiveRanking.length} brands by AI share of voice · ${brandName} not ranked`
+              : `Top ${t.competitiveRanking.length} brands by AI share of voice`}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
             {t.competitiveRanking.map((entry, i) => {

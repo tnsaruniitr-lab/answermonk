@@ -38,6 +38,7 @@ export interface TeaserData {
     date: string;
     totalQueries: number;
     queriesPerEngine: number;
+    zeroVisibility?: boolean;
   };
   overallScore: {
     appearanceRate: number;
@@ -147,6 +148,15 @@ export interface TeaserData {
     promptText: string;
     results: Array<{ engine: string; engineLabel: string; brandRank: number | null; brandFound: boolean; topResult: string }>;
     dateLabel: string;
+  }>;
+  topPlayerHeatmaps?: Array<{
+    playerName: string;
+    playerRank: number;
+    playerShare: number;
+    segments: Array<{
+      segmentLabel: string;
+      engines: Record<string, number>;
+    }>;
   }>;
 }
 
@@ -1010,24 +1020,118 @@ export function generateTeaserData(
     });
   }
 
+  const isZeroVisibility = brandAppearances === 0;
+
+  let topPlayerHeatmaps: TeaserData["topPlayerHeatmaps"] = undefined;
+  if (isZeroVisibility) {
+    const topPlayers = allBrands.filter(b => !b.isBrand).slice(0, 2);
+    topPlayerHeatmaps = topPlayers.map((player, idx) => {
+      const playerLC = player.name.toLowerCase();
+      const playerSegments = segments.map(seg => {
+        const segRuns = seg.scoringResult!.raw_runs || [];
+        const eb = seg.scoringResult!.score.engine_breakdown;
+        const engineKeys = Object.keys(eb);
+        const engines: Record<string, number> = {};
+        for (const eng of engineKeys) {
+          const engRuns = segRuns.filter(r => r.engine === eng);
+          const validCount = engRuns.length;
+          if (validCount === 0) { engines[eng] = 0; continue; }
+          const foundCount = engRuns.filter(r => {
+            const candidates = Array.isArray(r.candidates) ? r.candidates : [];
+            return candidates.some((c: any) => {
+              const cn = typeof c === "string" ? c : (c?.name_raw || c?.name || "");
+              return cn.toLowerCase().includes(playerLC) || playerLC.includes(cn.toLowerCase());
+            });
+          }).length;
+          engines[eng] = Math.round((foundCount / validCount) * 100);
+        }
+        return { segmentLabel: buildSegmentLabel(seg), engines };
+      });
+      return {
+        playerName: player.name,
+        playerRank: idx + 1,
+        playerShare: Math.round(player.share * 100),
+        segments: playerSegments,
+      };
+    });
+  }
+
+  let zeroVisCompRanking = competitiveRanking;
+  if (isZeroVisibility) {
+    zeroVisCompRanking = allBrands.filter(b => !b.isBrand).slice(0, 10).map((b, i) => ({
+      rank: i + 1,
+      name: b.name,
+      share: Math.round(b.share * 100),
+      isBrand: false,
+    }));
+  }
+
+  let zeroVisPromptShowdown: TeaserData["promptShowdown"] = [];
+  if (isZeroVisibility) {
+    const topPlayerNames = allBrands.filter(b => !b.isBrand).slice(0, 2).map(b => b.name);
+    const topPlayerLC = topPlayerNames.map(n => n.toLowerCase());
+    const candidatePrompts = Array.from(promptGroups.entries())
+      .filter(([, runs]) => runs.length >= 2)
+      .map(([promptText, runs]) => {
+        const topPlayerPresence = runs.filter(r => {
+          const candidates = Array.isArray(r.candidates) ? r.candidates : [];
+          return candidates.some((c: any) => {
+            const cn = typeof c === "string" ? c : (c?.name_raw || c?.name || "");
+            return topPlayerLC.some(tp => cn.toLowerCase().includes(tp) || tp.includes(cn.toLowerCase()));
+          });
+        }).length;
+        return { promptText, runs, topPlayerPresence };
+      })
+      .sort((a, b) => b.topPlayerPresence - a.topPlayerPresence)
+      .slice(0, 3);
+
+    for (const candidate of candidatePrompts) {
+      const results: TeaserData["promptShowdown"][0]["results"] = [];
+      const seenEngines = new Set<string>();
+      for (const run of candidate.runs) {
+        if (seenEngines.has(run.engine)) continue;
+        seenEngines.add(run.engine);
+        const candidates = Array.isArray(run.candidates) ? run.candidates : [];
+        let topResult = "Unknown";
+        if (candidates.length > 0) {
+          const sorted = [...candidates].sort((a: any, b: any) => (a.rank || 99) - (b.rank || 99));
+          topResult = typeof sorted[0] === "string" ? sorted[0] : (sorted[0]?.name_raw || sorted[0]?.name || "Unknown");
+        }
+        results.push({
+          engine: run.engine,
+          engineLabel: ENGINE_LABELS[run.engine] || run.engine,
+          brandRank: null,
+          brandFound: false,
+          topResult,
+        });
+      }
+      zeroVisPromptShowdown.push({
+        promptText: candidate.promptText,
+        results,
+        dateLabel,
+      });
+    }
+  }
+
   return {
     meta: {
       brandName,
       date: dateLabel,
       totalQueries,
       queriesPerEngine,
+      zeroVisibility: isZeroVisibility || undefined,
     },
     overallScore: {
       appearanceRate: Math.round(overallAppearance * 100),
       avgRank: overallAvgRank ? Math.round(overallAvgRank * 10) / 10 : null,
       primaryRate: Math.round(overallPrimary * 100),
-      marketRank,
+      marketRank: isZeroVisibility ? 0 : marketRank,
       competitorCount,
       leaderName: leaderBrand?.name || "",
       leaderRate: Math.round((leaderBrand?.share || 0) * 100),
     },
     engineSplit,
-    competitiveRanking,
+    competitiveRanking: isZeroVisibility ? zeroVisCompRanking : competitiveRanking,
     proximityNote,
     segmentBreakdown,
     quoteContrast: {
@@ -1056,6 +1160,7 @@ export function generateTeaserData(
     keyActions,
     engineSegmentHeatmap,
     citationScale,
-    promptShowdown,
+    promptShowdown: isZeroVisibility ? zeroVisPromptShowdown : promptShowdown,
+    topPlayerHeatmaps,
   };
 }
