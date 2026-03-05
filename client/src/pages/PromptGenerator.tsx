@@ -668,7 +668,7 @@ function ResultsDashboard({ score, brandName, mode, promptsUsed, rawRuns, onNewA
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h2 className="text-xl font-semibold tracking-tight" data-testid="text-score-heading">
-              GEO Score for {brandName}
+              GEO Score for {brandName || "Market Scan"}
             </h2>
             <p className="text-sm text-muted-foreground mt-0.5">
               {promptsUsed} prompts x 3 engines = {score.valid_runs} valid runs
@@ -780,7 +780,7 @@ function ResultsDashboard({ score, brandName, mode, promptsUsed, rawRuns, onNewA
 
       {(() => {
         const brandEntry = {
-          name: brandName,
+          name: brandName || "Your Brand",
           share: score.appearance_rate,
           appearances: 0,
           isBrand: true as const,
@@ -932,7 +932,7 @@ function SegmentResultsDashboard({ score, brandName, rawRuns, segmentLabel, cost
 
       {(() => {
         const brandEntry = {
-          name: brandName,
+          name: brandName || "Your Brand",
           share: score.appearance_rate,
           appearances: 0,
           isBrand: true as const,
@@ -1307,7 +1307,7 @@ export default function PromptGenerator() {
   v2SegmentsRef.current = v2Segments;
 
   const runSingleSegment = async (seg: V2Segment) => {
-    if (!brandName.trim() || !seg.location.trim()) return;
+    if (!seg.location.trim()) return;
 
     const effectiveCustomerType = (seg.customerTypeEnabled && seg.customerType !== "__none__") ? seg.customerType : "";
     const prompts = generateQuickPrompts(seg.persona, seg.seedType, effectiveCustomerType, seg.resultCount, seg.location.trim(), v2PromptsPerSegment, seg.serviceType);
@@ -2664,11 +2664,12 @@ export default function PromptGenerator() {
                       <div className="space-y-1.5">
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                           Brand Name
+                          <span className="text-muted-foreground/60 normal-case ml-1">(optional)</span>
                         </label>
                         <Input
                           value={brandName}
                           onChange={(e) => setBrandName(e.target.value)}
-                          placeholder="e.g. Pemo"
+                          placeholder="e.g. Pemo (leave blank to scan market)"
                           className="bg-secondary/50 border-border"
                           data-testid="input-v2-brand-name"
                         />
@@ -2781,7 +2782,7 @@ export default function PromptGenerator() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => runSingleSegment(seg)}
-                                    disabled={v2IsAnalysing || !brandName.trim()}
+                                    disabled={v2IsAnalysing}
                                     className="text-muted-foreground hover:text-primary h-7 px-2 text-xs gap-1"
                                     data-testid={`button-v2-run-segment-${idx}`}
                                   >
@@ -3035,15 +3036,11 @@ export default function PromptGenerator() {
                           type="button"
                           variant="outline"
                           onClick={() => {
-                            if (!brandName.trim()) {
-                              toast({ title: "Brand name required", description: "Enter your brand name first.", variant: "destructive" });
-                              return;
-                            }
                             if (v2Segments.length === 0) {
                               toast({ title: "No segments", description: "Add at least one segment.", variant: "destructive" });
                               return;
                             }
-                            setConfigName(`${brandName.trim()} — ${v2Segments.length} seg`);
+                            setConfigName(`${brandName.trim() || "Market Scan"} — ${v2Segments.length} seg`);
                             setShowSaveConfigDialog(true);
                           }}
                           data-testid="button-v2-save-config"
@@ -3074,7 +3071,7 @@ export default function PromptGenerator() {
                             onClick={() => {
                               saveV2Config({
                                 name: configName.trim(),
-                                brandName: brandName.trim(),
+                                brandName: brandName.trim() || "Market Scan",
                                 brandDomain: brandDomain.trim() || null,
                                 promptsPerSegment: v2PromptsPerSegment,
                                 segments: v2Segments.map((seg) => ({
@@ -3113,10 +3110,6 @@ export default function PromptGenerator() {
                         <Button
                           type="button"
                           onClick={() => {
-                            if (!brandName.trim()) {
-                              toast({ title: "Brand name required", description: "Enter your brand name.", variant: "destructive" });
-                              return;
-                            }
                             const emptyLocation = v2Segments.find((s) => !s.location.trim());
                             if (emptyLocation) {
                               const idx = v2Segments.indexOf(emptyLocation) + 1;
@@ -3141,7 +3134,6 @@ export default function PromptGenerator() {
                         <Button
                           type="button"
                           onClick={async () => {
-                            if (!brandName.trim()) return;
                             setV2IsAnalysing(true);
                             const segSnapshot = v2Segments.map((seg) => ({
                               id: seg.id,
@@ -3204,7 +3196,7 @@ export default function PromptGenerator() {
                                 });
                               } else {
                                 saveV2Session({
-                                  brandName: brandName.trim(),
+                                  brandName: brandName.trim() || "Market Scan",
                                   brandDomain: brandDomain.trim() || null,
                                   promptsPerSegment: v2PromptsPerSegment,
                                   segments: segmentsToSave,

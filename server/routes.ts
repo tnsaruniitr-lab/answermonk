@@ -405,7 +405,7 @@ export async function registerRoutes(
   });
 
   const ScoringRequestSchema = z.object({
-    brand_name: z.string().min(1),
+    brand_name: z.string().default(""),
     brand_domain: z.string().optional(),
     mode: z.enum(["micro", "quick", "full"]),
     prompts: z.array(z.object({
