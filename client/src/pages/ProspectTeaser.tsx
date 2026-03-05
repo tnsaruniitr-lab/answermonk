@@ -590,7 +590,9 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
     .map((c) => c.name);
   const authColumnNames = [...topCompNames, brandName];
 
-  const verdictText = t.overallScore.appearanceRate >= 70
+  const verdictText = t.overallScore.appearanceRate === 0
+    ? `Negligible visibility. ${brandName} does not appear in any AI-generated recommendations across the segments tested. When potential customers ask AI for these services, ${brandName} is invisible.`
+    : t.overallScore.appearanceRate >= 70
     ? `Strong visibility. ${brandName} appears in most relevant AI responses.`
     : t.overallScore.appearanceRate >= 30
     ? `Moderate visibility. ${brandName} appears in roughly 1 in 2 relevant AI responses — but rank position and consistency vary dramatically by engine and segment.`
@@ -767,10 +769,9 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
             data-testid="text-hook-sub"
           >
             We ran {t.meta.totalQueries} queries across ChatGPT, Gemini, and Claude — every
-            search your ideal customer makes. {brandName} appeared in{" "}
-            {t.overallScore.appearanceRate < 50 ? "less than half" : `${t.overallScore.appearanceRate}% of them`}. Here's
-            the exact breakdown, why it's happening, and what your top competitor is doing that
-            you're not.
+            search your ideal customer makes. {t.overallScore.appearanceRate === 0
+              ? `${brandName} didn't appear in any of them. Not once. Here's who showed up instead, and what they're doing to earn those recommendations.`
+              : `${brandName} appeared in ${t.overallScore.appearanceRate < 50 ? "less than half" : `${t.overallScore.appearanceRate}% of them`}. Here's the exact breakdown, why it's happening, and what your top competitor is doing that you're not.`}
           </p>
         </div>
 
@@ -844,8 +845,10 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
           <div
             style={{ fontSize: 13, color: V.mutedMd, marginBottom: 36 }}
           >
-            <strong style={{ color: V.gold, fontWeight: 500 }}>
-              {t.overallScore.appearanceRate >= 70
+            <strong style={{ color: t.overallScore.appearanceRate === 0 ? V.red : V.gold, fontWeight: 500 }}>
+              {t.overallScore.appearanceRate === 0
+                ? "Negligible visibility."
+                : t.overallScore.appearanceRate >= 70
                 ? "Strong visibility."
                 : t.overallScore.appearanceRate >= 30
                 ? "Moderate visibility."

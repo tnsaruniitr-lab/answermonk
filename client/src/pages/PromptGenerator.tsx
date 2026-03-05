@@ -1275,6 +1275,7 @@ export default function PromptGenerator() {
   const [compReportLoading, setCompReportLoading] = useState(false);
   const [compReportOpen, setCompReportOpen] = useState(false);
   const [compSessionId, setCompSessionId] = useState<number | null>(null);
+  const [compLensCustomName, setCompLensCustomName] = useState("");
 
   const updateSegment = (id: string, patch: Partial<V2Segment>) => {
     setV2Segments((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -3285,11 +3286,12 @@ export default function PromptGenerator() {
 
                     {compLensOpen && (
                       <div className="space-y-4 pt-2">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-wrap">
                           <Select
-                            value={compLensSelected}
+                            value={compLensList.some(c => c.name === compLensSelected) ? compLensSelected : ""}
                             onValueChange={(v) => {
                               setCompLensSelected(v);
+                              setCompLensCustomName("");
                               runCompetitorLens(v);
                             }}
                           >
@@ -3304,6 +3306,38 @@ export default function PromptGenerator() {
                               ))}
                             </SelectContent>
                           </Select>
+                          <span className="text-xs text-muted-foreground">or</span>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              value={compLensCustomName}
+                              onChange={(e) => setCompLensCustomName(e.target.value)}
+                              placeholder="Type any business name..."
+                              className="w-56 h-9 bg-secondary/50 text-sm"
+                              data-testid="input-custom-competitor"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && compLensCustomName.trim()) {
+                                  setCompLensSelected(compLensCustomName.trim());
+                                  runCompetitorLens(compLensCustomName.trim());
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              disabled={!compLensCustomName.trim() || compLensLoading}
+                              onClick={() => {
+                                const name = compLensCustomName.trim();
+                                setCompLensSelected(name);
+                                runCompetitorLens(name);
+                              }}
+                              data-testid="button-check-custom-competitor"
+                              className="h-9 text-xs"
+                            >
+                              <Search className="w-3 h-3 mr-1" />
+                              Check
+                            </Button>
+                          </div>
                           {compLensLoading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
                         </div>
 
@@ -3311,8 +3345,27 @@ export default function PromptGenerator() {
                           <div className="space-y-4">
                             <div className="flex items-center gap-2">
                               <h3 className="text-sm font-semibold">{compLensResult.competitorName}</h3>
-                              <Badge variant="secondary" className="text-[10px]">Competitor Analysis</Badge>
+                              <Badge variant="secondary" className="text-[10px]">
+                                {compLensResult.overall.appearance_rate === 0 ? "Not Found" : "Competitor Analysis"}
+                              </Badge>
                             </div>
+
+                            {compLensResult.overall.appearance_rate === 0 && (
+                              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 space-y-2" data-testid="zero-visibility-banner">
+                                <div className="flex items-center gap-2 text-destructive">
+                                  <Eye className="w-4 h-4" />
+                                  <span className="text-sm font-semibold">Zero AI Visibility</span>
+                                </div>
+                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                  AI engines do not currently recommend <strong>{compLensResult.competitorName}</strong> for
+                                  any of the {Object.keys(compLensResult.perSegment).length} segment{Object.keys(compLensResult.perSegment).length !== 1 ? "s" : ""} tested.
+                                  When potential customers ask ChatGPT, Gemini, or Claude about these services, this business doesn't come up at all.
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  You can still generate a full report and teaser showing who IS appearing instead — a powerful outreach asset.
+                                </p>
+                              </div>
+                            )}
 
                             <div className="grid grid-cols-3 gap-3">
                               <div className="bg-secondary/50 rounded-md p-2.5 text-center">
@@ -3352,12 +3405,12 @@ export default function PromptGenerator() {
                             <div>
                               <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
                                 <Target className="w-3 h-3" />
-                                Head-to-Head: {brandName} vs {compLensResult.competitorName}
+                                Head-to-Head: {brandName || "Your Brand"} vs {compLensResult.competitorName}
                               </h4>
                               <div className="border rounded-md overflow-hidden">
                                 <div className="grid grid-cols-[1fr_100px_100px] bg-secondary/30 px-3 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
                                   <span>Segment</span>
-                                  <span className="text-center">{brandName}</span>
+                                  <span className="text-center">{brandName || "Your Brand"}</span>
                                   <span className="text-center">{compLensResult.competitorName}</span>
                                 </div>
                                 {Object.entries(compLensResult.perSegment).map(([segLabel, segScore]: [string, any], segIdx) => {
@@ -3504,6 +3557,18 @@ export default function PromptGenerator() {
                                   {compReportData.meta?.segmentCount} segments · {compReportData.meta?.totalRuns} runs
                                 </Badge>
                               </div>
+                              {compReportData.meta?.zeroVisibility && (
+                                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 space-y-2" data-testid="report-zero-visibility-banner">
+                                  <div className="flex items-center gap-2 text-destructive">
+                                    <Eye className="w-4 h-4" />
+                                    <span className="text-sm font-semibold">0% AI Visibility</span>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground leading-relaxed">
+                                    When potential customers ask AI about these services, <strong>{compReportData.meta.brandName}</strong> doesn't come up.
+                                    The report below shows who IS appearing and what they're doing to earn those recommendations.
+                                  </p>
+                                </div>
+                              )}
                               {compReportData.section1 && <Section1 data={compReportData.section1} />}
                               {compReportData.section2 && <Section2 data={compReportData.section2} brandName={compReportData.meta?.brandName || compLensSelected} />}
                               {compReportData.competitorPlaybook && <CompetitorPlaybookSection data={compReportData.competitorPlaybook} brandName={compReportData.meta?.brandName || compLensSelected} />}

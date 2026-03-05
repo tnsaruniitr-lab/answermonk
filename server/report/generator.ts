@@ -141,6 +141,7 @@ export interface ReportData {
     analyzedAt: string;
     segmentCount: number;
     totalRuns: number;
+    zeroVisibility?: boolean;
   };
   section1: {
     overall: {
@@ -1432,6 +1433,7 @@ export async function generateReport(
       analyzedAt: session.createdAt || new Date().toISOString(),
       segmentCount: segments.length,
       totalRuns: segments.reduce((sum, s) => sum + (s.scoringResult?.raw_runs?.length || 0), 0),
+      zeroVisibility: overall.appearanceRate === 0,
     },
     section1: { overall, perSegment, engineHeatmap, grounding },
     section2: {
