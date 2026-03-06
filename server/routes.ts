@@ -1521,6 +1521,38 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/share/summary/by-slug/:slug", async (req, res) => {
+    try {
+      const slug = req.params.slug;
+      if (!slug) {
+        res.status(400).json({ message: "Invalid slug" });
+        return;
+      }
+      const session = await storage.getMultiSegmentSessionBySlug(slug);
+      if (!session) {
+        res.status(404).json({ message: "Session not found" });
+        return;
+      }
+      if (session.cachedReport) {
+        res.json({ report: session.cachedReport, cached: true });
+        return;
+      }
+      const report = await generateReport({
+        id: session.id,
+        brandName: session.brandName,
+        brandDomain: session.brandDomain,
+        createdAt: session.createdAt ? new Date(session.createdAt).toISOString() : undefined,
+        segments: Array.isArray(session.segments) ? session.segments as any : [],
+        citationReport: session.citationReport as any || null,
+      });
+      await storage.updateCachedReport(session.id, report);
+      res.json({ report });
+    } catch (err) {
+      console.error("Summary by slug error:", err);
+      res.status(500).json({ message: "Failed to load summary report" });
+    }
+  });
+
   app.post("/api/internal/migrate-session", async (req, res) => {
     try {
       const secret = req.headers["x-migrate-key"];

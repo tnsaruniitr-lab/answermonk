@@ -78,8 +78,11 @@ export default function SummaryReport() {
   const [location] = useLocation();
   const isShareView = location.startsWith("/share/");
   const isGroupKey = sessionId?.startsWith("v2auto-") || false;
+  const isSlug = sessionId ? isNaN(Number(sessionId)) && !isGroupKey : false;
 
-  const reportUrl = isGroupKey
+  const reportUrl = isSlug
+    ? `/api/share/summary/by-slug/${sessionId}`
+    : isGroupKey
     ? `/api/scoring/v2-groups/${sessionId}/report`
     : `/api/multi-segment-sessions/${sessionId}/report`;
 

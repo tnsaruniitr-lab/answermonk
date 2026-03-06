@@ -36,11 +36,16 @@ function SlugTeaser({ params }: { params: { slug: string } }) {
   return <ProspectTeaser slug={params.slug} />;
 }
 
+function SlugSummary() {
+  return <SummaryReport />;
+}
+
 function PublicRouter() {
   return (
     <Switch>
       <Route path="/share/summary/:id" component={SummaryReport} />
       <Route path="/share/teaser/:id" component={ProspectTeaser} />
+      <Route path="/summary/:id" component={SlugSummary} />
       <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
       <Route>
         <Login onSuccess={() => window.location.reload()} />
