@@ -306,14 +306,33 @@ const PERSONA_LABELS: Record<string, string> = {
   property_dealer: "Property",
 };
 
-function buildSegmentLabel(seg: { persona: string; seedType: string; customerType: string; serviceType?: string }): string {
+function extractContextFromPrompt(prompts: any[] | null | undefined): string {
+  if (!prompts || !Array.isArray(prompts) || prompts.length === 0) return "";
+  const text = (prompts[0]?.text || "") as string;
+  const buyingMatch = text.match(/for buying\s+(.+?)\s+in\s+/i);
+  if (buyingMatch) return `buying ${buyingMatch[1]}`;
+  const inMatch = text.match(/\bin\s+([A-Z][^.]+?)\.?\s*$/i);
+  if (inMatch) {
+    const loc = inMatch[1].trim().replace(/\.$/, "");
+    const baseMatch = text.match(/agencies\s+in\s+/i) || text.match(/brokers\s+in\s+/i) || text.match(/dealers\s+in\s+/i);
+    if (baseMatch) return loc;
+  }
+  return "";
+}
+
+function buildSegmentLabel(seg: { persona: string; seedType: string; customerType: string; serviceType?: string; prompts?: any[] | null }): string {
   const pLabel = seg.persona ? (PERSONA_LABELS[seg.persona] || seg.persona.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())) : "";
   const sLabel = seg.seedType && seg.seedType !== "__blank__"
     ? seg.seedType.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())
     : "";
   const category = pLabel && sLabel ? `${pLabel} ${sLabel}` : pLabel || sLabel;
   const parts = [category];
-  if (seg.serviceType) parts.push(`(${seg.serviceType})`);
+  if (seg.serviceType) {
+    parts.push(`(${seg.serviceType})`);
+  } else {
+    const promptContext = extractContextFromPrompt(seg.prompts);
+    if (promptContext) parts.push(`(${promptContext})`);
+  }
   if (seg.customerType) parts.push(`for ${seg.customerType}`);
   return parts.filter(Boolean).join(" ");
 }
