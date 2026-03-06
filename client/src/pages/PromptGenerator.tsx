@@ -1069,6 +1069,9 @@ function generateQuickPrompts(
     weight_loss_help: "weight loss help",
     in_home_blood_tests: "in-home blood tests",
     at_home_blood_tests: "at-home blood tests",
+    real_estate_agency: "real estate agency",
+    real_estate_broker: "real estate broker",
+    property_dealer: "property dealer",
   };
   const personaLabel = PERSONA_CORE_LABELS[persona] || persona.replace(/_/g, " ");
   const serviceSuffix = serviceType ? ` specializing in ${serviceType}` : "";
@@ -2318,9 +2321,10 @@ export default function PromptGenerator() {
                           value={persona}
                           onValueChange={(v) => {
                             const agencyPersonas = ["seo_agency", "performance_marketing_agency", "content_marketing_agency", "social_media_agency", "web_design_agency", "pr_agency", "branding_agency", "digital_marketing_agency"];
+                            const realEstatePersonas = ["real_estate_agency", "real_estate_broker", "property_dealer"];
                             setPersona(v);
                             setQuickCustomerType("");
-                            setQuickSeedType(v === "restaurant" ? "restaurants" : agencyPersonas.includes(v) ? "agencies" : "providers");
+                            setQuickSeedType(v === "restaurant" ? "restaurants" : agencyPersonas.includes(v) ? "agencies" : realEstatePersonas.includes(v) ? "agencies" : "providers");
                           }}
                         >
                           <SelectTrigger className="bg-secondary/50" data-testid="select-quick-persona">
@@ -2336,6 +2340,9 @@ export default function PromptGenerator() {
                             <SelectItem value="pr_agency">PR Agency</SelectItem>
                             <SelectItem value="branding_agency">Branding Agency</SelectItem>
                             <SelectItem value="digital_marketing_agency">Digital Marketing Agency</SelectItem>
+                            <SelectItem value="real_estate_agency">Real Estate Agency</SelectItem>
+                            <SelectItem value="real_estate_broker">Real Estate Broker</SelectItem>
+                            <SelectItem value="property_dealer">Property Dealer</SelectItem>
                             <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
                             <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
                             <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
@@ -2836,11 +2843,12 @@ export default function PromptGenerator() {
                                       value={seg.persona}
                                       onValueChange={(v) => {
                                         const agencyPersonas = ["seo_agency", "performance_marketing_agency", "content_marketing_agency", "social_media_agency", "web_design_agency", "pr_agency", "branding_agency", "digital_marketing_agency"];
+                                        const realEstatePersonas = ["real_estate_agency", "real_estate_broker", "property_dealer"];
                                         updateSegment(seg.id, {
                                           persona: v,
                                           customerType: "",
                                           serviceType: "",
-                                          seedType: v === "restaurant" ? "restaurants" : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests"].includes(v) ? "__blank__" : agencyPersonas.includes(v) ? "agencies" : "providers",
+                                          seedType: v === "restaurant" ? "restaurants" : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests"].includes(v) ? "__blank__" : agencyPersonas.includes(v) ? "agencies" : realEstatePersonas.includes(v) ? "agencies" : "providers",
                                           prompts: null,
                                         });
                                       }}
@@ -2858,6 +2866,9 @@ export default function PromptGenerator() {
                                         <SelectItem value="pr_agency">PR Agency</SelectItem>
                                         <SelectItem value="branding_agency">Branding Agency</SelectItem>
                                         <SelectItem value="digital_marketing_agency">Digital Marketing Agency</SelectItem>
+                                        <SelectItem value="real_estate_agency">Real Estate Agency</SelectItem>
+                                        <SelectItem value="real_estate_broker">Real Estate Broker</SelectItem>
+                                        <SelectItem value="property_dealer">Property Dealer</SelectItem>
                                         <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
                                         <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
                                         <SelectItem value="expense_management_software">Expense Management Software</SelectItem>

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const PersonaTypeEnum = z.enum(["marketing_agency", "seo_agency", "performance_marketing_agency", "content_marketing_agency", "social_media_agency", "web_design_agency", "pr_agency", "branding_agency", "digital_marketing_agency", "automation_consultant", "corporate_cards_provider", "expense_management_software", "accounting_automation", "invoice_management", "restaurant", "construction_management", "in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests"]);
+export const PersonaTypeEnum = z.enum(["marketing_agency", "seo_agency", "performance_marketing_agency", "content_marketing_agency", "social_media_agency", "web_design_agency", "pr_agency", "branding_agency", "digital_marketing_agency", "automation_consultant", "corporate_cards_provider", "expense_management_software", "accounting_automation", "invoice_management", "restaurant", "construction_management", "in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests", "real_estate_agency", "real_estate_broker", "property_dealer"]);
 export type PersonaType = z.infer<typeof PersonaTypeEnum>;
 
 export const ClusterEnum = z.enum(["direct", "persona", "budget", "task"]);

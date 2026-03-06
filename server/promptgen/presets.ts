@@ -563,6 +563,74 @@ export const BLOOD_TEST_SERVICES: string[] = [
 
 export const BLOOD_TEST_MODIFIERS: string[] = [];
 
+export const REAL_ESTATE_SERVICES: string[] = [
+  "Off-Plan Property",
+  "Rental Yield Investment",
+  "Luxury Estate",
+  "Villas",
+  "Independent House",
+  "Commercial Real Estate",
+  "Apartments",
+  "Townhouses",
+  "Penthouses",
+  "Plots / Land",
+  "Holiday Homes",
+  "Studio Apartments",
+  "Duplex",
+  "Ready-to-Move Property",
+  "Warehouse / Industrial",
+  "Office Space",
+  "Retail Space",
+  "Serviced Apartments",
+  "Beachfront Property",
+  "Golf Community Property",
+  "Waterfront Property",
+  "Branded Residences",
+  "Mixed-Use Development",
+  "Freehold Property",
+  "Leasehold Property",
+];
+
+export const REAL_ESTATE_VERTICALS: string[] = [
+  "First-Time Buyers",
+  "Investors",
+  "Expats / Relocators",
+  "High-Net-Worth Individuals",
+  "Corporate Buyers",
+  "Families",
+  "Retirees",
+  "NRIs (Non-Resident Indians)",
+  "Developers",
+  "Landlords",
+  "Short-Term Rental Investors",
+  "Portfolio Investors",
+  "End Users",
+  "Foreign Nationals",
+];
+
+export const REAL_ESTATE_MODIFIERS: string[] = [
+  "RERA registered",
+  "DLD approved",
+  "DMCC free zone",
+  "high ROI",
+  "payment plan available",
+  "post-handover payment",
+  "golden visa eligible",
+  "tenant occupied",
+  "brand new",
+  "resale",
+  "off-market",
+  "distressed sale",
+  "below market value",
+  "high floor",
+  "sea view",
+  "city view",
+  "fully furnished",
+  "semi-furnished",
+  "smart home",
+  "gated community",
+];
+
 export const DECISION_MAKERS: string[] = [
   "Founder",
   "Co-Founder",
@@ -745,6 +813,21 @@ export const BUDGET_ADJECTIVES: Record<PersonaType, Record<BudgetTier, string[]>
     mid: ["reliable", "accredited", "convenient"],
     premium: ["premium", "comprehensive", "concierge"],
   },
+  real_estate_agency: {
+    budget: ["affordable", "budget-friendly", "value"],
+    mid: ["reputable", "established", "trusted"],
+    premium: ["luxury", "premium", "exclusive"],
+  },
+  real_estate_broker: {
+    budget: ["affordable", "budget-friendly", "value"],
+    mid: ["reputable", "experienced", "trusted"],
+    premium: ["luxury", "premium", "top-tier"],
+  },
+  property_dealer: {
+    budget: ["affordable", "budget-friendly", "value"],
+    mid: ["reputable", "reliable", "established"],
+    premium: ["premium", "exclusive", "high-end"],
+  },
 };
 
 export const ALIAS_MAP: Record<string, string> = {
@@ -888,6 +971,9 @@ function getModifierKnownList(personaType: PersonaType): string[] {
     case "weight_loss_help": return WEIGHT_LOSS_MODIFIERS;
     case "in_home_blood_tests":
     case "at_home_blood_tests": return BLOOD_TEST_MODIFIERS;
+    case "real_estate_agency":
+    case "real_estate_broker":
+    case "property_dealer": return REAL_ESTATE_MODIFIERS;
     default: return AUTOMATION_KNOWN_TOOLS;
   }
 }
@@ -936,6 +1022,9 @@ const SERVICE_VERB_PREFIXES: Record<PersonaType, string[]> = {
   weight_loss_help: ["provide", "offer", "deliver"],
   in_home_blood_tests: ["provide", "offer", "conduct"],
   at_home_blood_tests: ["provide", "offer", "conduct"],
+  real_estate_agency: ["list", "sell", "offer"],
+  real_estate_broker: ["list", "broker", "offer"],
+  property_dealer: ["list", "deal", "offer"],
 };
 
 export function ensureServiceVerb(service: string, personaType: PersonaType, rngPick?: <T>(arr: T[]) => T): string {
@@ -973,6 +1062,9 @@ export const PERSONA_CATEGORY_LABELS: Record<string, string> = {
   weight_loss_help: "weight loss clinics, programs, or services",
   in_home_blood_tests: "at-home blood testing or mobile lab services",
   at_home_blood_tests: "at-home blood testing or mobile lab services",
+  real_estate_agency: "real estate agencies or property agencies",
+  real_estate_broker: "real estate brokers or property brokers",
+  property_dealer: "property dealers or real estate dealers",
 };
 
 export function getPresetsForPersona(personaType: PersonaType) {
@@ -1034,6 +1126,12 @@ export function getPresetsForPersona(personaType: PersonaType) {
     return {
       services: BLOOD_TEST_SERVICES,
       verticals: BLOOD_TEST_VERTICALS,
+    };
+  }
+  if (personaType === "real_estate_agency" || personaType === "real_estate_broker" || personaType === "property_dealer") {
+    return {
+      services: REAL_ESTATE_SERVICES,
+      verticals: REAL_ESTATE_VERTICALS,
     };
   }
   return {
