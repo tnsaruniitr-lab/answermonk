@@ -408,6 +408,24 @@ export async function registerRoutes(
           modifiers: BLOOD_TEST_MODIFIERS,
           decision_makers: DECISION_MAKERS,
         },
+        real_estate_agency: {
+          services: REAL_ESTATE_SERVICES,
+          verticals: REAL_ESTATE_VERTICALS,
+          modifiers: REAL_ESTATE_MODIFIERS,
+          decision_makers: DECISION_MAKERS,
+        },
+        real_estate_broker: {
+          services: REAL_ESTATE_SERVICES,
+          verticals: REAL_ESTATE_VERTICALS,
+          modifiers: REAL_ESTATE_MODIFIERS,
+          decision_makers: DECISION_MAKERS,
+        },
+        property_dealer: {
+          services: REAL_ESTATE_SERVICES,
+          verticals: REAL_ESTATE_VERTICALS,
+          modifiers: REAL_ESTATE_MODIFIERS,
+          decision_makers: DECISION_MAKERS,
+        },
       });
     }
   });
