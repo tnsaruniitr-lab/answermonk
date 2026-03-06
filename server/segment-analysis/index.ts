@@ -31,6 +31,9 @@ const PERSONA_CORE_LABELS: Record<string, string> = {
   weight_loss_help: "weight loss",
   in_home_blood_tests: "in-home blood tests",
   at_home_blood_tests: "at-home blood tests",
+  real_estate_agency: "real estate",
+  real_estate_broker: "real estate",
+  property_dealer: "property",
 };
 
 function buildSegmentLabel(seg: { persona?: string; seedType: string; customerType: string; serviceType?: string }): string {

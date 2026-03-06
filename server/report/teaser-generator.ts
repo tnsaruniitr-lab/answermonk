@@ -16,6 +16,7 @@ interface SegmentData {
   persona: string;
   seedType: string;
   customerType: string;
+  serviceType?: string;
   location: string;
   resultCount: number;
   prompts: any[] | null;
@@ -235,6 +236,9 @@ function buildSegmentLabel(seg: SegmentData): string {
   if (seg.persona) {
     const persona = seg.persona.replace(/_/g, " ");
     parts.push(persona.charAt(0).toUpperCase() + persona.slice(1));
+  }
+  if (seg.serviceType) {
+    parts.push(parts.length > 0 ? `· ${seg.serviceType}` : seg.serviceType);
   }
   if (seg.customerType) {
     parts.push(parts.length > 0 ? `· ${seg.customerType}` : seg.customerType);

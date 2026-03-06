@@ -89,6 +89,7 @@ interface SegmentData {
   persona: string;
   seedType: string;
   customerType: string;
+  serviceType?: string;
   location: string;
   resultCount: number;
   prompts: any[] | null;
@@ -300,15 +301,21 @@ const PERSONA_LABELS: Record<string, string> = {
   weight_loss_help: "Weight Loss",
   in_home_blood_tests: "In-Home Blood Tests",
   at_home_blood_tests: "At-Home Blood Tests",
+  real_estate_agency: "Real Estate",
+  real_estate_broker: "Real Estate",
+  property_dealer: "Property",
 };
 
-function buildSegmentLabel(seg: { persona: string; seedType: string; customerType: string }): string {
+function buildSegmentLabel(seg: { persona: string; seedType: string; customerType: string; serviceType?: string }): string {
   const pLabel = seg.persona ? (PERSONA_LABELS[seg.persona] || seg.persona.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())) : "";
   const sLabel = seg.seedType && seg.seedType !== "__blank__"
     ? seg.seedType.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())
     : "";
   const category = pLabel && sLabel ? `${pLabel} ${sLabel}` : pLabel || sLabel;
-  return [category, seg.customerType].filter(Boolean).join(" for ");
+  const parts = [category];
+  if (seg.serviceType) parts.push(`(${seg.serviceType})`);
+  if (seg.customerType) parts.push(`for ${seg.customerType}`);
+  return parts.filter(Boolean).join(" ");
 }
 
 function extractDomain(url: string): string {
