@@ -1069,12 +1069,14 @@ function generateQuickPrompts(
     weight_loss_help: "weight loss help",
     in_home_blood_tests: "in-home blood tests",
     at_home_blood_tests: "at-home blood tests",
-    real_estate_agency: "real estate agency",
-    real_estate_broker: "real estate broker",
-    property_dealer: "property dealer",
+    real_estate_agency: "real estate",
+    real_estate_broker: "real estate",
+    property_dealer: "property",
   };
   const personaLabel = PERSONA_CORE_LABELS[persona] || persona.replace(/_/g, " ");
-  const serviceSuffix = serviceType ? ` specializing in ${serviceType}` : "";
+  const REAL_ESTATE_PERSONAS = ["real_estate_agency", "real_estate_broker", "property_dealer"];
+  const isRealEstate = REAL_ESTATE_PERSONAS.includes(persona);
+  const serviceSuffix = serviceType ? (isRealEstate ? ` for buying ${serviceType}` : ` specializing in ${serviceType}`) : "";
   const prompts: Prompt[] = [];
   const isRestaurant = persona === "restaurant";
   const customerSuffix = customerType ? ` for ${customerType}` : "";
@@ -1088,6 +1090,8 @@ function generateQuickPrompts(
       text = `Recommend the ${qualifier} ${count} ${cuisinePhrase}${seedType} in ${location}. Focus on local favorites, quality, and atmosphere.`;
     } else if (!seedType || seedType === "__blank__") {
       text = `Find, list and rank ${qualifier} ${count} ${personaLabel}${serviceSuffix}${customerSuffix} in ${location}.`;
+    } else if (isRealEstate) {
+      text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType}${serviceSuffix}${customerSuffix} in ${location}.`;
     } else {
       text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType}${serviceSuffix}${customerSuffix} based in ${location}.`;
     }
