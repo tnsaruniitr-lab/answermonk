@@ -554,9 +554,17 @@ function CategoryAccordion({ group, segments, brandPerSeg, brandName, colorSet }
                 <Card key={si} className="overflow-hidden" data-testid={`card-segment-${si}`}>
                   <div className={`h-1 ${color.bar}`} />
                   <CardContent className="pt-5 pb-5">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Target className={`w-4 h-4 ${color.text}`} />
-                      <h3 className="font-semibold text-sm" data-testid={`text-segment-label-${si}`}>{seg.segmentLabel}</h3>
+                    <div className="mb-4">
+                      <div className="flex items-center gap-2">
+                        <Target className={`w-4 h-4 ${color.text}`} />
+                        <h3 className="font-semibold text-sm" data-testid={`text-segment-label-${si}`}>{seg.segmentLabel}</h3>
+                      </div>
+                      {(seg.serviceType || seg.customerType) && (
+                        <div className="flex flex-wrap gap-1.5 mt-2 ml-6">
+                          {seg.serviceType && <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-700 border-indigo-200" data-testid={`badge-svc-${si}`}>{seg.serviceType}</Badge>}
+                          {seg.customerType && <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200" data-testid={`badge-cust-${si}`}>{seg.customerType}</Badge>}
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-2.5">
                       {combined.map((comp: any, ci: number) => {
@@ -643,9 +651,17 @@ function SegmentBreakdown({ section2, section1, brandName }: { section2: any; se
               <Card key={si} className="overflow-hidden" data-testid={`card-segment-${si}`}>
                 <div className={`h-1 ${color.bar}`} />
                 <CardContent className="pt-5 pb-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Target className={`w-4 h-4 ${color.text}`} />
-                    <h3 className="font-semibold text-sm" data-testid={`text-segment-label-${si}`}>{seg.segmentLabel}</h3>
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2">
+                      <Target className={`w-4 h-4 ${color.text}`} />
+                      <h3 className="font-semibold text-sm" data-testid={`text-segment-label-${si}`}>{seg.segmentLabel}</h3>
+                    </div>
+                    {(seg.serviceType || seg.customerType) && (
+                      <div className="flex flex-wrap gap-1.5 mt-2 ml-6">
+                        {seg.serviceType && <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-700 border-indigo-200" data-testid={`badge-svc-${si}`}>{seg.serviceType}</Badge>}
+                        {seg.customerType && <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200" data-testid={`badge-cust-${si}`}>{seg.customerType}</Badge>}
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2.5">
                     {combined.map((comp: any, ci: number) => {
@@ -702,6 +718,36 @@ function SegmentBreakdown({ section2, section1, brandName }: { section2: any; se
         ))}
       </div>
     </section>
+  );
+}
+
+function CollapsibleList({ items, initialCount, renderItem, label }: {
+  items: any[];
+  initialCount: number;
+  renderItem: (item: any, index: number) => JSX.Element;
+  label: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  if (items.length === 0) return null;
+  const visible = expanded ? items : items.slice(0, initialCount);
+  const remaining = items.length - initialCount;
+  return (
+    <div>
+      <div className="space-y-2">
+        {visible.map((item, i) => renderItem(item, i))}
+      </div>
+      {remaining > 0 && (
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="mt-2 text-xs font-medium text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+          data-testid={`btn-toggle-${label}`}
+        >
+          {expanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+          {expanded ? "Show less" : `Show all ${items.length} ${label}`}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -776,15 +822,18 @@ function TopScorersSection({ competitors, brandName }: { competitors: TopCompeti
               )}
 
               <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Sources Backing This Competitor</p>
-                <div className="space-y-2">
-                  {comp.allSources.map((src, si) => (
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Sources Backing This Competitor ({comp.allSources.length})</p>
+                <CollapsibleList
+                  items={comp.allSources}
+                  initialCount={3}
+                  label="sources"
+                  renderItem={(src: any, si: number) => (
                     <div key={si} className="flex items-start gap-3 p-2.5 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors" data-testid={`row-source-${comp.name}-${si}`}>
                       <Badge variant="outline" className={`text-[10px] shrink-0 ${tierColor(src.tier)}`}>{src.tier}</Badge>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium">{src.domain}</p>
                         <p className="text-[11px] text-muted-foreground">{tierLabel(src.tier)}</p>
-                        {src.urls.map((u, ui) => (
+                        {src.urls.map((u: string, ui: number) => (
                           <a key={ui} href={u} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-0.5 truncate" data-testid={`link-source-url-${comp.name}-${si}-${ui}`}>
                             <ExternalLink className="w-3 h-3 shrink-0" />
                             <span className="truncate">{u}</span>
@@ -792,8 +841,8 @@ function TopScorersSection({ competitors, brandName }: { competitors: TopCompeti
                         ))}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  )}
+                />
               </div>
 
               {comp.socialMentions.length > 0 && (
@@ -802,8 +851,11 @@ function TopScorersSection({ competitors, brandName }: { competitors: TopCompeti
                     <MessageSquare className="w-3 h-3 inline mr-1" />
                     Social & Community Mentions ({comp.socialMentions.length})
                   </p>
-                  <div className="space-y-2">
-                    {comp.socialMentions.map((sm, si) => (
+                  <CollapsibleList
+                    items={comp.socialMentions}
+                    initialCount={3}
+                    label="social mentions"
+                    renderItem={(sm: any, si: number) => (
                       <div key={si} className="flex items-start gap-3 p-2.5 rounded-lg bg-blue-50/50 border border-blue-100" data-testid={`row-social-${comp.name}-${si}`}>
                         <Globe className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
                         <div className="min-w-0 flex-1">
@@ -815,8 +867,8 @@ function TopScorersSection({ competitors, brandName }: { competitors: TopCompeti
                           {sm.context && <p className="text-xs text-muted-foreground mt-1 italic">"{sm.context}"</p>}
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  />
                 </div>
               )}
 
@@ -890,8 +942,11 @@ function BrandMentionAudit({ audit, brandName, allCompetitors }: { audit: BrandM
               <p className="text-sm mt-1">This is a critical gap — see Quick Wins below.</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {audit.brandSources.map((src, i) => (
+            <CollapsibleList
+              items={audit.brandSources}
+              initialCount={5}
+              label="sources"
+              renderItem={(src: any, i: number) => (
                 <div key={i} className="flex items-start gap-3 p-2.5 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors" data-testid={`row-brand-source-${i}`}>
                   <Badge variant="outline" className={`text-[10px] shrink-0 ${tierColor(src.tier)}`}>{src.tier}</Badge>
                   <div className="min-w-0 flex-1">
@@ -902,8 +957,8 @@ function BrandMentionAudit({ audit, brandName, allCompetitors }: { audit: BrandM
                     <p className="text-[10px] text-muted-foreground">mention{src.mentions !== 1 ? "s" : ""}</p>
                   </div>
                 </div>
-              ))}
-            </div>
+              )}
+            />
           )}
 
           {audit.byType.length > 0 && (
@@ -985,6 +1040,7 @@ function BiggestGaps({ gaps }: { gaps: GapEntry[] }) {
 }
 
 function ConsolidatedWinsSection({ wins }: { wins: ConsolidatedWin[] }) {
+  const [showAll, setShowAll] = useState(false);
   if (wins.length === 0) return null;
 
   const icons = [
@@ -1002,6 +1058,10 @@ function ConsolidatedWinsSection({ wins }: { wins: ConsolidatedWin[] }) {
     { bg: "bg-amber-500", badge: "bg-amber-100 text-amber-700", border: "border-amber-200", light: "bg-amber-50/50" },
   ];
 
+  const initialCount = 3;
+  const visibleWins = showAll ? wins : wins.slice(0, initialCount);
+  const remaining = wins.length - initialCount;
+
   return (
     <section data-testid="section-quick-wins">
       <div className="flex items-center gap-3 mb-6">
@@ -1015,7 +1075,7 @@ function ConsolidatedWinsSection({ wins }: { wins: ConsolidatedWin[] }) {
       </div>
 
       <div className="space-y-5">
-        {wins.map((win, i) => {
+        {visibleWins.map((win, i) => {
           const color = colors[i] || colors[0];
           return (
             <Card key={i} className={`overflow-hidden ${color.border}`} data-testid={`card-quickwin-${i}`}>
@@ -1059,8 +1119,11 @@ function ConsolidatedWinsSection({ wins }: { wins: ConsolidatedWin[] }) {
                     {win.targetDomains.length > 0 && (
                       <div>
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Target these domains</p>
-                        <div className="flex flex-wrap gap-2">
-                          {win.targetDomains.map((td, ti) => (
+                        <CollapsibleList
+                          items={win.targetDomains}
+                          initialCount={4}
+                          label="domains"
+                          renderItem={(td: any, ti: number) => (
                             <a
                               key={ti}
                               href={td.url || `https://${td.domain}`}
@@ -1073,8 +1136,8 @@ function ConsolidatedWinsSection({ wins }: { wins: ConsolidatedWin[] }) {
                               {td.domain}
                               <span className="opacity-60">({td.tier})</span>
                             </a>
-                          ))}
-                        </div>
+                          )}
+                        />
                       </div>
                     )}
                   </div>
@@ -1084,12 +1147,28 @@ function ConsolidatedWinsSection({ wins }: { wins: ConsolidatedWin[] }) {
           );
         })}
       </div>
+      {remaining > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowAll(!showAll)}
+          className="mt-4 w-full py-2.5 text-sm font-medium text-primary hover:text-primary/80 flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-primary/30 hover:border-primary/50 transition-colors"
+          data-testid="btn-toggle-action-plan"
+        >
+          {showAll ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          {showAll ? "Show fewer actions" : `Show all ${wins.length} actions`}
+        </button>
+      )}
     </section>
   );
 }
 
 function AuthoritySnapshotSection({ snapshot, brandName }: { snapshot: AuthorityDomain[]; brandName: string }) {
+  const [showAll, setShowAll] = useState(false);
   if (snapshot.length === 0) return null;
+
+  const initialCount = 10;
+  const visibleRows = showAll ? snapshot : snapshot.slice(0, initialCount);
+  const remaining = snapshot.length - initialCount;
 
   return (
     <section data-testid="section-authority-snapshot">
@@ -1099,7 +1178,7 @@ function AuthoritySnapshotSection({ snapshot, brandName }: { snapshot: Authority
         </div>
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Authority Source Snapshot</h2>
-          <p className="text-sm text-muted-foreground">Top domains AI engines cite — who they mention</p>
+          <p className="text-sm text-muted-foreground">Top {snapshot.length} domains AI engines cite — who they mention</p>
         </div>
       </div>
 
@@ -1117,7 +1196,7 @@ function AuthoritySnapshotSection({ snapshot, brandName }: { snapshot: Authority
                 </tr>
               </thead>
               <tbody>
-                {snapshot.map((d, i) => {
+                {visibleRows.map((d, i) => {
                   const mentionsBrand = d.mentionedEntities.some(e => e.toLowerCase().includes(brandName.toLowerCase()));
                   return (
                     <tr key={i} className={`border-b border-gray-50 ${mentionsBrand ? "bg-emerald-50/30" : ""}`} data-testid={`row-authority-${i}`}>
@@ -1149,6 +1228,17 @@ function AuthoritySnapshotSection({ snapshot, brandName }: { snapshot: Authority
               </tbody>
             </table>
           </div>
+          {remaining > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowAll(!showAll)}
+              className="mt-3 w-full py-2 text-xs font-medium text-primary hover:text-primary/80 flex items-center justify-center gap-1 transition-colors"
+              data-testid="btn-toggle-authority"
+            >
+              {showAll ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+              {showAll ? "Show fewer" : `Show all ${snapshot.length} domains`}
+            </button>
+          )}
         </CardContent>
       </Card>
     </section>
