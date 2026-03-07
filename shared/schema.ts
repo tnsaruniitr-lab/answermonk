@@ -97,6 +97,19 @@ export const insertTeaserLeadSchema = createInsertSchema(teaserLeads).omit({ id:
 export type TeaserLead = typeof teaserLeads.$inferSelect;
 export type InsertTeaserLead = z.infer<typeof insertTeaserLeadSchema>;
 
+export const summaryLeads = pgTable("summary_leads", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  brandName: text("brand_name").notNull(),
+  sessionId: integer("session_id"),
+  sourcePage: text("source_page"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertSummaryLeadSchema = createInsertSchema(summaryLeads).omit({ id: true, createdAt: true });
+export type SummaryLead = typeof summaryLeads.$inferSelect;
+export type InsertSummaryLead = z.infer<typeof insertSummaryLeadSchema>;
+
 // We'll store search history/results here
 export const analysisResults = pgTable("analysis_results", {
   id: serial("id").primaryKey(),

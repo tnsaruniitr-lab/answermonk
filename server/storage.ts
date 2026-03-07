@@ -9,6 +9,7 @@ import {
   savedV2Configs,
   reportCache,
   teaserLeads,
+  summaryLeads,
   type InsertAnalysisResult,
   type AnalysisResult,
   type InsertScoringJob,
@@ -21,6 +22,8 @@ import {
   type SavedV2Config,
   type InsertTeaserLead,
   type TeaserLead,
+  type InsertSummaryLead,
+  type SummaryLead,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -63,6 +66,8 @@ export interface IStorage {
   setReportCache(cacheKey: string, data: any): Promise<void>;
   createTeaserLead(lead: InsertTeaserLead): Promise<TeaserLead>;
   listTeaserLeads(): Promise<TeaserLead[]>;
+  createSummaryLead(lead: InsertSummaryLead): Promise<SummaryLead>;
+  listSummaryLeads(): Promise<SummaryLead[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -356,6 +361,21 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(teaserLeads)
       .orderBy(desc(teaserLeads.createdAt));
+  }
+
+  async createSummaryLead(lead: InsertSummaryLead): Promise<SummaryLead> {
+    const [result] = await db
+      .insert(summaryLeads)
+      .values(lead)
+      .returning();
+    return result;
+  }
+
+  async listSummaryLeads(): Promise<SummaryLead[]> {
+    return db
+      .select()
+      .from(summaryLeads)
+      .orderBy(desc(summaryLeads.createdAt));
   }
 }
 

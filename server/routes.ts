@@ -1547,6 +1547,43 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/share/summary-lead", async (req, res) => {
+    try {
+      const { email, brandName, sessionId, sourcePage } = req.body;
+      if (!email || typeof email !== "string" || !email.includes("@")) {
+        res.status(400).json({ message: "Valid email is required" });
+        return;
+      }
+      if (!brandName || typeof brandName !== "string") {
+        res.status(400).json({ message: "Brand name is required" });
+        return;
+      }
+      const lead = await storage.createSummaryLead({
+        email: email.trim().toLowerCase(),
+        brandName,
+        sessionId: sessionId ? parseInt(sessionId, 10) : null,
+        sourcePage: sourcePage || null,
+      });
+      res.json({ success: true, id: lead.id });
+    } catch (err) {
+      console.error("Summary lead submission error:", err);
+      res.status(500).json({ message: "Failed to submit" });
+    }
+  });
+
+  app.get("/api/leads", async (_req, res) => {
+    try {
+      const [summaryLeadsList, teaserLeadsList] = await Promise.all([
+        storage.listSummaryLeads(),
+        storage.listTeaserLeads(),
+      ]);
+      res.json({ summaryLeads: summaryLeadsList, teaserLeads: teaserLeadsList });
+    } catch (err) {
+      console.error("Leads list error:", err);
+      res.status(500).json({ message: "Failed to load leads" });
+    }
+  });
+
   app.get("/api/share/summary/by-slug/:slug", async (req, res) => {
     try {
       const slug = req.params.slug;

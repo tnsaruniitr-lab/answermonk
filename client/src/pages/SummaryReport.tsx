@@ -22,11 +22,17 @@ import {
   FileText,
   Check,
   X,
+  Lock,
+  Mail,
+  Send,
+  CheckCircle2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { apiRequest } from "@/lib/queryClient";
 
 interface ReportResponse {
   report: any;
@@ -184,7 +190,7 @@ export default function SummaryReport() {
         <TopScorersSection competitors={allCompetitors} brandName={meta.brandName} />
         <BrandMentionAudit audit={brandMentionAudit} brandName={meta.brandName} allCompetitors={allCompetitors} />
         <BiggestGaps gaps={biggestGaps} />
-        <ConsolidatedWinsSection wins={consolidatedWins} />
+        <ConsolidatedWinsSection wins={consolidatedWins} isShareView={isShareView} brandName={meta.brandName} sessionId={meta.sessionId} />
         <AuthoritySnapshotSection snapshot={authoritySnapshot} brandName={meta.brandName} />
         <AllCitationSourcesSection appendix={appendix} />
       </main>
@@ -1052,7 +1058,81 @@ function BiggestGaps({ gaps }: { gaps: GapEntry[] }) {
   );
 }
 
-function ConsolidatedWinsSection({ wins }: { wins: ConsolidatedWin[] }) {
+function ActionPlanCTA({ brandName, sessionId }: { brandName: string; sessionId?: number }) {
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !email.includes("@")) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    try {
+      await apiRequest("POST", "/api/share/summary-lead", {
+        email,
+        brandName,
+        sessionId,
+        sourcePage: window.location.pathname,
+      });
+      setSubmitted(true);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className="text-center py-8" data-testid="cta-success">
+        <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
+        <h3 className="text-lg font-semibold text-emerald-700">Thank you!</h3>
+        <p className="text-sm text-muted-foreground mt-1">We'll be in touch with your full action plan and audit details.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-center py-6" data-testid="cta-form">
+      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto mb-4">
+        <Lock className="w-7 h-7 text-white" />
+      </div>
+      <h3 className="text-xl font-bold tracking-tight mb-2" data-testid="text-cta-headline">
+        Unlock Your Full AI Action Plan
+      </h3>
+      <p className="text-sm text-muted-foreground max-w-md mx-auto mb-5 leading-relaxed" data-testid="text-cta-subtext">
+        Get your complete audit and step-by-step action plan to show up in AI's top 3 recommendations and boost your appearance rate by 20–40%.
+      </p>
+      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2.5 max-w-md mx-auto">
+        <div className="relative flex-1">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            type="email"
+            placeholder="Enter your work email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="pl-9 h-11"
+            data-testid="input-email"
+            disabled={submitting}
+          />
+        </div>
+        <Button type="submit" disabled={submitting} className="h-11 px-6 bg-emerald-600 hover:bg-emerald-700" data-testid="button-submit-email">
+          <Send className="w-4 h-4 mr-2" />
+          {submitting ? "Sending..." : "Get My Action Plan"}
+        </Button>
+      </form>
+      {error && <p className="text-xs text-red-500 mt-2" data-testid="text-cta-error">{error}</p>}
+      <p className="text-[11px] text-muted-foreground mt-3">No spam. We'll review your report and get back to you.</p>
+    </div>
+  );
+}
+
+function ConsolidatedWinsSection({ wins, isShareView, brandName, sessionId }: { wins: ConsolidatedWin[]; isShareView: boolean; brandName: string; sessionId?: number }) {
   const [showAll, setShowAll] = useState(false);
   if (wins.length === 0) return null;
 
@@ -1071,7 +1151,8 @@ function ConsolidatedWinsSection({ wins }: { wins: ConsolidatedWin[] }) {
     { bg: "bg-amber-500", badge: "bg-amber-100 text-amber-700", border: "border-amber-200", light: "bg-amber-50/50" },
   ];
 
-  const initialCount = 3;
+  const previewCount = isShareView ? 1 : 3;
+  const initialCount = previewCount;
   const visibleWins = showAll ? wins : wins.slice(0, initialCount);
   const remaining = wins.length - initialCount;
 
@@ -1083,8 +1164,19 @@ function ConsolidatedWinsSection({ wins }: { wins: ConsolidatedWin[] }) {
         </div>
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Strategic Action Plan</h2>
-          <p className="text-sm text-muted-foreground">High-impact moves based on GEO principles and real competitor data</p>
+          <p className="text-sm text-muted-foreground">
+            {isShareView
+              ? `${wins.length} high-impact actions identified for ${brandName}`
+              : "High-impact moves based on GEO principles and real competitor data"
+            }
+          </p>
         </div>
+        {isShareView && (
+          <Badge className="ml-auto bg-amber-100 text-amber-700 border-amber-300" variant="outline">
+            <Lock className="w-3 h-3 mr-1" />
+            Preview
+          </Badge>
+        )}
       </div>
 
       <div className="space-y-5">
@@ -1160,7 +1252,19 @@ function ConsolidatedWinsSection({ wins }: { wins: ConsolidatedWin[] }) {
           );
         })}
       </div>
-      {remaining > 0 && (
+
+      {isShareView && wins.length > previewCount && (
+        <div className="relative mt-5">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/80 to-white rounded-xl -top-16 pointer-events-none" style={{ zIndex: 1 }} />
+          <Card className="relative border-2 border-emerald-200 bg-gradient-to-b from-emerald-50/50 to-white" style={{ zIndex: 2 }} data-testid="card-cta-lock">
+            <CardContent className="pt-6 pb-6">
+              <ActionPlanCTA brandName={brandName} sessionId={sessionId} />
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {!isShareView && remaining > 0 && (
         <button
           type="button"
           onClick={() => setShowAll(!showAll)}
