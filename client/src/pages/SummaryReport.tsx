@@ -78,11 +78,12 @@ function scoreGrade(rate: number): { label: string; color: string } {
   return { label: "Critical", color: "text-red-600" };
 }
 
-export default function SummaryReport() {
+export default function SummaryReport({ auditSlug }: { auditSlug?: string } = {}) {
   const params = useParams<{ id: string }>();
-  const sessionId = params.id;
+  const sessionId = auditSlug || params.id;
   const [location] = useLocation();
   const isShareView = location.startsWith("/share/");
+  const isAuditView = !!auditSlug;
 
   const { data: authData } = useQuery<{ authenticated: boolean }>({
     queryKey: ["/api/auth/check"],
@@ -91,7 +92,7 @@ export default function SummaryReport() {
   const isAdmin = authData?.authenticated === true;
   const lockActionPlan = !isAdmin;
   const isGroupKey = sessionId?.startsWith("v2auto-") || false;
-  const isSlug = sessionId ? isNaN(Number(sessionId)) && !isGroupKey : false;
+  const isSlug = auditSlug ? true : (sessionId ? isNaN(Number(sessionId)) && !isGroupKey : false);
 
   const reportUrl = isSlug
     ? `/api/share/summary/by-slug/${sessionId}`
@@ -126,7 +127,7 @@ export default function SummaryReport() {
         <div className="text-center space-y-4">
           <AlertTriangle className="w-12 h-12 text-destructive mx-auto" />
           <p className="text-muted-foreground" data-testid="text-error">Failed to load report data.</p>
-          {!isShareView && (
+          {!isShareView && !isAuditView && (
             <Link href={`/v2/${sessionId}`}>
               <Button variant="outline" data-testid="button-back-to-detail">Back to Detail</Button>
             </Link>
@@ -168,7 +169,7 @@ export default function SummaryReport() {
         <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              {!isShareView && (
+              {!isShareView && !isAuditView && (
                 <>
                   <Link href={`/v2/${sessionId}`}>
                     <Button variant="ghost" size="sm" data-testid="button-back">

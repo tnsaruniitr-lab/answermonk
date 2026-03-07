@@ -1616,6 +1616,27 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/multisegment/sessions/:id/slug", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { slug } = req.body;
+      if (!slug || isNaN(id)) {
+        res.status(400).json({ message: "id and slug required" });
+        return;
+      }
+      const existing = await storage.getMultiSegmentSessionBySlug(slug);
+      if (existing && existing.id !== id) {
+        res.status(409).json({ message: "Slug already in use" });
+        return;
+      }
+      await storage.updateMultiSegmentSessionSlug(id, slug);
+      res.json({ success: true, slug });
+    } catch (err) {
+      console.error("Set slug error:", err);
+      res.status(500).json({ message: "Failed to set slug" });
+    }
+  });
+
   app.post("/api/internal/migrate-session", async (req, res) => {
     try {
       const secret = req.headers["x-migrate-key"];

@@ -40,12 +40,17 @@ function SlugSummary() {
   return <SummaryReport />;
 }
 
+function AuditBySlug({ params }: { params: { slug: string } }) {
+  return <SummaryReport auditSlug={params.slug} />;
+}
+
 function PublicRouter() {
   return (
     <Switch>
       <Route path="/share/summary/:id" component={SummaryReport} />
       <Route path="/share/teaser/:id" component={ProspectTeaser} />
       <Route path="/summary/:id" component={SlugSummary} />
+      <Route path="/audit/:slug">{(params) => <AuditBySlug params={params} />}</Route>
       <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
       <Route>
         <Login onSuccess={() => window.location.reload()} />
@@ -86,6 +91,7 @@ function AuthGate() {
           <Route path="/summary/:id" component={SummaryReport} />
           <Route path="/teaser/:id" component={ProspectTeaser} />
           <Route path="/leads" component={Leads} />
+          <Route path="/audit/:slug">{(params) => <AuditBySlug params={params} />}</Route>
           <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
           <Route component={NotFound} />
         </Switch>
