@@ -1,0 +1,136 @@
+1. Subject is too long
+
+It is data-rich, but it looks heavy and slightly machine-generated. Open rates usually improve when the subject is shorter and easier to parse.
+
+Your current subject:
+
+has 3 brands
+
+multiple numbers
+
+long visual length
+
+feels like a report, not a hook
+
+Better:
+
+Sandstorm Digital: 12.5% AI visibility vs Digital Gravity 62%
+
+Sandstorm Digital is losing AI recommendations to Digital Gravity
+
+Sandstorm Digital: AI visibility gap vs NEXA / Digital Gravity
+
+2. Too many numbers too early
+
+You are hitting them with:
+
+12.5%
+
+#4.4
+
+62%
+
+#4.7
+
+46%
+
+#2.7
+
+480 queries
+
+16 segments
+
+519 authority sources
+
+That is too dense for cold email. It reduces clarity.
+
+Use fewer numbers:
+
+your appearance rate
+
+one competitor benchmark
+
+maybe one engine-level gap
+That is enough.
+
+3. “Rank #4.4” is awkward
+
+It sounds mathematically precise but not naturally meaningful in email. It may also trigger skepticism.
+
+Better:
+
+average rank
+
+Top 3 rate
+
+recommended in X% of prompts
+
+Top 3 rate is usually easier to understand than average rank.
+
+4. “Performance Marketing — 70% (on Claude only)” is confusing
+
+This can backfire because it implies the result is narrow and maybe unreliable.
+
+You should phrase it as:
+
+strongest segment: Performance Marketing on Claude
+
+weakest: ChatGPT and Gemini visibility remains very low
+
+That sounds more diagnostic and less like cherry-picking.
+
+5. “heavily Claude-dependent” is good insight, but sentence is too crowded
+
+This part is actually strong, but needs simplifying.
+
+6. “519 authority sources analyzed” is not very emotionally compelling
+
+It sounds impressive, but it is not the core pain.
+For cold outreach, competitor gap matters more than crawl volume.
+
+7. “I can help move you from 12.5% → 30%+”
+
+This is the riskiest line
+It sounds like a performance promise without proof. On cold email, that can reduce trust.
+
+Safer:
+
+I think there is realistic room to improve visibility materially, especially on ChatGPT and Gemini
+
+The biggest near-term upside seems to be in lifting weak-engine presence and Top 3 inclusion
+
+8. “Would you be willing to try it out for free?”
+
+Weak CTA.
+
+Why:
+
+sounds needy
+
+lowers perceived value
+
+invites low-intent curiosity
+
+“try it out” is vague
+
+Better:
+
+Want me to send the short teardown?
+
+Worth sharing the 1-page summary?
+
+Open to a short walkthrough?
+
+Better structure
+
+Use this order:
+
+competitive gap
+
+your current position
+
+best/worst insight
+
+why this is not generic
+
+soft CTA
