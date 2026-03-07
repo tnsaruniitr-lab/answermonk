@@ -494,6 +494,9 @@ function CategoryAccordion({ group, segments, brandPerSeg, brandName, colorSet }
   const visColor = agg.brandVisibility >= 50 ? "text-emerald-600" : agg.brandVisibility >= 25 ? "text-amber-600" : "text-red-500";
   const brandKey = brandName.toLowerCase().trim();
 
+  const uniqueServices = [...new Set(group.segmentIndices.map(i => segments[i]?.serviceType).filter(Boolean))];
+  const uniqueCustomers = [...new Set(group.segmentIndices.map(i => segments[i]?.customerType).filter(Boolean))];
+
   const segColors = [
     { bar: "bg-indigo-500", bg: "bg-indigo-50", text: "text-indigo-700" },
     { bar: "bg-teal-500", bg: "bg-teal-50", text: "text-teal-700" },
@@ -519,6 +522,16 @@ function CategoryAccordion({ group, segments, brandPerSeg, brandName, colorSet }
             <h3 className="font-semibold text-sm">{group.title}</h3>
             <Badge variant="outline" className="text-[10px]">{group.segmentIndices.length} segment{group.segmentIndices.length > 1 ? "s" : ""}</Badge>
           </div>
+          {(uniqueServices.length > 0 || uniqueCustomers.length > 0) && (
+            <div className="flex flex-wrap gap-1 mb-1">
+              {uniqueServices.map(s => (
+                <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 bg-indigo-50 text-indigo-700 border-indigo-200">⚡ {s}</Badge>
+              ))}
+              {uniqueCustomers.map(c => (
+                <Badge key={c} variant="outline" className="text-[10px] px-1.5 py-0 bg-amber-50 text-amber-700 border-amber-200">👥 {c}</Badge>
+              ))}
+            </div>
+          )}
           <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
             <span>Your visibility: <span className={`font-semibold ${visColor}`}>{agg.brandVisibility}%</span></span>
             {agg.avgRank !== null && <span>Avg rank: <span className="font-semibold text-foreground">#{agg.avgRank}</span></span>}
@@ -561,8 +574,8 @@ function CategoryAccordion({ group, segments, brandPerSeg, brandName, colorSet }
                       </div>
                       {(seg.serviceType || seg.customerType) && (
                         <div className="flex flex-wrap gap-1.5 mt-2 ml-6">
-                          {seg.serviceType && <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-700 border-indigo-200" data-testid={`badge-svc-${si}`}>{seg.serviceType}</Badge>}
-                          {seg.customerType && <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200" data-testid={`badge-cust-${si}`}>{seg.customerType}</Badge>}
+                          {seg.serviceType && <Badge variant="outline" className="text-xs px-2 py-0.5 bg-indigo-50 text-indigo-700 border-indigo-300 font-medium" data-testid={`badge-svc-${si}`}>⚡ {seg.serviceType}</Badge>}
+                          {seg.customerType && <Badge variant="outline" className="text-xs px-2 py-0.5 bg-amber-50 text-amber-700 border-amber-300 font-medium" data-testid={`badge-cust-${si}`}>👥 {seg.customerType}</Badge>}
                         </div>
                       )}
                     </div>
@@ -658,8 +671,8 @@ function SegmentBreakdown({ section2, section1, brandName }: { section2: any; se
                     </div>
                     {(seg.serviceType || seg.customerType) && (
                       <div className="flex flex-wrap gap-1.5 mt-2 ml-6">
-                        {seg.serviceType && <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-700 border-indigo-200" data-testid={`badge-svc-${si}`}>{seg.serviceType}</Badge>}
-                        {seg.customerType && <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200" data-testid={`badge-cust-${si}`}>{seg.customerType}</Badge>}
+                        {seg.serviceType && <Badge variant="outline" className="text-xs px-2 py-0.5 bg-indigo-50 text-indigo-700 border-indigo-300 font-medium" data-testid={`badge-svc-${si}`}>⚡ {seg.serviceType}</Badge>}
+                        {seg.customerType && <Badge variant="outline" className="text-xs px-2 py-0.5 bg-amber-50 text-amber-700 border-amber-300 font-medium" data-testid={`badge-cust-${si}`}>👥 {seg.customerType}</Badge>}
                       </div>
                     )}
                   </div>
@@ -740,10 +753,10 @@ function CollapsibleList({ items, initialCount, renderItem, label }: {
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="mt-2 text-xs font-medium text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+          className="mt-3 px-3 py-1.5 text-xs font-semibold text-primary bg-primary/5 border border-primary/20 rounded-md hover:bg-primary/10 flex items-center gap-1.5 transition-colors"
           data-testid={`btn-toggle-${label}`}
         >
-          {expanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+          {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
           {expanded ? "Show less" : `Show all ${items.length} ${label}`}
         </button>
       )}
@@ -1232,7 +1245,7 @@ function AuthoritySnapshotSection({ snapshot, brandName }: { snapshot: Authority
             <button
               type="button"
               onClick={() => setShowAll(!showAll)}
-              className="mt-3 w-full py-2 text-xs font-medium text-primary hover:text-primary/80 flex items-center justify-center gap-1 transition-colors"
+              className="mt-4 w-full py-2.5 text-sm font-medium text-primary hover:text-primary/80 flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-primary/30 hover:border-primary/50 transition-colors"
               data-testid="btn-toggle-authority"
             >
               {showAll ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
