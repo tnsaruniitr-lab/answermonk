@@ -556,8 +556,9 @@ function CategoryAccordion({ group, segments, brandPerSeg, brandName, colorSet }
             )}
           </div>
         </div>
-        <div className={`shrink-0 w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}>
-          <ChevronRight className="w-5 h-5 text-primary" />
+        <div className={`shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 transition-all ${expanded ? "bg-primary/15" : "hover:bg-primary/15"}`}>
+          <span className="text-xs font-semibold text-primary whitespace-nowrap">{expanded ? "Hide rankings" : "Show all rankings"}</span>
+          <ChevronRight className={`w-4 h-4 text-primary transition-transform duration-200 ${expanded ? "rotate-90" : ""}`} />
         </div>
       </button>
 
