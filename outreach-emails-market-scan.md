@@ -24,7 +24,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 12.5% → 30%+ and rank #4.4 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -48,7 +48,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 21.5% → 30%+ and rank #4.3 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -72,7 +72,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 9.8% → 25%+ and rank #7.3 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -96,7 +96,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 22.5% → 30%+ and rank #4.3 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -120,7 +120,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 10.6% → 27%+ and rank #6.2 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -144,7 +144,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 8.5% → 21%+ and rank #6.9 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -168,7 +168,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 10.6% → 27%+ and rank #6.9 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -192,7 +192,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 8.1% → 20%+ and rank #3.9 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -216,7 +216,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 7.5% → 19%+ and rank #6.9 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -240,7 +240,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 16.3% → 30%+ and rank #4.5 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -264,7 +264,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 7.5% → 19%+ and rank #3.4 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -288,7 +288,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 6.5% → 16%+ and rank #6.7 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -312,7 +312,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 6.7% → 17%+ and rank #5.7 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -336,7 +336,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 6.3% → 16%+ and rank #6.4 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -360,7 +360,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 7.1% → 18%+ and rank #4.6 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -384,7 +384,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 5.4% → 14%+ and rank #5.4 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -408,7 +408,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 7.3% → 18%+ and rank #4.9 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -432,7 +432,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 5.4% → 14%+ and rank #6.8 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -456,7 +456,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 6.0% → 15%+ and rank #6.4 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
 ---
 
@@ -480,5 +480,5 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 **I can help move you from 19.8% → 30%+ and rank #6.0 → top 5.** Also available as white-label for your client portfolio.
 
-Would you be willing to try it out?
+Would you be willing to try it out for free?
 
