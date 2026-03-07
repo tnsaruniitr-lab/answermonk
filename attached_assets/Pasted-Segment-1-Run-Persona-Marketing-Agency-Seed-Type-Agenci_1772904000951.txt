@@ -1,0 +1,273 @@
+Segment 1
+Run
+
+Persona
+Marketing Agency
+Seed Type
+Agencies
+Service Type (optional)
+Any service
+Customer Type
+
+
+Any customer type
+Location (city or country)
+dubai
+Result Count (find top N)
+10
+Segment 2
+Run
+
+Persona
+Marketing Agency
+Seed Type
+Agencies
+Service Type (optional)
+SEO
+Customer Type
+
+
+Any customer type
+Location (city or country)
+dubai
+Result Count (find top N)
+10
+Segment 3
+Run
+
+Persona
+Marketing Agency
+Seed Type
+Agencies
+Service Type (optional)
+Performance Marketing
+Customer Type
+
+
+Any customer type
+Location (city or country)
+dubai
+Result Count (find top N)
+10
+Segment 4
+Run
+
+Persona
+Marketing Agency
+Seed Type
+Agencies
+Service Type (optional)
+Social Media Management
+Customer Type
+
+
+Any customer type
+Location (city or country)
+dubai
+Result Count (find top N)
+10
+Segment 5
+Run
+
+Persona
+Marketing Agency
+Seed Type
+Agencies
+Service Type (optional)
+SEO
+Customer Type
+
+
+real estate agents
+Location (city or country)
+dubai
+Result Count (find top N)
+10
+Segment 6
+Run
+
+Persona
+Marketing Agency
+Seed Type
+Providers
+Service Type (optional)
+SEO
+Customer Type
+
+
+hotels
+Location (city or country)
+dubai
+Result Count (find top N)
+10
+Segment 7
+Run
+
+Persona
+Marketing Agency
+Seed Type
+Providers
+Service Type (optional)
+SEO
+Customer Type
+
+
+ecommerce
+Location (city or country)
+dubai
+Result Count (find top N)
+10
+Segment 8
+Run
+
+Persona
+Marketing Agency
+Seed Type
+Agencies
+Service Type (optional)
+Performance Marketing
+Customer Type
+
+
+real estate agents
+Location (city or country)
+dubai
+Result Count (find top N)
+10
+Segment 9
+
+Persona
+Marketing Agency
+Seed Type
+Agencies
+Service Type (optional)
+Performance Marketing
+Customer Type
+
+
+hotels
+Location (city or country)
+e.g. UAE, Dubai, Singapore
+Result Count (find top N)
+10
+Segment 10
+
+Persona
+Marketing Agency
+Seed Type
+Providers
+Service Type (optional)
+Performance Marketing
+Customer Type
+
+
+ecommerce
+Location (city or country)
+e.g. UAE, Dubai, Singapore
+Result Count (find top N)
+10
+Segment 11
+Run
+
+Persona
+Marketing Agency
+Seed Type
+Agencies
+Service Type (optional)
+Social Media Management
+Customer Type
+
+
+real estate agents
+Location (city or country)
+dubai
+Result Count (find top N)
+10
+Segment 12
+Run
+
+Persona
+Marketing Agency
+Seed Type
+Agencies
+Service Type (optional)
+Social Media Management
+Customer Type
+
+
+hotels
+Location (city or country)
+dubai
+Result Count (find top N)
+10
+Segment 13
+Run
+
+Persona
+Marketing Agency
+Seed Type
+Providers
+Service Type (optional)
+Social Media Management
+Customer Type
+
+
+ecommerce
+Location (city or country)
+dubai
+Result Count (find top N)
+10
+Segment 14
+Run
+
+Persona
+Marketing Agency
+Seed Type
+Providers
+Service Type (optional)
+Any service
+Customer Type
+
+
+real estate agents
+Location (city or country)
+dubai
+Result Count (find top N)
+10
+Segment 15
+Run
+
+Persona
+Marketing Agency
+Seed Type
+Agencies
+Service Type (optional)
+Any service
+Customer Type
+
+
+ecommerce
+Location (city or country)
+dubai
+Result Count (find top N)
+10
+Segment 16
+Run
+
+Persona
+Marketing Agency
+Seed Type
+Agencies
+Service Type (optional)
+Any service
+Customer Type
+
+
+hotels
+Location (city or country)
+dubai
+Result Count (find top N)
+10
+Add Segment
+Save Config
+Generate Prompts (16 segments x 10 prompts)
