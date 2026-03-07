@@ -1081,6 +1081,23 @@ function generateQuickPrompts(
   const isRestaurant = persona === "restaurant";
   const customerSuffix = customerType ? ` for ${customerType}` : "";
 
+  let entityLabel: string;
+  if (!seedType || seedType === "__blank__") {
+    entityLabel = personaLabel;
+  } else {
+    const seedSingular = seedType.toLowerCase().endsWith("ies")
+      ? seedType.toLowerCase().slice(0, -3) + "y"
+      : seedType.toLowerCase().endsWith("s")
+        ? seedType.toLowerCase().slice(0, -1)
+        : seedType.toLowerCase();
+    if (personaLabel.toLowerCase().includes(seedSingular)) {
+      const regex = new RegExp(seedSingular.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      entityLabel = personaLabel.replace(regex, seedType.toLowerCase());
+    } else {
+      entityLabel = `${personaLabel} ${seedType}`;
+    }
+  }
+
   const numPrompts = Math.min(promptCount, QUICK_QUALIFIERS.length);
   for (let i = 0; i < numPrompts; i++) {
     const qualifier = QUICK_QUALIFIERS[i];
@@ -1091,9 +1108,9 @@ function generateQuickPrompts(
     } else if (!seedType || seedType === "__blank__") {
       text = `Find, list and rank ${qualifier} ${count} ${personaLabel}${serviceSuffix}${customerSuffix} in ${location}.`;
     } else if (isRealEstate) {
-      text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType}${serviceSuffix}${customerSuffix} in ${location}.`;
+      text = `Find, list and rank ${qualifier} ${count} ${entityLabel}${serviceSuffix}${customerSuffix} in ${location}.`;
     } else {
-      text = `Find, list and rank ${qualifier} ${count} ${personaLabel} ${seedType}${serviceSuffix}${customerSuffix} based in ${location}.`;
+      text = `Find, list and rank ${qualifier} ${count} ${entityLabel}${serviceSuffix}${customerSuffix} based in ${location}.`;
     }
     prompts.push({
       id: `quick_${i + 1}`,

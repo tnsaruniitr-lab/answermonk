@@ -36,15 +36,45 @@ const PERSONA_CORE_LABELS: Record<string, string> = {
   property_dealer: "property",
 };
 
-function buildSegmentLabel(seg: { persona?: string; seedType: string; customerType: string; serviceType?: string }): string {
+function extractServiceFromPrompt(seg: { scoringResult?: { raw_runs?: { prompt_text?: string; prompt?: string }[] } }): string {
+  const runs = seg.scoringResult?.raw_runs || [];
+  for (const run of runs) {
+    const text = run.prompt_text || run.prompt || "";
+    const m = text.match(/specializing in\s+(.+?)(?:\s+for\s+\w|\s+based\s+in\s+|\s+in\s+[A-Z])/i);
+    if (m) {
+      let svc = m[1].trim();
+      svc = svc.replace(/\s+for\s*$/, "");
+      return svc;
+    }
+  }
+  return "";
+}
+
+function buildEntityCategory(personaLabel: string, seedLabel: string): string {
+  if (!personaLabel || !seedLabel) return personaLabel || seedLabel;
+  const seedLower = seedLabel.toLowerCase();
+  const seedSingular = seedLower.endsWith("ies")
+    ? seedLower.slice(0, -3) + "y"
+    : seedLower.endsWith("s")
+      ? seedLower.slice(0, -1)
+      : seedLower;
+  if (personaLabel.toLowerCase().includes(seedSingular)) {
+    const regex = new RegExp(seedSingular.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    const merged = personaLabel.replace(regex, seedLower);
+    return merged.replace(/\b\w/g, c => c.toUpperCase());
+  }
+  return `${personaLabel.charAt(0).toUpperCase() + personaLabel.slice(1)} ${seedLabel}`;
+}
+
+function buildSegmentLabel(seg: { persona?: string; seedType: string; customerType: string; serviceType?: string; scoringResult?: any }): string {
   const personaLabel = seg.persona ? (PERSONA_CORE_LABELS[seg.persona] || seg.persona.replace(/_/g, " ")) : "";
   const isBlankSeed = !seg.seedType || seg.seedType.toLowerCase() === "blank";
   const seedLabel = isBlankSeed ? "" : seg.seedType.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-  const category = personaLabel
-    ? (seedLabel ? `${personaLabel.charAt(0).toUpperCase() + personaLabel.slice(1)} ${seedLabel}` : personaLabel.charAt(0).toUpperCase() + personaLabel.slice(1))
-    : seedLabel;
+
+  const category = buildEntityCategory(personaLabel, seedLabel);
   const parts = [category];
-  if (seg.serviceType) parts.push(`(${seg.serviceType})`);
+  const svc = seg.serviceType || extractServiceFromPrompt(seg);
+  if (svc) parts.push(`(${svc})`);
   if (seg.customerType) parts.push(`for ${seg.customerType}`);
   return parts.filter(Boolean).join(" ");
 }

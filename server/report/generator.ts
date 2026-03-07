@@ -320,15 +320,53 @@ function extractContextFromPrompt(prompts: any[] | null | undefined): string {
   return "";
 }
 
-function buildSegmentLabel(seg: { persona: string; seedType: string; customerType: string; serviceType?: string; prompts?: any[] | null }): string {
+function extractServiceFromPrompt(seg: { prompts?: any[] | null; scoringResult?: { raw_runs?: { prompt_text?: string; prompt?: string }[] } }): string {
+  const texts: string[] = [];
+  if (seg.prompts && Array.isArray(seg.prompts) && seg.prompts.length > 0) {
+    texts.push(seg.prompts[0]?.text || "");
+  }
+  const runs = seg.scoringResult?.raw_runs || [];
+  for (const run of runs) {
+    texts.push(run.prompt_text || run.prompt || "");
+  }
+  for (const text of texts) {
+    const m = text.match(/specializing in\s+(.+?)(?:\s+for\s+\w|\s+based\s+in\s+|\s+in\s+[A-Z])/i);
+    if (m) {
+      let svc = m[1].trim();
+      svc = svc.replace(/\s+for\s*$/, "");
+      return svc;
+    }
+  }
+  return "";
+}
+
+function buildEntityCategory(personaLabel: string, seedLabel: string): string {
+  if (!personaLabel || !seedLabel) return personaLabel || seedLabel;
+  const seedLower = seedLabel.toLowerCase();
+  const seedSingular = seedLower.endsWith("ies")
+    ? seedLower.slice(0, -3) + "y"
+    : seedLower.endsWith("s")
+      ? seedLower.slice(0, -1)
+      : seedLower;
+  if (personaLabel.toLowerCase().includes(seedSingular)) {
+    const regex = new RegExp(seedSingular.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    const merged = personaLabel.replace(regex, seedLower);
+    return merged.replace(/\b\w/g, c => c.toUpperCase());
+  }
+  return `${personaLabel} ${seedLabel}`;
+}
+
+function buildSegmentLabel(seg: { persona: string; seedType: string; customerType: string; serviceType?: string; prompts?: any[] | null; scoringResult?: any }): string {
   const pLabel = seg.persona ? (PERSONA_LABELS[seg.persona] || seg.persona.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())) : "";
   const sLabel = seg.seedType && seg.seedType !== "__blank__"
     ? seg.seedType.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())
     : "";
-  const category = pLabel && sLabel ? `${pLabel} ${sLabel}` : pLabel || sLabel;
+
+  const category = buildEntityCategory(pLabel, sLabel);
   const parts = [category];
-  if (seg.serviceType) {
-    parts.push(`(${seg.serviceType})`);
+  const svc = seg.serviceType || extractServiceFromPrompt(seg);
+  if (svc) {
+    parts.push(`(${svc})`);
   } else {
     const promptContext = extractContextFromPrompt(seg.prompts);
     if (promptContext) parts.push(`(${promptContext})`);

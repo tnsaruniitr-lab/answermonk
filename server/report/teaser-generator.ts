@@ -231,14 +231,30 @@ function cleanLeadingArtifacts(text: string): string {
   return s.trim();
 }
 
+function extractServiceFromPromptTeaser(seg: SegmentData): string {
+  if (seg.prompts && Array.isArray(seg.prompts) && seg.prompts.length > 0) {
+    const text = (seg.prompts[0] as any)?.text || "";
+    const m = text.match(/specializing in\s+(.+?)(?:\s+for\s+|\s+based\s+in\s+|\s+in\s+[A-Z])/i);
+    if (m) return m[1].trim();
+  }
+  const runs = seg.scoringResult?.raw_runs || [];
+  for (const run of runs) {
+    const text = run.prompt_text || (run as any).prompt || "";
+    const m = text.match(/specializing in\s+(.+?)(?:\s+for\s+|\s+based\s+in\s+|\s+in\s+[A-Z])/i);
+    if (m) return m[1].trim();
+  }
+  return "";
+}
+
 function buildSegmentLabel(seg: SegmentData): string {
   const parts: string[] = [];
   if (seg.persona) {
     const persona = seg.persona.replace(/_/g, " ");
     parts.push(persona.charAt(0).toUpperCase() + persona.slice(1));
   }
-  if (seg.serviceType) {
-    parts.push(parts.length > 0 ? `· ${seg.serviceType}` : seg.serviceType);
+  const svc = seg.serviceType || extractServiceFromPromptTeaser(seg);
+  if (svc) {
+    parts.push(parts.length > 0 ? `· ${svc}` : svc);
   }
   if (seg.customerType) {
     parts.push(parts.length > 0 ? `· ${seg.customerType}` : seg.customerType);
