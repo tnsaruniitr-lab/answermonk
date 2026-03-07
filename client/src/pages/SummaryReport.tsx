@@ -535,16 +535,6 @@ function CategoryAccordion({ group, segments, brandPerSeg, brandName, colorSet }
             <h3 className="font-semibold text-sm">{group.title}</h3>
             <Badge variant="outline" className="text-[10px]">{group.segmentIndices.length} segment{group.segmentIndices.length > 1 ? "s" : ""}</Badge>
           </div>
-          {(uniqueServices.length > 0 || uniqueCustomers.length > 0) && (
-            <div className="flex flex-wrap gap-1 mb-1">
-              {uniqueServices.map(s => (
-                <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 bg-indigo-50 text-indigo-700 border-indigo-200">⚡ {s}</Badge>
-              ))}
-              {uniqueCustomers.map(c => (
-                <Badge key={c} variant="outline" className="text-[10px] px-1.5 py-0 bg-amber-50 text-amber-700 border-amber-200">👥 {c}</Badge>
-              ))}
-            </div>
-          )}
           <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
             <span>Your visibility: <span className={`font-semibold ${visColor}`}>{agg.brandVisibility}%</span></span>
             {agg.avgRank !== null && <span>Avg rank: <span className="font-semibold text-foreground">#{agg.avgRank}</span></span>}
@@ -555,6 +545,16 @@ function CategoryAccordion({ group, segments, brandPerSeg, brandName, colorSet }
             )}
           </div>
         </div>
+        {(uniqueServices.length > 0 || uniqueCustomers.length > 0) && (
+          <div className="flex flex-col gap-1.5 shrink-0 items-end">
+            {uniqueServices.map(s => (
+              <Badge key={s} variant="outline" className="text-xs px-2.5 py-1 bg-indigo-50 text-indigo-700 border-indigo-300 font-semibold whitespace-nowrap">⚡ {s}</Badge>
+            ))}
+            {uniqueCustomers.map(c => (
+              <Badge key={c} variant="outline" className="text-xs px-2.5 py-1 bg-amber-50 text-amber-700 border-amber-300 font-semibold whitespace-nowrap">👥 {c}</Badge>
+            ))}
+          </div>
+        )}
         <div className={`shrink-0 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}>
           <ChevronRight className="w-5 h-5 text-muted-foreground" />
         </div>
@@ -766,10 +766,10 @@ function CollapsibleList({ items, initialCount, renderItem, label }: {
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="mt-3 px-3 py-1.5 text-xs font-semibold text-primary bg-primary/5 border border-primary/20 rounded-md hover:bg-primary/10 flex items-center gap-1.5 transition-colors"
+          className="mt-3 w-full py-2 text-sm font-medium text-primary bg-primary/5 border border-primary/20 rounded-lg hover:bg-primary/10 hover:border-primary/30 flex items-center justify-center gap-2 transition-all"
           data-testid={`btn-toggle-${label}`}
         >
-          {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+          {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           {expanded ? "Show less" : `Show all ${items.length} ${label}`}
         </button>
       )}
@@ -1105,15 +1105,18 @@ function ActionPlanCTA({ brandName, sessionId }: { brandName: string; sessionId?
   }
 
   return (
-    <div className="text-center py-6" data-testid="cta-form">
-      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto mb-4">
-        <Lock className="w-7 h-7 text-white" />
+    <div className="text-center py-8" data-testid="cta-form">
+      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto mb-5">
+        <Lock className="w-8 h-8 text-white" />
       </div>
-      <h3 className="text-xl font-bold tracking-tight mb-2" data-testid="text-cta-headline">
+      <h3 className="text-xl font-bold tracking-tight mb-3" data-testid="text-cta-headline">
         Unlock Your Full AI Action Plan
       </h3>
-      <p className="text-sm text-muted-foreground max-w-md mx-auto mb-5 leading-relaxed" data-testid="text-cta-subtext">
-        Get your complete audit and step-by-step action plan to show up in AI's top 3 recommendations and boost your appearance rate by 20–40%.
+      <p className="text-3xl font-extrabold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent mb-2" data-testid="text-cta-highlight">
+        Improve visibility by 20–40%
+      </p>
+      <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6" data-testid="text-cta-subtext">
+        Show up in AI's top 3 recommendations consistently.
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2.5 max-w-md mx-auto">
         <div className="relative flex-1">
