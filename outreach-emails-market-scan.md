@@ -6,7 +6,7 @@
 
 ## 1. Sandstorm Digital
 
-**Subject:** Sandstorm Digital: 12.5% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends Sandstorm Digital 12.5% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -30,7 +30,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 2. Socialize Agency
 
-**Subject:** Socialize Agency: 21.5% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends Socialize Agency 21.5% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -54,7 +54,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 3. AlCaz Media
 
-**Subject:** AlCaz Media: 9.8% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends AlCaz Media 9.8% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -78,7 +78,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 4. Socialize
 
-**Subject:** Socialize: 22.5% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends Socialize 22.5% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -102,7 +102,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 5. Amplify
 
-**Subject:** Amplify: 10.6% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends Amplify 10.6% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -126,7 +126,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 6. Igloo
 
-**Subject:** Igloo: 8.5% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends Igloo 8.5% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -150,7 +150,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 7. Digital Marketing Agency (DMA)
 
-**Subject:** Digital Marketing Agency (DMA): 10.6% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends Digital Marketing Agency (DMA) 10.6% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -174,7 +174,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 8. Mason Circle
 
-**Subject:** Mason Circle: 8.1% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends Mason Circle 8.1% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -198,7 +198,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 9. Creative Media House
 
-**Subject:** Creative Media House: 7.5% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends Creative Media House 7.5% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -222,7 +222,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 10. United SEO
 
-**Subject:** United SEO: 16.3% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends United SEO 16.3% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -246,7 +246,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 11. ASTUDIO
 
-**Subject:** ASTUDIO: 7.5% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends ASTUDIO 7.5% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -270,7 +270,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 12. Digital Farm
 
-**Subject:** Digital Farm: 6.5% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends Digital Farm 6.5% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -294,7 +294,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 13. Digital Advengers
 
-**Subject:** Digital Advengers: 6.7% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends Digital Advengers 6.7% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -318,7 +318,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 14. Hospitality Minds
 
-**Subject:** Hospitality Minds: 6.3% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends Hospitality Minds 6.3% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -342,7 +342,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 15. Home of Performance (HOP)
 
-**Subject:** Home of Performance (HOP): 7.1% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends Home of Performance (HOP) 7.1% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -366,7 +366,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 16. TIDAL Digital
 
-**Subject:** TIDAL Digital: 5.4% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends TIDAL Digital 5.4% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -390,7 +390,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 17. Envision
 
-**Subject:** Envision: 7.3% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends Envision 7.3% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -414,7 +414,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 18. EDS FZE
 
-**Subject:** EDS FZE: 5.4% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends EDS FZE 5.4% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -438,7 +438,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 19. SEO Tech Experts
 
-**Subject:** SEO Tech Experts: 6.0% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends SEO Tech Experts 6.0% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
@@ -462,7 +462,7 @@ This isn't generic — per-engine, real buyer intents, service x customer breakd
 
 ## 20. Blue Beetle
 
-**Subject:** Blue Beetle: 19.8% AI visibility — Digital Gravity is at 62%, NEXA 46%
+**Subject:** AI recommends Blue Beetle 19.8% of the time — Digital Gravity gets 62%, NEXA 46%
 
 Hi [Name],
 
