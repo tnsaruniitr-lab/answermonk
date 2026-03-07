@@ -531,30 +531,30 @@ function CategoryAccordion({ group, segments, brandPerSeg, brandName, colorSet }
           {group.icon === "niche" && <Target className={`w-4.5 h-4.5 ${colorSet.text}`} />}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <h3 className="font-semibold text-sm">{group.title}</h3>
-            <Badge variant="outline" className="text-[10px]">{group.segmentIndices.length} segment{group.segmentIndices.length > 1 ? "s" : ""}</Badge>
+          <div className="flex items-center gap-2 mb-1.5">
+            <h3 className="font-semibold text-base">{group.title}</h3>
+            <Badge variant="outline" className="text-[11px]">{group.segmentIndices.length} segment{group.segmentIndices.length > 1 ? "s" : ""}</Badge>
           </div>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-            <span>Your visibility: <span className={`font-semibold ${visColor}`}>{agg.brandVisibility}%</span></span>
-            {agg.avgRank !== null && <span>Avg rank: <span className="font-semibold text-foreground">#{agg.avgRank}</span></span>}
+          {(uniqueServices.length > 0 || uniqueCustomers.length > 0) && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {uniqueServices.map(s => (
+                <Badge key={s} variant="outline" className="text-xs px-2 py-0.5 bg-indigo-50 text-indigo-700 border-indigo-300 font-medium">⚡ {s}</Badge>
+              ))}
+              {uniqueCustomers.map(c => (
+                <Badge key={c} variant="outline" className="text-xs px-2 py-0.5 bg-amber-50 text-amber-700 border-amber-300 font-medium">👥 {c}</Badge>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+            <span>Visibility: <span className={`font-bold text-base ${visColor}`}>{agg.brandVisibility}%</span></span>
+            {agg.avgRank !== null && <span>Avg Rank: <span className="font-bold text-base text-foreground">#{agg.avgRank}</span></span>}
             {agg.top3.length > 0 && (
               <span className="hidden sm:inline">Top 3: {agg.top3.map((c, i) => (
-                <span key={c.name}>{i > 0 ? ", " : ""}<span className="font-medium text-foreground">{c.name}</span> ({c.rate}%)</span>
+                <span key={c.name}>{i > 0 ? ", " : ""}<span className="font-semibold text-foreground">{c.name}</span> <span className="text-xs">({c.rate}%)</span></span>
               ))}</span>
             )}
           </div>
         </div>
-        {(uniqueServices.length > 0 || uniqueCustomers.length > 0) && (
-          <div className="flex flex-col gap-1.5 shrink-0 items-end">
-            {uniqueServices.map(s => (
-              <Badge key={s} variant="outline" className="text-xs px-2.5 py-1 bg-indigo-50 text-indigo-700 border-indigo-300 font-semibold whitespace-nowrap">⚡ {s}</Badge>
-            ))}
-            {uniqueCustomers.map(c => (
-              <Badge key={c} variant="outline" className="text-xs px-2.5 py-1 bg-amber-50 text-amber-700 border-amber-300 font-semibold whitespace-nowrap">👥 {c}</Badge>
-            ))}
-          </div>
-        )}
         <div className={`shrink-0 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}>
           <ChevronRight className="w-5 h-5 text-muted-foreground" />
         </div>
