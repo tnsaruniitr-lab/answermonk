@@ -556,8 +556,8 @@ function CategoryAccordion({ group, segments, brandPerSeg, brandName, colorSet }
             )}
           </div>
         </div>
-        <div className={`shrink-0 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+        <div className={`shrink-0 w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}>
+          <ChevronRight className="w-5 h-5 text-primary" />
         </div>
       </button>
 
@@ -767,7 +767,7 @@ function CollapsibleList({ items, initialCount, renderItem, label }: {
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="mt-3 w-full py-2 text-sm font-medium text-primary bg-primary/5 border border-primary/20 rounded-lg hover:bg-primary/10 hover:border-primary/30 flex items-center justify-center gap-2 transition-all"
+          className="mt-3 w-full py-2.5 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90 flex items-center justify-center gap-2 transition-all shadow-sm"
           data-testid={`btn-toggle-${label}`}
         >
           {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
