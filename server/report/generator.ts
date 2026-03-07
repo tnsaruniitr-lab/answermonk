@@ -894,6 +894,7 @@ export async function generateReport(
       persona: seg.persona,
       location: seg.location,
       customerType: seg.customerType,
+      serviceType: seg.serviceType || extractServiceFromPrompt(seg),
       appearanceRate: score.appearance_rate,
       primaryRate: score.primary_rate || 0,
       avgRank: score.avg_rank,
@@ -1111,7 +1112,7 @@ export async function generateReport(
       }
     }
 
-    return { segmentLabel: segLabel, top5, deepDives };
+    return { segmentLabel: segLabel, serviceType: seg.serviceType || extractServiceFromPrompt(seg), customerType: seg.customerType, top5, deepDives };
   });
 
   const dedupedAllCompMap = new Map<string, { segments: Set<string>; totalAppearances: number }>();

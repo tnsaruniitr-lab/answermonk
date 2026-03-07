@@ -409,10 +409,199 @@ function VisibilityScorecard({ section1, section2, meta }: { section1: any; sect
   );
 }
 
+interface CategoryGroup {
+  key: string;
+  title: string;
+  description: string;
+  segmentIndices: number[];
+  icon: string;
+}
+
+function categorizeSegments(segments: any[]): CategoryGroup[] {
+  const general: number[] = [];
+  const byService: number[] = [];
+  const byCustomer: number[] = [];
+  const byBoth: number[] = [];
+
+  segments.forEach((seg: any, idx: number) => {
+    const hasSvc = !!(seg.serviceType && seg.serviceType.trim());
+    const hasCust = !!(seg.customerType && seg.customerType.trim());
+    if (hasSvc && hasCust) byBoth.push(idx);
+    else if (hasSvc) byService.push(idx);
+    else if (hasCust) byCustomer.push(idx);
+    else general.push(idx);
+  });
+
+  const groups: CategoryGroup[] = [];
+  if (general.length > 0) groups.push({ key: "general", title: "General Search", description: "How you rank in general agency searches", segmentIndices: general, icon: "globe" });
+  if (byService.length > 0) groups.push({ key: "service", title: "By Service Type", description: "How you rank when customers search for a specific service", segmentIndices: byService, icon: "service" });
+  if (byCustomer.length > 0) groups.push({ key: "customer", title: "By Customer Type", description: "How you rank when a specific industry searches for you", segmentIndices: byCustomer, icon: "customer" });
+  if (byBoth.length > 0) groups.push({ key: "niche", title: "By Service + Customer Niche", description: "How you rank when a specific industry searches for a specific service", segmentIndices: byBoth, icon: "niche" });
+  return groups;
+}
+
+function computeCategoryAggregates(segmentIndices: number[], segments: any[], brandPerSeg: any[], brandName: string) {
+  const brandKey = brandName.toLowerCase().trim();
+  let totalApp = 0, totalRuns = 0, rankSum = 0, rankCount = 0;
+  const compMap: Record<string, { appearances: number; totalRuns: number }> = {};
+
+  for (const idx of segmentIndices) {
+    const seg = segments[idx];
+    const brandSeg = brandPerSeg[idx];
+    if (brandSeg) {
+      totalApp += (brandSeg.appearanceRate ?? 0) * (brandSeg.validRuns ?? 0);
+      totalRuns += brandSeg.validRuns ?? 0;
+      if (brandSeg.avgRank != null) { rankSum += brandSeg.avgRank; rankCount++; }
+    }
+    for (const c of (seg.top5 ?? [])) {
+      if (c.name.toLowerCase().trim() === brandKey) continue;
+      if (!compMap[c.name]) compMap[c.name] = { appearances: 0, totalRuns: 0 };
+      compMap[c.name].appearances += c.appearances ?? 0;
+      compMap[c.name].totalRuns += seg.top5?.reduce((s: number, x: any) => s + (x.appearances ?? 0), 0) ?? 0;
+    }
+  }
+
+  const brandVisibility = totalRuns > 0 ? Math.round((totalApp / totalRuns) * 100) : 0;
+  const avgRank = rankCount > 0 ? Math.round((rankSum / rankCount) * 10) / 10 : null;
+
+  const topComps = Object.entries(compMap)
+    .map(([name, d]) => ({ name, appearances: d.appearances }))
+    .sort((a, b) => b.appearances - a.appearances)
+    .slice(0, 3);
+
+  const totalCompAppearances = Object.values(compMap).reduce((s, d) => s + d.appearances, 0);
+  const top3WithRate = topComps.map(c => ({
+    name: c.name,
+    rate: totalCompAppearances > 0 ? Math.round((c.appearances / (totalRuns || 1)) * 100) : 0,
+  }));
+
+  return { brandVisibility, avgRank, top3: top3WithRate };
+}
+
+function CategoryAccordion({ group, segments, brandPerSeg, brandName, colorSet }: {
+  group: CategoryGroup;
+  segments: any[];
+  brandPerSeg: any[];
+  brandName: string;
+  colorSet: { bar: string; bg: string; text: string; accent: string; border: string };
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const agg = computeCategoryAggregates(group.segmentIndices, segments, brandPerSeg, brandName);
+  const visColor = agg.brandVisibility >= 50 ? "text-emerald-600" : agg.brandVisibility >= 25 ? "text-amber-600" : "text-red-500";
+  const brandKey = brandName.toLowerCase().trim();
+
+  const segColors = [
+    { bar: "bg-indigo-500", bg: "bg-indigo-50", text: "text-indigo-700" },
+    { bar: "bg-teal-500", bg: "bg-teal-50", text: "text-teal-700" },
+    { bar: "bg-rose-500", bg: "bg-rose-50", text: "text-rose-700" },
+    { bar: "bg-amber-500", bg: "bg-amber-50", text: "text-amber-700" },
+  ];
+
+  return (
+    <div className={`rounded-xl border ${colorSet.border} overflow-hidden`} data-testid={`category-${group.key}`}>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className={`w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-gray-50/50 transition-colors ${expanded ? "border-b" : ""}`}
+        data-testid={`button-toggle-${group.key}`}
+      >
+        <div className={`w-9 h-9 rounded-lg ${colorSet.bg} flex items-center justify-center shrink-0`}>
+          {group.icon === "globe" && <Globe className={`w-4.5 h-4.5 ${colorSet.text}`} />}
+          {group.icon === "service" && <Zap className={`w-4.5 h-4.5 ${colorSet.text}`} />}
+          {group.icon === "customer" && <Eye className={`w-4.5 h-4.5 ${colorSet.text}`} />}
+          {group.icon === "niche" && <Target className={`w-4.5 h-4.5 ${colorSet.text}`} />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <h3 className="font-semibold text-sm">{group.title}</h3>
+            <Badge variant="outline" className="text-[10px]">{group.segmentIndices.length} segment{group.segmentIndices.length > 1 ? "s" : ""}</Badge>
+          </div>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+            <span>Your visibility: <span className={`font-semibold ${visColor}`}>{agg.brandVisibility}%</span></span>
+            {agg.avgRank !== null && <span>Avg rank: <span className="font-semibold text-foreground">#{agg.avgRank}</span></span>}
+            {agg.top3.length > 0 && (
+              <span className="hidden sm:inline">Top 3: {agg.top3.map((c, i) => (
+                <span key={c.name}>{i > 0 ? ", " : ""}<span className="font-medium text-foreground">{c.name}</span> ({c.rate}%)</span>
+              ))}</span>
+            )}
+          </div>
+        </div>
+        <div className={`shrink-0 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}>
+          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="p-5 bg-gray-50/30">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {group.segmentIndices.map((si, localIdx) => {
+              const seg = segments[si];
+              const competitors = (seg.top5 ?? []).slice(0, 10);
+              const brandAlreadyIn = competitors.some((c: any) => c.name.toLowerCase().trim() === brandKey);
+              let combined = [...competitors];
+              if (!brandAlreadyIn && brandPerSeg[si]) {
+                combined.push({ name: brandName, share: brandPerSeg[si].appearanceRate ?? 0, appearances: brandPerSeg[si].validRuns ?? 0, _isBrand: true });
+              }
+              combined.sort((a: any, b: any) => (b.share ?? 0) - (a.share ?? 0));
+              combined = combined.slice(0, 10);
+              const color = segColors[localIdx % segColors.length];
+              const maxShare = combined.length > 0 ? Math.max(...combined.map((c: any) => c.share ?? 0)) : 1;
+
+              return (
+                <Card key={si} className="overflow-hidden" data-testid={`card-segment-${si}`}>
+                  <div className={`h-1 ${color.bar}`} />
+                  <CardContent className="pt-5 pb-5">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Target className={`w-4 h-4 ${color.text}`} />
+                      <h3 className="font-semibold text-sm" data-testid={`text-segment-label-${si}`}>{seg.segmentLabel}</h3>
+                    </div>
+                    <div className="space-y-2.5">
+                      {combined.map((comp: any, ci: number) => {
+                        const pct = Math.round((comp.share ?? 0) * 100);
+                        const isBrand = comp._isBrand || comp.name.toLowerCase().trim() === brandKey;
+                        return (
+                          <div key={ci} className={`flex items-center gap-3 ${isBrand ? "py-1 px-2 -mx-2 rounded-lg bg-primary/5" : ""}`} data-testid={`row-competitor-${si}-${ci}`}>
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${isBrand ? "bg-primary text-primary-foreground" : "bg-gray-100 text-gray-500"}`}>
+                              {ci + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className={`text-sm truncate ${isBrand ? "font-bold text-primary" : "font-medium"}`} data-testid={`text-comp-name-${si}-${ci}`}>{comp.name}</span>
+                                <span className={`text-sm font-semibold ml-2 shrink-0 ${isBrand ? "text-primary" : color.text}`} data-testid={`text-comp-rate-${si}-${ci}`}>{pct}%</span>
+                              </div>
+                              <div className="w-full bg-gray-100 rounded-full h-1.5">
+                                <div className={`h-1.5 rounded-full ${isBrand ? "bg-primary" : color.bar} transition-all`} style={{ width: `${((comp.share ?? 0) / maxShare) * 100}%` }} />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-3">{combined.reduce((s: number, c: any) => s + (c.appearances ?? 0), 0)} total appearances across all prompts</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SegmentBreakdown({ section2, section1, brandName }: { section2: any; section1: any; brandName: string }) {
   const segments = section2?.perSegment ?? [];
   const brandPerSeg = section1?.perSegment ?? [];
   if (segments.length === 0) return null;
+
+  const groups = categorizeSegments(segments);
+  const hasMultipleCategories = groups.length > 1;
+
+  const categoryColors: Record<string, { bar: string; bg: string; text: string; accent: string; border: string }> = {
+    general: { bar: "bg-slate-500", bg: "bg-slate-100", text: "text-slate-700", accent: "bg-slate-50", border: "border-slate-200" },
+    service: { bar: "bg-blue-500", bg: "bg-blue-100", text: "text-blue-700", accent: "bg-blue-50", border: "border-blue-200" },
+    customer: { bar: "bg-violet-500", bg: "bg-violet-100", text: "text-violet-700", accent: "bg-violet-50", border: "border-violet-200" },
+    niche: { bar: "bg-emerald-500", bg: "bg-emerald-100", text: "text-emerald-700", accent: "bg-emerald-50", border: "border-emerald-200" },
+  };
 
   const segColors = [
     { bar: "bg-indigo-500", bg: "bg-indigo-50", text: "text-indigo-700", ring: "ring-indigo-200" },
@@ -420,6 +609,69 @@ function SegmentBreakdown({ section2, section1, brandName }: { section2: any; se
     { bar: "bg-rose-500", bg: "bg-rose-50", text: "text-rose-700", ring: "ring-rose-200" },
     { bar: "bg-amber-500", bg: "bg-amber-50", text: "text-amber-700", ring: "ring-amber-200" },
   ];
+
+  if (!hasMultipleCategories) {
+    return (
+      <section data-testid="section-segment-breakdown">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center">
+            <BarChart3 className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Who Shows Up When Your Customers Search</h2>
+            <p className="text-sm text-muted-foreground">Top 10 per segment — including {brandName} — based on AI engine responses</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {segments.map((seg: any, si: number) => {
+            const competitors = (seg.top5 ?? []).slice(0, 10);
+            const brandKey = brandName.toLowerCase().trim();
+            const brandAlreadyIn = competitors.some((c: any) => c.name.toLowerCase().trim() === brandKey);
+            let combined = [...competitors];
+            if (!brandAlreadyIn && brandPerSeg[si]) {
+              combined.push({ name: brandName, share: brandPerSeg[si].appearanceRate ?? 0, appearances: brandPerSeg[si].validRuns ?? 0, _isBrand: true });
+            }
+            combined.sort((a: any, b: any) => (b.share ?? 0) - (a.share ?? 0));
+            combined = combined.slice(0, 10);
+            const color = segColors[si % segColors.length];
+            const maxShare = combined.length > 0 ? Math.max(...combined.map((c: any) => c.share ?? 0)) : 1;
+            return (
+              <Card key={si} className="overflow-hidden" data-testid={`card-segment-${si}`}>
+                <div className={`h-1 ${color.bar}`} />
+                <CardContent className="pt-5 pb-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Target className={`w-4 h-4 ${color.text}`} />
+                    <h3 className="font-semibold text-sm" data-testid={`text-segment-label-${si}`}>{seg.segmentLabel}</h3>
+                  </div>
+                  <div className="space-y-2.5">
+                    {combined.map((comp: any, ci: number) => {
+                      const pct = Math.round((comp.share ?? 0) * 100);
+                      const isBrand = comp._isBrand || comp.name.toLowerCase().trim() === brandKey;
+                      return (
+                        <div key={ci} className={`flex items-center gap-3 ${isBrand ? "py-1 px-2 -mx-2 rounded-lg bg-primary/5" : ""}`} data-testid={`row-competitor-${si}-${ci}`}>
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${isBrand ? "bg-primary text-primary-foreground" : "bg-gray-100 text-gray-500"}`}>{ci + 1}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className={`text-sm truncate ${isBrand ? "font-bold text-primary" : "font-medium"}`} data-testid={`text-comp-name-${si}-${ci}`}>{comp.name}</span>
+                              <span className={`text-sm font-semibold ml-2 shrink-0 ${isBrand ? "text-primary" : color.text}`} data-testid={`text-comp-rate-${si}-${ci}`}>{pct}%</span>
+                            </div>
+                            <div className="w-full bg-gray-100 rounded-full h-1.5">
+                              <div className={`h-1.5 rounded-full ${isBrand ? "bg-primary" : color.bar} transition-all`} style={{ width: `${((comp.share ?? 0) / maxShare) * 100}%` }} />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-3">{combined.reduce((s: number, c: any) => s + (c.appearances ?? 0), 0)} total appearances across all prompts</p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section data-testid="section-segment-breakdown">
@@ -429,74 +681,21 @@ function SegmentBreakdown({ section2, section1, brandName }: { section2: any; se
         </div>
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Who Shows Up When Your Customers Search</h2>
-          <p className="text-sm text-muted-foreground">Top 10 per segment — including {brandName} — based on AI engine responses</p>
+          <p className="text-sm text-muted-foreground">Top 10 per segment — including {brandName} — grouped by search dimension</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {segments.map((seg: any, si: number) => {
-          const competitors = (seg.top5 ?? []).slice(0, 10);
-          const brandKey = brandName.toLowerCase().trim();
-          const brandAlreadyIn = competitors.some((c: any) => c.name.toLowerCase().trim() === brandKey);
-
-          let combined = [...competitors];
-          if (!brandAlreadyIn && brandPerSeg[si]) {
-            combined.push({
-              name: brandName,
-              share: brandPerSeg[si].appearanceRate ?? 0,
-              appearances: brandPerSeg[si].validRuns ?? 0,
-              _isBrand: true,
-            });
-          }
-
-          combined.sort((a: any, b: any) => (b.share ?? 0) - (a.share ?? 0));
-          combined = combined.slice(0, 10);
-
-          const color = segColors[si % segColors.length];
-          const maxShare = combined.length > 0 ? Math.max(...combined.map((c: any) => c.share ?? 0)) : 1;
-
-          return (
-            <Card key={si} className="overflow-hidden" data-testid={`card-segment-${si}`}>
-              <div className={`h-1 ${color.bar}`} />
-              <CardContent className="pt-5 pb-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <Target className={`w-4 h-4 ${color.text}`} />
-                  <h3 className="font-semibold text-sm" data-testid={`text-segment-label-${si}`}>{seg.segmentLabel}</h3>
-                </div>
-                <div className="space-y-2.5">
-                  {combined.map((comp: any, ci: number) => {
-                    const pct = Math.round((comp.share ?? 0) * 100);
-                    const isBrand = comp._isBrand || comp.name.toLowerCase().trim() === brandKey;
-                    return (
-                      <div key={ci} className={`flex items-center gap-3 ${isBrand ? "py-1 px-2 -mx-2 rounded-lg bg-primary/5" : ""}`} data-testid={`row-competitor-${si}-${ci}`}>
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${isBrand ? "bg-primary text-primary-foreground" : "bg-gray-100 text-gray-500"}`}>
-                          {ci + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className={`text-sm truncate ${isBrand ? "font-bold text-primary" : "font-medium"}`} data-testid={`text-comp-name-${si}-${ci}`}>
-                              {comp.name}
-                            </span>
-                            <span className={`text-sm font-semibold ml-2 shrink-0 ${isBrand ? "text-primary" : color.text}`} data-testid={`text-comp-rate-${si}-${ci}`}>
-                              {pct}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-100 rounded-full h-1.5">
-                            <div
-                              className={`h-1.5 rounded-full ${isBrand ? "bg-primary" : color.bar} transition-all`}
-                              style={{ width: `${((comp.share ?? 0) / maxShare) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-3">{combined.reduce((s: number, c: any) => s + (c.appearances ?? 0), 0)} total appearances across all prompts</p>
-              </CardContent>
-            </Card>
-          );
-        })}
+      <div className="space-y-3">
+        {groups.map(group => (
+          <CategoryAccordion
+            key={group.key}
+            group={group}
+            segments={segments}
+            brandPerSeg={brandPerSeg}
+            brandName={brandName}
+            colorSet={categoryColors[group.key] || categoryColors.general}
+          />
+        ))}
       </div>
     </section>
   );
