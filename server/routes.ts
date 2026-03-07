@@ -812,6 +812,100 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/competitor-lens/batch-reports", async (req, res) => {
+    try {
+      const schema = z.object({
+        competitors: z.array(z.string().min(1)).min(1).max(20),
+        sessionId: z.number().optional(),
+        segments: z.array(z.any()),
+        brandName: z.string().optional(),
+        brandDomain: z.string().optional(),
+      });
+      const parsed = schema.parse(req.body);
+
+      if (parsed.sessionId) {
+        const parentSession = await storage.getMultiSegmentSession(parsed.sessionId);
+        if (parentSession && (parentSession as any).sessionType === "competitor") {
+          res.status(400).json({ message: "Cannot generate competitor reports from a competitor session." });
+          return;
+        }
+      }
+
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      });
+
+      const results: Array<{ name: string; slug: string; sessionId: number; success: boolean; error?: string }> = [];
+
+      for (let i = 0; i < parsed.competitors.length; i++) {
+        const competitorName = parsed.competitors[i];
+        const slug = competitorName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+        res.write(`data: ${JSON.stringify({ type: "progress", index: i, total: parsed.competitors.length, name: competitorName, status: "generating" })}\n\n`);
+
+        try {
+          let finalSlug = slug;
+          const existingBySlug = await storage.getMultiSegmentSessionBySlug(slug);
+          if (existingBySlug) {
+            if ((existingBySlug as any).sessionType === "competitor" && (existingBySlug as any).competitorName?.toLowerCase() === competitorName.toLowerCase()) {
+              results.push({ name: competitorName, slug, sessionId: existingBySlug.id, success: true });
+              res.write(`data: ${JSON.stringify({ type: "progress", index: i, total: parsed.competitors.length, name: competitorName, status: "exists", slug, sessionId: existingBySlug.id })}\n\n`);
+              continue;
+            }
+            let suffix = 2;
+            while (await storage.getMultiSegmentSessionBySlug(`${slug}-${suffix}`)) {
+              suffix++;
+            }
+            finalSlug = `${slug}-${suffix}`;
+          }
+
+          const competitorSegments = buildCompetitorReportSegments(parsed.segments, competitorName);
+          const report = await generateReport({
+            id: parsed.sessionId || 0,
+            brandName: competitorName,
+            brandDomain: null,
+            segments: competitorSegments as any,
+            citationReport: null,
+          });
+
+          const promptsPerSegment = competitorSegments[0]?.resultCount || 3;
+          const compSession = await storage.createMultiSegmentSession({
+            brandName: competitorName,
+            brandDomain: null,
+            promptsPerSegment,
+            segments: competitorSegments as any,
+            sessionType: "competitor",
+            parentSessionId: parsed.sessionId || null,
+            competitorName,
+            parentBrandName: parsed.brandName || null,
+            cachedReport: report,
+            slug: finalSlug,
+          });
+
+          results.push({ name: competitorName, slug: finalSlug, sessionId: compSession.id, success: true });
+          res.write(`data: ${JSON.stringify({ type: "progress", index: i, total: parsed.competitors.length, name: competitorName, status: "done", slug: finalSlug, sessionId: compSession.id })}\n\n`);
+        } catch (err: any) {
+          console.error(`Batch report error for ${competitorName}:`, err);
+          results.push({ name: competitorName, slug: finalSlug, sessionId: 0, success: false, error: err.message });
+          res.write(`data: ${JSON.stringify({ type: "progress", index: i, total: parsed.competitors.length, name: competitorName, status: "error", error: err.message })}\n\n`);
+        }
+      }
+
+      res.write(`data: ${JSON.stringify({ type: "complete", results })}\n\n`);
+      res.end();
+    } catch (err) {
+      console.error("Batch competitor report error:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ message: "Failed to start batch report generation" });
+      } else {
+        res.write(`data: ${JSON.stringify({ type: "error", message: "Batch processing failed" })}\n\n`);
+        res.end();
+      }
+    }
+  });
+
   app.post("/api/v2configs", async (req, res) => {
     try {
       const parsed = insertSavedV2ConfigSchema.parse(req.body);

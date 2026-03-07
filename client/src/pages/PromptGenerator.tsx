@@ -1300,6 +1300,10 @@ export default function PromptGenerator() {
   const [compReportOpen, setCompReportOpen] = useState(false);
   const [compSessionId, setCompSessionId] = useState<number | null>(null);
   const [compLensCustomName, setCompLensCustomName] = useState("");
+  const [batchSelected, setBatchSelected] = useState<Set<string>>(new Set());
+  const [batchRunning, setBatchRunning] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<{ index: number; total: number; name: string; status: string } | null>(null);
+  const [batchResults, setBatchResults] = useState<Array<{ name: string; slug: string; sessionId: number; success: boolean; error?: string }> | null>(null);
 
   const updateSegment = (id: string, patch: Partial<V2Segment>) => {
     setV2Segments((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -1460,6 +1464,74 @@ export default function PromptGenerator() {
     }
   };
 
+  const runBatchReports = async () => {
+    if (batchSelected.size === 0) return;
+    setBatchRunning(true);
+    setBatchProgress(null);
+    setBatchResults(null);
+
+    const segmentsPayload = v2Segments
+      .filter((s) => s.scoringResult?.raw_runs?.length)
+      .map((s) => ({
+        persona: s.persona,
+        seedType: s.seedType,
+        serviceType: s.serviceType,
+        customerType: s.customerType,
+        location: s.location,
+        resultCount: s.resultCount,
+        prompts: s.prompts,
+        scoringResult: s.scoringResult,
+      }));
+
+    try {
+      const res = await fetch("/api/competitor-lens/batch-reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          competitors: Array.from(batchSelected),
+          sessionId: v2LoadedSessionId || 0,
+          segments: segmentsPayload,
+          brandName: brandName.trim(),
+          brandDomain: brandDomain.trim() || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: "Request failed" }));
+        throw new Error(errorData.message || "Batch generation failed");
+      }
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error("No reader");
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const event = JSON.parse(line.slice(6));
+              if (event.type === "progress") {
+                setBatchProgress({ index: event.index, total: event.total, name: event.name, status: event.status });
+              } else if (event.type === "complete") {
+                setBatchResults(event.results);
+                queryClient.invalidateQueries({ queryKey: ["/api/multisegment/sessions"] });
+              }
+            } catch {}
+          }
+        }
+      }
+    } catch {
+      toast({ title: "Batch generation failed", variant: "destructive" });
+    } finally {
+      setBatchRunning(false);
+    }
+  };
+
   const { toast } = useToast();
 
   const { data: presets } = useQuery<Presets>({
@@ -1562,6 +1634,9 @@ export default function PromptGenerator() {
     setCompLensList([]);
     setCompLensSelected("");
     setCompLensResult(null);
+    setBatchSelected(new Set());
+    setBatchResults(null);
+    setBatchProgress(null);
     const rawSegments = Array.isArray(session.segments) ? session.segments : [];
     if (rawSegments.length === 0) {
       setV2Segments([makeSegment()]);
@@ -2682,6 +2757,9 @@ export default function PromptGenerator() {
                             setCompLensList([]);
                             setCompLensSelected("");
                             setCompLensResult(null);
+                            setBatchSelected(new Set());
+                            setBatchResults(null);
+                            setBatchProgress(null);
                           }}
                           data-testid="button-v2-new-session"
                         >
@@ -3372,6 +3450,127 @@ export default function PromptGenerator() {
                           </div>
                           {compLensLoading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
                         </div>
+
+                        {compLensList.length > 0 && (
+                          <div className="border rounded-lg p-4 space-y-3 bg-secondary/20">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-medium flex items-center gap-2">
+                                <FileText className="w-4 h-4 text-primary" />
+                                Batch Generate Impact Summaries
+                              </h4>
+                              <button
+                                type="button"
+                                className="text-xs text-primary hover:underline"
+                                onClick={() => {
+                                  if (batchSelected.size === compLensList.length) {
+                                    setBatchSelected(new Set());
+                                  } else {
+                                    setBatchSelected(new Set(compLensList.map(c => c.name)));
+                                  }
+                                }}
+                                data-testid="button-toggle-select-all"
+                              >
+                                {batchSelected.size === compLensList.length ? "Deselect All" : "Select All"}
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                              {compLensList.map((c) => (
+                                <label key={c.name} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-secondary/50 cursor-pointer text-sm" data-testid={`checkbox-competitor-${c.name}`}>
+                                  <input
+                                    type="checkbox"
+                                    checked={batchSelected.has(c.name)}
+                                    onChange={() => {
+                                      setBatchSelected(prev => {
+                                        const next = new Set(prev);
+                                        if (next.has(c.name)) next.delete(c.name);
+                                        else next.add(c.name);
+                                        return next;
+                                      });
+                                    }}
+                                    disabled={batchRunning}
+                                    className="rounded border-gray-300"
+                                  />
+                                  <span className="font-medium">{c.name}</span>
+                                  <span className="text-xs text-muted-foreground">({c.appearances} mentions, {c.segments.length} seg{c.segments.length !== 1 ? "s" : ""})</span>
+                                </label>
+                              ))}
+                            </div>
+
+                            {batchProgress && batchRunning && (
+                              <div className="space-y-2 pt-1">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                                  <span>Generating {batchProgress.index + 1}/{batchProgress.total}: <strong>{batchProgress.name}</strong>...</span>
+                                </div>
+                                <div className="w-full bg-secondary rounded-full h-2">
+                                  <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${((batchProgress.index + (batchProgress.status === "done" || batchProgress.status === "exists" ? 1 : 0.5)) / batchProgress.total) * 100}%` }} />
+                                </div>
+                              </div>
+                            )}
+
+                            {batchResults && !batchRunning && (
+                              <div className="space-y-2 pt-1">
+                                <div className="flex items-center gap-2 text-sm text-emerald-600 font-medium">
+                                  <Check className="w-4 h-4" />
+                                  {batchResults.filter(r => r.success).length}/{batchResults.length} reports generated
+                                </div>
+                                <div className="space-y-1.5">
+                                  {batchResults.filter(r => r.success).map((r) => (
+                                    <div key={r.slug} className="flex items-center justify-between text-sm px-2 py-1.5 bg-white rounded border">
+                                      <span className="font-medium">{r.name}</span>
+                                      <div className="flex items-center gap-2">
+                                        <code className="text-xs bg-secondary px-1.5 py-0.5 rounded">/audit/{r.slug}</code>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-7 text-xs"
+                                          onClick={() => {
+                                            navigator.clipboard.writeText(`${window.location.origin}/audit/${r.slug}`);
+                                            toast({ title: "Link copied!" });
+                                          }}
+                                          data-testid={`button-copy-${r.slug}`}
+                                        >
+                                          Copy Link
+                                        </Button>
+                                        <a href={`/audit/${r.slug}`} target="_blank" rel="noopener noreferrer">
+                                          <Button variant="ghost" size="sm" className="h-7 text-xs" data-testid={`button-view-${r.slug}`}>
+                                            <ExternalLink className="w-3 h-3 mr-1" />
+                                            View
+                                          </Button>
+                                        </a>
+                                      </div>
+                                    </div>
+                                  ))}
+                                  {batchResults.filter(r => !r.success).map((r) => (
+                                    <div key={r.name} className="flex items-center justify-between text-sm px-2 py-1.5 bg-red-50 rounded border border-red-200">
+                                      <span className="font-medium text-red-700">{r.name}</span>
+                                      <span className="text-xs text-red-500">Failed</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            <Button
+                              onClick={runBatchReports}
+                              disabled={batchSelected.size === 0 || batchRunning}
+                              className="w-full"
+                              data-testid="button-batch-generate"
+                            >
+                              {batchRunning ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Generating Reports...
+                                </>
+                              ) : (
+                                <>
+                                  <Zap className="w-4 h-4 mr-2" />
+                                  Generate {batchSelected.size} Impact Summar{batchSelected.size === 1 ? "y" : "ies"}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
 
                         {compLensResult && !compLensLoading && (
                           <div className="space-y-4">
