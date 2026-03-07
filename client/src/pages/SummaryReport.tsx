@@ -83,6 +83,13 @@ export default function SummaryReport() {
   const sessionId = params.id;
   const [location] = useLocation();
   const isShareView = location.startsWith("/share/");
+
+  const { data: authData } = useQuery<{ authenticated: boolean }>({
+    queryKey: ["/api/auth/check"],
+    staleTime: 60_000,
+  });
+  const isAdmin = authData?.authenticated === true;
+  const lockActionPlan = !isAdmin;
   const isGroupKey = sessionId?.startsWith("v2auto-") || false;
   const isSlug = sessionId ? isNaN(Number(sessionId)) && !isGroupKey : false;
 
@@ -190,7 +197,7 @@ export default function SummaryReport() {
         <TopScorersSection competitors={allCompetitors} brandName={meta.brandName} />
         <BrandMentionAudit audit={brandMentionAudit} brandName={meta.brandName} allCompetitors={allCompetitors} />
         <BiggestGaps gaps={biggestGaps} />
-        <ConsolidatedWinsSection wins={consolidatedWins} isShareView={isShareView} brandName={meta.brandName} sessionId={meta.sessionId} />
+        <ConsolidatedWinsSection wins={consolidatedWins} locked={lockActionPlan} brandName={meta.brandName} sessionId={meta.sessionId} />
         <AuthoritySnapshotSection snapshot={authoritySnapshot} brandName={meta.brandName} />
         <AllCitationSourcesSection appendix={appendix} />
       </main>
@@ -1132,7 +1139,7 @@ function ActionPlanCTA({ brandName, sessionId }: { brandName: string; sessionId?
   );
 }
 
-function ConsolidatedWinsSection({ wins, isShareView, brandName, sessionId }: { wins: ConsolidatedWin[]; isShareView: boolean; brandName: string; sessionId?: number }) {
+function ConsolidatedWinsSection({ wins, locked, brandName, sessionId }: { wins: ConsolidatedWin[]; locked: boolean; brandName: string; sessionId?: number }) {
   const [showAll, setShowAll] = useState(false);
   if (wins.length === 0) return null;
 
@@ -1151,7 +1158,7 @@ function ConsolidatedWinsSection({ wins, isShareView, brandName, sessionId }: { 
     { bg: "bg-amber-500", badge: "bg-amber-100 text-amber-700", border: "border-amber-200", light: "bg-amber-50/50" },
   ];
 
-  const previewCount = isShareView ? 1 : 3;
+  const previewCount = locked ? 1 : 3;
   const initialCount = previewCount;
   const visibleWins = showAll ? wins : wins.slice(0, initialCount);
   const remaining = wins.length - initialCount;
@@ -1165,13 +1172,13 @@ function ConsolidatedWinsSection({ wins, isShareView, brandName, sessionId }: { 
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Strategic Action Plan</h2>
           <p className="text-sm text-muted-foreground">
-            {isShareView
+            {locked
               ? `${wins.length} high-impact actions identified for ${brandName}`
               : "High-impact moves based on GEO principles and real competitor data"
             }
           </p>
         </div>
-        {isShareView && (
+        {locked && (
           <Badge className="ml-auto bg-amber-100 text-amber-700 border-amber-300" variant="outline">
             <Lock className="w-3 h-3 mr-1" />
             Preview
@@ -1253,7 +1260,7 @@ function ConsolidatedWinsSection({ wins, isShareView, brandName, sessionId }: { 
         })}
       </div>
 
-      {isShareView && wins.length > previewCount && (
+      {locked && wins.length > previewCount && (
         <div className="relative mt-5">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/80 to-white rounded-xl -top-16 pointer-events-none" style={{ zIndex: 1 }} />
           <Card className="relative border-2 border-emerald-200 bg-gradient-to-b from-emerald-50/50 to-white" style={{ zIndex: 2 }} data-testid="card-cta-lock">
@@ -1264,7 +1271,7 @@ function ConsolidatedWinsSection({ wins, isShareView, brandName, sessionId }: { 
         </div>
       )}
 
-      {!isShareView && remaining > 0 && (
+      {!locked && remaining > 0 && (
         <button
           type="button"
           onClick={() => setShowAll(!showAll)}
