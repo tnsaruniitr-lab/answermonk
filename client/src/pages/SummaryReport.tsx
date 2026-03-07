@@ -442,16 +442,20 @@ function categorizeSegments(segments: any[]): CategoryGroup[] {
 
 function computeCategoryAggregates(segmentIndices: number[], segments: any[], brandPerSeg: any[], brandName: string) {
   const brandKey = brandName.toLowerCase().trim();
-  let totalApp = 0, totalRuns = 0, rankSum = 0, rankCount = 0;
+  let totalApp = 0, totalRuns = 0, rankWeightedSum = 0, rankWeightTotal = 0;
   const compMap: Record<string, { appearances: number; totalRuns: number }> = {};
 
   for (const idx of segmentIndices) {
     const seg = segments[idx];
     const brandSeg = brandPerSeg[idx];
     if (brandSeg) {
-      totalApp += (brandSeg.appearanceRate ?? 0) * (brandSeg.validRuns ?? 0);
+      const segAppearances = Math.round((brandSeg.appearanceRate ?? 0) * (brandSeg.validRuns ?? 0));
+      totalApp += segAppearances;
       totalRuns += brandSeg.validRuns ?? 0;
-      if (brandSeg.avgRank != null) { rankSum += brandSeg.avgRank; rankCount++; }
+      if (brandSeg.avgRank != null && segAppearances > 0) {
+        rankWeightedSum += brandSeg.avgRank * segAppearances;
+        rankWeightTotal += segAppearances;
+      }
     }
     for (const c of (seg.top5 ?? [])) {
       if (c.name.toLowerCase().trim() === brandKey) continue;
@@ -462,7 +466,7 @@ function computeCategoryAggregates(segmentIndices: number[], segments: any[], br
   }
 
   const brandVisibility = totalRuns > 0 ? Math.round((totalApp / totalRuns) * 100) : 0;
-  const avgRank = rankCount > 0 ? Math.round((rankSum / rankCount) * 10) / 10 : null;
+  const avgRank = rankWeightTotal > 0 ? Math.round((rankWeightedSum / rankWeightTotal) * 10) / 10 : null;
 
   const topComps = Object.entries(compMap)
     .map(([name, d]) => ({ name, appearances: d.appearances }))
@@ -539,7 +543,7 @@ function CategoryAccordion({ group, segments, brandPerSeg, brandName, colorSet }
               const brandAlreadyIn = competitors.some((c: any) => c.name.toLowerCase().trim() === brandKey);
               let combined = [...competitors];
               if (!brandAlreadyIn && brandPerSeg[si]) {
-                combined.push({ name: brandName, share: brandPerSeg[si].appearanceRate ?? 0, appearances: brandPerSeg[si].validRuns ?? 0, _isBrand: true });
+                combined.push({ name: brandName, share: brandPerSeg[si].appearanceRate ?? 0, appearances: Math.round((brandPerSeg[si].appearanceRate ?? 0) * (brandPerSeg[si].validRuns ?? 0)), _isBrand: true });
               }
               combined.sort((a: any, b: any) => (b.share ?? 0) - (a.share ?? 0));
               combined = combined.slice(0, 10);
@@ -629,7 +633,7 @@ function SegmentBreakdown({ section2, section1, brandName }: { section2: any; se
             const brandAlreadyIn = competitors.some((c: any) => c.name.toLowerCase().trim() === brandKey);
             let combined = [...competitors];
             if (!brandAlreadyIn && brandPerSeg[si]) {
-              combined.push({ name: brandName, share: brandPerSeg[si].appearanceRate ?? 0, appearances: brandPerSeg[si].validRuns ?? 0, _isBrand: true });
+              combined.push({ name: brandName, share: brandPerSeg[si].appearanceRate ?? 0, appearances: Math.round((brandPerSeg[si].appearanceRate ?? 0) * (brandPerSeg[si].validRuns ?? 0)), _isBrand: true });
             }
             combined.sort((a: any, b: any) => (b.share ?? 0) - (a.share ?? 0));
             combined = combined.slice(0, 10);
