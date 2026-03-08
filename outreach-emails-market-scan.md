@@ -10,7 +10,7 @@
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **Sandstorm Digital shows up in 12.5%.**
+**Sandstorm Digital shows up in 12.5% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -36,7 +36,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **Socialize Agency shows up in 21.5%.**
+**Socialize Agency shows up in 21.5% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -62,7 +62,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **AlCaz Media shows up in 9.8%.**
+**AlCaz Media shows up in 9.8% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -88,7 +88,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **Socialize shows up in 22.5%.**
+**Socialize shows up in 22.5% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -114,7 +114,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **Amplify shows up in 10.6%.**
+**Amplify shows up in 10.6% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -140,7 +140,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **Igloo shows up in 8.5%.**
+**Igloo shows up in 8.5% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -166,7 +166,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **Digital Marketing Agency (DMA) shows up in 10.6%.**
+**Digital Marketing Agency (DMA) shows up in 10.6% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -192,7 +192,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **Mason Circle shows up in 8.1%.**
+**Mason Circle shows up in 8.1% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -218,7 +218,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **Creative Media House shows up in 7.5%.**
+**Creative Media House shows up in 7.5% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -244,7 +244,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **United SEO shows up in 16.3%.**
+**United SEO shows up in 16.3% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -270,7 +270,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **ASTUDIO shows up in 7.5%.**
+**ASTUDIO shows up in 7.5% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -296,7 +296,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **Digital Farm shows up in 6.5%.**
+**Digital Farm shows up in 6.5% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -322,7 +322,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **Digital Advengers shows up in 6.7%.**
+**Digital Advengers shows up in 6.7% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -348,7 +348,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **Hospitality Minds shows up in 6.3%.**
+**Hospitality Minds shows up in 6.3% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -374,7 +374,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **Home of Performance (HOP) shows up in 7.1%.**
+**Home of Performance (HOP) shows up in 7.1% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -400,7 +400,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **TIDAL Digital shows up in 5.4%.**
+**TIDAL Digital shows up in 5.4% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -426,7 +426,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **Envision shows up in 7.3%.**
+**Envision shows up in 7.3% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -452,7 +452,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **EDS FZE shows up in 5.4%.**
+**EDS FZE shows up in 5.4% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -478,7 +478,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **SEO Tech Experts shows up in 6.0%.**
+**SEO Tech Experts shows up in 6.0% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -504,7 +504,7 @@ Would you want to try it out for free?
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of instances when customers ask AI. **Blue Beetle shows up in 19.8%.**
+**Blue Beetle shows up in 19.8% of instances when customers ask AI.** Digital Gravity shows up in 62%.
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
