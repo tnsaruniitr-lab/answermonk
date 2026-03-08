@@ -10,7 +10,7 @@
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **Sandstorm Digital shows up in 12.5%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **Sandstorm Digital shows up in 12.5%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -33,7 +33,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **Socialize Agency shows up in 21.5%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **Socialize Agency shows up in 21.5%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -56,7 +56,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **AlCaz Media shows up in 9.8%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **AlCaz Media shows up in 9.8%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -79,7 +79,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **Socialize shows up in 22.5%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **Socialize shows up in 22.5%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -102,7 +102,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **Amplify shows up in 10.6%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **Amplify shows up in 10.6%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -125,7 +125,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **Igloo shows up in 8.5%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **Igloo shows up in 8.5%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -148,7 +148,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **Digital Marketing Agency (DMA) shows up in 10.6%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **Digital Marketing Agency (DMA) shows up in 10.6%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -171,7 +171,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **Mason Circle shows up in 8.1%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **Mason Circle shows up in 8.1%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -194,7 +194,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **Creative Media House shows up in 7.5%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **Creative Media House shows up in 7.5%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -217,7 +217,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **United SEO shows up in 16.3%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **United SEO shows up in 16.3%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -240,7 +240,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **ASTUDIO shows up in 7.5%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **ASTUDIO shows up in 7.5%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -263,7 +263,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **Digital Farm shows up in 6.5%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **Digital Farm shows up in 6.5%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -286,7 +286,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **Digital Advengers shows up in 6.7%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **Digital Advengers shows up in 6.7%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -309,7 +309,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **Hospitality Minds shows up in 6.3%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **Hospitality Minds shows up in 6.3%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -332,7 +332,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **Home of Performance (HOP) shows up in 7.1%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **Home of Performance (HOP) shows up in 7.1%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -355,7 +355,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **TIDAL Digital shows up in 5.4%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **TIDAL Digital shows up in 5.4%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -378,7 +378,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **Envision shows up in 7.3%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **Envision shows up in 7.3%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -401,7 +401,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **EDS FZE shows up in 5.4%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **EDS FZE shows up in 5.4%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -424,7 +424,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **SEO Tech Experts shows up in 6.0%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **SEO Tech Experts shows up in 6.0%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
@@ -447,7 +447,7 @@ The tool helps you audit and identify the right action items to boost your appea
 
 Hi [Name],
 
-Digital Gravity shows up in 62% of AI-generated agency recommendations. **Blue Beetle shows up in 19.8%.**
+Digital Gravity shows up in 62% of instances when customers ask AI. **Blue Beetle shows up in 19.8%.**
 
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
