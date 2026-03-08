@@ -23,7 +23,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -46,7 +48,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -69,7 +73,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -92,7 +98,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -115,7 +123,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -138,7 +148,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -161,7 +173,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -184,7 +198,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -207,7 +223,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -230,7 +248,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -253,7 +273,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -276,7 +298,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -299,7 +323,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -322,7 +348,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -345,7 +373,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -368,7 +398,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -391,7 +423,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -414,7 +448,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -437,7 +473,9 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
 ---
 
@@ -460,5 +498,7 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 
 This is per-engine, per-segment, based on real buyer-intent queries — not a generic industry report.
 
-The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. Would you want to try it out for free?
+The tool helps you audit and identify the right action items to boost your appearance rate by 20–40% and achieve a higher top-3 rate. You can also white-label it for your clients.
+
+Would you want to try it out for free?
 
