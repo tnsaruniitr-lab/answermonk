@@ -1,5 +1,5 @@
-# GEO Outreach Emails — Market Scan Competitor Batch (v3)
-# Revised: more detail in bullet insights, new CTA
+# GEO Outreach Emails — Market Scan Competitor Batch (v4)
+# Added: 2 custom hook stats per company, new CTA with white-label
 # Best-in-class: Digital Gravity (62%)
 
 ---
@@ -17,7 +17,8 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 - **Competitive gap:** Digital Gravity appears 62% of the time — 5x your current rate
 - **Engine breakdown:** Claude carries most of your visibility. ChatGPT and Gemini remain weak
 - **Strongest segment:** Performance Marketing at 70% on Claude
-- **Biggest gap:** Low overall visibility and rarely ranking in the top 3 when you do appear
+- Invisible in 1 of 16 segments entirely, and below 5% in 3 more
+- ChatGPT and Gemini each recommend you just 1.9% of the time — almost non-existent
 
 **Full Sandstorm Digital teardown:** https://mysherlock.replit.app/audit/sandstorm-digital
 
@@ -42,7 +43,8 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 - **Competitive gap:** Digital Gravity appears 62% of the time — 3x your current rate
 - **Engine breakdown:** Claude carries most of your visibility. ChatGPT and Gemini remain weak
 - **Strongest segment:** Social Media Management at 100% on Claude
-- **Biggest gap:** Decent visibility on Claude, but underperforming on ChatGPT and Gemini where competitors are gaining ground
+- Claude recommends you 51% of the time, but ChatGPT only 5.6% — massive engine imbalance
+- 3 SEO-related segments have you at just 3.3% — nearly invisible where it matters for search clients
 
 **Full Socialize Agency teardown:** https://mysherlock.replit.app/audit/socialize-agency
 
@@ -67,7 +69,8 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 - **Competitive gap:** Digital Gravity appears 62% of the time — 6x your current rate
 - **Engine breakdown:** Strongest on ChatGPT for Performance Marketing for Hotels, but nearly invisible on Claude and Gemini
 - **Strongest segment:** Performance Marketing for Hotels at 70% on ChatGPT
-- **Biggest gap:** Appearing in fewer than 1 in 10 AI responses, and rarely in the top 3
+- Claude never recommends you — 0% across all segments
+- Completely invisible in 2 segments (SEO categories), and below 5% in 4 more
 
 **Full AlCaz Media teardown:** https://mysherlock.replit.app/audit/alcaz-media
 
@@ -92,7 +95,8 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 - **Competitive gap:** Digital Gravity appears 62% of the time — 3x your current rate
 - **Engine breakdown:** Claude carries most of your visibility. ChatGPT and Gemini remain weak
 - **Strongest segment:** Social Media Management at 100% on Claude
-- **Biggest gap:** Decent visibility on Claude, but underperforming on ChatGPT and Gemini where competitors are gaining ground
+- Claude recommends you 51% of the time — but ChatGPT only 6.3%, Gemini only 10%
+- All SEO-related segments sit at just 3.3% — a blindspot competitors are exploiting
 
 **Full Socialize teardown:** https://mysherlock.replit.app/audit/socialize
 
@@ -117,7 +121,8 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 - **Competitive gap:** Digital Gravity appears 62% of the time — 6x your current rate
 - **Engine breakdown:** Claude carries most of your visibility. ChatGPT and Gemini remain weak
 - **Strongest segment:** Social Media for Ecommerce at 80% on Claude
-- **Biggest gap:** Low overall visibility and rarely ranking in the top 3 when you do appear
+- Completely invisible in 5 of 16 segments — including hotels and real estate
+- ChatGPT and Gemini each recommend you just 1.3% of the time
 
 **Full Amplify teardown:** https://mysherlock.replit.app/audit/amplify
 
@@ -140,9 +145,10 @@ Digital Gravity shows up in 62% of instances when customers ask AI. **Igloo show
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
 - **Competitive gap:** Digital Gravity appears 62% of the time — 7x your current rate
-- **Engine breakdown:** Strongest on none consistently for Social Media Management, but nearly invisible on all three engines
+- **Engine breakdown:** No single engine recommends you consistently. Spread thin across all three
 - **Strongest segment:** Social Media Management at 60% on Gemini
-- **Biggest gap:** Appearing in fewer than 1 in 10 AI responses, and rarely in the top 3
+- Zero visibility in 4 segments — including hotels and real estate
+- No single engine recommends you above 13% — spread too thin across all three
 
 **Full Igloo teardown:** https://mysherlock.replit.app/audit/igloo
 
@@ -165,9 +171,10 @@ Digital Gravity shows up in 62% of instances when customers ask AI. **Digital Ma
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
 - **Competitive gap:** Digital Gravity appears 62% of the time — 6x your current rate
-- **Engine breakdown:** You only show up on Claude. ChatGPT and Gemini don't recommend you at all
+- **Engine breakdown:** Claude carries most of your visibility. ChatGPT and Gemini remain weak
 - **Strongest segment:** SEO at 80% on Claude
-- **Biggest gap:** Completely absent from 2 of 3 AI engines — prospects using ChatGPT and Gemini won't find you
+- ChatGPT and Gemini both recommend you 0% of the time — you only exist on Claude
+- Invisible in 2 segments entirely, and if Claude changes its algorithm, your visibility drops to zero
 
 **Full Digital Marketing Agency (DMA) teardown:** https://mysherlock.replit.app/audit/digital-marketing-agency-dma
 
@@ -192,7 +199,8 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 - **Competitive gap:** Digital Gravity appears 62% of the time — 8x your current rate
 - **Engine breakdown:** Strongest on Gemini for Marketing for Hotels, but nearly invisible on Claude and ChatGPT
 - **Strongest segment:** Marketing for Hotels at 90% on Gemini
-- **Biggest gap:** Appearing in fewer than 1 in 10 AI responses, and rarely in the top 3
+- Zero visibility in 10 of 16 segments — you only show up in niche hotel-related queries
+- Claude never recommends you — 0% across every segment
 
 **Full Mason Circle teardown:** https://mysherlock.replit.app/audit/mason-circle
 
@@ -217,7 +225,8 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 - **Competitive gap:** Digital Gravity appears 62% of the time — 8x your current rate
 - **Engine breakdown:** Strongest on Gemini for Marketing for Hotels, but nearly invisible on ChatGPT and Claude
 - **Strongest segment:** Marketing for Hotels at 90% on Gemini
-- **Biggest gap:** Appearing in fewer than 1 in 10 AI responses, and rarely in the top 3
+- Zero visibility in 7 segments — including all SEO and ecommerce categories
+- ChatGPT recommends you only 2.5% of the time, Claude just 0.6%
 
 **Full Creative Media House teardown:** https://mysherlock.replit.app/audit/creative-media-house
 
@@ -242,7 +251,8 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 - **Competitive gap:** Digital Gravity appears 62% of the time — 4x your current rate
 - **Engine breakdown:** Gemini carries most of your visibility. Claude remain weak
 - **Strongest segment:** SEO at 100% on Gemini
-- **Biggest gap:** Decent visibility on Gemini, but underperforming on Claude where competitors are gaining ground
+- Claude never recommends you — 0% across all segments. That is an entire AI platform ignoring you
+- Strong in SEO (100% on Gemini) but below 10% in most non-SEO segments
 
 **Full United SEO teardown:** https://mysherlock.replit.app/audit/united-seo-2
 
@@ -267,7 +277,8 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 - **Competitive gap:** Digital Gravity appears 62% of the time — 8x your current rate
 - **Engine breakdown:** Strongest on ChatGPT for Performance Marketing for Hotels, but nearly invisible on Claude and Gemini
 - **Strongest segment:** Performance Marketing for Hotels at 90% on ChatGPT
-- **Biggest gap:** Appearing in fewer than 1 in 10 AI responses, and rarely in the top 3
+- Zero visibility in 9 of 16 segments — more than half the market doesn't see you
+- Claude never recommends you — 0% across every segment
 
 **Full ASTUDIO teardown:** https://mysherlock.replit.app/audit/astudio
 
@@ -292,7 +303,8 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 - **Competitive gap:** Digital Gravity appears 62% of the time — 10x your current rate
 - **Engine breakdown:** Strongest on Claude (marginally) for Social Media Management, but nearly invisible on ChatGPT
 - **Strongest segment:** Social Media Management at 40% on Claude
-- **Biggest gap:** Appearing in fewer than 1 in 10 AI responses, and rarely in the top 3
+- Zero visibility in 4 segments, and even your best segment only hits 40%
+- ChatGPT recommends you just 0.6% of the time — essentially invisible on the most popular AI
 
 **Full Digital Farm teardown:** https://mysherlock.replit.app/audit/digital-farm
 
@@ -317,7 +329,8 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 - **Competitive gap:** Digital Gravity appears 62% of the time — 9x your current rate
 - **Engine breakdown:** Strongest on Gemini for Social Media for Real Estate, but nearly invisible on Claude and ChatGPT
 - **Strongest segment:** Social Media for Real Estate at 90% on Gemini
-- **Biggest gap:** Appearing in fewer than 1 in 10 AI responses, and rarely in the top 3
+- Zero visibility in 7 segments — including hotels and ecommerce entirely
+- Claude never recommends you, and ChatGPT is at just 1.9%
 
 **Full Digital Advengers teardown:** https://mysherlock.replit.app/audit/digital-advengers
 
@@ -340,9 +353,10 @@ Digital Gravity shows up in 62% of instances when customers ask AI. **Hospitalit
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
 - **Competitive gap:** Digital Gravity appears 62% of the time — 10x your current rate
-- **Engine breakdown:** You only show up on Gemini. ChatGPT and Claude don't recommend you at all
+- **Engine breakdown:** Strongest on Gemini for Marketing for Hotels, but nearly invisible on ChatGPT and Claude
 - **Strongest segment:** Marketing for Hotels at 80% on Gemini
-- **Biggest gap:** Completely absent from 2 of 3 AI engines — prospects using ChatGPT and Claude won't find you
+- ChatGPT and Claude both recommend you 0% of the time — you only exist on Gemini
+- Zero visibility in 10 of 16 segments — only appearing in niche hotel queries
 
 **Full Hospitality Minds teardown:** https://mysherlock.replit.app/audit/hospitality-minds
 
@@ -367,7 +381,8 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 - **Competitive gap:** Digital Gravity appears 62% of the time — 9x your current rate
 - **Engine breakdown:** Strongest on Gemini for Performance Marketing, but nearly invisible on Claude and ChatGPT
 - **Strongest segment:** Performance Marketing at 90% on Gemini
-- **Biggest gap:** Appearing in fewer than 1 in 10 AI responses, and rarely in the top 3
+- Zero visibility in 8 of 16 segments — half the market never sees you
+- Claude never recommends you — 0% across all segments
 
 **Full Home of Performance (HOP) teardown:** https://mysherlock.replit.app/audit/home-of-performance-hop
 
@@ -392,7 +407,8 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 - **Competitive gap:** Digital Gravity appears 62% of the time — 11x your current rate
 - **Engine breakdown:** Strongest on Gemini for Performance Marketing, but nearly invisible on Claude
 - **Strongest segment:** Performance Marketing at 80% on Gemini
-- **Biggest gap:** Appearing in fewer than 1 in 10 AI responses, and rarely in the top 3
+- Zero visibility in 8 of 16 segments — including hotels, ecommerce, and all SEO categories
+- Claude never recommends you — 0% across every segment
 
 **Full TIDAL Digital teardown:** https://mysherlock.replit.app/audit/tidal-digital
 
@@ -415,9 +431,10 @@ Digital Gravity shows up in 62% of instances when customers ask AI. **Envision s
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
 - **Competitive gap:** Digital Gravity appears 62% of the time — 8x your current rate
-- **Engine breakdown:** You only show up on Claude. ChatGPT and Gemini don't recommend you at all
+- **Engine breakdown:** Strongest on Claude for Performance Marketing for Ecommerce, but nearly invisible on ChatGPT and Gemini
 - **Strongest segment:** Performance Marketing for Ecommerce at 80% on Claude
-- **Biggest gap:** Completely absent from 2 of 3 AI engines — prospects using ChatGPT and Gemini won't find you
+- ChatGPT and Gemini both recommend you 0% of the time — you only exist on Claude
+- Invisible in 3 segments entirely, including Social Media and SEO categories
 
 **Full Envision teardown:** https://mysherlock.replit.app/audit/envision
 
@@ -442,7 +459,8 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 - **Competitive gap:** Digital Gravity appears 62% of the time — 11x your current rate
 - **Engine breakdown:** Strongest on Gemini for Marketing for Real Estate, but nearly invisible on Claude
 - **Strongest segment:** Marketing for Real Estate at 80% on Gemini
-- **Biggest gap:** Appearing in fewer than 1 in 10 AI responses, and rarely in the top 3
+- Zero visibility in 8 of 16 segments — most of the market doesn't know you exist
+- Claude never recommends you — 0% across every segment
 
 **Full EDS FZE teardown:** https://mysherlock.replit.app/audit/eds-fze
 
@@ -465,9 +483,10 @@ Digital Gravity shows up in 62% of instances when customers ask AI. **SEO Tech E
 Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segments. Here's the summary:
 
 - **Competitive gap:** Digital Gravity appears 62% of the time — 10x your current rate
-- **Engine breakdown:** Strongest on Gemini and ChatGPT (both weak) for SEO, but nearly invisible on Claude
+- **Engine breakdown:** Strongest on Gemini and ChatGPT for SEO, but nearly invisible on Claude
 - **Strongest segment:** SEO at 40% on Gemini
-- **Biggest gap:** Appearing in fewer than 1 in 10 AI responses, and rarely in the top 3
+- Zero visibility in 9 of 16 segments — you only appear in SEO and a few niche queries
+- Claude never recommends you — 0% across all segments, despite being a major AI platform
 
 **Full SEO Tech Experts teardown:** https://mysherlock.replit.app/audit/seo-tech-experts
 
@@ -492,7 +511,8 @@ Our tool tested ChatGPT, Gemini, and Claude across 16 service and customer segme
 - **Competitive gap:** Digital Gravity appears 62% of the time — 3x your current rate
 - **Engine breakdown:** Claude carries most of your visibility. ChatGPT and Gemini remain weak
 - **Strongest segment:** SEO for Ecommerce at 70% on Claude
-- **Biggest gap:** Decent visibility on Claude, but underperforming on ChatGPT and Gemini where competitors are gaining ground
+- Claude recommends you 40% of the time but ChatGPT only 8.8% — huge engine gap
+- Rarely in the top 3 despite decent appearance rate — ranked bottom half on average
 
 **Full Blue Beetle teardown:** https://mysherlock.replit.app/audit/blue-beetle
 
