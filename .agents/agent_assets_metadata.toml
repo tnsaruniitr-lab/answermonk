@@ -6,3 +6,9 @@ id = "7-WuFZ6V-K5D9ky6SlUbX"
 uri = "file://valeo_citations_raw.csv"
 type = "table"
 title = "Valeo — All Citation URLs (641 rows)"
+
+[[outputs]]
+id = "5p68Bki1R1gKpg3slwT3k"
+uri = "file://valeo_citation_mentions.csv"
+type = "table"
+title = "Valeo — Brand Context Mentions (688 rows)"
