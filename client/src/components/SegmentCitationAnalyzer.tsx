@@ -251,7 +251,7 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
   const [loadingPersisted, setLoadingPersisted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedSegments, setExpandedSegments] = useState<Set<string>>(new Set());
-  const [progress, setProgress] = useState<{ step: string; detail: string; pct: number } | null>(null);
+  const [progress, setProgress] = useState<{ step: string; detail: string; pct: number; crawlDone?: number; crawlTotal?: number; crawlSuccess?: number; crawlFailed?: number } | null>(null);
   const [crawlResult, setCrawlResult] = useState<{ crawled: number; failed: number } | null>(null);
   const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -448,9 +448,23 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
             )}
             <div className="flex-1">
               <div className="text-sm font-medium" data-testid="text-analysis-step">{stepLabel}</div>
-              {progress?.detail && (
+              {progress?.step === "crawling" && progress.crawlTotal ? (
+                <div className="flex items-center gap-3 mt-1" data-testid="crawl-live-counter">
+                  <span className="text-xs font-mono font-semibold text-primary" data-testid="crawl-done-total">
+                    {progress.crawlDone} / {progress.crawlTotal}
+                  </span>
+                  <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-0.5" data-testid="crawl-success-count">
+                    <CheckCircle2 className="w-3 h-3" />{progress.crawlSuccess} ok
+                  </span>
+                  {(progress.crawlFailed ?? 0) > 0 && (
+                    <span className="text-xs text-orange-500 flex items-center gap-0.5" data-testid="crawl-failed-count">
+                      <AlertTriangle className="w-3 h-3" />{progress.crawlFailed} failed
+                    </span>
+                  )}
+                </div>
+              ) : progress?.detail ? (
                 <div className="text-xs text-muted-foreground mt-0.5" data-testid="text-analysis-detail">{progress.detail}</div>
-              )}
+              ) : null}
             </div>
             <div className="text-xs font-mono text-muted-foreground" data-testid="text-analysis-pct">{pct}%</div>
           </div>

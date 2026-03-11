@@ -80,6 +80,13 @@ The application adopts a monorepo structure, separating concerns into `client/` 
 - **Login Page**: `client/src/pages/Login.tsx` — simple password form, gates all non-share frontend routes.
 - **Frontend Auth Gate**: `client/src/App.tsx` — checks `/api/auth/check` on load, shows Login or AdminRouter/PublicRouter accordingly.
 
+### Citation Page Mentions (Brand Context Extraction)
+- **Table**: `citation_page_mentions` — stores per-URL brand context windows (±35 words around each brand mention) extracted during the Analyse Sources crawl.
+- **Schema**: `id`, `session_id`, `url`, `domain`, `brand`, `mention_index`, `context` (±35-word window), `source_type` (list_item/table_row/heading/paragraph/ai_fallback), `page_title`, `fetch_status` (crawled/ai_fallback/failed), `created_at`.
+- **Persistence**: After each Analyse Sources run (when a `sessionId` is present), `runSegmentAnalysis` saves up to 5 deduplicated mentions per brand per URL. Failed-to-crawl URLs use the AI engine's own response text as fallback (`ai_fallback`), giving a secondary context source.
+- **API**: `GET /api/multi-segment-sessions/:id/citation-mentions` (auth-required) returns all stored mentions for a session.
+- **Live Crawl Counter**: During crawling, the progress payload now includes `crawlDone`, `crawlTotal`, `crawlSuccess`, `crawlFailed` fields. The `SegmentCitationAnalyzer` component renders these as a real-time counter (X/Y done · N ok · N failed) during the crawling step.
+
 ### Environment Variables
 - `DATABASE_URL`: PostgreSQL connection string.
 - `ADMIN_PASSWORD`: Admin password for accessing the full tool (required).

@@ -1282,7 +1282,7 @@ export async function registerRoutes(
       .map(([name]) => name);
   }
 
-  const analysisProgress = new Map<string, { step: string; detail: string; pct: number; startedAt: number }>();
+  const analysisProgress = new Map<string, { step: string; detail: string; pct: number; startedAt: number; crawlDone?: number; crawlTotal?: number; crawlSuccess?: number; crawlFailed?: number }>();
 
   (globalThis as any).__getActiveAnalyses = () => {
     const active: any[] = [];
@@ -1337,10 +1337,18 @@ export async function registerRoutes(
 
       analysisProgress.set(progressKey, { step: "starting", detail: "Initializing analysis...", pct: 0, startedAt: Date.now() });
 
-      const report = await runSegmentAnalysis(brandName, normalizedSegments, (step, detail, pct) => {
+      const report = await runSegmentAnalysis(brandName, normalizedSegments, (step, detail, pct, extra?: any) => {
         console.log(`[segment-analysis] ${step}: ${detail} (${pct}%)`);
-        analysisProgress.set(progressKey, { step, detail, pct, startedAt: analysisProgress.get(progressKey)?.startedAt || Date.now() });
-      }, brandDomain || undefined);
+        const prev = analysisProgress.get(progressKey);
+        const entry: any = { step, detail, pct, startedAt: prev?.startedAt || Date.now() };
+        if (extra) {
+          entry.crawlDone = extra.done;
+          entry.crawlTotal = extra.total;
+          entry.crawlSuccess = extra.success;
+          entry.crawlFailed = extra.failed;
+        }
+        analysisProgress.set(progressKey, entry);
+      }, brandDomain || undefined, typeof sessionId === "number" ? sessionId : undefined);
 
       if (sessionId && typeof sessionId === "number") {
         try {
@@ -1368,6 +1376,17 @@ export async function registerRoutes(
       analysisProgress.set(progressKey, { step: "error", detail: String(err), pct: 0, startedAt: analysisProgress.get(progressKey)?.startedAt || Date.now() });
       setTimeout(() => analysisProgress.delete(progressKey), 30000);
       res.status(500).json({ message: "Analysis failed", error: String(err) });
+    }
+  });
+
+  app.get("/api/multi-segment-sessions/:id/citation-mentions", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) { res.status(400).json({ message: "Invalid session ID" }); return; }
+      const mentions = await storage.getCitationMentions(id);
+      res.json({ mentions, total: mentions.length });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to load citation mentions", error: String(err) });
     }
   });
 

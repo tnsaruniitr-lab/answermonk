@@ -1,14 +1,15 @@
 import type { SegmentInput } from "./citation-crawler";
 import { crawlCitations, extractCitationUrlsPerSegment } from "./citation-crawler";
-import { canonicalizeUrl } from "../crawler";
+import { canonicalizeUrl, canonicalizeDomain } from "../crawler";
 import { selectAllComparisonTargets, type SegmentComparison } from "./comparison-targets";
-import { extractAllSnippets, type PageSnippets, type BrandSnippet } from "./snippet-extractor";
+import { extractAllSnippets, extractSnippetsFromPage, type PageSnippets, type BrandSnippet } from "./snippet-extractor";
 import { classifyAllSources, type ClassifiedSource } from "./source-classifier";
 import { buildAllIntentDictionaries, type IntentDictionary } from "./intent-dictionary";
 import { scoreBrandForSegment, type BrandSegmentScore } from "./scorer";
 import { collectEvidence, type SegmentEvidence } from "./evidence-collector";
 import { recommendActions, type ActionRecommendation } from "./action-recommender";
 import type { CrawledPage } from "../crawler";
+import type { InsertCitationPageMention } from "@shared/schema";
 
 const PERSONA_CORE_LABELS: Record<string, string> = {
   marketing_agency: "marketing agency",
@@ -129,13 +130,14 @@ export interface FullAnalysisReport {
   analyzedAt: string;
 }
 
-export type ProgressCallback = (step: string, detail: string, pct: number) => void;
+export type ProgressCallback = (step: string, detail: string, pct: number, extra?: Record<string, any>) => void;
 
 export async function runSegmentAnalysis(
   brandName: string,
   segments: SegmentInput[],
   onProgress?: ProgressCallback,
   brandDomain?: string,
+  sessionId?: number,
 ): Promise<FullAnalysisReport> {
   const validSegments = segments.filter(s => s.scoringResult);
   if (validSegments.length === 0) {
@@ -165,7 +167,12 @@ export async function runSegmentAnalysis(
   onProgress?.("crawling", "Crawling citation URLs...", 15);
   const pages = await crawlCitations(validSegments, (progress) => {
     const pct = 15 + Math.round((progress.done / progress.total) * 40);
-    onProgress?.("crawling", `Crawled ${progress.done}/${progress.total} pages (${progress.success} ok, ${progress.failed} failed)`, pct);
+    onProgress?.(
+      "crawling",
+      `Crawled ${progress.done}/${progress.total} pages (${progress.success} ok, ${progress.failed} failed)`,
+      pct,
+      { done: progress.done, total: progress.total, success: progress.success, failed: progress.failed },
+    );
   });
 
   const totalCitationsCrawled = pages.length;
@@ -181,6 +188,114 @@ export async function runSegmentAnalysis(
   const trackedBrandsArray = [...allTrackedBrands].filter(b => !b.startsWith("Competitor ") && !b.startsWith("Unknown "));
 
   const pageSnippetsList = extractAllSnippets(pages, trackedBrandsArray);
+
+  if (sessionId) {
+    try {
+      const { storage } = await import("../storage");
+      const mentions: InsertCitationPageMention[] = [];
+
+      // Build mention rows from successfully crawled pages
+      for (const ps of pageSnippetsList) {
+        if (!ps.page.accessible) continue;
+        const brandMentionMap = new Map<string, BrandSnippet[]>();
+        for (const s of ps.snippets) {
+          const key = s.brand.toLowerCase();
+          if (!brandMentionMap.has(key)) brandMentionMap.set(key, []);
+          brandMentionMap.get(key)!.push(s);
+        }
+        for (const [, snippets] of brandMentionMap) {
+          const deduped: BrandSnippet[] = [];
+          const seenHashes = new Set<string>();
+          for (const s of snippets) {
+            if (!seenHashes.has(s.hash)) {
+              seenHashes.add(s.hash);
+              deduped.push(s);
+              if (deduped.length >= 5) break;
+            }
+          }
+          deduped.forEach((s, idx) => {
+            mentions.push({
+              sessionId,
+              url: ps.page.url,
+              domain: ps.page.domain,
+              brand: s.brand,
+              mentionIndex: idx + 1,
+              context: s.text,
+              sourceType: s.source,
+              pageTitle: ps.page.title || null,
+              fetchStatus: "crawled",
+            });
+          });
+        }
+      }
+
+      // AI fallback for failed pages: use the AI response text that cited the URL
+      const crawledCanonicals = new Set(pages.filter(p => p.accessible).map(p => p.canonicalUrl));
+      const failedUrlToRuns = new Map<string, Array<{ response: string; engine: string }>>();
+      for (const seg of validSegments) {
+        for (const run of (seg.scoringResult?.raw_runs || [])) {
+          for (const cit of (run.citations || [])) {
+            if (!cit.url) continue;
+            const canon = canonicalizeUrl(cit.url);
+            if (!crawledCanonicals.has(canon)) {
+              if (!failedUrlToRuns.has(cit.url)) failedUrlToRuns.set(cit.url, []);
+              failedUrlToRuns.get(cit.url)!.push({ response: run.response || "", engine: run.engine });
+            }
+          }
+        }
+      }
+
+      for (const [failedUrl, runs] of failedUrlToRuns) {
+        const domain = canonicalizeDomain(failedUrl);
+        const seen = new Set<string>();
+        for (const run of runs) {
+          if (!run.response || run.response.length < 50) continue;
+          const fakePage: CrawledPage = {
+            url: failedUrl, resolvedUrl: failedUrl, canonicalUrl: canonicalizeUrl(failedUrl),
+            domain, title: "", metaDescription: "", publishDate: null,
+            cleanText: run.response, rawHtml: "", contentHash: "", accessible: true,
+            wordCount: run.response.split(/\s+/).length, headings: [], listItems: [], tableRows: [],
+          };
+          const ps = extractSnippetsFromPage(fakePage, trackedBrandsArray);
+          const brandMentionMap = new Map<string, BrandSnippet[]>();
+          for (const s of ps.snippets) {
+            const key = s.brand.toLowerCase();
+            if (!brandMentionMap.has(key)) brandMentionMap.set(key, []);
+            brandMentionMap.get(key)!.push(s);
+          }
+          for (const [, snippets] of brandMentionMap) {
+            const deduped: BrandSnippet[] = [];
+            for (const s of snippets) {
+              if (!seen.has(s.hash)) {
+                seen.add(s.hash);
+                deduped.push(s);
+                if (deduped.length >= 3) break;
+              }
+            }
+            deduped.forEach((s, idx) => {
+              mentions.push({
+                sessionId,
+                url: failedUrl,
+                domain,
+                brand: s.brand,
+                mentionIndex: idx + 1,
+                context: s.text,
+                sourceType: "ai_fallback",
+                pageTitle: null,
+                fetchStatus: "ai_fallback",
+              });
+            });
+          }
+          break;
+        }
+      }
+
+      await storage.saveCitationMentions(sessionId, mentions);
+      console.log(`[segment-analysis] Saved ${mentions.length} citation mentions for session ${sessionId}`);
+    } catch (persistErr) {
+      console.error("[segment-analysis] Failed to save citation mentions:", persistErr);
+    }
+  }
 
   onProgress?.("classifying", "Classifying sources...", 70);
   const brandCountPerPage = new Map<string, number>();

@@ -1,5 +1,5 @@
 
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -109,6 +109,28 @@ export const summaryLeads = pgTable("summary_leads", {
 export const insertSummaryLeadSchema = createInsertSchema(summaryLeads).omit({ id: true, createdAt: true });
 export type SummaryLead = typeof summaryLeads.$inferSelect;
 export type InsertSummaryLead = z.infer<typeof insertSummaryLeadSchema>;
+
+export const citationPageMentions = pgTable("citation_page_mentions", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id"),
+  url: text("url").notNull(),
+  domain: text("domain").notNull(),
+  brand: text("brand").notNull(),
+  mentionIndex: integer("mention_index").notNull(),
+  context: text("context").notNull(),
+  sourceType: text("source_type").notNull(),
+  pageTitle: text("page_title"),
+  fetchStatus: text("fetch_status").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => [
+  index("idx_citation_mentions_session").on(t.sessionId),
+  index("idx_citation_mentions_url").on(t.url),
+  index("idx_citation_mentions_brand").on(t.brand),
+]);
+
+export const insertCitationPageMentionSchema = createInsertSchema(citationPageMentions).omit({ id: true, createdAt: true });
+export type CitationPageMention = typeof citationPageMentions.$inferSelect;
+export type InsertCitationPageMention = z.infer<typeof insertCitationPageMentionSchema>;
 
 // We'll store search history/results here
 export const analysisResults = pgTable("analysis_results", {

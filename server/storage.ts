@@ -10,6 +10,7 @@ import {
   reportCache,
   teaserLeads,
   summaryLeads,
+  citationPageMentions,
   type InsertAnalysisResult,
   type AnalysisResult,
   type InsertScoringJob,
@@ -24,6 +25,8 @@ import {
   type TeaserLead,
   type InsertSummaryLead,
   type SummaryLead,
+  type CitationPageMention,
+  type InsertCitationPageMention,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -69,6 +72,8 @@ export interface IStorage {
   listTeaserLeads(): Promise<TeaserLead[]>;
   createSummaryLead(lead: InsertSummaryLead): Promise<SummaryLead>;
   listSummaryLeads(): Promise<SummaryLead[]>;
+  saveCitationMentions(sessionId: number, mentions: InsertCitationPageMention[]): Promise<void>;
+  getCitationMentions(sessionId: number): Promise<CitationPageMention[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -384,6 +389,23 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(summaryLeads)
       .orderBy(desc(summaryLeads.createdAt));
+  }
+
+  async saveCitationMentions(sessionId: number, mentions: InsertCitationPageMention[]): Promise<void> {
+    await db.delete(citationPageMentions).where(eq(citationPageMentions.sessionId, sessionId));
+    if (mentions.length === 0) return;
+    const CHUNK = 200;
+    for (let i = 0; i < mentions.length; i += CHUNK) {
+      await db.insert(citationPageMentions).values(mentions.slice(i, i + CHUNK));
+    }
+  }
+
+  async getCitationMentions(sessionId: number): Promise<CitationPageMention[]> {
+    return db
+      .select()
+      .from(citationPageMentions)
+      .where(eq(citationPageMentions.sessionId, sessionId))
+      .orderBy(citationPageMentions.url, citationPageMentions.brand, citationPageMentions.mentionIndex);
   }
 }
 
