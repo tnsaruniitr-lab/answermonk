@@ -248,6 +248,7 @@ export async function runSegmentAnalysis(
         const pageEngines = getEngines(ps.page.url) || getEngines(ps.page.resolvedUrl) || undefined;
         const rawSegIdxs = getSegmentIndices(ps.page.url) || getSegmentIndices(ps.page.resolvedUrl) || undefined;
         const pageSegPersonas = rawSegIdxs?.map(i => (validSegments[i] as any)?.persona as string || `segment_${i}`);
+        const pageSegQueries = rawSegIdxs?.map(i => (validSegments[i] as any)?.prompts?.[0]?.text as string || `segment_${i}`);
         const brandMentionMap = new Map<string, BrandSnippet[]>();
         for (const s of ps.snippets) {
           const key = s.brand.toLowerCase();
@@ -277,6 +278,7 @@ export async function runSegmentAnalysis(
               engines: pageEngines,
               segmentIndices: rawSegIdxs,
               segmentPersonas: pageSegPersonas,
+              segmentQueries: pageSegQueries,
               domainCategory: classifyDomainCategory(ps.page.domain),
               pageTitle: ps.page.title || null,
               fetchStatus: "crawled",
@@ -352,6 +354,7 @@ export async function runSegmentAnalysis(
             const fallbackEngines = [...new Set(runs.map(r => r.engine).filter(Boolean))];
             const fallbackSegIdxs = getSegmentIndices(failedUrl) || undefined;
             const fallbackSegPersonas = fallbackSegIdxs?.map(i => (validSegments[i] as any)?.persona as string || `segment_${i}`);
+            const fallbackSegQueries = fallbackSegIdxs?.map(i => (validSegments[i] as any)?.prompts?.[0]?.text as string || `segment_${i}`);
             deduped.forEach((s, idx) => {
               mentions.push({
                 sessionId,
@@ -365,6 +368,7 @@ export async function runSegmentAnalysis(
                 engines: fallbackEngines.length > 0 ? fallbackEngines : undefined,
                 segmentIndices: fallbackSegIdxs,
                 segmentPersonas: fallbackSegPersonas,
+                segmentQueries: fallbackSegQueries,
                 domainCategory: classifyDomainCategory(domain),
                 pageTitle: null,
                 fetchStatus: "ai_fallback",
