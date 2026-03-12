@@ -1844,7 +1844,38 @@ export async function registerRoutes(
       const brandFilter = brand ? `AND brand = $2` : "";
       const params = brand ? [sessionId, brand] : [sessionId];
 
-      const [brandsRes, sessionTotalsRes, statsRes, categoryRes, domainRes, sessionCategoryRes, authorityRes] = await Promise.all([
+      const matrixQuery = `
+        WITH extracted AS (
+          SELECT
+            ${domainExtract} as effective_domain,
+            brand,
+            engine,
+            COALESCE(domain_category, 'unknown') as domain_category
+          FROM citation_page_mentions, UNNEST(engines) as engine
+          WHERE session_id = $1
+        ),
+        top_domains AS (
+          SELECT effective_domain, MAX(domain_category) as domain_category, COUNT(*)::int as gemini_total
+          FROM extracted
+          WHERE engine = 'gemini'
+          GROUP BY effective_domain
+          ORDER BY gemini_total DESC
+          LIMIT 10
+        )
+        SELECT
+          e.effective_domain,
+          e.brand,
+          t.gemini_total,
+          t.domain_category,
+          SUM(CASE WHEN e.engine = 'gemini' THEN 1 ELSE 0 END)::int as gemini_count,
+          SUM(CASE WHEN e.engine = 'chatgpt' THEN 1 ELSE 0 END)::int as chatgpt_count
+        FROM extracted e
+        JOIN top_domains t ON e.effective_domain = t.effective_domain
+        GROUP BY e.effective_domain, e.brand, t.gemini_total, t.domain_category
+        ORDER BY t.gemini_total DESC, e.brand
+      `;
+
+      const [brandsRes, sessionTotalsRes, statsRes, categoryRes, domainRes, sessionCategoryRes, authorityRes, matrixRes] = await Promise.all([
         pool.query(
           `SELECT DISTINCT brand FROM citation_page_mentions WHERE session_id = $1 ORDER BY brand`,
           [sessionId]
@@ -1902,6 +1933,7 @@ export async function registerRoutes(
               LIMIT 50
             `, [sessionId])
           : Promise.resolve({ rows: [] } as any),
+        pool.query(matrixQuery, [sessionId]),
       ]);
 
       const sessionTotals: Record<string, number> = {};
@@ -1958,6 +1990,14 @@ export async function registerRoutes(
         domainAggregates: domainRes.rows.map((r: any) => ({
           domain: r.effective_domain,
           domainCategory: r.domain_category,
+          geminiCount: r.gemini_count,
+          chatgptCount: r.chatgpt_count,
+        })),
+        citationMatrix: matrixRes.rows.map((r: any) => ({
+          domain: r.effective_domain,
+          brand: r.brand,
+          domainCategory: r.domain_category,
+          geminiTotal: r.gemini_total,
           geminiCount: r.gemini_count,
           chatgptCount: r.chatgpt_count,
         })),

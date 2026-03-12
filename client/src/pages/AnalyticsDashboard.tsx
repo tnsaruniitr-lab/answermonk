@@ -92,6 +92,14 @@ interface AnalyticsData {
     geminiCount: number;
     chatgptCount: number;
   }>;
+  citationMatrix: Array<{
+    domain: string;
+    brand: string;
+    domainCategory: string;
+    geminiTotal: number;
+    geminiCount: number;
+    chatgptCount: number;
+  }>;
 }
 
 function pct(part: number, total: number) {
@@ -99,6 +107,153 @@ function pct(part: number, total: number) {
   return `${((part / total) * 100).toFixed(1)}%`;
 }
 
+function CitationMatrix({
+  rows,
+  brands,
+  sessionId,
+  thirdPartyOnly,
+}: {
+  rows: AnalyticsData["citationMatrix"];
+  brands: string[];
+  sessionId: number;
+  thirdPartyOnly: boolean;
+}) {
+  const [activeEngine, setActiveEngine] = useState<"gemini" | "chatgpt">("gemini");
+  const [, setLocation] = useLocation();
+
+  const { domains, matrix, maxVal } = useMemo(() => {
+    let filtered = rows;
+    if (thirdPartyOnly) {
+      filtered = filtered.filter(r => !THIRD_PARTY_EXCLUDE.includes(r.domainCategory));
+    }
+    // Unique domains in server order (already sorted by gemini_total desc)
+    const domainMeta = new Map<string, { category: string; geminiTotal: number }>();
+    const matrixMap: Record<string, Record<string, { gemini: number; chatgpt: number }>> = {};
+    for (const r of filtered) {
+      if (!domainMeta.has(r.domain)) {
+        domainMeta.set(r.domain, { category: r.domainCategory, geminiTotal: r.geminiTotal });
+      }
+      if (!matrixMap[r.domain]) matrixMap[r.domain] = {};
+      matrixMap[r.domain][r.brand] = { gemini: r.geminiCount, chatgpt: r.chatgptCount };
+    }
+    const domains = [...domainMeta.entries()]
+      .sort((a, b) => b[1].geminiTotal - a[1].geminiTotal)
+      .map(([domain, meta]) => ({ domain, ...meta }));
+
+    let maxVal = 0;
+    for (const r of filtered) {
+      const v = activeEngine === "gemini" ? r.geminiCount : r.chatgptCount;
+      if (v > maxVal) maxVal = v;
+    }
+    return { domains, matrix: matrixMap, maxVal };
+  }, [rows, thirdPartyOnly, activeEngine]);
+
+  const cellClass = (count: number) => {
+    if (count === 0) return "bg-transparent text-gray-200";
+    const intensity = maxVal > 0 ? count / maxVal : 0;
+    if (activeEngine === "gemini") {
+      if (intensity > 0.66) return "bg-blue-600 text-white font-semibold";
+      if (intensity > 0.33) return "bg-blue-300 text-blue-900 font-medium";
+      return "bg-blue-100 text-blue-700";
+    } else {
+      if (intensity > 0.66) return "bg-orange-500 text-white font-semibold";
+      if (intensity > 0.33) return "bg-orange-200 text-orange-900 font-medium";
+      return "bg-orange-50 text-orange-700";
+    }
+  };
+
+  if (domains.length === 0) return null;
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-6">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Citation Presence Matrix</h2>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Top 10 domains by {activeEngine === "gemini" ? "Gemini" : "ChatGPT"} session citations · brand citations per source
+          </p>
+        </div>
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 text-xs font-medium">
+          <button
+            onClick={() => setActiveEngine("gemini")}
+            className={`px-3 py-1.5 rounded-md transition-all ${activeEngine === "gemini" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+            data-testid="matrix-tab-gemini"
+          >
+            Gemini
+          </button>
+          <button
+            onClick={() => setActiveEngine("chatgpt")}
+            className={`px-3 py-1.5 rounded-md transition-all ${activeEngine === "chatgpt" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+            data-testid="matrix-tab-chatgpt"
+          >
+            ChatGPT
+          </button>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="text-sm border-collapse" style={{ minWidth: `${180 + brands.length * 90 + 80}px` }}>
+          <thead>
+            <tr className="border-b border-gray-100">
+              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide pb-2 pr-4 w-44">Domain</th>
+              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide pb-2 pr-4 w-32">Category</th>
+              {brands.map(b => (
+                <th key={b} className="text-center text-xs font-medium text-gray-500 uppercase tracking-wide pb-2 px-1 w-20">
+                  <span className="block truncate max-w-[76px] mx-auto" title={b}>{b.split(" ")[0]}</span>
+                </th>
+              ))}
+              <th className="text-center text-xs font-medium text-gray-400 uppercase tracking-wide pb-2 pl-3 w-16">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {domains.map((d, di) => {
+              const domainMatrix = matrix[d.domain] ?? {};
+              const marketTotal = activeEngine === "gemini"
+                ? d.geminiTotal
+                : brands.reduce((sum, b) => sum + (domainMatrix[b]?.chatgpt ?? 0), 0);
+              return (
+                <tr
+                  key={d.domain}
+                  className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
+                  data-testid={`matrix-row-${di}`}
+                >
+                  <td className="py-2 pr-4">
+                    <button
+                      className="text-left text-gray-800 font-medium hover:text-blue-600 transition-colors truncate max-w-[168px] block"
+                      onClick={() => setLocation(`/citations/${sessionId}?domain=${encodeURIComponent(d.domain)}`)}
+                      title={d.domain}
+                    >
+                      {d.domain}
+                    </button>
+                  </td>
+                  <td className="py-2 pr-4">
+                    <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_COLORS[d.category] || "bg-gray-100 text-gray-600"}`}>
+                      {CATEGORY_LABELS[d.category] || d.category}
+                    </span>
+                  </td>
+                  {brands.map(b => {
+                    const count = activeEngine === "gemini"
+                      ? (domainMatrix[b]?.gemini ?? 0)
+                      : (domainMatrix[b]?.chatgpt ?? 0);
+                    return (
+                      <td key={b} className="py-1.5 px-1 text-center">
+                        <span className={`inline-flex items-center justify-center w-full rounded text-xs py-1 ${cellClass(count)}`}>
+                          {count > 0 ? count : "—"}
+                        </span>
+                      </td>
+                    );
+                  })}
+                  <td className="py-2 pl-3 text-center text-xs font-semibold text-gray-400">{marketTotal}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-gray-400 mt-3">— = not cited on this source · darker cell = higher citation count · click domain to view citations</p>
+    </div>
+  );
+}
 
 function StatCard({
   engine,
@@ -499,6 +654,15 @@ export default function AnalyticsDashboard() {
             <div className="h-32 flex items-center justify-center text-gray-400 text-sm">No data</div>
           )}
         </div>
+
+        {data.citationMatrix?.length > 0 && (
+          <CitationMatrix
+            rows={data.citationMatrix}
+            brands={data.brands}
+            sessionId={sessionId}
+            thirdPartyOnly={thirdPartyOnly}
+          />
+        )}
 
         {filtered && (
           <div>
