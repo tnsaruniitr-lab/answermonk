@@ -1390,6 +1390,23 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/citations/session/:sessionId/rows", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId);
+      if (isNaN(sessionId)) return res.status(400).json({ message: "Invalid session ID" });
+      const { db } = await import("./db");
+      const { citationPageMentions } = await import("@shared/schema");
+      const { eq, asc } = await import("drizzle-orm");
+      const rows = await db.select().from(citationPageMentions)
+        .where(eq(citationPageMentions.sessionId, sessionId))
+        .orderBy(asc(citationPageMentions.domainCategory), asc(citationPageMentions.brand), asc(citationPageMentions.domain))
+        .limit(5000);
+      res.json({ rows, total: rows.length });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to load citation rows", error: String(err) });
+    }
+  });
+
   app.get("/api/multi-segment-sessions/:id/citation-report", async (req, res) => {
     try {
       const id = req.params.id;
