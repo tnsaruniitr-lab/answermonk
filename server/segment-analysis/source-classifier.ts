@@ -201,6 +201,83 @@ export function classifySource(
   };
 }
 
+// ── Domain category classification ──────────────────────────────────────────
+
+const GOVERNMENT_DOMAINS = new Set([
+  "dha.gov.ae", "services.dha.gov.ae", "moh.gov.ae", "haad.ae", "dhcc.ae",
+  "tamm.abudhabi", "mohap.gov.ae", "seha.ae",
+]);
+
+const SOCIAL_MEDIA_DOMAINS = new Set([
+  "linkedin.com", "twitter.com", "x.com", "facebook.com", "instagram.com",
+  "reddit.com", "youtube.com", "tiktok.com", "pinterest.com", "snapchat.com",
+]);
+
+const REVIEW_PLATFORMS = new Set([
+  "trustpilot.com", "trustindex.io", "provenexpert.com", "yelp.com",
+  "tripadvisor.com", "google.com", "maps.google.com", "g2.com",
+  "capterra.com", "clutch.co", "goodfirms.co",
+]);
+
+const HEALTHCARE_DIRECTORIES = new Set([
+  "healthfinder.ae", "gooddoctoruae.com", "doctorsathome.ae", "2gis.ae",
+  "zaubee.com", "dubaisbest.com", "okadoc.com", "practo.com", "zocdoc.com",
+  "servicemarket.com", "healthconnect.ae", "doctorondemand.com",
+  "nearfinderme.com", "platinumlist.net",
+]);
+
+const MARKET_RESEARCH_DOMAINS = new Set([
+  "mordorintelligence.com", "statista.com", "grandviewresearch.com",
+  "marketsandmarkets.com", "ibisworld.com", "euromonitor.com",
+  "alliedmarketresearch.com", "businessresearchinsights.com",
+]);
+
+const JOBS_PLATFORMS = new Set([
+  "indeed.com", "ae.indeed.com", "glassdoor.com", "bayt.com",
+  "naukrigulf.com", "monster.com", "linkedin.com",
+]);
+
+const NEWS_MEDIA_DOMAINS = new Set([
+  "gulfnews.com", "khaleejtimes.com", "arabianbusiness.com",
+  "thenationalnews.com", "thenational.ae", "zawya.com", "wam.ae",
+  "timeoutdubai.com", "timeoutabudhabi.com", "meamarkets.digital",
+  "digitalmarketingdeal.me", "forbes.com", "bloomberg.com", "reuters.com",
+  "cnbc.com", "businessinsider.com", "techcrunch.com", "wired.com",
+  "health.baabeetv.com", "baabeetv.com", "expatwoman.com", "expatsofdubai.com",
+]);
+
+const HOSPITAL_CLINIC_DOMAINS = new Set([
+  "medcare.ae", "asterclinic.ae", "kingscollegehospitaldubai.com",
+  "apollocare.ae", "emirateshospitals.ae", "royalclinicdubai.com",
+  "montgohealth.com", "burjeel.com", "cloverleaf.ae", "valeohealth.ae",
+  "feelvaleo.com", "aster.ae", "asterathome.ae", "lakecitymedical.ae",
+]);
+
+const COMMUNITY_DOMAINS = new Set([
+  "reddit.com", "expatsofdubai.com", "gludo.org", "mumsnet.com",
+  "expat.com", "internations.org", "dubaiforum.ae",
+]);
+
+export function classifyDomainCategory(domain: string): string {
+  const d = domain.toLowerCase().replace(/^www\./, "").replace(/^(jm|uk|ae|us|in)\./,"");
+
+  if (d === "vertexaisearch.cloud.google.com" || d.includes("vertexaisearch")) return "ai_platform";
+  if (GOVERNMENT_DOMAINS.has(d) || /\.gov(\.[a-z]{2})?$/.test(d)) return "government";
+  if (MARKET_RESEARCH_DOMAINS.has(d)) return "market_research";
+  if (NEWS_MEDIA_DOMAINS.has(d)) return "news_media";
+  if (REVIEW_PLATFORMS.has(d)) return "review_platform";
+  if (HEALTHCARE_DIRECTORIES.has(d)) return "healthcare_directory";
+  if (HOSPITAL_CLINIC_DOMAINS.has(d)) return "hospital_clinic";
+  if (JOBS_PLATFORMS.has(d)) return "jobs_platform";
+  if (SOCIAL_MEDIA_DOMAINS.has(d)) return "social_media";
+  if (COMMUNITY_DOMAINS.has(d)) return "community";
+
+  // Pattern-based: likely a UAE healthcare provider site
+  if (d.endsWith(".ae") || d.endsWith(".ae/")) return "healthcare_provider";
+
+  return "general_web";
+}
+
 export function classifyAllSources(
   pages: CrawledPage[],
   brandCountPerPage: Map<string, number>,

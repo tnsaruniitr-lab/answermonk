@@ -3,7 +3,7 @@ import { crawlCitations, extractCitationUrlsPerSegment } from "./citation-crawle
 import { canonicalizeUrl, canonicalizeDomain } from "../crawler";
 import { selectAllComparisonTargets, type SegmentComparison } from "./comparison-targets";
 import { extractAllSnippets, extractSnippetsFromPage, type PageSnippets, type BrandSnippet } from "./snippet-extractor";
-import { classifyAllSources, type ClassifiedSource } from "./source-classifier";
+import { classifyAllSources, classifyDomainCategory, type ClassifiedSource } from "./source-classifier";
 import { buildAllIntentDictionaries, type IntentDictionary } from "./intent-dictionary";
 import { scoreBrandForSegment, type BrandSegmentScore } from "./scorer";
 import { collectEvidence, type SegmentEvidence } from "./evidence-collector";
@@ -258,6 +258,7 @@ export async function runSegmentAnalysis(
               context: s.text,
               sourceType: s.source,
               engines: pageEngines,
+              domainCategory: classifyDomainCategory(ps.page.domain),
               pageTitle: ps.page.title || null,
               fetchStatus: "crawled",
             });
@@ -341,6 +342,7 @@ export async function runSegmentAnalysis(
                 context: s.text,
                 sourceType: "ai_fallback",
                 engines: fallbackEngines.length > 0 ? fallbackEngines : undefined,
+                domainCategory: classifyDomainCategory(domain),
                 pageTitle: null,
                 fetchStatus: "ai_fallback",
               });
