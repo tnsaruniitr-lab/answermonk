@@ -1824,6 +1824,7 @@ export async function registerRoutes(
       if (isNaN(sessionId)) return res.status(400).json({ message: "Invalid session ID" });
 
       const { pool } = await import("./db");
+      const brand = typeof req.query.brand === "string" && req.query.brand ? req.query.brand : null;
 
       const sessionRes = await pool.query(
         "SELECT id, brand_name, segments, created_at FROM multi_segment_sessions WHERE id = $1",
@@ -1832,41 +1833,57 @@ export async function registerRoutes(
       const session = sessionRes.rows[0];
       if (!session) return res.status(404).json({ message: "Session not found" });
 
-      const statsRes = await pool.query(`
-        SELECT engine,
-          COUNT(*) as total,
-          COUNT(DISTINCT CASE
-            WHEN domain = 'vertexaisearch.cloud.google.com' AND resolved_url IS NOT NULL AND resolved_url NOT LIKE '%vertexaisearch%'
-            THEN regexp_replace(resolved_url, '^https?://([^/?#]+).*$', '\\1')
-            ELSE domain
-          END) as unique_domains
-        FROM citation_page_mentions, UNNEST(engines) as engine
-        WHERE session_id = $1
-        GROUP BY engine
-      `, [sessionId]);
+      const domainExtract = `CASE
+        WHEN domain = 'vertexaisearch.cloud.google.com' AND resolved_url IS NOT NULL AND resolved_url NOT LIKE '%vertexaisearch%'
+        THEN regexp_replace(resolved_url, '^https?://([^/?#]+).*$', '\\1')
+        ELSE domain
+      END`;
 
-      const categoryRes = await pool.query(`
-        SELECT COALESCE(domain_category, 'unknown') as category, engine, COUNT(*) as count
-        FROM citation_page_mentions, UNNEST(engines) as engine
-        WHERE session_id = $1
-        GROUP BY domain_category, engine
-      `, [sessionId]);
+      const brandFilter = brand ? `AND brand = $2` : "";
+      const params = brand ? [sessionId, brand] : [sessionId];
 
-      const domainRes = await pool.query(`
-        SELECT
-          CASE
-            WHEN domain = 'vertexaisearch.cloud.google.com' AND resolved_url IS NOT NULL AND resolved_url NOT LIKE '%vertexaisearch%'
-            THEN regexp_replace(resolved_url, '^https?://([^/?#]+).*$', '\\1')
-            ELSE domain
-          END as effective_domain,
-          MAX(COALESCE(domain_category, 'unknown')) as domain_category,
-          SUM(CASE WHEN engine = 'gemini' THEN 1 ELSE 0 END)::int as gemini_count,
-          SUM(CASE WHEN engine = 'chatgpt' THEN 1 ELSE 0 END)::int as chatgpt_count
-        FROM citation_page_mentions, UNNEST(engines) as engine
-        WHERE session_id = $1
-        GROUP BY effective_domain
-        ORDER BY (SUM(CASE WHEN engine = 'gemini' THEN 1 ELSE 0 END) + SUM(CASE WHEN engine = 'chatgpt' THEN 1 ELSE 0 END)) DESC
-      `, [sessionId]);
+      const [brandsRes, sessionTotalsRes, statsRes, categoryRes, domainRes] = await Promise.all([
+        pool.query(
+          `SELECT DISTINCT brand FROM citation_page_mentions WHERE session_id = $1 ORDER BY brand`,
+          [sessionId]
+        ),
+        pool.query(`
+          SELECT engine, COUNT(*) as total
+          FROM citation_page_mentions, UNNEST(engines) as engine
+          WHERE session_id = $1
+          GROUP BY engine
+        `, [sessionId]),
+        pool.query(`
+          SELECT engine,
+            COUNT(*) as total,
+            COUNT(DISTINCT ${domainExtract}) as unique_domains
+          FROM citation_page_mentions, UNNEST(engines) as engine
+          WHERE session_id = $1 ${brandFilter}
+          GROUP BY engine
+        `, params),
+        pool.query(`
+          SELECT COALESCE(domain_category, 'unknown') as category, engine, COUNT(*) as count
+          FROM citation_page_mentions, UNNEST(engines) as engine
+          WHERE session_id = $1 ${brandFilter}
+          GROUP BY domain_category, engine
+        `, params),
+        pool.query(`
+          SELECT
+            ${domainExtract} as effective_domain,
+            MAX(COALESCE(domain_category, 'unknown')) as domain_category,
+            SUM(CASE WHEN engine = 'gemini' THEN 1 ELSE 0 END)::int as gemini_count,
+            SUM(CASE WHEN engine = 'chatgpt' THEN 1 ELSE 0 END)::int as chatgpt_count
+          FROM citation_page_mentions, UNNEST(engines) as engine
+          WHERE session_id = $1 ${brandFilter}
+          GROUP BY effective_domain
+          ORDER BY (SUM(CASE WHEN engine = 'gemini' THEN 1 ELSE 0 END) + SUM(CASE WHEN engine = 'chatgpt' THEN 1 ELSE 0 END)) DESC
+        `, params),
+      ]);
+
+      const sessionTotals: Record<string, number> = {};
+      for (const row of sessionTotalsRes.rows) {
+        sessionTotals[row.engine] = parseInt(row.total);
+      }
 
       const engineStats: Record<string, { total: number; uniqueDomains: number }> = {};
       for (const row of statsRes.rows) {
@@ -1887,6 +1904,9 @@ export async function registerRoutes(
           segmentCount: Array.isArray(session.segments) ? session.segments.length : 0,
           createdAt: session.created_at,
         },
+        brands: brandsRes.rows.map((r: any) => r.brand),
+        selectedBrand: brand,
+        sessionTotals,
         engineStats,
         categoryBreakdown: Object.values(categoryMap),
         domainAggregates: domainRes.rows.map((r: any) => ({

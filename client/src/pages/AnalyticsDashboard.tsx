@@ -11,8 +11,8 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, ExternalLink } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const THIRD_PARTY_EXCLUDE = ["healthcare_provider", "hospital_clinic"];
 
@@ -62,7 +62,6 @@ const CATEGORY_COLORS: Record<string, string> = {
   healthcare_provider: "bg-cyan-100 text-cyan-800",
   hospital_clinic: "bg-red-100 text-red-800",
   unknown: "bg-gray-100 text-gray-500",
-  ai_platform: "bg-purple-100 text-purple-800",
 };
 
 interface AnalyticsData {
@@ -72,6 +71,9 @@ interface AnalyticsData {
     segmentCount: number;
     createdAt: string;
   };
+  brands: string[];
+  selectedBrand: string | null;
+  sessionTotals: Record<string, number>;
   engineStats: Record<string, { total: number; uniqueDomains: number }>;
   categoryBreakdown: Array<{ category: string; gemini: number; chatgpt: number }>;
   domainAggregates: Array<{
@@ -82,18 +84,27 @@ interface AnalyticsData {
   }>;
 }
 
+function pct(part: number, total: number) {
+  if (!total) return "0%";
+  return `${((part / total) * 100).toFixed(1)}%`;
+}
+
 function StatCard({
   engine,
   total,
   uniqueDomains,
+  sessionTotal,
   color,
   label,
+  isBrandView,
 }: {
   engine: string;
   total: number;
   uniqueDomains: number;
+  sessionTotal: number;
   color: string;
   label: string;
+  isBrandView: boolean;
 }) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 flex-1" data-testid={`stat-card-${engine}`}>
@@ -107,6 +118,11 @@ function StatCard({
             {total.toLocaleString()}
           </div>
           <div className="text-xs text-gray-400 mt-1">grounded citations</div>
+          {isBrandView && sessionTotal > 0 && (
+            <div className="text-xs text-gray-500 mt-1 font-medium">
+              {pct(total, sessionTotal)} of session
+            </div>
+          )}
         </div>
         <div>
           <div className="text-3xl font-bold text-gray-900" data-testid={`stat-domains-${engine}`}>
@@ -163,7 +179,7 @@ function DomainList({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">#</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide w-8">#</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Domain</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Category</th>
                 <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Citations</th>
@@ -177,7 +193,7 @@ function DomainList({
                   onClick={() => setLocation(`/citations/${sessionId}?domain=${encodeURIComponent(d.domain)}`)}
                   data-testid={`domain-row-${engine}-${i}`}
                 >
-                  <td className="px-4 py-3 text-gray-400 text-xs w-8">{i + 1}</td>
+                  <td className="px-4 py-3 text-gray-400 text-xs">{i + 1}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="font-medium text-gray-800 truncate">{d.domain}</span>
@@ -206,9 +222,12 @@ export default function AnalyticsDashboard() {
   const params = useParams<{ sessionId: string }>();
   const sessionId = parseInt(params.sessionId || "77");
   const [thirdPartyOnly, setThirdPartyOnly] = useState(true);
+  const [selectedBrand, setSelectedBrand] = useState<string>("all");
+
+  const brandParam = selectedBrand !== "all" ? `?brand=${encodeURIComponent(selectedBrand)}` : "";
 
   const { data, isLoading, error } = useQuery<AnalyticsData>({
-    queryKey: [`/api/analytics/session/${sessionId}`],
+    queryKey: [`/api/analytics/session/${sessionId}${brandParam}`],
   });
 
   const filtered = useMemo(() => {
@@ -283,20 +302,52 @@ export default function AnalyticsDashboard() {
     );
   }
 
-  const allGemini = data.engineStats["gemini"] || { total: 0, uniqueDomains: 0 };
-  const allChatgpt = data.engineStats["chatgpt"] || { total: 0, uniqueDomains: 0 };
+  const isBrandView = selectedBrand !== "all";
+  const geminiSessionTotal = data.sessionTotals?.["gemini"] || 0;
+  const chatgptSessionTotal = data.sessionTotals?.["chatgpt"] || 0;
+
+  const displayGemini = thirdPartyOnly
+    ? (filtered?.geminiStats ?? { total: 0, uniqueDomains: 0 })
+    : (data.engineStats?.["gemini"] ?? { total: 0, uniqueDomains: 0 });
+  const displayChatgpt = thirdPartyOnly
+    ? (filtered?.chatgptStats ?? { total: 0, uniqueDomains: 0 })
+    : (data.engineStats?.["chatgpt"] ?? { total: 0, uniqueDomains: 0 });
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-gray-900 text-white px-8 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-xs text-gray-400 uppercase tracking-widest mb-2 font-medium">Engine Intelligence</div>
-          <h1 className="text-2xl font-bold mb-1" data-testid="session-brand-name">{data.session.brandName}</h1>
-          <p className="text-gray-400 text-sm">
-            {data.session.segmentCount} segment{data.session.segmentCount !== 1 ? "s" : ""} &nbsp;·&nbsp;{" "}
-            {new Date(data.session.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-            &nbsp;·&nbsp; Session #{data.session.id}
-          </p>
+          <div className="flex items-end justify-between gap-6">
+            <div>
+              <h1 className="text-2xl font-bold mb-1" data-testid="session-brand-name">
+                {data.session.brandName}
+              </h1>
+              <p className="text-gray-400 text-sm">
+                {data.session.segmentCount} segment{data.session.segmentCount !== 1 ? "s" : ""}
+                &nbsp;·&nbsp;
+                {new Date(data.session.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                &nbsp;·&nbsp; Session #{data.session.id}
+              </p>
+            </div>
+            <div className="shrink-0 w-56">
+              <label className="text-xs text-gray-400 uppercase tracking-wide block mb-1.5">Brand</label>
+              <Select value={selectedBrand} onValueChange={setSelectedBrand}>
+                <SelectTrigger
+                  className="bg-gray-800 border-gray-700 text-white text-sm h-9 focus:ring-0 focus:ring-offset-0"
+                  data-testid="brand-select"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All brands</SelectItem>
+                  {data.brands.map(b => (
+                    <SelectItem key={b} value={b}>{b}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -305,16 +356,20 @@ export default function AnalyticsDashboard() {
           <StatCard
             engine="gemini"
             label="Gemini"
-            total={thirdPartyOnly ? (filtered?.geminiStats.total ?? 0) : allGemini.total}
-            uniqueDomains={thirdPartyOnly ? (filtered?.geminiStats.uniqueDomains ?? 0) : allGemini.uniqueDomains}
+            total={displayGemini.total}
+            uniqueDomains={displayGemini.uniqueDomains}
+            sessionTotal={geminiSessionTotal}
             color="bg-blue-500"
+            isBrandView={isBrandView}
           />
           <StatCard
             engine="chatgpt"
             label="ChatGPT"
-            total={thirdPartyOnly ? (filtered?.chatgptStats.total ?? 0) : allChatgpt.total}
-            uniqueDomains={thirdPartyOnly ? (filtered?.chatgptStats.uniqueDomains ?? 0) : allChatgpt.uniqueDomains}
+            total={displayChatgpt.total}
+            uniqueDomains={displayChatgpt.uniqueDomains}
+            sessionTotal={chatgptSessionTotal}
             color="bg-orange-500"
+            isBrandView={isBrandView}
           />
         </div>
 
@@ -359,11 +414,7 @@ export default function AnalyticsDashboard() {
                   width={135}
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f9fafb" }} />
-                <Legend
-                  iconType="circle"
-                  iconSize={8}
-                  wrapperStyle={{ fontSize: "12px", paddingTop: "16px" }}
-                />
+                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "12px", paddingTop: "16px" }} />
                 <Bar dataKey="Gemini" fill="#3b82f6" radius={[0, 3, 3, 0]} maxBarSize={18} />
                 <Bar dataKey="ChatGPT" fill="#f97316" radius={[0, 3, 3, 0]} maxBarSize={18} />
               </BarChart>
@@ -393,7 +444,12 @@ export default function AnalyticsDashboard() {
               />
             </div>
             <p className="text-xs text-gray-400 mt-3">
-              "Both" indicates a domain cited by both engines. Click any row to view citations.
+              "Both" = cited by both engines. Click any row to view citations.
+              {isBrandView && (
+                <span className="ml-2 text-gray-500">
+                  Share % in stat cards is of total session citations.
+                </span>
+              )}
             </p>
           </div>
         )}
