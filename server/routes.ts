@@ -1824,6 +1824,7 @@ export async function registerRoutes(
       if (isNaN(sessionId)) return res.status(400).json({ message: "Invalid session ID" });
 
       res.set("Cache-Control", "no-store");
+      res.removeHeader("ETag");
       const { pool } = await import("./db");
       const brand = typeof req.query.brand === "string" && req.query.brand ? req.query.brand : null;
 

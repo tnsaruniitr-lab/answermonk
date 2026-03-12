@@ -376,6 +376,9 @@ export default function AnalyticsDashboard() {
 
   const { data, isLoading, error } = useQuery<AnalyticsData>({
     queryKey: [`/api/analytics/session/${sessionId}${brandParam}`],
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: "always",
   });
 
   const filtered = useMemo(() => {
