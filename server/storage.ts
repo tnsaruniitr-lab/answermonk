@@ -171,7 +171,7 @@ export class DatabaseStorage implements IStorage {
             'seedType', elem->>'seedType',
             'resultCount', (elem->>'resultCount')::int,
             'customerType', elem->>'customerType',
-            'promptCount', CASE WHEN elem->'prompts' IS NOT NULL THEN jsonb_array_length(elem->'prompts') ELSE 0 END,
+            'promptCount', CASE WHEN elem->'prompts' IS NOT NULL AND jsonb_typeof(elem->'prompts') = 'array' THEN jsonb_array_length(elem->'prompts') ELSE 0 END,
             'scoringResult', CASE WHEN elem->'scoringResult' IS NOT NULL THEN 'true'::jsonb ELSE 'null'::jsonb END
           ))
           FROM jsonb_array_elements(${multiSegmentSessions.segments}::jsonb) AS elem
