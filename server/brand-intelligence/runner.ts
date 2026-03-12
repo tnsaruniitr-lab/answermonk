@@ -92,18 +92,12 @@ function buildPrompt(
   const urlPart = brandUrl ? ` (website: ${brandUrl})` : "";
   const intro = VARIATION_INTROS[variationIndex % 3];
 
-  const templateObj: Record<string, { value: null; evidence_type: string; sources?: string[] }> = {};
+  const templateObj: Record<string, { value: null; evidence_type: string }> = {};
   for (const key of ATTRIBUTE_KEYS) {
-    templateObj[key] = webSearch
-      ? { value: null, evidence_type: "GENERIC", sources: [] }
-      : { value: null, evidence_type: "GENERIC" };
+    templateObj[key] = { value: null, evidence_type: "GENERIC" };
   }
 
   const guideLines = ATTRIBUTE_KEYS.map((k) => `- ${k}: ${ATTRIBUTE_GUIDE[k]}`).join("\n");
-
-  const sourcesRule = webSearch
-    ? `6. SOURCES — For each attribute you fill with EXPLICIT or INFERRED evidence, list in "sources" the specific URL(s) from your web search that directly informed that value. Only include URLs genuinely about this brand and this attribute. If no specific URL applies, leave sources as [].`
-    : "";
 
   return `You are analyzing the brand "${brandName}"${urlPart} to understand how it appears in ${webSearch ? "web sources" : "your training knowledge"}.
 
@@ -120,8 +114,7 @@ RULES:
    - INFERRED: you are reasoning from a real signal specific to this brand (not category logic)
    - ABSENT: you have no specific knowledge about this brand for this attribute — value MUST be null
    - GENERIC: this value applies to every brand in the category, not distinctive to this one — value MUST be null
-5. CRITICAL — do NOT fill a field if you don't genuinely know it. Set evidence_type to "ABSENT" and leave value as null. A fabricated answer is far worse than an honest null. The presence of all 14 fields in the template does NOT mean you must fill all 14 — you should expect most fields to be null for brands you have little specific knowledge about.
-${sourcesRule}
+5. CRITICAL — do NOT fill a field if you don't genuinely know it. Set evidence_type to "ABSENT" and leave value as null. A fabricated answer is far worse than an honest null.
 
 Attribute guide:
 ${guideLines}
@@ -175,7 +168,7 @@ async function callEngine(engine: string, prompt: string, webSearch: boolean): P
         model: "gemini-2.5-flash",
         contents: prompt,
         config: {
-          maxOutputTokens: 8192,
+          maxOutputTokens: 32768,
           tools: [{ googleSearch: {} }],
         },
       });
