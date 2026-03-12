@@ -194,9 +194,8 @@ function DomainList({
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide w-8">#</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Domain</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Category</th>
-                <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">{hasMkt ? "Brand" : "Citations"}</th>
-                {hasMkt && <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Market</th>}
-                {hasMkt && <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Share</th>}
+                <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">{hasMkt ? "Brand / Market" : "Citations"}</th>
+                {hasMkt && <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Share%</th>}
               </tr>
             </thead>
             <tbody>
@@ -223,10 +222,20 @@ function DomainList({
                         {CATEGORY_LABELS[d.domainCategory] || d.domainCategory}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right font-semibold text-gray-900">{d.count.toLocaleString()}</td>
-                    {hasMkt && <td className="px-4 py-3 text-right text-gray-500 text-xs">{d.market?.toLocaleString() ?? "—"}</td>}
+                    <td className="px-4 py-3 text-right">
+                      {hasMkt ? (
+                        <span className="font-semibold text-gray-900">
+                          {d.count.toLocaleString()}
+                          {d.market !== undefined && d.market > 0 && (
+                            <span className="text-gray-400 font-normal text-xs"> / {d.market.toLocaleString()}</span>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="font-semibold text-gray-900">{d.count.toLocaleString()}</span>
+                      )}
+                    </td>
                     {hasMkt && (
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-right w-14">
                         {share !== null
                           ? <span className="text-xs font-semibold text-emerald-600">{share}%</span>
                           : <span className="text-xs text-gray-300">—</span>}
