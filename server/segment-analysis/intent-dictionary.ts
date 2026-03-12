@@ -267,6 +267,105 @@ const SEGMENT_CATEGORY_DICTIONARY: Record<string, SegmentTerms> = {
       "home health screening", "doorstep lab test",
     ],
   },
+  "at_home_nurses": {
+    explicit: [
+      "at-home nurse", "at home nurse", "nurse at home", "nursing at home",
+      "home nurse", "home nursing service", "home nursing services",
+      "private nurse at home", "home nursing care",
+    ],
+    weak: [
+      "home caregiver", "home health aide", "domiciliary nursing",
+      "visiting nurse", "community nurse", "bedside nursing at home",
+      "wound care nurse at home", "private nursing", "in-home nurse",
+    ],
+  },
+  "at_home_care_provider": {
+    explicit: [
+      "at-home care provider", "at home care provider", "home care provider",
+      "home care company", "home care agency", "home care services provider",
+      "home healthcare provider", "home health provider",
+    ],
+    weak: [
+      "home care", "care at home", "home-based care", "domiciliary care",
+      "homecare agency", "home support services", "home care specialist",
+      "private home care", "mobile healthcare provider",
+    ],
+  },
+  "care_at_home_services": {
+    explicit: [
+      "care at home services", "care at home", "home care services",
+      "home care service", "in-home care services", "at-home care services",
+      "home based care services", "home health services",
+    ],
+    weak: [
+      "homecare services", "domiciliary care services", "home support",
+      "home care assistance", "personal care at home", "home attendant",
+      "home aide services", "residential care services",
+    ],
+  },
+  "doctor_at_home": {
+    explicit: [
+      "doctor at home", "doctor home visit", "GP at home", "physician at home",
+      "home doctor service", "home doctor", "doctor on call",
+      "doctor home call", "home visit doctor",
+    ],
+    weak: [
+      "home medical visit", "medical home visit", "house call doctor",
+      "home physician", "mobile doctor", "doorstep doctor",
+      "on-demand doctor", "home consultation", "home GP",
+    ],
+  },
+  "home_physiotherapy": {
+    explicit: [
+      "home physiotherapy", "physiotherapy at home", "physio at home",
+      "home physical therapy", "physical therapy at home",
+      "home physio", "home rehabilitation", "home rehab services",
+    ],
+    weak: [
+      "home exercise program", "mobile physiotherapy", "doorstep physiotherapy",
+      "home-based physiotherapy", "at-home physiotherapy",
+      "home occupational therapy", "home speech therapy",
+      "post-surgery rehab at home", "sports physio at home",
+    ],
+  },
+  "home_iv_therapy": {
+    explicit: [
+      "home IV therapy", "IV therapy at home", "home intravenous therapy",
+      "IV drip at home", "home IV drip", "IV infusion at home",
+      "home infusion therapy", "mobile IV therapy",
+    ],
+    weak: [
+      "vitamin drip at home", "hydration drip at home", "home drip therapy",
+      "IV hydration at home", "wellness drip at home",
+      "home vitamin infusion", "doorstep IV", "mobile drip",
+    ],
+  },
+  "elderly_care_at_home": {
+    explicit: [
+      "elderly care at home", "senior care at home", "home care for elderly",
+      "home elder care", "old age care at home", "geriatric care at home",
+      "home care for seniors", "elderly home care",
+    ],
+    weak: [
+      "companion care", "dementia care at home", "Alzheimer's care at home",
+      "palliative care at home", "end of life care at home",
+      "home care for older adults", "senior home help",
+      "old age nursing", "elderly companion", "home respite care",
+    ],
+  },
+  "home_health_checkup": {
+    explicit: [
+      "home health checkup", "health checkup at home", "home health screening",
+      "home wellness checkup", "health screening at home",
+      "home full body checkup", "doorstep health checkup",
+    ],
+    weak: [
+      "home preventive health", "home diagnostic package",
+      "health check at home", "home body checkup",
+      "mobile health screening", "at-home health assessment",
+      "comprehensive health check at home",
+    ],
+  },
   "construction_management": {
     explicit: [
       "construction management", "construction management software",

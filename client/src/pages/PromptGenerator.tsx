@@ -1069,6 +1069,14 @@ function generateQuickPrompts(
     weight_loss_help: "weight loss help",
     in_home_blood_tests: "in-home blood tests",
     at_home_blood_tests: "at-home blood tests",
+    at_home_nurses: "at-home nurses",
+    at_home_care_provider: "at-home care provider",
+    care_at_home_services: "care at home services",
+    doctor_at_home: "doctor at home",
+    home_physiotherapy: "home physiotherapy",
+    home_iv_therapy: "home IV therapy",
+    elderly_care_at_home: "elderly care at home",
+    home_health_checkup: "home health checkup",
     real_estate_agency: "real estate",
     real_estate_broker: "real estate",
     property_dealer: "property",
@@ -2947,7 +2955,7 @@ export default function PromptGenerator() {
                                           persona: v,
                                           customerType: "",
                                           serviceType: "",
-                                          seedType: v === "restaurant" ? "restaurants" : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests"].includes(v) ? "__blank__" : agencyPersonas.includes(v) ? "agencies" : realEstatePersonas.includes(v) ? "agencies" : "providers",
+                                          seedType: v === "restaurant" ? "restaurants" : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests", "at_home_nurses", "at_home_care_provider", "care_at_home_services", "doctor_at_home", "home_physiotherapy", "home_iv_therapy", "elderly_care_at_home", "home_health_checkup"].includes(v) ? "__blank__" : agencyPersonas.includes(v) ? "agencies" : realEstatePersonas.includes(v) ? "agencies" : "providers",
                                           prompts: null,
                                         });
                                       }}
@@ -2977,6 +2985,14 @@ export default function PromptGenerator() {
                                         <SelectItem value="construction_management">Construction Management Software</SelectItem>
                                         <SelectItem value="in_home_healthcare">In-Home Healthcare</SelectItem>
                                         <SelectItem value="at_home_healthcare">At-Home Healthcare</SelectItem>
+                                        <SelectItem value="at_home_nurses">At-Home Nurses</SelectItem>
+                                        <SelectItem value="at_home_care_provider">At-Home Care Provider</SelectItem>
+                                        <SelectItem value="care_at_home_services">Care at Home Services</SelectItem>
+                                        <SelectItem value="doctor_at_home">Doctor at Home</SelectItem>
+                                        <SelectItem value="home_physiotherapy">Home Physiotherapy</SelectItem>
+                                        <SelectItem value="home_iv_therapy">Home IV Therapy</SelectItem>
+                                        <SelectItem value="elderly_care_at_home">Elderly Care at Home</SelectItem>
+                                        <SelectItem value="home_health_checkup">Home Health Checkup</SelectItem>
                                         <SelectItem value="weight_loss_help">Weight Loss Help</SelectItem>
                                         <SelectItem value="in_home_blood_tests">In-Home Blood Tests</SelectItem>
                                         <SelectItem value="at_home_blood_tests">At-Home Blood Tests</SelectItem>
@@ -3001,7 +3017,7 @@ export default function PromptGenerator() {
                                             <SelectItem value="dining options">Dining Options</SelectItem>
                                             <SelectItem value="cafes">Cafes</SelectItem>
                                           </>
-                                        ) : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests"].includes(seg.persona) ? (
+                                        ) : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests", "at_home_nurses", "at_home_care_provider", "care_at_home_services", "doctor_at_home", "home_physiotherapy", "home_iv_therapy", "elderly_care_at_home", "home_health_checkup"].includes(seg.persona) ? (
                                           <>
                                             <SelectItem value="__blank__">(None / Blank)</SelectItem>
                                             <SelectItem value="providers">Providers</SelectItem>
