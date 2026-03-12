@@ -1842,7 +1842,7 @@ export async function registerRoutes(
       const brandFilter = brand ? `AND brand = $2` : "";
       const params = brand ? [sessionId, brand] : [sessionId];
 
-      const [brandsRes, sessionTotalsRes, statsRes, categoryRes, domainRes, sessionCategoryRes] = await Promise.all([
+      const [brandsRes, sessionTotalsRes, statsRes, categoryRes, domainRes, sessionCategoryRes, authorityRes] = await Promise.all([
         pool.query(
           `SELECT DISTINCT brand FROM citation_page_mentions WHERE session_id = $1 ORDER BY brand`,
           [sessionId]
@@ -1886,6 +1886,23 @@ export async function registerRoutes(
               GROUP BY domain_category, engine
             `, [sessionId])
           : Promise.resolve({ rows: [] } as any),
+        brand
+          ? pool.query(`
+              SELECT
+                ${domainExtract} as effective_domain,
+                MAX(COALESCE(domain_category, 'unknown')) as domain_category,
+                COUNT(CASE WHEN engine = 'gemini' THEN 1 END)::int as session_gemini,
+                COUNT(CASE WHEN engine = 'chatgpt' THEN 1 END)::int as session_chatgpt,
+                COUNT(CASE WHEN engine = 'gemini' AND brand = $2 THEN 1 END)::int as brand_gemini,
+                COUNT(CASE WHEN engine = 'chatgpt' AND brand = $2 THEN 1 END)::int as brand_chatgpt
+              FROM citation_page_mentions, UNNEST(engines) as engine
+              WHERE session_id = $1
+              GROUP BY effective_domain
+              HAVING COUNT(*) > 0
+              ORDER BY (COUNT(CASE WHEN engine = 'gemini' THEN 1 END) + COUNT(CASE WHEN engine = 'chatgpt' THEN 1 END)) DESC
+              LIMIT 50
+            `, [sessionId, brand])
+          : Promise.resolve({ rows: [] } as any),
       ]);
 
       const sessionTotals: Record<string, number> = {};
@@ -1925,6 +1942,14 @@ export async function registerRoutes(
         engineStats,
         categoryBreakdown: Object.values(categoryMap),
         sessionCategoryBreakdown: brand ? Object.values(sessionCategoryMap) : null,
+        sourceAuthority: brand ? authorityRes.rows.map((r: any) => ({
+          domain: r.effective_domain,
+          category: r.domain_category,
+          sessionGemini: r.session_gemini,
+          sessionChatgpt: r.session_chatgpt,
+          brandGemini: r.brand_gemini,
+          brandChatgpt: r.brand_chatgpt,
+        })) : null,
         domainAggregates: domainRes.rows.map((r: any) => ({
           domain: r.effective_domain,
           domainCategory: r.domain_category,

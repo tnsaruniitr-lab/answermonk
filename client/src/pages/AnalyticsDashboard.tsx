@@ -79,6 +79,14 @@ interface AnalyticsData {
   engineStats: Record<string, { total: number; uniqueDomains: number }>;
   categoryBreakdown: Array<{ category: string; gemini: number; chatgpt: number }>;
   sessionCategoryBreakdown: Array<{ category: string; gemini: number; chatgpt: number }> | null;
+  sourceAuthority: Array<{
+    domain: string;
+    category: string;
+    sessionGemini: number;
+    sessionChatgpt: number;
+    brandGemini: number;
+    brandChatgpt: number;
+  }> | null;
   domainAggregates: Array<{
     domain: string;
     domainCategory: string;
@@ -120,24 +128,19 @@ function PresenceBar({ brand, total, color }: { brand: number; total: number; co
 
 function SourceAuthorityMap({
   sessionId,
-  brand,
+  domains,
   thirdPartyOnly,
 }: {
   sessionId: number;
-  brand: string;
+  domains: AuthorityData["domains"];
   thirdPartyOnly: boolean;
 }) {
   const [activeEngine, setActiveEngine] = useState<"gemini" | "chatgpt">("gemini");
   const [, setLocation] = useLocation();
 
-  const authorityUrl = `/api/analytics/session/${sessionId}/authority?brand=${encodeURIComponent(brand)}`;
-  const { data, isLoading } = useQuery<AuthorityData>({
-    queryKey: [authorityUrl],
-  });
-
   const rows = useMemo(() => {
-    if (!data) return [];
-    let filtered = data.domains;
+    if (!domains?.length) return [];
+    let filtered = domains;
     if (thirdPartyOnly) {
       filtered = filtered.filter(d => !THIRD_PARTY_EXCLUDE.includes(d.category));
     }
@@ -145,7 +148,7 @@ function SourceAuthorityMap({
       return [...filtered].filter(d => d.sessionGemini > 0).sort((a, b) => b.sessionGemini - a.sessionGemini).slice(0, 20);
     }
     return [...filtered].filter(d => d.sessionChatgpt > 0).sort((a, b) => b.sessionChatgpt - a.sessionChatgpt).slice(0, 20);
-  }, [data, activeEngine, thirdPartyOnly]);
+  }, [domains, activeEngine, thirdPartyOnly]);
 
   const isGemini = activeEngine === "gemini";
   const accentColor = isGemini ? "bg-blue-500" : "bg-orange-500";
@@ -176,11 +179,7 @@ function SourceAuthorityMap({
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="h-32 flex items-center justify-center">
-          <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-        </div>
-      ) : rows.length === 0 ? (
+      {rows.length === 0 ? (
         <div className="h-32 flex items-center justify-center text-gray-400 text-sm">No data</div>
       ) : (
         <table className="w-full text-sm">
@@ -632,10 +631,10 @@ export default function AnalyticsDashboard() {
           </div>
         )}
 
-        {isBrandView && (
+        {isBrandView && data.sourceAuthority && (
           <SourceAuthorityMap
             sessionId={sessionId}
-            brand={selectedBrand}
+            domains={data.sourceAuthority}
             thirdPartyOnly={thirdPartyOnly}
           />
         )}
