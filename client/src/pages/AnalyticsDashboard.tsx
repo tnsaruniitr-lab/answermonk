@@ -111,21 +111,16 @@ function CitationMatrix({
   rows,
   brands,
   sessionId,
-  thirdPartyOnly,
 }: {
   rows: AnalyticsData["citationMatrix"];
   brands: string[];
   sessionId: number;
-  thirdPartyOnly: boolean;
 }) {
   const [activeEngine, setActiveEngine] = useState<"gemini" | "chatgpt">("gemini");
   const [, setLocation] = useLocation();
 
   const { domains, matrix, maxVal } = useMemo(() => {
-    let filtered = rows;
-    if (thirdPartyOnly) {
-      filtered = filtered.filter(r => !THIRD_PARTY_EXCLUDE.includes(r.domainCategory));
-    }
+    const filtered = rows;
     // Unique domains in server order (already sorted by gemini_total desc)
     const domainMeta = new Map<string, { category: string; geminiTotal: number }>();
     const matrixMap: Record<string, Record<string, { gemini: number; chatgpt: number }>> = {};
@@ -146,7 +141,7 @@ function CitationMatrix({
       if (v > maxVal) maxVal = v;
     }
     return { domains, matrix: matrixMap, maxVal };
-  }, [rows, thirdPartyOnly, activeEngine]);
+  }, [rows, activeEngine]);
 
   const cellClass = (count: number) => {
     if (count === 0) return "bg-transparent text-gray-200";
@@ -660,7 +655,6 @@ export default function AnalyticsDashboard() {
             rows={data.citationMatrix}
             brands={data.brands}
             sessionId={sessionId}
-            thirdPartyOnly={thirdPartyOnly}
           />
         )}
 
