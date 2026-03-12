@@ -139,6 +139,24 @@ export const insertCitationPageMentionSchema = createInsertSchema(citationPageMe
 export type CitationPageMention = typeof citationPageMentions.$inferSelect;
 export type InsertCitationPageMention = z.infer<typeof insertCitationPageMentionSchema>;
 
+export const brandIntelligenceJobs = pgTable("brand_intelligence_jobs", {
+  id: serial("id").primaryKey(),
+  brandName: text("brand_name").notNull(),
+  brandUrl: text("brand_url"),
+  engine: text("engine").notNull(),
+  runCount: integer("run_count").notNull().default(15),
+  status: text("status").notNull().default("pending"),
+  progress: integer("progress").notNull().default(0),
+  results: jsonb("results"),
+  rawRuns: jsonb("raw_runs"),
+  error: text("error"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertBrandIntelligenceJobSchema = createInsertSchema(brandIntelligenceJobs).omit({ id: true, createdAt: true });
+export type BrandIntelligenceJob = typeof brandIntelligenceJobs.$inferSelect;
+export type InsertBrandIntelligenceJob = z.infer<typeof insertBrandIntelligenceJobSchema>;
+
 // We'll store search history/results here
 export const analysisResults = pgTable("analysis_results", {
   id: serial("id").primaryKey(),

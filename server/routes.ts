@@ -26,6 +26,9 @@ import { runInsightsAnalysis, type InsightsInput } from "./insights";
 import { runSegmentAnalysis } from "./segment-analysis";
 import { generateReport } from "./report/generator";
 import { generateTeaserData } from "./report/teaser-generator";
+import { brandIntelligenceJobs } from "@shared/schema";
+import { runBrandIntelligence } from "./brand-intelligence/runner";
+import { desc, eq as eqDrizzle } from "drizzle-orm";
 
 /** ------------------------
  * Scoring helpers (From user provided logic)
@@ -2074,6 +2077,86 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Authority error:", err);
       res.status(500).json({ message: "Failed to load authority data", error: String(err) });
+    }
+  });
+
+  // ===== BRAND INTELLIGENCE ROUTES =====
+
+  app.post("/api/brand-intelligence", async (req, res) => {
+    try {
+      const schema = z.object({
+        brandName: z.string().min(1),
+        brandUrl: z.string().url().optional().or(z.literal("")),
+        engine: z.enum(["chatgpt", "gemini", "claude"]),
+        runCount: z.number().int().min(5).max(20).default(15),
+      });
+      const body = schema.parse(req.body);
+      const { db } = await import("./db");
+      const [job] = await db
+        .insert(brandIntelligenceJobs)
+        .values({
+          brandName: body.brandName,
+          brandUrl: body.brandUrl || null,
+          engine: body.engine,
+          runCount: body.runCount,
+          status: "pending",
+          progress: 0,
+        })
+        .returning();
+
+      runBrandIntelligence(job.id).catch((err) => {
+        console.error("Brand intelligence runner error:", err);
+        db.update(brandIntelligenceJobs)
+          .set({ status: "failed", error: String(err) })
+          .where(eqDrizzle(brandIntelligenceJobs.id, job.id))
+          .catch(console.error);
+      });
+
+      res.json({ id: job.id });
+    } catch (err) {
+      console.error("Brand intelligence start error:", err);
+      res.status(400).json({ message: "Failed to start brand intelligence job", error: String(err) });
+    }
+  });
+
+  app.get("/api/brand-intelligence", async (req, res) => {
+    try {
+      const { db } = await import("./db");
+      const jobs = await db
+        .select({
+          id: brandIntelligenceJobs.id,
+          brandName: brandIntelligenceJobs.brandName,
+          brandUrl: brandIntelligenceJobs.brandUrl,
+          engine: brandIntelligenceJobs.engine,
+          runCount: brandIntelligenceJobs.runCount,
+          status: brandIntelligenceJobs.status,
+          progress: brandIntelligenceJobs.progress,
+          createdAt: brandIntelligenceJobs.createdAt,
+        })
+        .from(brandIntelligenceJobs)
+        .orderBy(desc(brandIntelligenceJobs.createdAt))
+        .limit(30);
+      res.json(jobs);
+    } catch (err) {
+      console.error("Brand intelligence list error:", err);
+      res.status(500).json({ message: "Failed to list jobs" });
+    }
+  });
+
+  app.get("/api/brand-intelligence/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid id" });
+      const { db } = await import("./db");
+      const [job] = await db
+        .select()
+        .from(brandIntelligenceJobs)
+        .where(eqDrizzle(brandIntelligenceJobs.id, id));
+      if (!job) return res.status(404).json({ message: "Job not found" });
+      res.json(job);
+    } catch (err) {
+      console.error("Brand intelligence get error:", err);
+      res.status(500).json({ message: "Failed to get job" });
     }
   });
 
