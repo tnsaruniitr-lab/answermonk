@@ -15,6 +15,7 @@ import ProspectTeaser from "@/pages/ProspectTeaser";
 import Leads from "@/pages/Leads";
 import Login from "@/pages/Login";
 import CitationViewer from "@/pages/CitationViewer";
+import AnalyticsDashboard from "@/pages/AnalyticsDashboard";
 import { Loader2 } from "lucide-react";
 
 function AdminRouter() {
@@ -93,6 +94,7 @@ function AuthGate() {
           <Route path="/teaser/:id" component={ProspectTeaser} />
           <Route path="/leads" component={Leads} />
           <Route path="/citations/:sessionId">{(params) => <CitationViewer sessionId={parseInt(params.sessionId)} />}</Route>
+          <Route path="/analytics/:sessionId">{(params) => <AnalyticsDashboard />}</Route>
           <Route path="/audit/:slug">{(params) => <AuditBySlug params={params} />}</Route>
           <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
           <Route component={NotFound} />

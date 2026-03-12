@@ -1818,5 +1818,89 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/analytics/session/:sessionId", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId);
+      if (isNaN(sessionId)) return res.status(400).json({ message: "Invalid session ID" });
+
+      const { pool } = await import("./db");
+
+      const sessionRes = await pool.query(
+        "SELECT id, brand_name, segments, created_at FROM multi_segment_sessions WHERE id = $1",
+        [sessionId]
+      );
+      const session = sessionRes.rows[0];
+      if (!session) return res.status(404).json({ message: "Session not found" });
+
+      const statsRes = await pool.query(`
+        SELECT engine,
+          COUNT(*) as total,
+          COUNT(DISTINCT CASE
+            WHEN domain = 'vertexaisearch.cloud.google.com' AND resolved_url IS NOT NULL AND resolved_url NOT LIKE '%vertexaisearch%'
+            THEN regexp_replace(resolved_url, '^https?://([^/?#]+).*$', '\\1')
+            ELSE domain
+          END) as unique_domains
+        FROM citation_page_mentions, UNNEST(engines) as engine
+        WHERE session_id = $1
+        GROUP BY engine
+      `, [sessionId]);
+
+      const categoryRes = await pool.query(`
+        SELECT COALESCE(domain_category, 'unknown') as category, engine, COUNT(*) as count
+        FROM citation_page_mentions, UNNEST(engines) as engine
+        WHERE session_id = $1
+        GROUP BY domain_category, engine
+      `, [sessionId]);
+
+      const domainRes = await pool.query(`
+        SELECT
+          CASE
+            WHEN domain = 'vertexaisearch.cloud.google.com' AND resolved_url IS NOT NULL AND resolved_url NOT LIKE '%vertexaisearch%'
+            THEN regexp_replace(resolved_url, '^https?://([^/?#]+).*$', '\\1')
+            ELSE domain
+          END as effective_domain,
+          MAX(COALESCE(domain_category, 'unknown')) as domain_category,
+          SUM(CASE WHEN engine = 'gemini' THEN 1 ELSE 0 END)::int as gemini_count,
+          SUM(CASE WHEN engine = 'chatgpt' THEN 1 ELSE 0 END)::int as chatgpt_count
+        FROM citation_page_mentions, UNNEST(engines) as engine
+        WHERE session_id = $1
+        GROUP BY effective_domain
+        ORDER BY (SUM(CASE WHEN engine = 'gemini' THEN 1 ELSE 0 END) + SUM(CASE WHEN engine = 'chatgpt' THEN 1 ELSE 0 END)) DESC
+      `, [sessionId]);
+
+      const engineStats: Record<string, { total: number; uniqueDomains: number }> = {};
+      for (const row of statsRes.rows) {
+        engineStats[row.engine] = { total: parseInt(row.total), uniqueDomains: parseInt(row.unique_domains) };
+      }
+
+      const categoryMap: Record<string, { category: string; gemini: number; chatgpt: number }> = {};
+      for (const row of categoryRes.rows) {
+        if (!categoryMap[row.category]) categoryMap[row.category] = { category: row.category, gemini: 0, chatgpt: 0 };
+        if (row.engine === "gemini") categoryMap[row.category].gemini = parseInt(row.count);
+        if (row.engine === "chatgpt") categoryMap[row.category].chatgpt = parseInt(row.count);
+      }
+
+      res.json({
+        session: {
+          id: session.id,
+          brandName: session.brand_name,
+          segmentCount: Array.isArray(session.segments) ? session.segments.length : 0,
+          createdAt: session.created_at,
+        },
+        engineStats,
+        categoryBreakdown: Object.values(categoryMap),
+        domainAggregates: domainRes.rows.map((r: any) => ({
+          domain: r.effective_domain,
+          domainCategory: r.domain_category,
+          geminiCount: r.gemini_count,
+          chatgptCount: r.chatgpt_count,
+        })),
+      });
+    } catch (err) {
+      console.error("Analytics error:", err);
+      res.status(500).json({ message: "Failed to load analytics", error: String(err) });
+    }
+  });
+
   return httpServer;
 }
