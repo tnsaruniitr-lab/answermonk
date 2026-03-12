@@ -296,6 +296,38 @@ function isHealthcareProviderDomain(domain: string): boolean {
   return HEALTHCARE_KEYWORDS.some(kw => d.includes(kw));
 }
 
+export function refinePageType(
+  pageType: string,
+  domainCategory: string,
+  pageTitle: string | null | undefined,
+): string {
+  if (pageType !== "inner_page") return pageType;
+
+  // Layer 1 — domain category rules
+  if (domainCategory === "healthcare_directory") return "listing_page";
+  if (domainCategory === "news_media" || domainCategory === "market_research") return "article";
+  if (domainCategory === "review_platform") return "review_page";
+  if (domainCategory === "community") return "thread_page";
+  if (domainCategory === "jobs_platform") return "job_listing";
+
+  // Layer 2 — page title keyword matching
+  if (pageTitle) {
+    const t = pageTitle.toLowerCase();
+    if (/\b(service|services|care|nursing|treatment|therapy|home visit|home health)\b/.test(t)) return "service_page";
+    if (/\b(about|who we are|our story|our mission|our team|leadership)\b/.test(t)) return "about_page";
+    if (/\b(contact|reach us|get in touch|find us)\b/.test(t)) return "contact_page";
+    if (/\b(pricing|packages|plans|our plans|cost|fees)\b/.test(t)) return "product_page";
+    if (/\b(blog|article|insight|guide|tips|how to|what is|why)\b/.test(t)) return "blog_post";
+    if (/\b(review|rating|testimonial|feedback)\b/.test(t)) return "review_page";
+    if (/\b(location|branch|address|find a|near you)\b/.test(t)) return "location_page";
+    if (/\b(faq|frequently asked|questions|help)\b/.test(t)) return "faq_page";
+    if (/\b(team|staff|doctor|nurse|therapist|caregiver|profile)\b/.test(t)) return "profile";
+    if (/\b(news|press|media|announcement|launch|update)\b/.test(t)) return "article";
+  }
+
+  return "inner_page";
+}
+
 export function detectPageType(url: string): string {
   if (!url || url.includes("vertexaisearch.cloud.google.com")) return "unknown";
   let path = "";

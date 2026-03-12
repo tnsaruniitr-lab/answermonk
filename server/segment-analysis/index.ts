@@ -3,7 +3,7 @@ import { crawlCitations, extractCitationUrlsPerSegment } from "./citation-crawle
 import { canonicalizeUrl, canonicalizeDomain } from "../crawler";
 import { selectAllComparisonTargets, type SegmentComparison } from "./comparison-targets";
 import { extractAllSnippets, extractSnippetsFromPage, type PageSnippets, type BrandSnippet } from "./snippet-extractor";
-import { classifyAllSources, classifyDomainCategory, detectPageType, type ClassifiedSource } from "./source-classifier";
+import { classifyAllSources, classifyDomainCategory, detectPageType, refinePageType, type ClassifiedSource } from "./source-classifier";
 import { buildAllIntentDictionaries, type IntentDictionary } from "./intent-dictionary";
 import { scoreBrandForSegment, type BrandSegmentScore } from "./scorer";
 import { collectEvidence, type SegmentEvidence } from "./evidence-collector";
@@ -279,8 +279,8 @@ export async function runSegmentAnalysis(
               segmentIndices: rawSegIdxs,
               segmentPersonas: pageSegPersonas,
               segmentQueries: pageSegQueries,
-              pageType: detectPageType(ps.page.resolvedUrl || ps.page.url),
               domainCategory: classifyDomainCategory(ps.page.domain),
+              pageType: refinePageType(detectPageType(ps.page.resolvedUrl || ps.page.url), classifyDomainCategory(ps.page.domain), ps.page.title || null),
               pageTitle: ps.page.title || null,
               fetchStatus: "crawled",
             });
@@ -370,8 +370,8 @@ export async function runSegmentAnalysis(
                 segmentIndices: fallbackSegIdxs,
                 segmentPersonas: fallbackSegPersonas,
                 segmentQueries: fallbackSegQueries,
-                pageType: detectPageType(resolvedFallbackUrl),
                 domainCategory: classifyDomainCategory(domain),
+                pageType: refinePageType(detectPageType(resolvedFallbackUrl), classifyDomainCategory(domain), null),
                 pageTitle: null,
                 fetchStatus: "ai_fallback",
               });
