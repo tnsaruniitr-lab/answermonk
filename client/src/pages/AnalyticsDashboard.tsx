@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { ExternalLink } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -95,154 +94,11 @@ interface AnalyticsData {
   }>;
 }
 
-interface AuthorityData {
-  domains: Array<{
-    domain: string;
-    category: string;
-    sessionGemini: number;
-    sessionChatgpt: number;
-    brandGemini: number;
-    brandChatgpt: number;
-  }>;
-}
-
 function pct(part: number, total: number) {
   if (!total) return "0%";
   return `${((part / total) * 100).toFixed(1)}%`;
 }
 
-function PresenceBar({ brand, total, color }: { brand: number; total: number; color: string }) {
-  const pctVal = total > 0 ? Math.round((brand / total) * 100) : 0;
-  return (
-    <div className="flex items-center gap-2 min-w-0">
-      <div className="flex-1 bg-gray-100 rounded-full h-1.5 min-w-[60px]">
-        <div
-          className={`h-1.5 rounded-full ${color}`}
-          style={{ width: `${Math.min(pctVal, 100)}%` }}
-        />
-      </div>
-      <span className="text-xs text-gray-500 w-8 text-right shrink-0">{pctVal}%</span>
-    </div>
-  );
-}
-
-function SourceAuthorityMap({
-  sessionId,
-  domains,
-  thirdPartyOnly,
-}: {
-  sessionId: number;
-  domains: AuthorityData["domains"];
-  thirdPartyOnly: boolean;
-}) {
-  const [activeEngine, setActiveEngine] = useState<"gemini" | "chatgpt">("gemini");
-  const [, setLocation] = useLocation();
-
-  const rows = useMemo(() => {
-    if (!domains?.length) return [];
-    let filtered = domains;
-    if (thirdPartyOnly) {
-      filtered = filtered.filter(d => !THIRD_PARTY_EXCLUDE.includes(d.category));
-    }
-    // Always rank by Gemini session citations — both tabs show the same top 10 domains
-    return [...filtered]
-      .filter(d => d.sessionGemini > 0)
-      .sort((a, b) => b.sessionGemini - a.sessionGemini)
-      .slice(0, 10);
-  }, [domains, activeEngine, thirdPartyOnly]);
-
-  const isGemini = activeEngine === "gemini";
-  const accentColor = isGemini ? "bg-blue-500" : "bg-orange-500";
-  const textColor = isGemini ? "text-blue-600" : "text-orange-600";
-
-  return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Source Authority Map</h2>
-          <p className="text-xs text-gray-400 mt-0.5">
-            {isGemini
-              ? `Top ${rows.length} third-party domains by session Gemini citations · brand presence vs market total`
-              : `Same ${rows.length} Gemini-ranked domains · shows which ones ChatGPT also cites`}
-          </p>
-        </div>
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 text-xs font-medium">
-          <button
-            onClick={() => setActiveEngine("gemini")}
-            className={`px-3 py-1.5 rounded-md transition-all ${activeEngine === "gemini" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
-            data-testid="authority-tab-gemini"
-          >
-            Gemini
-          </button>
-          <button
-            onClick={() => setActiveEngine("chatgpt")}
-            className={`px-3 py-1.5 rounded-md transition-all ${activeEngine === "chatgpt" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
-            data-testid="authority-tab-chatgpt"
-          >
-            ChatGPT
-          </button>
-        </div>
-      </div>
-
-      {rows.length === 0 ? (
-        <div className="h-32 flex items-center justify-center text-center px-8">
-          <p className="text-gray-400 text-sm">{isGemini ? "No data" : "ChatGPT uses selective web search — few third-party sources are grounded per query"}</p>
-        </div>
-      ) : (
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100 bg-gray-50">
-              <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide w-8">#</th>
-              <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Domain</th>
-              <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Category</th>
-              <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide w-20">Market</th>
-              <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide w-20">Brand</th>
-              <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide w-36">Presence</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((d, i) => {
-              const sessionCount = isGemini ? d.sessionGemini : d.sessionChatgpt;
-              const brandCount = isGemini ? d.brandGemini : d.brandChatgpt;
-              const absent = brandCount === 0;
-              return (
-                <tr
-                  key={d.domain}
-                  className={`border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${absent ? "opacity-70" : ""}`}
-                  onClick={() => setLocation(`/citations/${sessionId}?domain=${encodeURIComponent(d.domain)}`)}
-                  data-testid={`authority-row-${activeEngine}-${i}`}
-                >
-                  <td className="px-4 py-3 text-gray-400 text-xs">{i + 1}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span className={`font-medium truncate ${absent ? "text-gray-400" : "text-gray-800"}`}>{d.domain}</span>
-                      {absent && (
-                        <span className="shrink-0 text-xs bg-red-50 text-red-500 px-1.5 py-0.5 rounded font-medium">Gap</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_COLORS[d.category] || "bg-gray-100 text-gray-600"}`}>
-                      {CATEGORY_LABELS[d.category] || d.category}
-                    </span>
-                  </td>
-                  <td className={`px-4 py-3 text-right font-semibold ${textColor}`}>{sessionCount.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                    {absent ? <span className="text-red-400 font-normal text-xs">—</span> : brandCount.toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    <PresenceBar brand={brandCount} total={sessionCount} color={accentColor} />
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
-      <p className="text-xs text-gray-400 mt-3">Market = total citations across all brands. Gap = brand not cited on this source.</p>
-    </div>
-  );
-}
 
 function StatCard({
   engine,
@@ -314,12 +170,13 @@ function DomainList({
   color,
 }: {
   title: string;
-  domains: Array<{ domain: string; domainCategory: string; count: number; sharedWithOther: boolean }>;
+  domains: Array<{ domain: string; domainCategory: string; count: number; sharedWithOther: boolean; market?: number }>;
   engine: string;
   sessionId: number;
   color: string;
 }) {
   const [, setLocation] = useLocation();
+  const hasMkt = domains.some(d => d.market !== undefined);
 
   return (
     <div className="flex-1 min-w-0">
@@ -337,34 +194,47 @@ function DomainList({
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide w-8">#</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Domain</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Category</th>
-                <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Citations</th>
+                <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">{hasMkt ? "Brand" : "Citations"}</th>
+                {hasMkt && <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Market</th>}
+                {hasMkt && <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Share</th>}
               </tr>
             </thead>
             <tbody>
-              {domains.map((d, i) => (
-                <tr
-                  key={d.domain}
-                  className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors"
-                  onClick={() => setLocation(`/citations/${sessionId}?domain=${encodeURIComponent(d.domain)}`)}
-                  data-testid={`domain-row-${engine}-${i}`}
-                >
-                  <td className="px-4 py-3 text-gray-400 text-xs">{i + 1}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-medium text-gray-800 truncate">{d.domain}</span>
-                      {d.sharedWithOther && (
-                        <span className="shrink-0 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-medium">Both</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_COLORS[d.domainCategory] || "bg-gray-100 text-gray-600"}`}>
-                      {CATEGORY_LABELS[d.domainCategory] || d.domainCategory}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right font-semibold text-gray-900">{d.count.toLocaleString()}</td>
-                </tr>
-              ))}
+              {domains.map((d, i) => {
+                const share = hasMkt && d.market && d.market > 0 ? Math.round((d.count / d.market) * 100) : null;
+                return (
+                  <tr
+                    key={d.domain}
+                    className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => setLocation(`/citations/${sessionId}?domain=${encodeURIComponent(d.domain)}`)}
+                    data-testid={`domain-row-${engine}-${i}`}
+                  >
+                    <td className="px-4 py-3 text-gray-400 text-xs">{i + 1}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-medium text-gray-800 truncate">{d.domain}</span>
+                        {d.sharedWithOther && (
+                          <span className="shrink-0 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-medium">Both</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_COLORS[d.domainCategory] || "bg-gray-100 text-gray-600"}`}>
+                        {CATEGORY_LABELS[d.domainCategory] || d.domainCategory}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right font-semibold text-gray-900">{d.count.toLocaleString()}</td>
+                    {hasMkt && <td className="px-4 py-3 text-right text-gray-500 text-xs">{d.market?.toLocaleString() ?? "—"}</td>}
+                    {hasMkt && (
+                      <td className="px-4 py-3 text-right">
+                        {share !== null
+                          ? <span className="text-xs font-semibold text-emerald-600">{share}%</span>
+                          : <span className="text-xs text-gray-300">—</span>}
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -440,6 +310,14 @@ export default function AnalyticsDashboard() {
       })
       .reverse();
 
+    const authorityByDomain: Record<string, { sessionGemini: number; sessionChatgpt: number }> = {};
+    if (data.sourceAuthority) {
+      for (const a of data.sourceAuthority) {
+        authorityByDomain[a.domain] = { sessionGemini: a.sessionGemini, sessionChatgpt: a.sessionChatgpt };
+      }
+    }
+    const hasMkt = data.sourceAuthority !== null;
+
     const geminiDomains = [...domains]
       .filter(d => d.geminiCount > 0)
       .sort((a, b) => b.geminiCount - a.geminiCount)
@@ -449,6 +327,7 @@ export default function AnalyticsDashboard() {
         domainCategory: d.domainCategory,
         count: d.geminiCount,
         sharedWithOther: d.chatgptCount > 0,
+        ...(hasMkt ? { market: authorityByDomain[d.domain]?.sessionGemini ?? 0 } : {}),
       }));
 
     const chatgptDomains = [...domains]
@@ -460,6 +339,7 @@ export default function AnalyticsDashboard() {
         domainCategory: d.domainCategory,
         count: d.chatgptCount,
         sharedWithOther: d.geminiCount > 0,
+        ...(hasMkt ? { market: authorityByDomain[d.domain]?.sessionChatgpt ?? 0 } : {}),
       }));
 
     return { geminiStats, chatgptStats, categoryBreakdown, geminiDomains, chatgptDomains };
@@ -641,13 +521,6 @@ export default function AnalyticsDashboard() {
           </div>
         )}
 
-        {isBrandView && data.sourceAuthority && (
-          <SourceAuthorityMap
-            sessionId={sessionId}
-            domains={data.sourceAuthority}
-            thirdPartyOnly={thirdPartyOnly}
-          />
-        )}
       </div>
     </div>
   );
