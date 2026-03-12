@@ -191,18 +191,18 @@ function CitationMatrix({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="text-sm border-collapse" style={{ minWidth: `${180 + brands.length * 90 + 80}px` }}>
-          <thead>
-            <tr className="border-b border-gray-100">
-              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide pb-2 pr-4 w-44">Domain</th>
-              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide pb-2 pr-4 w-32">Category</th>
+      <div className="overflow-auto max-h-[480px] rounded-lg border border-gray-100">
+        <table className="text-sm border-collapse" style={{ minWidth: `${180 + brands.length * 90 + 80}px`, width: "100%" }}>
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr className="border-b border-gray-200">
+              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide py-2.5 pr-4 pl-3 w-44 bg-gray-50">Domain</th>
+              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide py-2.5 pr-4 w-32 bg-gray-50">Category</th>
               {brands.map(b => (
-                <th key={b} className="text-center text-xs font-medium text-gray-500 uppercase tracking-wide pb-2 px-1 w-20">
+                <th key={b} className="text-center text-xs font-medium text-gray-500 uppercase tracking-wide py-2.5 px-1 w-20 bg-gray-50">
                   <span className="block truncate max-w-[76px] mx-auto" title={b}>{b.split(" ")[0]}</span>
                 </th>
               ))}
-              <th className="text-center text-xs font-medium text-gray-400 uppercase tracking-wide pb-2 pl-3 w-16">Total</th>
+              <th className="text-center text-xs font-medium text-gray-400 uppercase tracking-wide py-2.5 pl-3 pr-3 w-16 bg-gray-50">Total</th>
             </tr>
           </thead>
           <tbody>
@@ -217,7 +217,7 @@ function CitationMatrix({
                   className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
                   data-testid={`matrix-row-${di}`}
                 >
-                  <td className="py-2 pr-4">
+                  <td className="py-2.5 pr-4 pl-3">
                     <button
                       className="text-left text-gray-800 font-medium hover:text-blue-600 transition-colors truncate max-w-[168px] block"
                       onClick={() => setLocation(`/citations/${sessionId}?domain=${encodeURIComponent(d.domain)}`)}
@@ -226,7 +226,7 @@ function CitationMatrix({
                       {d.domain}
                     </button>
                   </td>
-                  <td className="py-2 pr-4">
+                  <td className="py-2.5 pr-4">
                     <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_COLORS[d.category] || "bg-gray-100 text-gray-600"}`}>
                       {CATEGORY_LABELS[d.category] || d.category}
                     </span>
