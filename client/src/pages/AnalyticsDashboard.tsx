@@ -145,9 +145,9 @@ function SourceAuthorityMap({
       filtered = filtered.filter(d => !THIRD_PARTY_EXCLUDE.includes(d.category));
     }
     if (activeEngine === "gemini") {
-      return [...filtered].filter(d => d.sessionGemini > 0).sort((a, b) => b.sessionGemini - a.sessionGemini).slice(0, 20);
+      return [...filtered].filter(d => d.sessionGemini > 0).sort((a, b) => b.sessionGemini - a.sessionGemini).slice(0, 10);
     }
-    return [...filtered].filter(d => d.sessionChatgpt > 0).sort((a, b) => b.sessionChatgpt - a.sessionChatgpt).slice(0, 20);
+    return [...filtered].filter(d => d.sessionChatgpt > 0).sort((a, b) => b.sessionChatgpt - a.sessionChatgpt).slice(0, 10);
   }, [domains, activeEngine, thirdPartyOnly]);
 
   const isGemini = activeEngine === "gemini";
