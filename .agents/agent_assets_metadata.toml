@@ -12,3 +12,9 @@ id = "5p68Bki1R1gKpg3slwT3k"
 uri = "file://valeo_citation_mentions.csv"
 type = "table"
 title = "Valeo — Brand Context Mentions (688 rows)"
+
+[[outputs]]
+id = "P0wpuka_qPv5h4rSrNQG9"
+uri = "file://session_77_citations.csv"
+type = "table"
+title = "Session 77 — Citation Page Mentions (4,478 rows)"
