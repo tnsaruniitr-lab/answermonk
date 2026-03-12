@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
+import { ExternalLink } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -86,9 +87,157 @@ interface AnalyticsData {
   }>;
 }
 
+interface AuthorityData {
+  domains: Array<{
+    domain: string;
+    category: string;
+    sessionGemini: number;
+    sessionChatgpt: number;
+    brandGemini: number;
+    brandChatgpt: number;
+  }>;
+}
+
 function pct(part: number, total: number) {
   if (!total) return "0%";
   return `${((part / total) * 100).toFixed(1)}%`;
+}
+
+function PresenceBar({ brand, total, color }: { brand: number; total: number; color: string }) {
+  const pctVal = total > 0 ? Math.round((brand / total) * 100) : 0;
+  return (
+    <div className="flex items-center gap-2 min-w-0">
+      <div className="flex-1 bg-gray-100 rounded-full h-1.5 min-w-[60px]">
+        <div
+          className={`h-1.5 rounded-full ${color}`}
+          style={{ width: `${Math.min(pctVal, 100)}%` }}
+        />
+      </div>
+      <span className="text-xs text-gray-500 w-8 text-right shrink-0">{pctVal}%</span>
+    </div>
+  );
+}
+
+function SourceAuthorityMap({
+  sessionId,
+  brand,
+  thirdPartyOnly,
+}: {
+  sessionId: number;
+  brand: string;
+  thirdPartyOnly: boolean;
+}) {
+  const [activeEngine, setActiveEngine] = useState<"gemini" | "chatgpt">("gemini");
+  const [, setLocation] = useLocation();
+
+  const { data, isLoading } = useQuery<AuthorityData>({
+    queryKey: [`/api/analytics/session/${sessionId}/authority`, brand],
+    queryFn: () =>
+      fetch(`/api/analytics/session/${sessionId}/authority?brand=${encodeURIComponent(brand)}`)
+        .then(r => r.json()),
+  });
+
+  const rows = useMemo(() => {
+    if (!data) return [];
+    let filtered = data.domains;
+    if (thirdPartyOnly) {
+      filtered = filtered.filter(d => !THIRD_PARTY_EXCLUDE.includes(d.category));
+    }
+    if (activeEngine === "gemini") {
+      return [...filtered].filter(d => d.sessionGemini > 0).sort((a, b) => b.sessionGemini - a.sessionGemini).slice(0, 20);
+    }
+    return [...filtered].filter(d => d.sessionChatgpt > 0).sort((a, b) => b.sessionChatgpt - a.sessionChatgpt).slice(0, 20);
+  }, [data, activeEngine, thirdPartyOnly]);
+
+  const isGemini = activeEngine === "gemini";
+  const accentColor = isGemini ? "bg-blue-500" : "bg-orange-500";
+  const textColor = isGemini ? "text-blue-600" : "text-orange-600";
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-6">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Source Authority Map</h2>
+          <p className="text-xs text-gray-400 mt-0.5">Top sources trusted by AI engines · your presence vs market total</p>
+        </div>
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 text-xs font-medium">
+          <button
+            onClick={() => setActiveEngine("gemini")}
+            className={`px-3 py-1.5 rounded-md transition-all ${activeEngine === "gemini" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+            data-testid="authority-tab-gemini"
+          >
+            Gemini
+          </button>
+          <button
+            onClick={() => setActiveEngine("chatgpt")}
+            className={`px-3 py-1.5 rounded-md transition-all ${activeEngine === "chatgpt" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+            data-testid="authority-tab-chatgpt"
+          >
+            ChatGPT
+          </button>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="h-32 flex items-center justify-center">
+          <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+        </div>
+      ) : rows.length === 0 ? (
+        <div className="h-32 flex items-center justify-center text-gray-400 text-sm">No data</div>
+      ) : (
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-100 bg-gray-50">
+              <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide w-8">#</th>
+              <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Domain</th>
+              <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Category</th>
+              <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide w-20">Market</th>
+              <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide w-20">Brand</th>
+              <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide w-36">Presence</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((d, i) => {
+              const sessionCount = isGemini ? d.sessionGemini : d.sessionChatgpt;
+              const brandCount = isGemini ? d.brandGemini : d.brandChatgpt;
+              const absent = brandCount === 0;
+              return (
+                <tr
+                  key={d.domain}
+                  className={`border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${absent ? "opacity-70" : ""}`}
+                  onClick={() => setLocation(`/citations/${sessionId}?domain=${encodeURIComponent(d.domain)}`)}
+                  data-testid={`authority-row-${activeEngine}-${i}`}
+                >
+                  <td className="px-4 py-3 text-gray-400 text-xs">{i + 1}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className={`font-medium truncate ${absent ? "text-gray-400" : "text-gray-800"}`}>{d.domain}</span>
+                      {absent && (
+                        <span className="shrink-0 text-xs bg-red-50 text-red-500 px-1.5 py-0.5 rounded font-medium">Gap</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_COLORS[d.category] || "bg-gray-100 text-gray-600"}`}>
+                      {CATEGORY_LABELS[d.category] || d.category}
+                    </span>
+                  </td>
+                  <td className={`px-4 py-3 text-right font-semibold ${textColor}`}>{sessionCount.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-gray-900">
+                    {absent ? <span className="text-red-400 font-normal text-xs">—</span> : brandCount.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    <PresenceBar brand={brandCount} total={sessionCount} color={accentColor} />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+      <p className="text-xs text-gray-400 mt-3">Market = total citations across all brands. Gap = brand not cited on this source.</p>
+    </div>
+  );
 }
 
 function StatCard({
@@ -483,6 +632,14 @@ export default function AnalyticsDashboard() {
               )}
             </p>
           </div>
+        )}
+
+        {isBrandView && (
+          <SourceAuthorityMap
+            sessionId={sessionId}
+            brand={selectedBrand}
+            thirdPartyOnly={thirdPartyOnly}
+          />
         )}
       </div>
     </div>

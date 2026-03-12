@@ -1938,5 +1938,59 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/analytics/session/:sessionId/authority", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId);
+      if (isNaN(sessionId)) return res.status(400).json({ message: "Invalid session ID" });
+
+      const { pool } = await import("./db");
+      const brand = typeof req.query.brand === "string" && req.query.brand ? req.query.brand : null;
+
+      const domainExtract = `CASE
+        WHEN domain = 'vertexaisearch.cloud.google.com' AND resolved_url IS NOT NULL AND resolved_url NOT LIKE '%vertexaisearch%'
+        THEN regexp_replace(resolved_url, '^https?://([^/?#]+).*$', '\\1')
+        ELSE domain
+      END`;
+
+      const params = brand ? [sessionId, brand] : [sessionId];
+      const brandGeminiExpr = brand
+        ? `COUNT(CASE WHEN engine = 'gemini' AND brand = $2 THEN 1 END)::int`
+        : `0::int`;
+      const brandChatgptExpr = brand
+        ? `COUNT(CASE WHEN engine = 'chatgpt' AND brand = $2 THEN 1 END)::int`
+        : `0::int`;
+
+      const result = await pool.query(`
+        SELECT
+          ${domainExtract} as effective_domain,
+          MAX(COALESCE(domain_category, 'unknown')) as domain_category,
+          COUNT(CASE WHEN engine = 'gemini' THEN 1 END)::int as session_gemini,
+          COUNT(CASE WHEN engine = 'chatgpt' THEN 1 END)::int as session_chatgpt,
+          ${brandGeminiExpr} as brand_gemini,
+          ${brandChatgptExpr} as brand_chatgpt
+        FROM citation_page_mentions, UNNEST(engines) as engine
+        WHERE session_id = $1
+        GROUP BY effective_domain
+        HAVING COUNT(*) > 0
+        ORDER BY (COUNT(CASE WHEN engine = 'gemini' THEN 1 END) + COUNT(CASE WHEN engine = 'chatgpt' THEN 1 END)) DESC
+        LIMIT 50
+      `, params);
+
+      res.json({
+        domains: result.rows.map((r: any) => ({
+          domain: r.effective_domain,
+          category: r.domain_category,
+          sessionGemini: r.session_gemini,
+          sessionChatgpt: r.session_chatgpt,
+          brandGemini: r.brand_gemini,
+          brandChatgpt: r.brand_chatgpt,
+        })),
+      });
+    } catch (err) {
+      console.error("Authority error:", err);
+      res.status(500).json({ message: "Failed to load authority data", error: String(err) });
+    }
+  });
+
   return httpServer;
 }
