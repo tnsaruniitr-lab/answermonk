@@ -82,18 +82,29 @@ const VARIATION_INTROS = [
   "What type of customer would most benefit from choosing this brand over alternatives? What specific attributes drive that recommendation?",
 ];
 
-function buildPrompt(brandName: string, brandUrl: string | null | undefined, variationIndex: number): string {
+function buildPrompt(
+  brandName: string,
+  brandUrl: string | null | undefined,
+  variationIndex: number,
+  webSearch: boolean
+): string {
   const urlPart = brandUrl ? ` (website: ${brandUrl})` : "";
   const intro = VARIATION_INTROS[variationIndex % 3];
 
-  const templateObj: Record<string, { value: null; evidence_type: string }> = {};
+  const templateObj: Record<string, { value: null; evidence_type: string; sources?: string[] }> = {};
   for (const key of ATTRIBUTE_KEYS) {
-    templateObj[key] = { value: null, evidence_type: "GENERIC" };
+    templateObj[key] = webSearch
+      ? { value: null, evidence_type: "GENERIC", sources: [] }
+      : { value: null, evidence_type: "GENERIC" };
   }
 
   const guideLines = ATTRIBUTE_KEYS.map((k) => `- ${k}: ${ATTRIBUTE_GUIDE[k]}`).join("\n");
 
-  return `You are analyzing the brand "${brandName}"${urlPart} to understand how it appears in your training knowledge.
+  const sourcesRule = webSearch
+    ? `6. SOURCES — For each attribute you fill with EXPLICIT or INFERRED evidence, list in "sources" the specific URL(s) from your web search that directly informed that value. Only include URLs genuinely about this brand and this attribute. If no specific URL applies, leave sources as [].`
+    : "";
+
+  return `You are analyzing the brand "${brandName}"${urlPart} to understand how it appears in ${webSearch ? "web sources" : "your training knowledge"}.
 
 ${intro}
 
@@ -109,6 +120,7 @@ RULES:
    - ABSENT: you have no specific knowledge about this brand for this attribute — value MUST be null
    - GENERIC: this value applies to every brand in the category, not distinctive to this one — value MUST be null
 5. CRITICAL — do NOT fill a field if you don't genuinely know it. Set evidence_type to "ABSENT" and leave value as null. A fabricated answer is far worse than an honest null. The presence of all 14 fields in the template does NOT mean you must fill all 14 — you should expect most fields to be null for brands you have little specific knowledge about.
+${sourcesRule}
 
 Attribute guide:
 ${guideLines}
@@ -117,7 +129,9 @@ Fill this JSON (keep all keys, replace values only):
 ${JSON.stringify(templateObj, null, 2)}`;
 }
 
-function parseAttributeJSON(text: string): Record<string, { value: string | null; evidence_type: string }> | null {
+function parseAttributeJSON(
+  text: string
+): Record<string, { value: string | null; evidence_type: string; sources?: string[] }> | null {
   try {
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;
@@ -129,23 +143,79 @@ function parseAttributeJSON(text: string): Record<string, { value: string | null
   }
 }
 
-async function callEngine(engine: string, prompt: string): Promise<string> {
+interface EngineCallResult {
+  text: string;
+  sessionSources: string[];
+}
+
+async function callEngine(engine: string, prompt: string, webSearch: boolean): Promise<EngineCallResult> {
   if (engine === "gemini") {
-    const response = await gemini.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-      config: { maxOutputTokens: 8192 },
-    });
-    return response.text ?? "";
+    if (webSearch) {
+      const response = await gemini.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+        config: {
+          maxOutputTokens: 8192,
+          tools: [{ googleSearch: {} }],
+        },
+      });
+      const text = response.text ?? "";
+      const groundingMeta = (response as any).candidates?.[0]?.groundingMetadata;
+      const sessionSources: string[] = [];
+      if (groundingMeta?.groundingChunks) {
+        for (const chunk of groundingMeta.groundingChunks) {
+          const url = chunk?.web?.uri;
+          if (url) sessionSources.push(url);
+        }
+      }
+      return { text, sessionSources };
+    } else {
+      const response = await gemini.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: prompt,
+        config: { maxOutputTokens: 8192 },
+      });
+      return { text: response.text ?? "", sessionSources: [] };
+    }
   }
 
   if (engine === "chatgpt") {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-    });
-    return response.choices[0]?.message?.content ?? "";
+    if (webSearch) {
+      const directOpenai = new OpenAI({ apiKey: process.env.OPENAI_DIRECT_API_KEY });
+      const response = await directOpenai.responses.create({
+        model: "gpt-4o",
+        tools: [{ type: "web_search" as any }],
+        tool_choice: "required" as any,
+        input: prompt,
+        temperature: 0.5,
+      } as any);
+      const text = (response as any).output_text ?? "";
+      const sessionSources: string[] = [];
+      const output = (response as any).output;
+      if (Array.isArray(output)) {
+        for (const item of output) {
+          if (item.type === "message" && Array.isArray(item.content)) {
+            for (const part of item.content) {
+              if (part.type === "output_text" && Array.isArray(part.annotations)) {
+                for (const ann of part.annotations) {
+                  if (ann.type === "url_citation" && ann.url) {
+                    sessionSources.push(ann.url);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return { text, sessionSources };
+    } else {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+      });
+      return { text: response.choices[0]?.message?.content ?? "", sessionSources: [] };
+    }
   }
 
   if (engine === "claude") {
@@ -155,7 +225,7 @@ async function callEngine(engine: string, prompt: string): Promise<string> {
       messages: [{ role: "user", content: prompt }],
     });
     const block = response.content[0];
-    return block.type === "text" ? block.text : "";
+    return { text: block.type === "text" ? block.text : "", sessionSources: [] };
   }
 
   throw new Error(`Unknown engine: ${engine}`);
@@ -167,6 +237,7 @@ export interface AttributeResult {
   mode_evidence: string;
   value_counts: Record<string, number>;
   evidence_counts: Record<string, number>;
+  sources: string[];
 }
 
 export interface DiagnosisResult {
@@ -183,6 +254,7 @@ export interface AggregatedResults {
   brand_url: string | null;
   engine: string;
   run_count: number;
+  web_search: boolean;
   attributes: Record<AttributeKey, AttributeResult>;
   diagnosis: DiagnosisResult;
 }
@@ -191,7 +263,8 @@ function aggregateRuns(
   brandName: string,
   brandUrl: string | null | undefined,
   engine: string,
-  rawRuns: Array<Record<string, { value: string | null; evidence_type: string }>>
+  webSearch: boolean,
+  rawRuns: Array<Record<string, { value: string | null; evidence_type: string; sources?: string[] }>>
 ): AggregatedResults {
   const attributes = {} as Record<AttributeKey, AttributeResult>;
   const total = rawRuns.length;
@@ -199,6 +272,7 @@ function aggregateRuns(
   for (const key of ATTRIBUTE_KEYS) {
     const valueCounts: Record<string, number> = {};
     const evidenceCounts: Record<string, number> = {};
+    const sourceCounts: Record<string, number> = {};
     let informativeCount = 0;
 
     for (const run of rawRuns) {
@@ -210,6 +284,13 @@ function aggregateRuns(
         informativeCount++;
         const val = String(attr.value).trim();
         if (val) valueCounts[val] = (valueCounts[val] || 0) + 1;
+        if (Array.isArray(attr.sources)) {
+          for (const url of attr.sources) {
+            if (url && typeof url === "string") {
+              sourceCounts[url] = (sourceCounts[url] || 0) + 1;
+            }
+          }
+        }
       }
     }
 
@@ -218,9 +299,12 @@ function aggregateRuns(
     const modeEvidenceEntry = Object.entries(evidenceCounts)
       .filter(([k]) => k !== "GENERIC" && k !== "ABSENT")
       .sort((a, b) => b[1] - a[1])[0];
+    const fallbackEvidenceEntry = Object.entries(evidenceCounts).sort((a, b) => b[1] - a[1])[0];
 
-    const fallbackEvidenceEntry = Object.entries(evidenceCounts)
-      .sort((a, b) => b[1] - a[1])[0];
+    const topSources = Object.entries(sourceCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([url]) => url);
 
     attributes[key] = {
       confidence_pct,
@@ -228,6 +312,7 @@ function aggregateRuns(
       mode_evidence: modeEvidenceEntry?.[0] ?? fallbackEvidenceEntry?.[0] ?? "ABSENT",
       value_counts: valueCounts,
       evidence_counts: evidenceCounts,
+      sources: topSources,
     };
   }
 
@@ -258,6 +343,7 @@ function aggregateRuns(
     brand_url: brandUrl ?? null,
     engine,
     run_count: total,
+    web_search: webSearch,
     attributes,
     diagnosis: {
       root_cause,
@@ -279,18 +365,29 @@ export async function runBrandIntelligence(jobId: number): Promise<void> {
     .set({ status: "running", progress: 0 })
     .where(eq(brandIntelligenceJobs.id, jobId));
 
-  const rawRuns: Array<Record<string, { value: string | null; evidence_type: string }>> = [];
+  const rawRuns: Array<Record<string, { value: string | null; evidence_type: string; sources?: string[] }>> = [];
   const failedRuns: number[] = [];
+  const webSearch = job.webSearch ?? false;
 
   for (let i = 0; i < job.runCount; i++) {
     try {
-      const prompt = buildPrompt(job.brandName, job.brandUrl, i);
-      const text = await callEngine(job.engine, prompt);
+      const prompt = buildPrompt(job.brandName, job.brandUrl, i, webSearch);
+      const { text, sessionSources } = await callEngine(job.engine, prompt, webSearch);
       const parsed = parseAttributeJSON(text);
       if (parsed) {
+        if (webSearch && sessionSources.length > 0) {
+          for (const key of ATTRIBUTE_KEYS) {
+            const attr = parsed[key];
+            if (attr && attr.value !== null && attr.evidence_type !== "GENERIC" && attr.evidence_type !== "ABSENT") {
+              if (!Array.isArray(attr.sources) || attr.sources.length === 0) {
+                attr.sources = sessionSources.slice(0, 3);
+              }
+            }
+          }
+        }
         rawRuns.push(parsed);
       } else {
-        console.error(`[brand-intelligence] Job ${jobId} run ${i}: failed to parse JSON. Response preview: ${text.slice(0, 200)}`);
+        console.error(`[brand-intelligence] Job ${jobId} run ${i}: failed to parse JSON. Preview: ${text.slice(0, 300)}`);
         failedRuns.push(i);
       }
     } catch (err) {
@@ -316,7 +413,7 @@ export async function runBrandIntelligence(jobId: number): Promise<void> {
     return;
   }
 
-  const results = aggregateRuns(job.brandName, job.brandUrl, job.engine, rawRuns);
+  const results = aggregateRuns(job.brandName, job.brandUrl, job.engine, webSearch, rawRuns);
 
   await db
     .update(brandIntelligenceJobs)

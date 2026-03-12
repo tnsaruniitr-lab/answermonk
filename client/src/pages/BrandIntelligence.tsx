@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Brain, Loader2, CheckCircle, XCircle, Clock, ChevronRight } from "lucide-react";
+import { ArrowLeft, Brain, Loader2, CheckCircle, XCircle, Clock, ChevronRight, ExternalLink } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -76,6 +77,7 @@ interface Job {
   brandUrl: string | null;
   engine: string;
   runCount: number;
+  webSearch: boolean;
   status: string;
   progress: number;
   createdAt: string;
@@ -87,6 +89,7 @@ interface AttributeResult {
   mode_evidence: string;
   value_counts: Record<string, number>;
   evidence_counts: Record<string, number>;
+  sources: string[];
 }
 
 interface JobDetail extends Job {
@@ -111,45 +114,75 @@ function StatusIcon({ status }: { status: string }) {
   return <Clock className="w-4 h-4 text-muted-foreground" />;
 }
 
+function SourceLink({ url }: { url: string }) {
+  let label = url;
+  try {
+    const u = new URL(url);
+    label = u.hostname.replace(/^www\./, "");
+  } catch {}
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-0.5 text-[10px] text-blue-600 dark:text-blue-400 hover:underline max-w-[140px] truncate"
+      title={url}
+      data-testid={`source-link-${label}`}
+    >
+      {label}
+      <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+    </a>
+  );
+}
+
 function AttributeRow({ attrKey, result }: { attrKey: string; result: AttributeResult }) {
   const label = ATTRIBUTE_LABELS[attrKey] || attrKey;
-  const { confidence_pct, mode_value, mode_evidence } = result;
+  const { confidence_pct, mode_value, mode_evidence, sources = [] } = result;
   const isIdentity = attrKey === "identity_summary";
 
   return (
-    <div className={`flex items-start gap-4 py-3 border-b border-border/50 last:border-0 ${isIdentity ? "pt-4 mt-1" : ""}`} data-testid={`attr-row-${attrKey}`}>
-      <div className="w-44 shrink-0">
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      </div>
-      <div className="flex-1 min-w-0">
-        {mode_value ? (
-          <p className="text-sm text-foreground leading-snug truncate" title={mode_value}>{mode_value}</p>
-        ) : (
-          <p className="text-sm text-muted-foreground italic">Not known</p>
-        )}
-      </div>
-      <div className="flex items-center gap-3 shrink-0">
-        <div className="w-20">
-          <div className="flex items-center gap-1.5">
-            <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-              <div
-                className={`h-full rounded-full ${CONFIDENCE_BAR(confidence_pct)}`}
-                style={{ width: `${confidence_pct}%` }}
-              />
-            </div>
-            <span className="text-xs text-muted-foreground w-7 text-right">{confidence_pct}%</span>
-          </div>
+    <div className={`py-3 border-b border-border/50 last:border-0 ${isIdentity ? "pt-4 mt-1" : ""}`} data-testid={`attr-row-${attrKey}`}>
+      <div className="flex items-start gap-4">
+        <div className="w-44 shrink-0">
+          <span className="text-xs font-medium text-muted-foreground">{label}</span>
         </div>
-        {mode_evidence && mode_evidence !== "GENERIC" ? (
-          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-5 ${EVIDENCE_COLORS[mode_evidence] || EVIDENCE_COLORS.GENERIC}`}>
-            {mode_evidence}
-          </Badge>
-        ) : (
-          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-5 ${EVIDENCE_COLORS.GENERIC}`}>
-            GENERIC
-          </Badge>
-        )}
+        <div className="flex-1 min-w-0">
+          {mode_value ? (
+            <p className="text-sm text-foreground leading-snug" title={mode_value}>{mode_value}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">Not known</p>
+          )}
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="w-20">
+            <div className="flex items-center gap-1.5">
+              <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${CONFIDENCE_BAR(confidence_pct)}`}
+                  style={{ width: `${confidence_pct}%` }}
+                />
+              </div>
+              <span className="text-xs text-muted-foreground w-7 text-right">{confidence_pct}%</span>
+            </div>
+          </div>
+          {mode_evidence && mode_evidence !== "GENERIC" ? (
+            <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-5 ${EVIDENCE_COLORS[mode_evidence] || EVIDENCE_COLORS.GENERIC}`}>
+              {mode_evidence}
+            </Badge>
+          ) : (
+            <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-5 ${EVIDENCE_COLORS.GENERIC}`}>
+              GENERIC
+            </Badge>
+          )}
+        </div>
       </div>
+      {sources.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-1.5 pl-44">
+          {sources.map((url, i) => (
+            <SourceLink key={i} url={url} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -295,7 +328,6 @@ function JobResults({ jobId }: { jobId: number }) {
 }
 
 export default function BrandIntelligence() {
-  const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -303,6 +335,7 @@ export default function BrandIntelligence() {
   const [brandUrl, setBrandUrl] = useState("");
   const [engine, setEngine] = useState("gemini");
   const [runCount, setRunCount] = useState("10");
+  const [webSearch, setWebSearch] = useState(false);
   const [activeJobId, setActiveJobId] = useState<number | null>(null);
 
   const { data: jobs = [] } = useQuery<Job[]>({
@@ -322,6 +355,7 @@ export default function BrandIntelligence() {
         brandUrl: brandUrl.trim() || undefined,
         engine,
         runCount: parseInt(runCount),
+        webSearch: engine !== "claude" && webSearch,
       }),
     onSuccess: async (res) => {
       const data = await res.json();
@@ -392,7 +426,11 @@ export default function BrandIntelligence() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">AI Engine</label>
-              <Select value={engine} onValueChange={setEngine} disabled={startMutation.isPending}>
+              <Select
+                value={engine}
+                onValueChange={(v) => { setEngine(v); if (v === "claude") setWebSearch(false); }}
+                disabled={startMutation.isPending}
+              >
                 <SelectTrigger data-testid="select-engine">
                   <SelectValue />
                 </SelectTrigger>
@@ -417,6 +455,23 @@ export default function BrandIntelligence() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="webSearch"
+              data-testid="checkbox-web-search"
+              checked={webSearch}
+              onCheckedChange={(v) => setWebSearch(v === true)}
+              disabled={startMutation.isPending || engine === "claude"}
+            />
+            <label
+              htmlFor="webSearch"
+              className={`text-xs cursor-pointer select-none ${engine === "claude" ? "text-muted-foreground/50" : "text-muted-foreground"}`}
+            >
+              Enable web search — sources will be cited per attribute
+              {engine === "claude" && <span className="ml-1 italic">(not available for Claude)</span>}
+            </label>
           </div>
 
           <div className="pt-1">
@@ -463,7 +518,9 @@ export default function BrandIntelligence() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{job.brandName}</p>
                     <p className="text-xs text-muted-foreground">
-                      {ENGINE_LABELS[job.engine] || job.engine} · {job.runCount} runs ·{" "}
+                      {ENGINE_LABELS[job.engine] || job.engine}
+                      {job.webSearch && <span className="ml-1 text-blue-500">· web search</span>}
+                      {" "}· {job.runCount} runs ·{" "}
                       {job.status === "running"
                         ? `${job.progress}/${job.runCount} complete`
                         : job.status}

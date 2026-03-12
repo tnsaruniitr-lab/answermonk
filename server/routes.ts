@@ -2089,6 +2089,7 @@ export async function registerRoutes(
         brandUrl: z.string().url().optional().or(z.literal("")),
         engine: z.enum(["chatgpt", "gemini", "claude"]),
         runCount: z.number().int().min(5).max(20).default(15),
+        webSearch: z.boolean().default(false),
       });
       const body = schema.parse(req.body);
       const { db } = await import("./db");
@@ -2099,6 +2100,7 @@ export async function registerRoutes(
           brandUrl: body.brandUrl || null,
           engine: body.engine,
           runCount: body.runCount,
+          webSearch: body.webSearch,
           status: "pending",
           progress: 0,
         })
@@ -2129,6 +2131,7 @@ export async function registerRoutes(
           brandUrl: brandIntelligenceJobs.brandUrl,
           engine: brandIntelligenceJobs.engine,
           runCount: brandIntelligenceJobs.runCount,
+          webSearch: brandIntelligenceJobs.webSearch,
           status: brandIntelligenceJobs.status,
           progress: brandIntelligenceJobs.progress,
           createdAt: brandIntelligenceJobs.createdAt,
