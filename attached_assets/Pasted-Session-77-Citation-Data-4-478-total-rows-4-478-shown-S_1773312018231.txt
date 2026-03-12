@@ -1,0 +1,136 @@
+Session 77 — Citation Data
+4,478 total rows · 4,478 shown
+
+Search domain, brand, context…
+
+All brands
+
+All categories
+
+All engines
+healthcare_provider (2845)
+hospital_clinic (589)
+healthcare_directory (337)
+community (236)
+business_directory (161)
+news_media (99)
+review_platform (69)
+jobs_platform (52)
+market_research (38)
+government (32)
+social_media (17)
+general_web (3)
+gemini (4011)
+chatgpt (295)
+Brand	Category	Domain	Engine(s)	Page Title	Context Snippet	URL
+Call Doctor	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+physiotherapy, and at-home lab tests. They emphasize family-centered care with qualified carers and nurses available for various needs, from childcare to clinical support. 8. **Call Doctor** Call Doctor UAE is recognized as one of the best home healthcare service providers in Dubai, offering leading elderly home care services at the patient's doorstep. Their services cater to all ages, from newborns to the elderly, and include doctor's visits, nurse care, lab sample collection, and
+
+↗
+Call Doctor	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+newborn and elderly care, physiotherapy, and at-home lab tests. They emphasize family-centered care with qualified carers and nurses available for various needs, from childcare to clinical support. 8. **Call Doctor** Call Doctor UAE is recognized as one of the best home healthcare service providers in Dubai, offering leading elderly home care services at the patient's doorstep. Their services cater to all ages, from newborns to the elderly, and include doctor's visits, nurse care, lab
+
+↗
+Call Doctor	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+post-surgery, chronic illness, and general well-being. * **Trusted Doctors:** Known for its comprehensive home care services available 24/7, including day and night nurse shifts, on-call doctor access, and support for all age groups and medical needs. * **Vesta Care:** A DHA-licensed provider noted for its clinical expertise, personalized care plans, and experienced, vetted, and trained nurses for various home-based medical needs. * **Manzil Health:** Recognized for delivering personalized medical services at home, including
+
+↗
+Call Doctor	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+companionship, with a focus on tailored care packages. Other providers mentioned include Care24 Healthcare, Healthserve HHC, Infinity Care, Al Hanan Home Nursing, Sublime Nursing, Enayati, Lana Life Care, Medcome Home Health Care Center, and Call Doctor. While these are reputable, the top 10 were determined by their frequency of mention in "best of" lists and detailed descriptions of their long-standing presence and comprehensive services.
+
+↗
+Emirates Home Nursing	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+home medical services in Dubai. They offer DHA-approved services, including doctors, nurses, lab tests, and physiotherapy at home, emphasizing patient comfort, safety, and rapid recovery. 4. **Emirates Home Nursing** Founded in 2003, Emirates Home Nursing is one of the earliest providers of professional home care services in the UAE. They offer a broad spectrum of services, including child and maternity care, chronic illness management, and elder support, known for their responsive customer service and flexible
+
+↗
+Emirates Home Nursing	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+in Dubai, offering 24/7 care. They specialize in physiotherapy, professional nursing home health, elderly care, mother and baby care, IV therapy (vitamins, detox, immune boost), and home blood tests. 8. **Emirates Home Nursing** Established in 2003, Emirates Home Nursing is one of the pioneering companies in the UAE for professional home care services. With over two decades of experience, they provide a broad spectrum of services, including child and maternity care, chronic illness management,
+
+↗
+Emirates Home Nursing	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+home nursing. HealthAtHome distinguishes itself with 24/7 on-call medical staff and a commitment to delivering hospital-level care within the home environment. Their multilingual staff is trained to cater to diverse patient needs. 4. **Emirates Home Nursing:** As one of the first companies to offer professional home care services in the UAE, established in 2003, Emirates Home Nursing boasts over two decades of experience. They provide a wide array of services, including child and maternity care, chronic
+
+↗
+Emirates Home Nursing	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+medical services at home, including nursing care, physiotherapy, and chronic disease management, with a focus on patient-centered and culturally sensitive care. * **Emirates Home Nursing:** One of the first companies in the UAE to offer professional home care services, with over two decades of experience in child and maternity care, chronic illness management, and elder support. * **DIO Life Home Health Care:** Highly recommended for its fast response on WhatsApp and professional nurses,
+
+↗
+Emirates Home Nursing	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+care, palliative care, wound management, and home nursing. They are known for their 24/7 on-call medical staff and dedication to providing hospital-level care within the home setting. 6. **Emirates Home Nursing:** Established in 2003, Emirates Home Nursing is one of the pioneering companies in the UAE for professional home care services. They offer a broad spectrum of services, including child and maternity care, chronic illness management, and elder support, recognized for responsive customer service and
+
+↗
+Emirates Home Nursing	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+and emotional well-being, particularly for elderly patients who prefer to remain at home. They have been providing medical and nursing care at home since 2013. 4. **Emirates Home Nursing** Established in 2003, Emirates Home Nursing was one of the first companies in the UAE to offer professional home care services. They provide a wide range of services, including child and maternity care, chronic illness management, and elder support, and are known for responsive customer service and
+
+↗
+Emirates Home Nursing	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+care, alongside specialized care for Alzheimer's & dementia, post-stroke recovery, and pediatric care. **6. Emirates Home Nursing** As one of the first companies in the UAE to offer professional home care services, founded in 2003, Emirates Home Nursing has over two decades of experience. They provide a broad range of services, including child and maternity care, chronic illness management, and elder support, and are known for responsive customer service and flexible care plans. **7. Sublime
+
+↗
+Emirates Home Nursing	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+Healthcare is described as a pioneer of home medical services in Dubai. They offer DHA-approved services, including doctors, nurses, lab tests, and physiotherapy at home, emphasizing patient comfort, safety, and rapid recovery. 4. **Emirates Home Nursing** Founded in 2003, Emirates Home Nursing is one of the earliest providers of professional home care services in the UAE. They offer a broad spectrum of services, including child and maternity care, chronic illness management, and elder support,
+
+↗
+Emirates Home Nursing	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+of home health services, including elder care, palliative care, wound management, and home nursing. They are known for their 24/7 on-call medical staff and dedication to providing hospital-level care within the home setting. 6. **Emirates Home Nursing:** Established in 2003, Emirates Home Nursing is one of the pioneering companies in the UAE for professional home care services. They offer a broad spectrum of services, including child and maternity care, chronic illness management, and
+
+↗
+Emirates Home Nursing	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+offering personalized and patient-focused plans. Their services include skilled DHA-licensed nurses for IV therapy, wound management, vital signs monitoring, and post-surgery care, alongside specialized care for Alzheimer's & dementia, post-stroke recovery, and pediatric care. **6. Emirates Home Nursing** As one of the first companies in the UAE to offer professional home care services, founded in 2003, Emirates Home Nursing has over two decades of experience. They provide a broad range of services, including child and
+
+↗
+Emirates Home Nursing	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+Their multilingual staff is trained to handle diverse patient needs, contributing to its strong reputation. * **Key Services:** Elder care, palliative care, wound management, and home nursing. 5. **Emirates Home Nursing** * **Trustworthiness Factors:** One of the first companies to offer professional home care services in the UAE, founded in 2003, giving them over two decades of experience. They are known for responsive customer service and flexible, customizable care plans. * **Key Services:** Child
+
+↗
+Emirates Home Nursing	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+care, palliative care, and wound management. Their 24/7 on-call medical staff and commitment to delivering hospital-level care at home, with multilingual staff, make them a preferred choice. 6. **Emirates Home Nursing**: Established in 2003, Emirates Home Nursing is one of the pioneering companies in the UAE for professional home care services. With over two decades of experience, they provide a broad spectrum of services, from child and maternity care to chronic illness management and elder support,
+
+↗
+Emirates Home Nursing	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+as elder care, palliative care, wound management, and home nursing. HealthAtHome stands out with its 24/7 on-call medical staff and commitment to delivering hospital-level care in the comfort of a patient's home. 3. **Emirates Home Nursing** Established in 2003, Emirates Home Nursing is one of the pioneering companies to offer professional home care services in the UAE. With over two decades of experience, they provide a broad spectrum of services, including child
+
+↗
+Emirates Home Nursing	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—	
+nurses, especially for newborn care, and offer amazing 24/7 customer service. Other reputable mentions include Bayti Home Healthcare, which specializes in long-term care, post-hospitalization recovery, and physiotherapy; Emirates Home Nursing; Sublime Nursing, known for mother, baby, child, and elderly care programs; Lana Life Care, offering expert care for medication management and wound care; and AIMS Healthcare, a premium provider for a diverse range of nursing care services. Yad Al' Amal also stands out for
+
+↗
+Emirates Home Nursing	business_directory	vertexaisearch.cloud.google.com	
+gemini
+—
