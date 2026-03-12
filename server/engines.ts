@@ -83,6 +83,7 @@ async function queryChatGPTWithWebSearch(query: string, brand: string): Promise<
     const response = await directOpenai.responses.create({
       model: "gpt-5.2",
       tools: [{ type: "web_search" as any }],
+      tool_choice: "required" as any,
       input: query,
       temperature: 0.2,
     });
