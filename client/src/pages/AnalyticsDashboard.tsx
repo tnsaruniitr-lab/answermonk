@@ -130,11 +130,9 @@ function SourceAuthorityMap({
   const [activeEngine, setActiveEngine] = useState<"gemini" | "chatgpt">("gemini");
   const [, setLocation] = useLocation();
 
+  const authorityUrl = `/api/analytics/session/${sessionId}/authority?brand=${encodeURIComponent(brand)}`;
   const { data, isLoading } = useQuery<AuthorityData>({
-    queryKey: [`/api/analytics/session/${sessionId}/authority`, brand],
-    queryFn: () =>
-      fetch(`/api/analytics/session/${sessionId}/authority?brand=${encodeURIComponent(brand)}`)
-        .then(r => r.json()),
+    queryKey: [authorityUrl],
   });
 
   const rows = useMemo(() => {
