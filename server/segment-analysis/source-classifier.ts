@@ -217,6 +217,8 @@ const REVIEW_PLATFORMS = new Set([
   "trustpilot.com", "trustindex.io", "provenexpert.com", "yelp.com",
   "tripadvisor.com", "google.com", "maps.google.com", "g2.com",
   "capterra.com", "clutch.co", "goodfirms.co",
+  "doctify.com", "sitejabber.com", "justdial.com", "linkcentre.com",
+  "vitals.com", "ratemds.com", "healthgrades.com", "zocdoc.com",
 ]);
 
 const HEALTHCARE_DIRECTORIES = new Set([
@@ -256,24 +258,61 @@ const HOSPITAL_CLINIC_DOMAINS = new Set([
 const COMMUNITY_DOMAINS = new Set([
   "reddit.com", "expatsofdubai.com", "gludo.org", "mumsnet.com",
   "expat.com", "internations.org", "dubaiforum.ae",
+  "quora.com", "forum.creuniversity.com", "yahooanswers.com",
 ]);
+
+const BUSINESS_DIRECTORY_DOMAINS = new Set([
+  "ensun.io", "crunchbase.com", "zoominfo.com", "apollo.io",
+  "dnb.com", "hoovers.com", "kompass.com", "yellowpages.ae",
+  "bizwiki.com", "hotfrog.ae", "cylex.ae", "foursquare.com",
+]);
+
+const HOSPITAL_CLINIC_EXTRA = new Set([
+  "gimcdubai.com", "modernfamilymedicalcentre.com", "sidrahc.com",
+  "fakeeh.health", "trudocgroup.com", "oradoctors.com",
+  "arabiamd.com", "malaak.me", "snappycare.com",
+]);
+
+// Known healthcare provider domains that don't contain obvious keywords
+const KNOWN_HEALTHCARE_PROVIDERS = new Set([
+  "nightingaledubai.com", "yadalamal.com", "royal-maison.com",
+  "medilifeglobal.com", "manzilhealth.com", "vestacare.ae",
+]);
+
+const NEWS_MEDIA_EXTRA = new Set([
+  "uaedigitalnews.com", "m.edarabia.com", "edarabia.com",
+  "dubaihealthlicense.com",
+]);
+
+// Healthcare domain keyword detection
+const HEALTHCARE_KEYWORDS = [
+  "health", "care", "clinic", "nurse", "nursing", "medical", "doctor",
+  "physio", "therapy", "hospital", "homecare", "homehealthcare",
+  "homehealth", "elderlycare", "eldercare", "wellnes", "wellness",
+];
+
+function isHealthcareProviderDomain(domain: string): boolean {
+  const d = domain.toLowerCase();
+  return HEALTHCARE_KEYWORDS.some(kw => d.includes(kw));
+}
 
 export function classifyDomainCategory(domain: string): string {
   const d = domain.toLowerCase().replace(/^www\./, "").replace(/^(jm|uk|ae|us|in)\./,"");
 
-  if (d === "vertexaisearch.cloud.google.com" || d.includes("vertexaisearch")) return "ai_platform";
+  if (d.includes("vertexaisearch")) return "ai_platform";
   if (GOVERNMENT_DOMAINS.has(d) || /\.gov(\.[a-z]{2})?$/.test(d)) return "government";
   if (MARKET_RESEARCH_DOMAINS.has(d)) return "market_research";
-  if (NEWS_MEDIA_DOMAINS.has(d)) return "news_media";
+  if (NEWS_MEDIA_DOMAINS.has(d) || NEWS_MEDIA_EXTRA.has(d)) return "news_media";
   if (REVIEW_PLATFORMS.has(d)) return "review_platform";
   if (HEALTHCARE_DIRECTORIES.has(d)) return "healthcare_directory";
-  if (HOSPITAL_CLINIC_DOMAINS.has(d)) return "hospital_clinic";
+  if (HOSPITAL_CLINIC_DOMAINS.has(d) || HOSPITAL_CLINIC_EXTRA.has(d)) return "hospital_clinic";
   if (JOBS_PLATFORMS.has(d)) return "jobs_platform";
   if (SOCIAL_MEDIA_DOMAINS.has(d)) return "social_media";
   if (COMMUNITY_DOMAINS.has(d)) return "community";
+  if (BUSINESS_DIRECTORY_DOMAINS.has(d)) return "business_directory";
 
-  // Pattern-based: likely a UAE healthcare provider site
-  if (d.endsWith(".ae") || d.endsWith(".ae/")) return "healthcare_provider";
+  // UAE domain, known provider, or healthcare keyword in domain → healthcare provider
+  if (d.endsWith(".ae") || KNOWN_HEALTHCARE_PROVIDERS.has(d) || isHealthcareProviderDomain(d)) return "healthcare_provider";
 
   return "general_web";
 }
