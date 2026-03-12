@@ -296,6 +296,33 @@ function isHealthcareProviderDomain(domain: string): boolean {
   return HEALTHCARE_KEYWORDS.some(kw => d.includes(kw));
 }
 
+export function detectPageType(url: string): string {
+  if (!url || url.includes("vertexaisearch.cloud.google.com")) return "unknown";
+  let path = "";
+  try {
+    path = new URL(url).pathname.toLowerCase();
+  } catch {
+    return "unknown";
+  }
+  // Strip trailing slash and normalise
+  const p = path.replace(/\/+$/, "") || "/";
+
+  if (p === "" || p === "/") return "homepage";
+  if (/\/(blog|blogs|insight|insights|thought-leadership|resources|learn|knowledge)(\/|$)/.test(p)) return "blog_post";
+  if (/\/(news|press|press-release|media|announcements|article|articles|story|stories|post|posts)(\/|$)/.test(p)) return "article";
+  if (/\/(service|services|solution|solutions|offering|offerings|what-we-do|our-services|care-services)(\/|$)/.test(p)) return "service_page";
+  if (/\/(about|who-we-are|our-story|team|leadership|mission)(\/|$)/.test(p)) return "about_page";
+  if (/\/(company|companies|organisation|organization)(\/|$)/.test(p)) return "company_profile";
+  if (/\/(profile|provider|doctor|physician|nurse|staff|therapist|caregiver)(\/|$)/.test(p)) return "profile";
+  if (/\/(contact|contact-us|get-in-touch|reach-us)(\/|$)/.test(p)) return "contact_page";
+  if (/\/(product|products|plan|plans|pricing)(\/|$)/.test(p)) return "product_page";
+  if (/\/(faq|faqs|help|support|questions)(\/|$)/.test(p)) return "faq_page";
+  if (/\/(review|reviews|testimonial|testimonials|rating|ratings)(\/|$)/.test(p)) return "review_page";
+  if (/\/(location|locations|branch|branches|clinic|clinics|centre|center)(\/|$)/.test(p)) return "location_page";
+  if (/\/(category|categories|tag|tags|topic|topics)(\/|$)/.test(p)) return "category_page";
+  return "inner_page";
+}
+
 export function classifyDomainCategory(domain: string): string {
   const d = domain.toLowerCase().replace(/^www\./, "").replace(/^(jm|uk|ae|us|in)\./,"");
 
