@@ -194,9 +194,43 @@ export async function runSegmentAnalysis(
       const { storage } = await import("../storage");
       const mentions: InsertCitationPageMention[] = [];
 
+      // Build URL -> engines map from all raw_runs across all segments
+      const urlEnginesMap = new Map<string, Set<string>>();
+      const addUrlEngine = (url: string, engine: string) => {
+        if (!url || !engine) return;
+        const key = url;
+        if (!urlEnginesMap.has(key)) urlEnginesMap.set(key, new Set());
+        urlEnginesMap.get(key)!.add(engine);
+        // Also index by path-only (strip query params) for fuzzy matching
+        try {
+          const parsed = new URL(url);
+          const pathKey = parsed.origin + parsed.pathname;
+          if (!urlEnginesMap.has(pathKey)) urlEnginesMap.set(pathKey, new Set());
+          urlEnginesMap.get(pathKey)!.add(engine);
+        } catch {}
+      };
+      for (const seg of validSegments) {
+        for (const run of (seg.scoringResult?.raw_runs || [])) {
+          for (const cit of (run.citations || [])) {
+            addUrlEngine(cit.url, run.engine);
+          }
+        }
+      }
+      const getEngines = (url: string): string[] | undefined => {
+        const direct = urlEnginesMap.get(url);
+        if (direct) return [...direct];
+        try {
+          const parsed = new URL(url);
+          const path = urlEnginesMap.get(parsed.origin + parsed.pathname);
+          if (path) return [...path];
+        } catch {}
+        return undefined;
+      };
+
       // Build mention rows from successfully crawled pages
       for (const ps of pageSnippetsList) {
         if (!ps.page.accessible) continue;
+        const pageEngines = getEngines(ps.page.url) || getEngines(ps.page.resolvedUrl) || undefined;
         const brandMentionMap = new Map<string, BrandSnippet[]>();
         for (const s of ps.snippets) {
           const key = s.brand.toLowerCase();
@@ -223,6 +257,7 @@ export async function runSegmentAnalysis(
               mentionIndex: idx + 1,
               context: s.text,
               sourceType: s.source,
+              engines: pageEngines,
               pageTitle: ps.page.title || null,
               fetchStatus: "crawled",
             });
@@ -294,6 +329,7 @@ export async function runSegmentAnalysis(
                 if (deduped.length >= 3) break;
               }
             }
+            const fallbackEngines = [...new Set(runs.map(r => r.engine).filter(Boolean))];
             deduped.forEach((s, idx) => {
               mentions.push({
                 sessionId,
@@ -304,6 +340,7 @@ export async function runSegmentAnalysis(
                 mentionIndex: idx + 1,
                 context: s.text,
                 sourceType: "ai_fallback",
+                engines: fallbackEngines.length > 0 ? fallbackEngines : undefined,
                 pageTitle: null,
                 fetchStatus: "ai_fallback",
               });
