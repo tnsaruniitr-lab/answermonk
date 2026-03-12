@@ -10,6 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  LabelList,
 } from "recharts";
 import { Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -76,6 +77,7 @@ interface AnalyticsData {
   sessionTotals: Record<string, number>;
   engineStats: Record<string, { total: number; uniqueDomains: number }>;
   categoryBreakdown: Array<{ category: string; gemini: number; chatgpt: number }>;
+  sessionCategoryBreakdown: Array<{ category: string; gemini: number; chatgpt: number }> | null;
   domainAggregates: Array<{
     domain: string;
     domainCategory: string;
@@ -246,6 +248,16 @@ export default function AnalyticsDashboard() {
       uniqueDomains: domains.filter(d => d.chatgptCount > 0).length,
     };
 
+    const sessionCategoryMap: Record<string, { gemini: number; chatgpt: number }> = {};
+    if (data.sessionCategoryBreakdown) {
+      for (const c of data.sessionCategoryBreakdown) {
+        if (thirdPartyOnly && THIRD_PARTY_EXCLUDE.includes(c.category)) continue;
+        sessionCategoryMap[c.category] = { gemini: c.gemini, chatgpt: c.chatgpt };
+      }
+    }
+
+    const hasSessionShares = data.sessionCategoryBreakdown !== null && Object.keys(sessionCategoryMap).length > 0;
+
     const categoryBreakdown = data.categoryBreakdown
       .filter(c => thirdPartyOnly ? !THIRD_PARTY_EXCLUDE.includes(c.category) : true)
       .filter(c => c.gemini > 0 || c.chatgpt > 0)
@@ -254,11 +266,22 @@ export default function AnalyticsDashboard() {
         const bi = CATEGORY_ORDER.indexOf(b.category);
         return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
       })
-      .map(c => ({
-        category: CATEGORY_LABELS[c.category] || c.category,
-        Gemini: c.gemini,
-        ChatGPT: c.chatgpt,
-      }))
+      .map(c => {
+        const sessionTotals = sessionCategoryMap[c.category];
+        const geminiShare = hasSessionShares && sessionTotals?.gemini
+          ? `${((c.gemini / sessionTotals.gemini) * 100).toFixed(0)}%`
+          : null;
+        const chatgptShare = hasSessionShares && sessionTotals?.chatgpt
+          ? `${((c.chatgpt / sessionTotals.chatgpt) * 100).toFixed(0)}%`
+          : null;
+        return {
+          category: CATEGORY_LABELS[c.category] || c.category,
+          Gemini: c.gemini,
+          ChatGPT: c.chatgpt,
+          GeminiShare: geminiShare,
+          ChatGPTShare: chatgptShare,
+        };
+      })
       .reverse();
 
     const geminiDomains = [...domains]
@@ -399,7 +422,7 @@ export default function AnalyticsDashboard() {
               <BarChart
                 data={filtered.categoryBreakdown}
                 layout="vertical"
-                margin={{ top: 0, right: 24, left: 140, bottom: 0 }}
+                margin={{ top: 0, right: isBrandView ? 56 : 24, left: 140, bottom: 0 }}
                 barCategoryGap="30%"
                 barGap={4}
               >
@@ -415,8 +438,16 @@ export default function AnalyticsDashboard() {
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f9fafb" }} />
                 <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "12px", paddingTop: "16px" }} />
-                <Bar dataKey="Gemini" fill="#3b82f6" radius={[0, 3, 3, 0]} maxBarSize={18} />
-                <Bar dataKey="ChatGPT" fill="#f97316" radius={[0, 3, 3, 0]} maxBarSize={18} />
+                <Bar dataKey="Gemini" fill="#3b82f6" radius={[0, 3, 3, 0]} maxBarSize={18}>
+                  {isBrandView && (
+                    <LabelList dataKey="GeminiShare" position="right" style={{ fontSize: 10, fill: "#3b82f6", fontWeight: 600 }} />
+                  )}
+                </Bar>
+                <Bar dataKey="ChatGPT" fill="#f97316" radius={[0, 3, 3, 0]} maxBarSize={18}>
+                  {isBrandView && (
+                    <LabelList dataKey="ChatGPTShare" position="right" style={{ fontSize: 10, fill: "#f97316", fontWeight: 600 }} />
+                  )}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (

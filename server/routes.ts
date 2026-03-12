@@ -1842,7 +1842,7 @@ export async function registerRoutes(
       const brandFilter = brand ? `AND brand = $2` : "";
       const params = brand ? [sessionId, brand] : [sessionId];
 
-      const [brandsRes, sessionTotalsRes, statsRes, categoryRes, domainRes] = await Promise.all([
+      const [brandsRes, sessionTotalsRes, statsRes, categoryRes, domainRes, sessionCategoryRes] = await Promise.all([
         pool.query(
           `SELECT DISTINCT brand FROM citation_page_mentions WHERE session_id = $1 ORDER BY brand`,
           [sessionId]
@@ -1878,6 +1878,14 @@ export async function registerRoutes(
           GROUP BY effective_domain
           ORDER BY (SUM(CASE WHEN engine = 'gemini' THEN 1 ELSE 0 END) + SUM(CASE WHEN engine = 'chatgpt' THEN 1 ELSE 0 END)) DESC
         `, params),
+        brand
+          ? pool.query(`
+              SELECT COALESCE(domain_category, 'unknown') as category, engine, COUNT(*) as count
+              FROM citation_page_mentions, UNNEST(engines) as engine
+              WHERE session_id = $1
+              GROUP BY domain_category, engine
+            `, [sessionId])
+          : Promise.resolve({ rows: [] } as any),
       ]);
 
       const sessionTotals: Record<string, number> = {};
@@ -1897,6 +1905,13 @@ export async function registerRoutes(
         if (row.engine === "chatgpt") categoryMap[row.category].chatgpt = parseInt(row.count);
       }
 
+      const sessionCategoryMap: Record<string, { category: string; gemini: number; chatgpt: number }> = {};
+      for (const row of sessionCategoryRes.rows) {
+        if (!sessionCategoryMap[row.category]) sessionCategoryMap[row.category] = { category: row.category, gemini: 0, chatgpt: 0 };
+        if (row.engine === "gemini") sessionCategoryMap[row.category].gemini = parseInt(row.count);
+        if (row.engine === "chatgpt") sessionCategoryMap[row.category].chatgpt = parseInt(row.count);
+      }
+
       res.json({
         session: {
           id: session.id,
@@ -1909,6 +1924,7 @@ export async function registerRoutes(
         sessionTotals,
         engineStats,
         categoryBreakdown: Object.values(categoryMap),
+        sessionCategoryBreakdown: brand ? Object.values(sessionCategoryMap) : null,
         domainAggregates: domainRes.rows.map((r: any) => ({
           domain: r.effective_domain,
           domainCategory: r.domain_category,
