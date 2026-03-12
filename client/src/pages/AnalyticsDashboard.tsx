@@ -159,7 +159,11 @@ function SourceAuthorityMap({
       <div className="flex items-center justify-between mb-5">
         <div>
           <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Source Authority Map</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Top sources trusted by AI engines · your presence vs market total</p>
+          <p className="text-xs text-gray-400 mt-0.5">
+            {isGemini
+              ? `Top ${rows.length} third-party domains by session Gemini citations · brand presence vs market total`
+              : `Top ${rows.length} third-party domains by session ChatGPT citations · ChatGPT grounds fewer sources per query`}
+          </p>
         </div>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 text-xs font-medium">
           <button
@@ -180,7 +184,9 @@ function SourceAuthorityMap({
       </div>
 
       {rows.length === 0 ? (
-        <div className="h-32 flex items-center justify-center text-gray-400 text-sm">No data</div>
+        <div className="h-32 flex items-center justify-center text-center px-8">
+          <p className="text-gray-400 text-sm">{isGemini ? "No data" : "ChatGPT uses selective web search — few third-party sources are grounded per query"}</p>
+        </div>
       ) : (
         <table className="w-full text-sm">
           <thead>
