@@ -217,6 +217,7 @@ export async function runSegmentAnalysis(
             mentions.push({
               sessionId,
               url: ps.page.url,
+              resolvedUrl: ps.page.resolvedUrl || ps.page.url,
               domain: ps.page.domain,
               brand: s.brand,
               mentionIndex: idx + 1,
@@ -245,13 +246,34 @@ export async function runSegmentAnalysis(
         }
       }
 
+      // Pre-resolve any Vertex redirect URLs in the failed set
+      const vertexResolved = new Map<string, string>();
+      const vertexUrls = [...failedUrlToRuns.keys()].filter(u => u.includes("vertexaisearch.cloud.google.com"));
+      await Promise.all(vertexUrls.map(async (vUrl) => {
+        try {
+          const https = await import("https");
+          const resolved = await new Promise<string>((resolve) => {
+            const req = (https as any).request(vUrl, { method: "HEAD", timeout: 8000 }, (res: any) => {
+              const loc = res.headers["location"];
+              if (loc) resolve(loc.startsWith("http") ? loc : new URL(loc, vUrl).href);
+              else resolve(vUrl);
+            });
+            req.on("error", () => resolve(vUrl));
+            req.on("timeout", () => { req.destroy(); resolve(vUrl); });
+            req.end();
+          });
+          vertexResolved.set(vUrl, resolved);
+        } catch { vertexResolved.set(vUrl, vUrl); }
+      }));
+
       for (const [failedUrl, runs] of failedUrlToRuns) {
+        const resolvedFallbackUrl = vertexResolved.get(failedUrl) || failedUrl;
         const domain = canonicalizeDomain(failedUrl);
         const seen = new Set<string>();
         for (const run of runs) {
           if (!run.response || run.response.length < 50) continue;
           const fakePage: CrawledPage = {
-            url: failedUrl, resolvedUrl: failedUrl, canonicalUrl: canonicalizeUrl(failedUrl),
+            url: failedUrl, resolvedUrl: resolvedFallbackUrl, canonicalUrl: canonicalizeUrl(failedUrl),
             domain, title: "", metaDescription: "", publishDate: null,
             cleanText: run.response, rawHtml: "", contentHash: "", accessible: true,
             wordCount: run.response.split(/\s+/).length, headings: [], listItems: [], tableRows: [],
@@ -276,6 +298,7 @@ export async function runSegmentAnalysis(
               mentions.push({
                 sessionId,
                 url: failedUrl,
+                resolvedUrl: resolvedFallbackUrl,
                 domain,
                 brand: s.brand,
                 mentionIndex: idx + 1,

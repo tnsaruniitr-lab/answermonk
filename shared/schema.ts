@@ -114,6 +114,7 @@ export const citationPageMentions = pgTable("citation_page_mentions", {
   id: serial("id").primaryKey(),
   sessionId: integer("session_id"),
   url: text("url").notNull(),
+  resolvedUrl: text("resolved_url"),
   domain: text("domain").notNull(),
   brand: text("brand").notNull(),
   mentionIndex: integer("mention_index").notNull(),
