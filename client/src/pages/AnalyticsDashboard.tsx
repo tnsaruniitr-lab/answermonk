@@ -191,7 +191,7 @@ function CitationMatrix({
         </div>
       </div>
 
-      <div className="overflow-auto max-h-[480px] rounded-lg border border-gray-100">
+      <div className="overflow-x-auto rounded-lg border border-gray-100">
         <table className="text-sm border-collapse" style={{ minWidth: `${180 + brands.length * 90 + 80}px`, width: "100%" }}>
           <thead className="sticky top-0 z-10 bg-gray-50">
             <tr className="border-b border-gray-200">
