@@ -28,6 +28,7 @@ import { generateReport } from "./report/generator";
 import { generateTeaserData } from "./report/teaser-generator";
 import { brandIntelligenceJobs } from "@shared/schema";
 import { runBrandIntelligence } from "./brand-intelligence/runner";
+import { resolveGroundingUrls } from "./report/grounding-resolver";
 import { desc, eq as eqDrizzle } from "drizzle-orm";
 
 /** ------------------------
@@ -2176,6 +2177,53 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Brand intelligence get error:", err);
       res.status(500).json({ message: "Failed to get job" });
+    }
+  });
+
+  app.post("/api/brand-intelligence/:id/resolve-sources", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid id" });
+      const { db } = await import("./db");
+      const [job] = await db.select().from(brandIntelligenceJobs).where(eqDrizzle(brandIntelligenceJobs.id, id));
+      if (!job) return res.status(404).json({ message: "Job not found" });
+      if (job.status !== "completed") return res.status(400).json({ message: "Job is not completed" });
+
+      const results = job.results as Record<string, any>;
+      if (!results?.attributes) return res.status(400).json({ message: "No attributes in results" });
+
+      const attrKeys = Object.keys(results.attributes);
+      const allSources: string[] = attrKeys.flatMap((k) => results.attributes[k]?.sources ?? []);
+      const resolved = await resolveGroundingUrls(allSources, 8);
+
+      let changed = 0;
+      for (const key of attrKeys) {
+        const attr = results.attributes[key];
+        if (!attr?.sources?.length) continue;
+        const resolvedUrls = attr.sources
+          .map((url: string) => resolved.get(url)?.resolvedUrl ?? url)
+          .filter((url: string) => url.startsWith("http"));
+        const seen = new Set<string>();
+        attr.sources = resolvedUrls.filter((url: string) => {
+          try {
+            const host = new URL(url).hostname.replace(/^www\./, "");
+            if (seen.has(host)) return false;
+            seen.add(host);
+            return true;
+          } catch { return false; }
+        });
+        changed++;
+      }
+
+      await db
+        .update(brandIntelligenceJobs)
+        .set({ results: results as any })
+        .where(eqDrizzle(brandIntelligenceJobs.id, id));
+
+      res.json({ resolved: resolved.size, attributesUpdated: changed });
+    } catch (err) {
+      console.error("Resolve sources error:", err);
+      res.status(500).json({ message: "Failed to resolve sources", error: String(err) });
     }
   });
 

@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ArrowLeft, Brain, Loader2, CheckCircle, XCircle, Clock, ChevronRight,
-  ExternalLink, Package, Zap, ChevronDown, ChevronUp, BarChart2, AlertTriangle, ShieldCheck,
+  ExternalLink, Package, Zap, ChevronDown, ChevronUp, BarChart2, AlertTriangle, ShieldCheck, RefreshCw,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -766,12 +766,25 @@ function BenchmarkCategoryPanel({
 }
 
 function JobResults({ jobId }: { jobId: number }) {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const { data: job, isLoading } = useQuery<JobDetail>({
     queryKey: ["/api/brand-intelligence", jobId],
     refetchInterval: (query) => {
       const d = query.state.data as JobDetail | undefined;
       if (!d) return 2000;
       return d.status === "running" || d.status === "pending" ? 2000 : false;
+    },
+  });
+
+  const resolveMutation = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/brand-intelligence/${jobId}/resolve-sources`),
+    onSuccess: async (data: any) => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/brand-intelligence", jobId] });
+      toast({ title: "Sources resolved", description: `${data.resolved ?? 0} URLs resolved to real domains.` });
+    },
+    onError: () => {
+      toast({ title: "Resolution failed", description: "Could not resolve source URLs.", variant: "destructive" });
     },
   });
 
@@ -824,8 +837,28 @@ function JobResults({ jobId }: { jobId: number }) {
   const isPacketMode = job.packetMode && !!packetAnalysis;
   const isBenchmarkMode = job.benchmarkMode && !!benchmarkAnalysis;
 
+  const hasUnresolvedSources = job.webSearch && Object.values(attributes).some((attr: any) =>
+    attr?.sources?.some((url: string) => url.includes("vertexaisearch.cloud.google.com") || url.includes("grounding-api-redirect"))
+  );
+
   return (
     <div className="space-y-6">
+      {hasUnresolvedSources && (
+        <div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 px-4 py-3">
+          <p className="text-xs text-amber-700 dark:text-amber-400">Source URLs are still showing as grounding redirects — click to resolve to actual domains.</p>
+          <Button
+            size="sm"
+            variant="outline"
+            className="ml-4 shrink-0 text-amber-700 border-amber-300 hover:bg-amber-100 dark:text-amber-400 dark:border-amber-700 dark:hover:bg-amber-900/30"
+            onClick={() => resolveMutation.mutate()}
+            disabled={resolveMutation.isPending}
+            data-testid="button-resolve-sources"
+          >
+            {resolveMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <RefreshCw className="w-3.5 h-3.5 mr-1.5" />}
+            Resolve sources
+          </Button>
+        </div>
+      )}
       {isBenchmarkMode && benchmarkAnalysis ? (
         <BenchmarkResultCard ba={benchmarkAnalysis} />
       ) : isPacketMode && packetAnalysis ? (
