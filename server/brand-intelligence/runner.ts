@@ -331,6 +331,68 @@ export interface AggregatedResults {
   benchmarkAnalysis?: BenchmarkAnalysis;
 }
 
+// ── Semantic coherence helpers ───────────────────────────────────────────────
+
+const STOPWORDS = new Set([
+  "and","the","in","at","of","for","a","an","or","to","with","on","by",
+  "from","as","is","are","was","were","be","been","its","their","our",
+  "your","this","that","these","those","also","across","including","such",
+  "both","per","via","over","about","home","based","care","services",
+]);
+
+function tokenizeValue(val: string): Set<string> {
+  return new Set(
+    val.toLowerCase()
+      .replace(/[^\w\s]/g, " ")
+      .split(/\s+/)
+      .map((w) => w.trim())
+      .filter((w) => w.length > 2 && !STOPWORDS.has(w))
+  );
+}
+
+function jaccardSimilarity(a: Set<string>, b: Set<string>): number {
+  if (a.size === 0 && b.size === 0) return 1;
+  let intersection = 0;
+  for (const t of a) if (b.has(t)) intersection++;
+  const union = a.size + b.size - intersection;
+  return union === 0 ? 0 : intersection / union;
+}
+
+/**
+ * Greedy single-linkage clustering by Jaccard token overlap.
+ * Returns the size of the largest cluster and a representative value.
+ */
+function computeSemanticMode(
+  values: string[],
+  threshold = 0.4
+): { modeValue: string; modeCount: number } {
+  if (values.length === 0) return { modeValue: "", modeCount: 0 };
+  const tokenSets = values.map(tokenizeValue);
+  const clusterOf = new Array<number>(values.length).fill(-1);
+  let nextId = 0;
+
+  for (let i = 0; i < values.length; i++) {
+    if (clusterOf[i] !== -1) continue;
+    clusterOf[i] = nextId;
+    for (let j = i + 1; j < values.length; j++) {
+      if (clusterOf[j] !== -1) continue;
+      if (jaccardSimilarity(tokenSets[i], tokenSets[j]) >= threshold) {
+        clusterOf[j] = nextId;
+      }
+    }
+    nextId++;
+  }
+
+  const counts: Record<number, number> = {};
+  for (const id of clusterOf) counts[id] = (counts[id] ?? 0) + 1;
+  const modeId = Number(Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0]);
+  const modeCount = counts[modeId];
+  const modeValue = values[clusterOf.indexOf(modeId)];
+  return { modeValue, modeCount };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function aggregateRuns(
   brandName: string,
   brandUrl: string | null | undefined,
@@ -374,7 +436,6 @@ function aggregateRuns(
     }
 
     const confidence_pct = total > 0 ? Math.round((informativeCount / total) * 100) : 0;
-    const modeValueEntry = Object.entries(valueCounts).sort((a, b) => b[1] - a[1])[0];
     const modeEvidenceEntry = Object.entries(evidenceCounts)
       .filter(([k]) => k !== "GENERIC" && k !== "ABSENT")
       .sort((a, b) => b[1] - a[1])[0];
@@ -385,14 +446,28 @@ function aggregateRuns(
       .slice(0, 5)
       .map(([url]) => url);
 
-    const valueCountValues = Object.values(valueCounts);
-    const totalInformative = valueCountValues.reduce((a, b) => a + b, 0);
-    const modeCount = valueCountValues.length > 0 ? Math.max(...valueCountValues) : 0;
-    const coherence_pct = totalInformative > 0 ? Math.round((modeCount / totalInformative) * 100) : 0;
+    // Semantic coherence: group values by token overlap instead of exact match
+    const informativeValues = rawRuns
+      .map((run) => run[key])
+      .filter((attr) => attr && attr.value !== null && attr.evidence_type !== "GENERIC" && attr.evidence_type !== "ABSENT")
+      .map((attr) => String(attr!.value).trim())
+      .filter((v) => v.length > 0);
+
+    const totalInformative = informativeValues.length;
+    let semanticModeValue: string | null = null;
+    let semanticModeCount = 0;
+
+    if (totalInformative > 0) {
+      const { modeValue, modeCount } = computeSemanticMode(informativeValues);
+      semanticModeValue = modeValue || null;
+      semanticModeCount = modeCount;
+    }
+
+    const coherence_pct = totalInformative > 0 ? Math.round((semanticModeCount / totalInformative) * 100) : 0;
 
     attributes[key] = {
       confidence_pct,
-      mode_value: modeValueEntry?.[0] ?? null,
+      mode_value: semanticModeValue,
       mode_evidence: modeEvidenceEntry?.[0] ?? fallbackEvidenceEntry?.[0] ?? "ABSENT",
       value_counts: valueCounts,
       evidence_counts: evidenceCounts,
