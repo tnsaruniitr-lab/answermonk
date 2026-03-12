@@ -31,7 +31,7 @@ const ATTRIBUTE_KEYS = Object.keys(ATTRIBUTE_LABELS);
 const EVIDENCE_COLORS: Record<string, string> = {
   EXPLICIT: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
   INFERRED: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
-  UNCERTAIN: "bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/30",
+  ABSENT: "bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-400/30",
   GENERIC: "bg-muted text-muted-foreground border-border",
 };
 

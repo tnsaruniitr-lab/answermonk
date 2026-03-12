@@ -103,7 +103,12 @@ RULES:
 1. If an attribute applies equally to ANY brand in this category, set evidence_type to "GENERIC" and value to null.
 2. Only populate attributes where you have SPECIFIC knowledge about THIS brand — not the category.
 3. Use concrete specifics: exact numbers, certification names, specific service names.
-4. Evidence types — EXPLICIT: directly recalled from known text/sources; INFERRED: reasoned from related signals; UNCERTAIN: guessing; GENERIC: applies to all brands, not distinctive.
+4. Evidence types:
+   - EXPLICIT: you directly recall this from known text or sources about this brand
+   - INFERRED: you are reasoning from a real signal specific to this brand (not category logic)
+   - ABSENT: you have no specific knowledge about this brand for this attribute — value MUST be null
+   - GENERIC: this value applies to every brand in the category, not distinctive to this one — value MUST be null
+5. CRITICAL — do NOT fill a field if you don't genuinely know it. Set evidence_type to "ABSENT" and leave value as null. A fabricated answer is far worse than an honest null. The presence of all 14 fields in the template does NOT mean you must fill all 14 — you should expect most fields to be null for brands you have little specific knowledge about.
 
 Attribute guide:
 ${guideLines}
@@ -201,7 +206,7 @@ function aggregateRuns(
       if (!attr) continue;
       const et = attr.evidence_type ?? "GENERIC";
       evidenceCounts[et] = (evidenceCounts[et] || 0) + 1;
-      if (attr.value !== null && et !== "GENERIC") {
+      if (attr.value !== null && et !== "GENERIC" && et !== "ABSENT") {
         informativeCount++;
         const val = String(attr.value).trim();
         if (val) valueCounts[val] = (valueCounts[val] || 0) + 1;
@@ -211,13 +216,16 @@ function aggregateRuns(
     const confidence_pct = total > 0 ? Math.round((informativeCount / total) * 100) : 0;
     const modeValueEntry = Object.entries(valueCounts).sort((a, b) => b[1] - a[1])[0];
     const modeEvidenceEntry = Object.entries(evidenceCounts)
-      .filter(([k]) => k !== "GENERIC")
+      .filter(([k]) => k !== "GENERIC" && k !== "ABSENT")
+      .sort((a, b) => b[1] - a[1])[0];
+
+    const fallbackEvidenceEntry = Object.entries(evidenceCounts)
       .sort((a, b) => b[1] - a[1])[0];
 
     attributes[key] = {
       confidence_pct,
       mode_value: modeValueEntry?.[0] ?? null,
-      mode_evidence: modeEvidenceEntry?.[0] ?? "GENERIC",
+      mode_evidence: modeEvidenceEntry?.[0] ?? fallbackEvidenceEntry?.[0] ?? "ABSENT",
       value_counts: valueCounts,
       evidence_counts: evidenceCounts,
     };
