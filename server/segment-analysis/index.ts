@@ -194,28 +194,33 @@ export async function runSegmentAnalysis(
       const { storage } = await import("../storage");
       const mentions: InsertCitationPageMention[] = [];
 
-      // Build URL -> engines map from all raw_runs across all segments
+      // Build URL -> engines map and URL -> segment indices map from all raw_runs
       const urlEnginesMap = new Map<string, Set<string>>();
-      const addUrlEngine = (url: string, engine: string) => {
-        if (!url || !engine) return;
+      const urlSegmentsMap = new Map<string, Set<number>>();
+      const addUrlMeta = (url: string, engine: string, segIdx: number) => {
+        if (!url) return;
         const key = url;
         if (!urlEnginesMap.has(key)) urlEnginesMap.set(key, new Set());
-        urlEnginesMap.get(key)!.add(engine);
+        if (engine) urlEnginesMap.get(key)!.add(engine);
+        if (!urlSegmentsMap.has(key)) urlSegmentsMap.set(key, new Set());
+        urlSegmentsMap.get(key)!.add(segIdx);
         // Also index by path-only (strip query params) for fuzzy matching
         try {
           const parsed = new URL(url);
           const pathKey = parsed.origin + parsed.pathname;
           if (!urlEnginesMap.has(pathKey)) urlEnginesMap.set(pathKey, new Set());
-          urlEnginesMap.get(pathKey)!.add(engine);
+          if (engine) urlEnginesMap.get(pathKey)!.add(engine);
+          if (!urlSegmentsMap.has(pathKey)) urlSegmentsMap.set(pathKey, new Set());
+          urlSegmentsMap.get(pathKey)!.add(segIdx);
         } catch {}
       };
-      for (const seg of validSegments) {
+      validSegments.forEach((seg, segIdx) => {
         for (const run of (seg.scoringResult?.raw_runs || [])) {
           for (const cit of (run.citations || [])) {
-            addUrlEngine(cit.url, run.engine);
+            addUrlMeta(cit.url, run.engine, segIdx);
           }
         }
-      }
+      });
       const getEngines = (url: string): string[] | undefined => {
         const direct = urlEnginesMap.get(url);
         if (direct) return [...direct];
@@ -226,11 +231,23 @@ export async function runSegmentAnalysis(
         } catch {}
         return undefined;
       };
+      const getSegmentIndices = (url: string): number[] | undefined => {
+        const direct = urlSegmentsMap.get(url);
+        if (direct) return [...direct].sort((a,b) => a-b);
+        try {
+          const parsed = new URL(url);
+          const path = urlSegmentsMap.get(parsed.origin + parsed.pathname);
+          if (path) return [...path].sort((a,b) => a-b);
+        } catch {}
+        return undefined;
+      };
 
       // Build mention rows from successfully crawled pages
       for (const ps of pageSnippetsList) {
         if (!ps.page.accessible) continue;
         const pageEngines = getEngines(ps.page.url) || getEngines(ps.page.resolvedUrl) || undefined;
+        const rawSegIdxs = getSegmentIndices(ps.page.url) || getSegmentIndices(ps.page.resolvedUrl) || undefined;
+        const pageSegPersonas = rawSegIdxs?.map(i => (validSegments[i] as any)?.persona as string || `segment_${i}`);
         const brandMentionMap = new Map<string, BrandSnippet[]>();
         for (const s of ps.snippets) {
           const key = s.brand.toLowerCase();
@@ -258,6 +275,8 @@ export async function runSegmentAnalysis(
               context: s.text,
               sourceType: s.source,
               engines: pageEngines,
+              segmentIndices: rawSegIdxs,
+              segmentPersonas: pageSegPersonas,
               domainCategory: classifyDomainCategory(ps.page.domain),
               pageTitle: ps.page.title || null,
               fetchStatus: "crawled",
@@ -331,6 +350,8 @@ export async function runSegmentAnalysis(
               }
             }
             const fallbackEngines = [...new Set(runs.map(r => r.engine).filter(Boolean))];
+            const fallbackSegIdxs = getSegmentIndices(failedUrl) || undefined;
+            const fallbackSegPersonas = fallbackSegIdxs?.map(i => (validSegments[i] as any)?.persona as string || `segment_${i}`);
             deduped.forEach((s, idx) => {
               mentions.push({
                 sessionId,
@@ -342,6 +363,8 @@ export async function runSegmentAnalysis(
                 context: s.text,
                 sourceType: "ai_fallback",
                 engines: fallbackEngines.length > 0 ? fallbackEngines : undefined,
+                segmentIndices: fallbackSegIdxs,
+                segmentPersonas: fallbackSegPersonas,
                 domainCategory: classifyDomainCategory(domain),
                 pageTitle: null,
                 fetchStatus: "ai_fallback",

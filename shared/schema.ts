@@ -122,6 +122,8 @@ export const citationPageMentions = pgTable("citation_page_mentions", {
   sourceType: text("source_type").notNull(),
   engines: text("engines").array(),
   domainCategory: text("domain_category"),
+  segmentIndices: integer("segment_indices").array(),
+  segmentPersonas: text("segment_personas").array(),
   pageTitle: text("page_title"),
   fetchStatus: text("fetch_status").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
