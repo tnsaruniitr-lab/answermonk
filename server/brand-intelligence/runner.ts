@@ -130,16 +130,35 @@ Fill this JSON (keep all keys, replace values only):
 ${JSON.stringify(templateObj, null, 2)}`;
 }
 
+function extractOutermostJson(text: string): string | null {
+  const start = text.indexOf("{");
+  if (start === -1) return null;
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (escape) { escape = false; continue; }
+    if (ch === "\\" && inString) { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === "{") depth++;
+    if (ch === "}") { depth--; if (depth === 0) return text.slice(start, i + 1); }
+  }
+  return null;
+}
+
 function parseAttributeJSON(
   text: string
 ): Record<string, { value: string | null; evidence_type: string; sources?: string[] }> | null {
   try {
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
-    const parsed = JSON.parse(jsonMatch[0]);
+    const jsonStr = extractOutermostJson(text);
+    if (!jsonStr) return null;
+    const parsed = JSON.parse(jsonStr);
     if (typeof parsed !== "object" || parsed === null) return null;
     return parsed;
-  } catch {
+  } catch (err) {
+    console.error("[brand-intelligence] JSON parse error:", String(err).slice(0, 120));
     return null;
   }
 }
@@ -199,7 +218,8 @@ async function callEngine(engine: string, prompt: string, webSearch: boolean): P
             for (const part of item.content) {
               if (part.type === "output_text" && Array.isArray(part.annotations)) {
                 for (const ann of part.annotations) {
-                  if (ann.type === "url_citation" && ann.url) {
+                  if (ann.type === "url_citation" && ann.url &&
+                      (ann.url.startsWith("http://") || ann.url.startsWith("https://"))) {
                     sessionSources.push(ann.url);
                   }
                 }
@@ -346,7 +366,8 @@ function aggregateRuns(
         if (val) valueCounts[val] = (valueCounts[val] || 0) + 1;
         if (Array.isArray(attr.sources)) {
           for (const url of attr.sources) {
-            if (url && typeof url === "string") {
+            if (url && typeof url === "string" &&
+                (url.startsWith("http://") || url.startsWith("https://"))) {
               sourceCounts[url] = (sourceCounts[url] || 0) + 1;
             }
           }
