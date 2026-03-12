@@ -249,6 +249,33 @@ export interface DiagnosisResult {
   identity_summary: string | null;
 }
 
+export interface AttributePacketMatch {
+  idealValue: string;
+  matchScore: number;
+  gapType: "aligned" | "inconsistent" | "misaligned" | "absent";
+}
+
+export interface ConceptCoverage {
+  concept: string;
+  status: "present" | "partial" | "absent";
+  evidence: string | null;
+}
+
+export interface PacketAnalysis {
+  idealIdentity: string;
+  recognizedIdentity: string;
+  identityMatchScore: number;
+  identityConcepts: ConceptCoverage[];
+  attributeMatches: Partial<Record<AttributeKey, AttributePacketMatch>>;
+  overallPacketFit: number;
+}
+
+export interface PacketDefinition {
+  idealIdentity: string;
+  template?: string;
+  attributes: Partial<Record<AttributeKey, string>>;
+}
+
 export interface AggregatedResults {
   brand_name: string;
   brand_url: string | null;
@@ -257,6 +284,7 @@ export interface AggregatedResults {
   web_search: boolean;
   attributes: Record<AttributeKey, AttributeResult>;
   diagnosis: DiagnosisResult;
+  packetAnalysis?: PacketAnalysis;
 }
 
 function aggregateRuns(
@@ -356,6 +384,120 @@ function aggregateRuns(
   };
 }
 
+function gapType(confidencePct: number, matchScore: number): "aligned" | "inconsistent" | "misaligned" | "absent" {
+  if (confidencePct < 40) return "absent";
+  if (matchScore >= 75) return "aligned";
+  if (matchScore >= 40) return "inconsistent";
+  return "misaligned";
+}
+
+async function runPacketAnalysis(
+  brandName: string,
+  aggregated: AggregatedResults,
+  packet: PacketDefinition
+): Promise<PacketAnalysis> {
+  const packetAttrs = packet.attributes as Record<string, string>;
+  const attrKeys = ATTRIBUTE_KEYS.filter((k) => packetAttrs[k]);
+
+  const attrRows = attrKeys.map((k) => ({
+    key: k,
+    ideal: packetAttrs[k],
+    recognized: aggregated.attributes[k]?.mode_value ?? null,
+    confidence_pct: aggregated.attributes[k]?.confidence_pct ?? 0,
+  }));
+
+  const recognizedNonNull = ATTRIBUTE_KEYS.filter(
+    (k) => k !== "identity_summary" && aggregated.attributes[k]?.mode_value
+  ).map((k) => `${ATTRIBUTE_LABELS[k]}: ${aggregated.attributes[k].mode_value}`);
+
+  const batchPrompt = `You are a brand intelligence analyst comparing what an AI recognizes about "${brandName}" against an ideal healthcare brand packet.
+
+TASK 1 — ATTRIBUTE MATCH SCORES (0-100):
+For each attribute, score how well the "recognized" value semantically matches the "ideal" value.
+- 100: semantically equivalent (e.g. "in-home care" = "at-home care")
+- 75: largely equivalent, minor phrasing difference
+- 50: partial overlap (some concepts match, some don't)
+- 25: weak connection (same domain but different values)
+- 0: no meaningful match OR recognized is null/absent
+
+TASK 2 — RECOGNIZED IDENTITY:
+Write a single factual sentence (max 30 words) describing ${brandName} using ONLY the recognized attribute values. Do not invent anything not in the list.
+
+TASK 3 — IDENTITY CONCEPT COVERAGE:
+The ideal identity is: "${packet.idealIdentity}"
+Extract 5-7 key concepts from that ideal. For each concept, check if the recognized identity covers it.
+
+Recognized attributes:
+${recognizedNonNull.length > 0 ? recognizedNonNull.join("\n") : "No attributes recognized."}
+
+Attributes to score:
+${JSON.stringify(attrRows, null, 2)}
+
+Return ONLY valid JSON in this exact shape (no markdown):
+{
+  "attributeScores": { "attribute_key": 0, ... },
+  "recognizedIdentity": "...",
+  "identityConcepts": [
+    { "concept": "...", "status": "present|partial|absent", "evidence": "..." }
+  ]
+}`;
+
+  let attributeScores: Record<string, number> = {};
+  let recognizedIdentity = `${brandName} — no attributes recognized.`;
+  let identityConcepts: ConceptCoverage[] = [];
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: batchPrompt }],
+      temperature: 0.2,
+    });
+    const raw = response.choices[0]?.message?.content ?? "";
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      attributeScores = parsed.attributeScores ?? {};
+      recognizedIdentity = parsed.recognizedIdentity ?? recognizedIdentity;
+      identityConcepts = Array.isArray(parsed.identityConcepts) ? parsed.identityConcepts : [];
+    }
+  } catch (err) {
+    console.error("[brand-intelligence] Packet analysis LLM call failed:", err);
+  }
+
+  const attributeMatches: Partial<Record<AttributeKey, AttributePacketMatch>> = {};
+  let totalScore = 0;
+  let scoredCount = 0;
+
+  for (const key of attrKeys) {
+    const idealValue = packetAttrs[key];
+    const matchScore = Math.round(Math.max(0, Math.min(100, attributeScores[key] ?? 0)));
+    const confidence_pct = aggregated.attributes[key]?.confidence_pct ?? 0;
+    attributeMatches[key] = {
+      idealValue,
+      matchScore,
+      gapType: gapType(confidence_pct, matchScore),
+    };
+    totalScore += matchScore;
+    scoredCount++;
+  }
+
+  const overallPacketFit = scoredCount > 0 ? Math.round(totalScore / scoredCount) : 0;
+
+  const presentCount = identityConcepts.filter((c) => c.status === "present").length;
+  const partialCount = identityConcepts.filter((c) => c.status === "partial").length;
+  const totalConcepts = identityConcepts.length || 1;
+  const identityMatchScore = Math.round(((presentCount + partialCount * 0.5) / totalConcepts) * 100);
+
+  return {
+    idealIdentity: packet.idealIdentity,
+    recognizedIdentity,
+    identityMatchScore,
+    identityConcepts,
+    attributeMatches,
+    overallPacketFit,
+  };
+}
+
 export async function runBrandIntelligence(jobId: number): Promise<void> {
   const [job] = await db.select().from(brandIntelligenceJobs).where(eq(brandIntelligenceJobs.id, jobId));
   if (!job) throw new Error(`Job ${jobId} not found`);
@@ -414,6 +556,15 @@ export async function runBrandIntelligence(jobId: number): Promise<void> {
   }
 
   const results = aggregateRuns(job.brandName, job.brandUrl, job.engine, webSearch, rawRuns);
+
+  if (job.packetMode && job.packetDefinition) {
+    try {
+      const packet = job.packetDefinition as unknown as PacketDefinition;
+      results.packetAnalysis = await runPacketAnalysis(job.brandName, results, packet);
+    } catch (err) {
+      console.error("[brand-intelligence] Packet analysis failed:", err);
+    }
+  }
 
   await db
     .update(brandIntelligenceJobs)

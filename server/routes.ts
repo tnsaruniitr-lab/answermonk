@@ -2084,12 +2084,19 @@ export async function registerRoutes(
 
   app.post("/api/brand-intelligence", async (req, res) => {
     try {
+      const packetAttributeSchema = z.record(z.string()).optional();
       const schema = z.object({
         brandName: z.string().min(1),
         brandUrl: z.string().url().optional().or(z.literal("")),
         engine: z.enum(["chatgpt", "gemini", "claude"]),
         runCount: z.number().int().min(5).max(20).default(15),
         webSearch: z.boolean().default(false),
+        packetMode: z.boolean().default(false),
+        packetDefinition: z.object({
+          idealIdentity: z.string(),
+          template: z.string().optional(),
+          attributes: packetAttributeSchema,
+        }).optional(),
       });
       const body = schema.parse(req.body);
       const { db } = await import("./db");
@@ -2101,6 +2108,8 @@ export async function registerRoutes(
           engine: body.engine,
           runCount: body.runCount,
           webSearch: body.webSearch,
+          packetMode: body.packetMode,
+          packetDefinition: body.packetDefinition ?? null,
           status: "pending",
           progress: 0,
         })
@@ -2132,6 +2141,7 @@ export async function registerRoutes(
           engine: brandIntelligenceJobs.engine,
           runCount: brandIntelligenceJobs.runCount,
           webSearch: brandIntelligenceJobs.webSearch,
+          packetMode: brandIntelligenceJobs.packetMode,
           status: brandIntelligenceJobs.status,
           progress: brandIntelligenceJobs.progress,
           createdAt: brandIntelligenceJobs.createdAt,

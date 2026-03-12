@@ -146,6 +146,8 @@ export const brandIntelligenceJobs = pgTable("brand_intelligence_jobs", {
   engine: text("engine").notNull(),
   runCount: integer("run_count").notNull().default(15),
   webSearch: boolean("web_search").notNull().default(false),
+  packetMode: boolean("packet_mode").notNull().default(false),
+  packetDefinition: jsonb("packet_definition"),
   status: text("status").notNull().default("pending"),
   progress: integer("progress").notNull().default(0),
   results: jsonb("results"),
