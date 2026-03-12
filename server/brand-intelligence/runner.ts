@@ -100,11 +100,15 @@ function buildPrompt(
 
   const guideLines = ATTRIBUTE_KEYS.map((k) => `- ${k}: ${ATTRIBUTE_GUIDE[k]}`).join("\n");
 
+  const outputInstruction = webSearch
+    ? `First write ONE sentence summarising the main web sources you found for this brand (this triggers proper source attribution). Then on the next line return the JSON object — no markdown fences, no other text.`
+    : `Return ONLY valid JSON — no markdown, no extra text, just the raw JSON object.`;
+
   return `You are analyzing the brand "${brandName}"${urlPart} to understand how it appears in ${webSearch ? "web sources" : "your training knowledge"}.
 
 ${intro}
 
-Fill the following JSON attribute table. Return ONLY valid JSON — no markdown, no extra text, just the raw JSON object.
+Fill the following JSON attribute table. ${outputInstruction}
 
 RULES:
 1. If an attribute applies equally to ANY brand in this category, set evidence_type to "GENERIC" and value to null.

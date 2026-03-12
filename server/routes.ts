@@ -2194,15 +2194,7 @@ export async function registerRoutes(
 
       const attrKeys = Object.keys(results.attributes);
       const allSources: string[] = attrKeys.flatMap((k) => results.attributes[k]?.sources ?? []);
-      console.log(`[resolve-sources] job ${id}: ${allSources.length} total sources, ${new Set(allSources).size} unique`);
-      console.log(`[resolve-sources] sample:`, allSources[0]?.substring(0, 80));
       const resolved = await resolveGroundingUrls(allSources, 8);
-      console.log(`[resolve-sources] resolved map size: ${resolved.size}`);
-      if (resolved.size > 0) {
-        for (const [k, v] of resolved.entries()) {
-          console.log(`  ${k.substring(0, 60)} → ${v.resolvedUrl?.substring(0, 60)}`);
-        }
-      }
 
       let changed = 0;
       for (const key of attrKeys) {
