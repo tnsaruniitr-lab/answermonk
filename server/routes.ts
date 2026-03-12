@@ -1891,17 +1891,14 @@ export async function registerRoutes(
               SELECT
                 ${domainExtract} as effective_domain,
                 MAX(COALESCE(domain_category, 'unknown')) as domain_category,
-                COUNT(CASE WHEN engine = 'gemini' THEN 1 END)::int as session_gemini,
-                COUNT(CASE WHEN engine = 'chatgpt' THEN 1 END)::int as session_chatgpt,
-                COUNT(CASE WHEN engine = 'gemini' AND brand = $2 THEN 1 END)::int as brand_gemini,
-                COUNT(CASE WHEN engine = 'chatgpt' AND brand = $2 THEN 1 END)::int as brand_chatgpt
+                SUM(CASE WHEN engine = 'gemini' THEN 1 ELSE 0 END)::int as gemini_count,
+                SUM(CASE WHEN engine = 'chatgpt' THEN 1 ELSE 0 END)::int as chatgpt_count
               FROM citation_page_mentions, UNNEST(engines) as engine
               WHERE session_id = $1
               GROUP BY effective_domain
-              HAVING COUNT(*) > 0
-              ORDER BY (COUNT(CASE WHEN engine = 'gemini' THEN 1 END) + COUNT(CASE WHEN engine = 'chatgpt' THEN 1 END)) DESC
+              ORDER BY (SUM(CASE WHEN engine = 'gemini' THEN 1 ELSE 0 END) + SUM(CASE WHEN engine = 'chatgpt' THEN 1 ELSE 0 END)) DESC
               LIMIT 50
-            `, [sessionId, brand])
+            `, [sessionId])
           : Promise.resolve({ rows: [] } as any),
       ]);
 
@@ -1942,14 +1939,20 @@ export async function registerRoutes(
         engineStats,
         categoryBreakdown: Object.values(categoryMap),
         sessionCategoryBreakdown: brand ? Object.values(sessionCategoryMap) : null,
-        sourceAuthority: brand ? authorityRes.rows.map((r: any) => ({
-          domain: r.effective_domain,
-          category: r.domain_category,
-          sessionGemini: r.session_gemini,
-          sessionChatgpt: r.session_chatgpt,
-          brandGemini: r.brand_gemini,
-          brandChatgpt: r.brand_chatgpt,
-        })) : null,
+        sourceAuthority: brand ? (() => {
+          const brandMap: Record<string, { gemini: number; chatgpt: number }> = {};
+          for (const r of domainRes.rows) {
+            brandMap[r.effective_domain] = { gemini: r.gemini_count, chatgpt: r.chatgpt_count };
+          }
+          return authorityRes.rows.map((r: any) => ({
+            domain: r.effective_domain,
+            category: r.domain_category,
+            sessionGemini: r.gemini_count,
+            sessionChatgpt: r.chatgpt_count,
+            brandGemini: brandMap[r.effective_domain]?.gemini ?? 0,
+            brandChatgpt: brandMap[r.effective_domain]?.chatgpt ?? 0,
+          }));
+        })() : null,
         domainAggregates: domainRes.rows.map((r: any) => ({
           domain: r.effective_domain,
           domainCategory: r.domain_category,
