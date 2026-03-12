@@ -5,6 +5,7 @@ import { db } from "../db";
 import { brandIntelligenceJobs } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { getKnowledgeGraph, type CategoryKnowledgeGraph } from "./knowledge-graph";
+import { resolveGroundingUrls } from "../report/grounding-resolver";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -761,6 +762,36 @@ export async function runBrandIntelligence(jobId: number): Promise<void> {
   }
 
   const results = aggregateRuns(job.brandName, job.brandUrl, job.engine, webSearch, rawRuns);
+
+  // Resolve grounding redirect URLs to actual destination URLs
+  if (webSearch) {
+    try {
+      const allSources = ATTRIBUTE_KEYS.flatMap((k) => results.attributes[k]?.sources ?? []);
+      const resolved = await resolveGroundingUrls(allSources, 8);
+      if (resolved.size > 0) {
+        for (const key of ATTRIBUTE_KEYS) {
+          const attr = results.attributes[key];
+          if (attr?.sources?.length) {
+            const resolvedUrls = attr.sources
+              .map((url) => resolved.get(url)?.resolvedUrl ?? url)
+              .filter((url) => url.startsWith("http"));
+            // Deduplicate by hostname
+            const seen = new Set<string>();
+            attr.sources = resolvedUrls.filter((url) => {
+              try {
+                const host = new URL(url).hostname.replace(/^www\./, "");
+                if (seen.has(host)) return false;
+                seen.add(host);
+                return true;
+              } catch { return false; }
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.error("[brand-intelligence] Grounding URL resolution failed:", err);
+    }
+  }
 
   if (job.packetMode && job.packetDefinition) {
     try {
