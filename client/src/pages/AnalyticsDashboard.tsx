@@ -97,6 +97,7 @@ interface AnalyticsData {
     brand: string;
     domainCategory: string;
     geminiTotal: number;
+    chatgptTotal: number;
     geminiCount: number;
     chatgptCount: number;
   }>;
@@ -120,25 +121,33 @@ function CitationMatrix({
   const [, setLocation] = useLocation();
 
   const { domains, matrix, maxVal } = useMemo(() => {
-    const filtered = rows;
-    // Unique domains in server order (already sorted by gemini_total desc)
-    const domainMeta = new Map<string, { category: string; geminiTotal: number }>();
+    const domainMeta = new Map<string, { category: string; geminiTotal: number; chatgptTotal: number }>();
     const matrixMap: Record<string, Record<string, { gemini: number; chatgpt: number }>> = {};
-    for (const r of filtered) {
+    for (const r of rows) {
       if (!domainMeta.has(r.domain)) {
-        domainMeta.set(r.domain, { category: r.domainCategory, geminiTotal: r.geminiTotal });
+        domainMeta.set(r.domain, { category: r.domainCategory, geminiTotal: r.geminiTotal, chatgptTotal: r.chatgptTotal });
       }
       if (!matrixMap[r.domain]) matrixMap[r.domain] = {};
       matrixMap[r.domain][r.brand] = { gemini: r.geminiCount, chatgpt: r.chatgptCount };
     }
+    // Sort by the active engine's total, keep top 10 for each tab
     const domains = [...domainMeta.entries()]
-      .sort((a, b) => b[1].geminiTotal - a[1].geminiTotal)
+      .sort((a, b) =>
+        activeEngine === "gemini"
+          ? b[1].geminiTotal - a[1].geminiTotal
+          : b[1].chatgptTotal - a[1].chatgptTotal
+      )
+      .slice(0, 10)
       .map(([domain, meta]) => ({ domain, ...meta }));
 
     let maxVal = 0;
-    for (const r of filtered) {
-      const v = activeEngine === "gemini" ? r.geminiCount : r.chatgptCount;
-      if (v > maxVal) maxVal = v;
+    for (const domain of domains) {
+      for (const brand of Object.keys(matrixMap[domain.domain] || {})) {
+        const v = activeEngine === "gemini"
+          ? (matrixMap[domain.domain][brand]?.gemini ?? 0)
+          : (matrixMap[domain.domain][brand]?.chatgpt ?? 0);
+        if (v > maxVal) maxVal = v;
+      }
     }
     return { domains, matrix: matrixMap, maxVal };
   }, [rows, activeEngine]);

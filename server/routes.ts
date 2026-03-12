@@ -1854,24 +1854,38 @@ export async function registerRoutes(
           FROM citation_page_mentions, UNNEST(engines) as engine
           WHERE session_id = $1
         ),
-        top_domains AS (
-          SELECT effective_domain, MAX(domain_category) as domain_category, COUNT(*)::int as gemini_total
+        domain_totals AS (
+          SELECT
+            effective_domain,
+            MAX(domain_category) as domain_category,
+            SUM(CASE WHEN engine = 'gemini' THEN 1 ELSE 0 END)::int as gemini_total,
+            SUM(CASE WHEN engine = 'chatgpt' THEN 1 ELSE 0 END)::int as chatgpt_total
           FROM extracted
-          WHERE engine = 'gemini'
           GROUP BY effective_domain
-          ORDER BY gemini_total DESC
-          LIMIT 10
+        ),
+        top_gemini AS (
+          SELECT effective_domain FROM domain_totals ORDER BY gemini_total DESC LIMIT 10
+        ),
+        top_chatgpt AS (
+          SELECT effective_domain FROM domain_totals ORDER BY chatgpt_total DESC LIMIT 10
+        ),
+        top_domains AS (
+          SELECT dt.*
+          FROM domain_totals dt
+          WHERE dt.effective_domain IN (SELECT effective_domain FROM top_gemini)
+             OR dt.effective_domain IN (SELECT effective_domain FROM top_chatgpt)
         )
         SELECT
           e.effective_domain,
           e.brand,
           t.gemini_total,
+          t.chatgpt_total,
           t.domain_category,
           SUM(CASE WHEN e.engine = 'gemini' THEN 1 ELSE 0 END)::int as gemini_count,
           SUM(CASE WHEN e.engine = 'chatgpt' THEN 1 ELSE 0 END)::int as chatgpt_count
         FROM extracted e
         JOIN top_domains t ON e.effective_domain = t.effective_domain
-        GROUP BY e.effective_domain, e.brand, t.gemini_total, t.domain_category
+        GROUP BY e.effective_domain, e.brand, t.gemini_total, t.chatgpt_total, t.domain_category
         ORDER BY t.gemini_total DESC, e.brand
       `;
 
@@ -1998,6 +2012,7 @@ export async function registerRoutes(
           brand: r.brand,
           domainCategory: r.domain_category,
           geminiTotal: r.gemini_total,
+          chatgptTotal: r.chatgpt_total,
           geminiCount: r.gemini_count,
           chatgptCount: r.chatgpt_count,
         })),
