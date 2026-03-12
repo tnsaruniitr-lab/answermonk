@@ -131,10 +131,10 @@ function parseAttributeJSON(text: string): Record<string, { value: string | null
 
 async function callEngine(engine: string, prompt: string): Promise<string> {
   if (engine === "gemini") {
-    const model = gemini.models;
-    const response = await model.generateContent({
-      model: "gemini-2.0-flash",
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
+    const response = await gemini.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: { maxOutputTokens: 8192 },
     });
     return response.text ?? "";
   }
@@ -290,9 +290,11 @@ export async function runBrandIntelligence(jobId: number): Promise<void> {
       if (parsed) {
         rawRuns.push(parsed);
       } else {
+        console.error(`[brand-intelligence] Job ${jobId} run ${i}: failed to parse JSON. Response preview: ${text.slice(0, 200)}`);
         failedRuns.push(i);
       }
-    } catch {
+    } catch (err) {
+      console.error(`[brand-intelligence] Job ${jobId} run ${i} threw error:`, err);
       failedRuns.push(i);
     }
 
