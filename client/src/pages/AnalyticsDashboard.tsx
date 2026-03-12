@@ -144,10 +144,11 @@ function SourceAuthorityMap({
     if (thirdPartyOnly) {
       filtered = filtered.filter(d => !THIRD_PARTY_EXCLUDE.includes(d.category));
     }
-    if (activeEngine === "gemini") {
-      return [...filtered].filter(d => d.sessionGemini > 0).sort((a, b) => b.sessionGemini - a.sessionGemini).slice(0, 10);
-    }
-    return [...filtered].filter(d => d.sessionChatgpt > 0).sort((a, b) => b.sessionChatgpt - a.sessionChatgpt).slice(0, 10);
+    // Always rank by Gemini session citations — both tabs show the same top 10 domains
+    return [...filtered]
+      .filter(d => d.sessionGemini > 0)
+      .sort((a, b) => b.sessionGemini - a.sessionGemini)
+      .slice(0, 10);
   }, [domains, activeEngine, thirdPartyOnly]);
 
   const isGemini = activeEngine === "gemini";
@@ -162,7 +163,7 @@ function SourceAuthorityMap({
           <p className="text-xs text-gray-400 mt-0.5">
             {isGemini
               ? `Top ${rows.length} third-party domains by session Gemini citations · brand presence vs market total`
-              : `Top ${rows.length} third-party domains by session ChatGPT citations · ChatGPT grounds fewer sources per query`}
+              : `Same ${rows.length} Gemini-ranked domains · shows which ones ChatGPT also cites`}
           </p>
         </div>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 text-xs font-medium">
