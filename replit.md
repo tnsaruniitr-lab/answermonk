@@ -87,6 +87,17 @@ The application adopts a monorepo structure, separating concerns into `client/` 
 - **API**: `GET /api/multi-segment-sessions/:id/citation-mentions` (auth-required) returns all stored mentions for a session.
 - **Live Crawl Counter**: During crawling, the progress payload now includes `crawlDone`, `crawlTotal`, `crawlSuccess`, `crawlFailed` fields. The `SegmentCitationAnalyzer` component renders these as a real-time counter (X/Y done · N ok · N failed) during the crawling step.
 
+### Brand AI Memory (`/brand-intelligence`)
+- **Route**: `/brand-intelligence` — standalone page, admin-gated
+- **Purpose**: Diagnose what AI engines reliably know about a brand across 14 structured attributes
+- **Three analysis modes**:
+  - **Recall**: Samples the AI N times with varied query framings. Aggregates per-attribute confidence (% of informative runs) and coherence (% of runs agreeing on the same value). Expandable per-run chips show every raw answer. Coherence dots (green/yellow/red) flag identity instability.
+  - **Packet**: User fills in ideal attribute values or loads a template (Healthcare — UAE). After sampling, a single LLM call semantically scores each attribute against the ideal (aligned/inconsistent/misaligned/absent). Concept coverage breakdown for the ideal identity statement.
+  - **Benchmark**: No manual input needed. Brand is scored against a hardcoded winner knowledge graph (6 UAE home healthcare leaders: Manzil Health, Emirates Home Nursing, First Response Healthcare, Vesta Care, Nightingale Health Services, Call Doctor UAE). Single LLM call produces per-attribute gap classifications (exceeds/aligned/underspecified/outside), brand identity summary, and wedge collision check. Category Presence Score (weighted average) and Identity Coherence Score (average per-attribute coherence) displayed prominently.
+- **Knowledge Graph**: `server/brand-intelligence/knowledge-graph.ts` — 14 attributes mapped with tier (floor/signal/differentiator), frequency, canonical value, alternatives, and human-readable description for LLM prompts.
+- **DB Schema**: `brand_intelligence_jobs` table — `benchmark_mode` boolean, `benchmark_category` text, `results` jsonb (includes `benchmarkAnalysis`, `packetAnalysis`, per-attribute `coherence_pct`, `per_run_values`), `raw_runs` jsonb.
+- **AI Models**: Gemini (`gemini-3-flash-preview` standard, `gemini-2.5-flash` web search), ChatGPT (`gpt-4o-mini` standard, `gpt-4o` web search via `OPENAI_DIRECT_API_KEY`), Claude (`claude-sonnet-4-5`). Benchmark/Packet analysis: `gpt-4o-mini` single call.
+
 ### Environment Variables
 - `DATABASE_URL`: PostgreSQL connection string.
 - `ADMIN_PASSWORD`: Admin password for accessing the full tool (required).

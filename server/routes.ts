@@ -2097,6 +2097,8 @@ export async function registerRoutes(
           template: z.string().optional(),
           attributes: packetAttributeSchema,
         }).optional(),
+        benchmarkMode: z.boolean().default(false),
+        benchmarkCategory: z.string().optional(),
       });
       const body = schema.parse(req.body);
       const { db } = await import("./db");
@@ -2110,6 +2112,8 @@ export async function registerRoutes(
           webSearch: body.webSearch,
           packetMode: body.packetMode,
           packetDefinition: body.packetDefinition ?? null,
+          benchmarkMode: body.benchmarkMode,
+          benchmarkCategory: body.benchmarkCategory ?? null,
           status: "pending",
           progress: 0,
         })
@@ -2142,6 +2146,8 @@ export async function registerRoutes(
           runCount: brandIntelligenceJobs.runCount,
           webSearch: brandIntelligenceJobs.webSearch,
           packetMode: brandIntelligenceJobs.packetMode,
+          benchmarkMode: brandIntelligenceJobs.benchmarkMode,
+          benchmarkCategory: brandIntelligenceJobs.benchmarkCategory,
           status: brandIntelligenceJobs.status,
           progress: brandIntelligenceJobs.progress,
           createdAt: brandIntelligenceJobs.createdAt,

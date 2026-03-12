@@ -6,7 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Brain, Loader2, CheckCircle, XCircle, Clock, ChevronRight, ExternalLink, Package, Zap, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  ArrowLeft, Brain, Loader2, CheckCircle, XCircle, Clock, ChevronRight,
+  ExternalLink, Package, Zap, ChevronDown, ChevronUp, BarChart2, AlertTriangle, ShieldCheck,
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -42,6 +45,20 @@ const GAP_TYPE_CONFIG: Record<string, { label: string; color: string; bar: strin
   inconsistent: { label: "Inconsistent", color: "text-amber-600 dark:text-amber-400",   bar: "bg-amber-500" },
   misaligned:   { label: "Misaligned",   color: "text-orange-600 dark:text-orange-400", bar: "bg-orange-500" },
   absent:       { label: "Absent",       color: "text-red-600 dark:text-red-400",       bar: "bg-red-400" },
+};
+
+const BENCHMARK_GAP_CONFIG: Record<string, { label: string; color: string; bar: string }> = {
+  exceeds:        { label: "Exceeds",        color: "text-sky-600 dark:text-sky-400",        bar: "bg-sky-500" },
+  aligned:        { label: "Aligned",        color: "text-emerald-600 dark:text-emerald-400", bar: "bg-emerald-500" },
+  underspecified: { label: "Underspecified", color: "text-amber-600 dark:text-amber-400",    bar: "bg-amber-500" },
+  outside:        { label: "Outside",        color: "text-red-600 dark:text-red-400",        bar: "bg-red-400" },
+};
+
+const TIER_CONFIG: Record<string, { label: string; className: string }> = {
+  floor:          { label: "Floor",    className: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-300/50 dark:border-slate-600/50" },
+  signal:         { label: "Signal",   className: "bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border-blue-200/50 dark:border-blue-800/50" },
+  differentiator: { label: "Differ.",  className: "bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 border-purple-200/50 dark:border-purple-800/50" },
+  unknown:        { label: "—",        className: "bg-muted text-muted-foreground border-border" },
 };
 
 const CONCEPT_STATUS_CONFIG: Record<string, { icon: string; color: string }> = {
@@ -85,6 +102,10 @@ const ENGINE_LABELS: Record<string, string> = {
   claude: "Claude",
 };
 
+const BENCHMARK_CATEGORIES: { value: string; label: string }[] = [
+  { value: "healthcare_uae", label: "Home Healthcare — UAE" },
+];
+
 interface PacketDefinition {
   idealIdentity: string;
   template?: string;
@@ -112,6 +133,27 @@ interface PacketAnalysis {
   overallPacketFit: number;
 }
 
+interface BenchmarkAttributeResult {
+  gapClassification: "exceeds" | "aligned" | "underspecified" | "outside";
+  score: number;
+  note: string;
+  categoryTier: "floor" | "signal" | "differentiator" | "unknown";
+  categoryValue: string | null;
+}
+
+interface BenchmarkAnalysis {
+  categoryName: string;
+  categoryPresenceScore: number;
+  identityCoherenceScore: number;
+  brandIdentitySummary: string;
+  wedgeCollision: {
+    detected: boolean;
+    collidingWinner?: string;
+    note: string;
+  };
+  attributeResults: Partial<Record<string, BenchmarkAttributeResult>>;
+}
+
 interface Job {
   id: number;
   brandName: string;
@@ -120,6 +162,8 @@ interface Job {
   runCount: number;
   webSearch: boolean;
   packetMode: boolean;
+  benchmarkMode: boolean;
+  benchmarkCategory: string | null;
   status: string;
   progress: number;
   createdAt: string;
@@ -132,6 +176,8 @@ interface AttributeResult {
   value_counts: Record<string, number>;
   evidence_counts: Record<string, number>;
   sources: string[];
+  coherence_pct?: number;
+  per_run_values?: Array<string | null>;
 }
 
 interface JobDetail extends Job {
@@ -141,12 +187,14 @@ interface JobDetail extends Job {
     diagnosis: {
       root_cause: string;
       avg_confidence: number;
+      avg_coherence?: number;
       strong_attributes: string[];
       weak_attributes: string[];
       absent_attributes: string[];
       identity_summary: string | null;
     };
     packetAnalysis?: PacketAnalysis;
+    benchmarkAnalysis?: BenchmarkAnalysis;
   } | null;
   error: string | null;
 }
@@ -206,19 +254,33 @@ function SourceLink({ url }: { url: string }) {
   );
 }
 
+function CoherenceDot({ pct }: { pct?: number }) {
+  if (pct === undefined) return null;
+  const color = pct >= 80 ? "bg-emerald-400" : pct >= 50 ? "bg-amber-400" : "bg-red-400";
+  const title = pct >= 80 ? `Stable identity (${pct}% coherence)` : pct >= 50 ? `Some variation (${pct}% coherence)` : `High variation (${pct}% coherence) — identity instability risk`;
+  return <span className={`w-1.5 h-1.5 rounded-full inline-block shrink-0 ${color}`} title={title} />;
+}
+
 function AttributeRow({
   attrKey,
   result,
   packetMatch,
+  benchmarkResult,
 }: {
   attrKey: string;
   result: AttributeResult;
   packetMatch?: AttributePacketMatch;
+  benchmarkResult?: BenchmarkAttributeResult;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const label = ATTRIBUTE_LABELS[attrKey] || attrKey;
-  const { confidence_pct, mode_value, mode_evidence, sources = [] } = result;
+  const { confidence_pct, mode_value, mode_evidence, sources = [], coherence_pct, per_run_values } = result;
   const isIdentity = attrKey === "identity_summary";
   const gapCfg = packetMatch ? GAP_TYPE_CONFIG[packetMatch.gapType] : null;
+  const benchGapCfg = benchmarkResult ? BENCHMARK_GAP_CONFIG[benchmarkResult.gapClassification] : null;
+  const tierCfg = benchmarkResult ? TIER_CONFIG[benchmarkResult.categoryTier] ?? TIER_CONFIG.unknown : null;
+  const hasRunValues = per_run_values && per_run_values.length > 0;
+  const nonNullRuns = per_run_values?.filter((v) => v !== null).length ?? 0;
 
   return (
     <div
@@ -226,11 +288,17 @@ function AttributeRow({
       data-testid={`attr-row-${attrKey}`}
     >
       <div className="flex items-start gap-3">
-        <div className="w-36 shrink-0">
+        <div className="w-36 shrink-0 flex items-center gap-1.5 pt-0.5">
           <span className="text-xs font-medium text-muted-foreground">{label}</span>
+          <CoherenceDot pct={coherence_pct} />
         </div>
 
         <div className="flex-1 min-w-0 space-y-0.5">
+          {benchmarkResult && benchmarkResult.categoryValue && (
+            <p className="text-[10px] text-muted-foreground/70 leading-tight line-clamp-1" title={benchmarkResult.categoryValue}>
+              <span className="font-medium">Category norm:</span> {benchmarkResult.categoryValue}
+            </p>
+          )}
           {packetMatch && (
             <p className="text-[10px] text-muted-foreground/70 leading-tight line-clamp-1" title={packetMatch.idealValue}>
               <span className="font-medium">Ideal:</span> {packetMatch.idealValue}
@@ -239,12 +307,37 @@ function AttributeRow({
           {mode_value ? (
             <p className="text-sm text-foreground leading-snug">{mode_value}</p>
           ) : (
-            <p className="text-sm text-muted-foreground italic">Not known</p>
+            <p className="text-sm text-muted-foreground italic">Not recognized</p>
+          )}
+          {benchmarkResult?.note && (
+            <p className="text-[10px] text-muted-foreground/80 leading-tight mt-0.5">{benchmarkResult.note}</p>
           )}
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {packetMatch ? (
+          {benchmarkResult ? (
+            <div className="flex items-center gap-2">
+              {tierCfg && (
+                <Badge variant="outline" className={`text-[9px] px-1 py-0 h-4 ${tierCfg.className}`}>
+                  {tierCfg.label}
+                </Badge>
+              )}
+              <div className="w-16">
+                <div className="flex items-center gap-1">
+                  <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${benchGapCfg?.bar}`}
+                      style={{ width: `${benchmarkResult.score}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-muted-foreground w-6 text-right">{benchmarkResult.score}%</span>
+                </div>
+              </div>
+              <span className={`text-[10px] font-medium ${benchGapCfg?.color}`} data-testid={`bench-gap-${attrKey}`}>
+                {benchGapCfg?.label}
+              </span>
+            </div>
+          ) : packetMatch ? (
             <div className="flex items-center gap-2">
               <div className="w-16">
                 <div className="flex items-center gap-1">
@@ -275,13 +368,24 @@ function AttributeRow({
             </div>
           )}
 
-          {!packetMatch && (
+          {!packetMatch && !benchmarkResult && (
             <Badge
               variant="outline"
               className={`text-[10px] px-1.5 py-0 h-5 ${EVIDENCE_COLORS[mode_evidence] || EVIDENCE_COLORS.GENERIC}`}
             >
               {mode_evidence || "GENERIC"}
             </Badge>
+          )}
+
+          {hasRunValues && (
+            <button
+              onClick={() => setExpanded((e) => !e)}
+              className="text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors shrink-0"
+              title={`${nonNullRuns} of ${per_run_values!.length} runs produced values`}
+              data-testid={`btn-expand-runs-${attrKey}`}
+            >
+              {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
           )}
         </div>
       </div>
@@ -293,6 +397,129 @@ function AttributeRow({
           ))}
         </div>
       )}
+
+      {expanded && per_run_values && (
+        <div className="mt-2 pl-36">
+          <p className="text-[10px] text-muted-foreground mb-1.5">
+            Per-run values ({nonNullRuns}/{per_run_values.length} recognized):
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {per_run_values.map((val, i) => (
+              <span
+                key={i}
+                className={`inline-flex items-center gap-1 text-[10px] rounded px-1.5 py-0.5 border max-w-[220px] ${
+                  val === null
+                    ? "bg-muted/40 text-muted-foreground/50 border-border/40 italic"
+                    : "bg-muted/70 text-foreground border-border/60"
+                }`}
+                title={val ?? "not recognized"}
+              >
+                <span className="text-[9px] text-muted-foreground/50 shrink-0">#{i + 1}</span>
+                <span className="truncate">{val === null ? "—" : val}</span>
+              </span>
+            ))}
+          </div>
+          {coherence_pct !== undefined && (
+            <p className="text-[10px] text-muted-foreground/60 mt-1.5">
+              Coherence: <span className="font-medium">{coherence_pct}%</span>
+              {coherence_pct < 50
+                ? " — multiple distinct answers, identity instability risk"
+                : coherence_pct < 80
+                ? " — some variation"
+                : " — stable, consistent recognition"}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BenchmarkResultCard({ ba }: { ba: BenchmarkAnalysis }) {
+  const presenceColor =
+    ba.categoryPresenceScore >= 70
+      ? "text-emerald-600 dark:text-emerald-400"
+      : ba.categoryPresenceScore >= 40
+      ? "text-amber-600 dark:text-amber-400"
+      : "text-red-500 dark:text-red-400";
+
+  const coherenceColor =
+    ba.identityCoherenceScore >= 70
+      ? "text-emerald-600 dark:text-emerald-400"
+      : ba.identityCoherenceScore >= 40
+      ? "text-amber-600 dark:text-amber-400"
+      : "text-red-500 dark:text-red-400";
+
+  const counts = {
+    exceeds: 0,
+    aligned: 0,
+    underspecified: 0,
+    outside: 0,
+  };
+  for (const r of Object.values(ba.attributeResults)) {
+    if (r && r.gapClassification in counts) {
+      counts[r.gapClassification as keyof typeof counts]++;
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-border p-5 space-y-5" data-testid="benchmark-result-card">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold flex items-center gap-2">
+          <BarChart2 className="w-4 h-4 text-muted-foreground" />
+          Benchmark vs. {ba.categoryName}
+        </h3>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Category Presence</p>
+            <p className={`text-lg font-bold leading-none ${presenceColor}`} data-testid="text-category-presence">
+              {ba.categoryPresenceScore}%
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Identity Coherence</p>
+            <p className={`text-lg font-bold leading-none ${coherenceColor}`} data-testid="text-identity-coherence">
+              {ba.identityCoherenceScore}%
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg bg-muted/40 border border-border/50 p-4 space-y-1">
+        <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">How the AI currently understands this brand</p>
+        <p className="text-sm leading-relaxed text-foreground italic" data-testid="text-brand-identity-summary">
+          "{ba.brandIdentitySummary}"
+        </p>
+      </div>
+
+      <div className={`rounded-lg border p-3 flex items-start gap-3 ${
+        ba.wedgeCollision.detected
+          ? "border-orange-300/50 dark:border-orange-700/50 bg-orange-50/50 dark:bg-orange-950/20"
+          : "border-emerald-300/50 dark:border-emerald-700/50 bg-emerald-50/50 dark:bg-emerald-950/20"
+      }`} data-testid="wedge-collision-status">
+        {ba.wedgeCollision.detected ? (
+          <AlertTriangle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
+        ) : (
+          <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+        )}
+        <div>
+          <p className={`text-xs font-medium ${ba.wedgeCollision.detected ? "text-orange-700 dark:text-orange-400" : "text-emerald-700 dark:text-emerald-400"}`}>
+            {ba.wedgeCollision.detected
+              ? `Wedge Collision${ba.wedgeCollision.collidingWinner ? ` — ${ba.wedgeCollision.collidingWinner}` : ""}`
+              : "No Wedge Collision"}
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">{ba.wedgeCollision.note}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2 text-center">
+        {(Object.entries(BENCHMARK_GAP_CONFIG) as [string, { label: string; color: string }][]).map(([type, cfg]) => (
+          <div key={type} className="space-y-0.5">
+            <p className={`text-lg font-bold ${cfg.color}`}>{counts[type as keyof typeof counts]}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{cfg.label}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -408,12 +635,7 @@ function PacketDefinitionPanel({
     onChange({ ...HEALTHCARE_UAE_TEMPLATE });
   };
 
-  const textAreaKeys: (keyof typeof ATTRIBUTE_LABELS)[] = [
-    "service_list",
-    "target_customer",
-    "brand_wedge",
-    "identity_summary",
-  ];
+  const textAreaKeys: string[] = ["service_list", "target_customer", "brand_wedge", "identity_summary"];
 
   return (
     <div className="rounded-xl border border-border/80 bg-muted/20">
@@ -463,7 +685,6 @@ function PacketDefinitionPanel({
               rows={2}
               className="text-sm resize-none"
             />
-            <p className="text-[11px] text-muted-foreground">The prose benchmark identity the AI should ideally recognize for top brands in this category.</p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -502,6 +723,48 @@ function PacketDefinitionPanel({
   );
 }
 
+function BenchmarkCategoryPanel({
+  category,
+  onChange,
+  disabled,
+}: {
+  category: string;
+  onChange: (c: string) => void;
+  disabled: boolean;
+}) {
+  return (
+    <div className="rounded-xl border border-border/80 bg-muted/20 p-5 space-y-3">
+      <div className="flex items-center gap-2">
+        <BarChart2 className="w-4 h-4 text-muted-foreground" />
+        <span className="text-sm font-medium">Benchmark Category</span>
+      </div>
+      <div className="space-y-1.5">
+        <Select value={category} onValueChange={onChange} disabled={disabled}>
+          <SelectTrigger data-testid="select-benchmark-category">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {BENCHMARK_CATEGORIES.map((c) => (
+              <SelectItem key={c.value} value={c.value}>
+                {c.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          Your brand's recognized attributes will be semantically compared against the 6 category leaders in this market. No manual input required.
+        </p>
+      </div>
+      <div className="rounded-lg bg-muted/40 border border-border/40 p-3">
+        <p className="text-[10px] font-medium text-muted-foreground mb-1">Winner set: Home Healthcare — UAE</p>
+        <p className="text-[10px] text-muted-foreground/80 leading-relaxed">
+          Manzil Health · Emirates Home Nursing · First Response Healthcare · Vesta Care · Nightingale Health Services · Call Doctor UAE
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function JobResults({ jobId }: { jobId: number }) {
   const { data: job, isLoading } = useQuery<JobDetail>({
     queryKey: ["/api/brand-intelligence", jobId],
@@ -531,6 +794,7 @@ function JobResults({ jobId }: { jobId: number }) {
   if (job.status === "pending" || job.status === "running") {
     const pct = job.runCount > 0 ? Math.round((job.progress / job.runCount) * 100) : 0;
     const isPacketMode = job.packetMode;
+    const isBenchmarkMode = job.benchmarkMode;
     return (
       <div className="space-y-4 py-8">
         <div className="flex items-center gap-3">
@@ -538,6 +802,7 @@ function JobResults({ jobId }: { jobId: number }) {
           <span className="text-sm text-muted-foreground">
             Running {ENGINE_LABELS[job.engine] || job.engine} — {job.progress} of {job.runCount} queries complete
             {job.progress === job.runCount && isPacketMode && " · running packet analysis…"}
+            {job.progress === job.runCount && isBenchmarkMode && " · running benchmark analysis…"}
           </span>
         </div>
         <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
@@ -554,13 +819,16 @@ function JobResults({ jobId }: { jobId: number }) {
     return <p className="text-sm text-muted-foreground py-8">No results available.</p>;
   }
 
-  const { attributes, diagnosis, packetAnalysis } = job.results;
+  const { attributes, diagnosis, packetAnalysis, benchmarkAnalysis } = job.results;
   const rootCause = ROOT_CAUSE_CONFIG[diagnosis.root_cause] || ROOT_CAUSE_CONFIG.WEAK_SIGNAL;
   const isPacketMode = job.packetMode && !!packetAnalysis;
+  const isBenchmarkMode = job.benchmarkMode && !!benchmarkAnalysis;
 
   return (
     <div className="space-y-6">
-      {isPacketMode && packetAnalysis ? (
+      {isBenchmarkMode && benchmarkAnalysis ? (
+        <BenchmarkResultCard ba={benchmarkAnalysis} />
+      ) : isPacketMode && packetAnalysis ? (
         <IdentityComparisonCard pa={packetAnalysis} />
       ) : (
         <div className="rounded-xl border border-border p-5 space-y-3">
@@ -569,6 +837,12 @@ function JobResults({ jobId }: { jobId: number }) {
               {rootCause.label}
             </Badge>
             <span className="text-xs text-muted-foreground mt-0.5">Avg. confidence: {diagnosis.avg_confidence}%</span>
+            {diagnosis.avg_coherence !== undefined && (
+              <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                <CoherenceDot pct={diagnosis.avg_coherence} />
+                Coherence: {diagnosis.avg_coherence}%
+              </span>
+            )}
           </div>
           <p className="text-sm text-muted-foreground">{rootCause.description}</p>
 
@@ -646,29 +920,37 @@ function JobResults({ jobId }: { jobId: number }) {
       <div className="rounded-xl border border-border p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold">Attribute Table</h3>
-          {isPacketMode ? (
-            <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-              {Object.entries(GAP_TYPE_CONFIG).map(([type, cfg]) => (
+          <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+            {isBenchmarkMode ? (
+              Object.entries(BENCHMARK_GAP_CONFIG).map(([type, cfg]) => (
                 <span key={type} className={`flex items-center gap-1 ${cfg.color}`}>
                   <span className={`w-2 h-2 rounded-sm ${cfg.bar} inline-block`} />
                   {cfg.label}
                 </span>
-              ))}
-            </div>
-          ) : (
-            <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block" /> ≥70%</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-amber-500 inline-block" /> 30–70%</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-red-400 inline-block" /> &lt;30%</span>
-            </div>
-          )}
+              ))
+            ) : isPacketMode ? (
+              Object.entries(GAP_TYPE_CONFIG).map(([type, cfg]) => (
+                <span key={type} className={`flex items-center gap-1 ${cfg.color}`}>
+                  <span className={`w-2 h-2 rounded-sm ${cfg.bar} inline-block`} />
+                  {cfg.label}
+                </span>
+              ))
+            ) : (
+              <>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block" /> ≥70%</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-amber-500 inline-block" /> 30–70%</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-red-400 inline-block" /> &lt;30%</span>
+              </>
+            )}
+          </div>
         </div>
         <div>
           {ATTRIBUTE_KEYS.filter((k) => k !== "identity_summary").map((k) => {
             const result = attributes[k];
             if (!result) return null;
             const pm = isPacketMode ? packetAnalysis?.attributeMatches[k] : undefined;
-            return <AttributeRow key={k} attrKey={k} result={result} packetMatch={pm} />;
+            const br = isBenchmarkMode ? benchmarkAnalysis?.attributeResults[k] : undefined;
+            return <AttributeRow key={k} attrKey={k} result={result} packetMatch={pm} benchmarkResult={br} />;
           })}
           {attributes["identity_summary"] && (
             <AttributeRow
@@ -676,6 +958,7 @@ function JobResults({ jobId }: { jobId: number }) {
               attrKey="identity_summary"
               result={attributes["identity_summary"]}
               packetMatch={isPacketMode ? packetAnalysis?.attributeMatches["identity_summary"] : undefined}
+              benchmarkResult={isBenchmarkMode ? benchmarkAnalysis?.attributeResults["identity_summary"] : undefined}
             />
           )}
         </div>
@@ -698,8 +981,9 @@ export default function BrandIntelligence() {
   const [engine, setEngine] = useState("gemini");
   const [runCount, setRunCount] = useState("10");
   const [webSearch, setWebSearch] = useState(false);
-  const [mode, setMode] = useState<"recall" | "packet">("recall");
+  const [mode, setMode] = useState<"recall" | "packet" | "benchmark">("recall");
   const [packet, setPacket] = useState<PacketDefinition>({ ...DEFAULT_PACKET });
+  const [benchmarkCategory, setBenchmarkCategory] = useState("healthcare_uae");
   const [activeJobId, setActiveJobId] = useState<number | null>(null);
 
   const { data: jobs = [] } = useQuery<Job[]>({
@@ -725,6 +1009,8 @@ export default function BrandIntelligence() {
           mode === "packet" && packet.idealIdentity.trim()
             ? { ...packet, template: packet.template || undefined }
             : undefined,
+        benchmarkMode: mode === "benchmark",
+        benchmarkCategory: mode === "benchmark" ? benchmarkCategory : undefined,
       }),
     onSuccess: async (res) => {
       const data = await res.json();
@@ -774,43 +1060,45 @@ export default function BrandIntelligence() {
             Brand AI Memory Diagnosis
           </h1>
           <p className="text-muted-foreground text-sm leading-relaxed max-w-xl">
-            Run repeated sampling queries to measure what the AI reliably knows about a brand — and optionally compare it against an ideal category packet.
+            Measure what the AI reliably knows about a brand — and benchmark it against category leaders to reveal precise gaps.
           </p>
         </div>
 
-        <div className="flex gap-2 p-1 rounded-lg border border-border bg-muted/30 w-fit" data-testid="mode-toggle">
-          <button
-            type="button"
-            onClick={() => setMode("recall")}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              mode === "recall"
-                ? "bg-background shadow-sm text-foreground border border-border/60"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-            data-testid="button-mode-recall"
-          >
-            <Zap className="w-3.5 h-3.5" />
-            Recall Mode
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("packet")}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              mode === "packet"
-                ? "bg-background shadow-sm text-foreground border border-border/60"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-            data-testid="button-mode-packet"
-          >
-            <Package className="w-3.5 h-3.5" />
-            Packet Mode
-          </button>
+        <div className="flex gap-1 p-1 rounded-lg border border-border bg-muted/30 w-fit" data-testid="mode-toggle">
+          {(["recall", "packet", "benchmark"] as const).map((m) => {
+            const icon = m === "recall" ? <Zap className="w-3.5 h-3.5" /> : m === "packet" ? <Package className="w-3.5 h-3.5" /> : <BarChart2 className="w-3.5 h-3.5" />;
+            const label = m === "recall" ? "Recall" : m === "packet" ? "Packet" : "Benchmark";
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  mode === m
+                    ? "bg-background shadow-sm text-foreground border border-border/60"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                data-testid={`button-mode-${m}`}
+              >
+                {icon}
+                {label}
+              </button>
+            );
+          })}
         </div>
 
         {mode === "packet" && (
           <PacketDefinitionPanel
             packet={packet}
             onChange={setPacket}
+            disabled={startMutation.isPending}
+          />
+        )}
+
+        {mode === "benchmark" && (
+          <BenchmarkCategoryPanel
+            category={benchmarkCategory}
+            onChange={setBenchmarkCategory}
             disabled={startMutation.isPending}
           />
         )}
@@ -905,6 +1193,8 @@ export default function BrandIntelligence() {
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Starting…
                 </>
+              ) : mode === "benchmark" ? (
+                "Run Benchmark Analysis"
               ) : mode === "packet" ? (
                 "Run Packet Analysis"
               ) : (
@@ -912,9 +1202,11 @@ export default function BrandIntelligence() {
               )}
             </Button>
             <p className="text-xs text-muted-foreground mt-2">
-              {mode === "packet"
+              {mode === "benchmark"
+                ? `After ${runCount} sampling runs, attributes will be semantically compared against 6 UAE home healthcare market leaders.`
+                : mode === "packet"
                 ? "After sampling, each attribute will be semantically matched against your ideal packet values."
-                : "Each run uses a different query framing — describe, compare, recommend — distributed across " + runCount + " calls."}
+                : `Each run uses a different query framing — describe, compare, recommend — distributed across ${runCount} calls.`}
             </p>
           </div>
         </form>
@@ -956,6 +1248,11 @@ export default function BrandIntelligence() {
                       {ENGINE_LABELS[job.engine] || job.engine}
                       {job.webSearch && <span className="ml-1 text-blue-500">· web search</span>}
                       {job.packetMode && <span className="ml-1 text-purple-500">· packet</span>}
+                      {job.benchmarkMode && (
+                        <span className="ml-1 text-sky-500">
+                          · benchmark{job.benchmarkCategory ? ` (${BENCHMARK_CATEGORIES.find(c => c.value === job.benchmarkCategory)?.label ?? job.benchmarkCategory})` : ""}
+                        </span>
+                      )}
                       {" "}· {job.runCount} runs ·{" "}
                       {job.status === "running"
                         ? `${job.progress}/${job.runCount} complete`

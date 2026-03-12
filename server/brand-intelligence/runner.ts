@@ -4,6 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 import { db } from "../db";
 import { brandIntelligenceJobs } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { getKnowledgeGraph, type CategoryKnowledgeGraph } from "./knowledge-graph";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -238,11 +239,14 @@ export interface AttributeResult {
   value_counts: Record<string, number>;
   evidence_counts: Record<string, number>;
   sources: string[];
+  coherence_pct: number;
+  per_run_values: Array<string | null>;
 }
 
 export interface DiagnosisResult {
   root_cause: "STRONG" | "WEAK_SIGNAL" | "CATEGORY_BLUR" | "ABSENCE";
   avg_confidence: number;
+  avg_coherence: number;
   strong_attributes: AttributeKey[];
   weak_attributes: AttributeKey[];
   absent_attributes: AttributeKey[];
@@ -276,6 +280,27 @@ export interface PacketDefinition {
   attributes: Partial<Record<AttributeKey, string>>;
 }
 
+export interface BenchmarkAttributeResult {
+  gapClassification: "exceeds" | "aligned" | "underspecified" | "outside";
+  score: number;
+  note: string;
+  categoryTier: "floor" | "signal" | "differentiator" | "unknown";
+  categoryValue: string | null;
+}
+
+export interface BenchmarkAnalysis {
+  categoryName: string;
+  categoryPresenceScore: number;
+  identityCoherenceScore: number;
+  brandIdentitySummary: string;
+  wedgeCollision: {
+    detected: boolean;
+    collidingWinner?: string;
+    note: string;
+  };
+  attributeResults: Partial<Record<AttributeKey, BenchmarkAttributeResult>>;
+}
+
 export interface AggregatedResults {
   brand_name: string;
   brand_url: string | null;
@@ -285,6 +310,7 @@ export interface AggregatedResults {
   attributes: Record<AttributeKey, AttributeResult>;
   diagnosis: DiagnosisResult;
   packetAnalysis?: PacketAnalysis;
+  benchmarkAnalysis?: BenchmarkAnalysis;
 }
 
 function aggregateRuns(
@@ -302,6 +328,12 @@ function aggregateRuns(
     const evidenceCounts: Record<string, number> = {};
     const sourceCounts: Record<string, number> = {};
     let informativeCount = 0;
+
+    const perRunValues: Array<string | null> = rawRuns.map((run) => {
+      const attr = run[key];
+      if (!attr || attr.evidence_type === "ABSENT" || attr.evidence_type === "GENERIC") return null;
+      return attr.value ?? null;
+    });
 
     for (const run of rawRuns) {
       const attr = run[key];
@@ -334,6 +366,11 @@ function aggregateRuns(
       .slice(0, 5)
       .map(([url]) => url);
 
+    const valueCountValues = Object.values(valueCounts);
+    const totalInformative = valueCountValues.reduce((a, b) => a + b, 0);
+    const modeCount = valueCountValues.length > 0 ? Math.max(...valueCountValues) : 0;
+    const coherence_pct = totalInformative > 0 ? Math.round((modeCount / totalInformative) * 100) : 0;
+
     attributes[key] = {
       confidence_pct,
       mode_value: modeValueEntry?.[0] ?? null,
@@ -341,12 +378,23 @@ function aggregateRuns(
       value_counts: valueCounts,
       evidence_counts: evidenceCounts,
       sources: topSources,
+      coherence_pct,
+      per_run_values: perRunValues,
     };
   }
 
   const diagnosticKeys = ATTRIBUTE_KEYS.filter((k) => k !== "identity_summary" && k !== "closest_competitor");
   const avgConfidence =
     diagnosticKeys.reduce((sum, k) => sum + attributes[k].confidence_pct, 0) / diagnosticKeys.length;
+
+  const coherentKeys = diagnosticKeys.filter((k) => {
+    const total = Object.values(attributes[k].value_counts).reduce((a, b) => a + b, 0);
+    return total > 0;
+  });
+  const avg_coherence =
+    coherentKeys.length > 0
+      ? Math.round(coherentKeys.reduce((sum, k) => sum + attributes[k].coherence_pct, 0) / coherentKeys.length)
+      : 0;
 
   const strong_attributes = diagnosticKeys.filter((k) => attributes[k].confidence_pct >= 70);
   const weak_attributes = diagnosticKeys.filter(
@@ -376,6 +424,7 @@ function aggregateRuns(
     diagnosis: {
       root_cause,
       avg_confidence: Math.round(avgConfidence),
+      avg_coherence,
       strong_attributes,
       weak_attributes,
       absent_attributes,
@@ -498,6 +547,148 @@ Return ONLY valid JSON in this exact shape (no markdown):
   };
 }
 
+async function runBenchmarkAnalysis(
+  brandName: string,
+  aggregated: AggregatedResults,
+  graph: CategoryKnowledgeGraph
+): Promise<BenchmarkAnalysis> {
+  const attrSummaries = ATTRIBUTE_KEYS.map((k) => {
+    const norm = graph.attributes[k];
+    const recognized = aggregated.attributes[k];
+    return {
+      key: k,
+      label: ATTRIBUTE_LABELS[k],
+      tier: norm?.tier ?? "unknown",
+      categoryStandard: norm?.description ?? "No category standard established",
+      recognizedValue: recognized?.mode_value ?? null,
+      coherence: recognized?.coherence_pct ?? 0,
+      confidence: recognized?.confidence_pct ?? 0,
+      distinctValues: Object.keys(recognized?.value_counts ?? {}).length,
+    };
+  });
+
+  const prompt = `You are evaluating the AI-recognized brand identity of "${brandName}" against the ${graph.name} category leaders.
+
+WINNER BRANDS: ${graph.winnerNames.join(", ")}
+
+WINNER DIFFERENTIATING WEDGES (each brand owns exactly one unique position):
+${graph.winnerWedges.map((w) => `- ${w.brand}: ${w.wedge}`).join("\n")}
+
+ATTRIBUTE-BY-ATTRIBUTE EVALUATION:
+${attrSummaries
+  .map(
+    (a) => `[${a.key}] ${a.label} | Category Tier: ${a.tier.toUpperCase()}
+  Category standard: ${a.categoryStandard}
+  Target brand recognized value: ${a.recognizedValue ?? "NULL — not recognized by AI"}
+  Recognition confidence: ${a.confidence}% across runs | Identity coherence: ${a.coherence}% (${a.distinctValues} distinct values seen)`
+  )
+  .join("\n\n")}
+
+Evaluate each attribute. Return ONLY valid JSON:
+{
+  "attributeEvaluations": {
+    "attribute_key": {
+      "gapClassification": "exceeds|aligned|underspecified|outside",
+      "score": 0,
+      "note": "one specific actionable sentence about this gap or strength"
+    }
+  },
+  "brandIdentitySummary": "one sentence using ONLY the recognized values listed above — do not invent",
+  "wedgeCollision": {
+    "detected": false,
+    "collidingWinner": null,
+    "note": "one sentence assessing brand_wedge uniqueness vs winner wedges"
+  }
+}
+
+Gap classification rules:
+- exceeds: recognized value meets or surpasses the category standard (JCI Gold Seal exceeds DHA-licensed floor; 24/7 > on-demand)
+- aligned: recognized value is semantically equivalent to the category standard
+- underspecified: brand is in the right category but too generic ("licensed provider" vs "DHA-licensed"; "patients" vs "elderly and post-surgical")
+- outside: recognized value is categorically disconnected from winners (wrong domain, non-human patients, unrelated service type)
+- If recognized value is null/absent AND attribute is floor tier: score 0, classification = "outside"
+- If recognized value is null/absent AND attribute is signal/differentiator tier: score 25, classification = "underspecified"
+
+Score: 100=exceeds, 90=fully aligned, 75=mostly aligned minor gap, 50=underspecified in-category, 25=borderline or null signal-tier, 0=outside or null floor-tier
+
+Note: when coherence < 50%, the brand renders inconsistent values across runs — mention this as identity instability risk.
+Wedge collision: check if recognized brand_wedge semantically overlaps with any winner's owned wedge above.`;
+
+  let attributeEvaluations: Record<string, { gapClassification: string; score: number; note: string }> = {};
+  let brandIdentitySummary = `${brandName} — insufficient AI recognition data to synthesize identity.`;
+  let wedgeCollision: BenchmarkAnalysis["wedgeCollision"] = {
+    detected: false,
+    note: "No brand wedge recognized.",
+  };
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.2,
+    });
+    const raw = response.choices[0]?.message?.content ?? "";
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      attributeEvaluations = parsed.attributeEvaluations ?? {};
+      brandIdentitySummary = parsed.brandIdentitySummary ?? brandIdentitySummary;
+      if (parsed.wedgeCollision) {
+        wedgeCollision = {
+          detected: !!parsed.wedgeCollision.detected,
+          collidingWinner: parsed.wedgeCollision.collidingWinner ?? undefined,
+          note: parsed.wedgeCollision.note ?? "",
+        };
+      }
+    }
+  } catch (err) {
+    console.error("[brand-intelligence] Benchmark analysis LLM call failed:", err);
+  }
+
+  const attributeResults: Partial<Record<AttributeKey, BenchmarkAttributeResult>> = {};
+  for (const key of ATTRIBUTE_KEYS) {
+    const ev = attributeEvaluations[key];
+    const norm = graph.attributes[key];
+    if (ev) {
+      attributeResults[key] = {
+        gapClassification: ev.gapClassification as BenchmarkAttributeResult["gapClassification"],
+        score: Math.round(Math.max(0, Math.min(100, ev.score))),
+        note: ev.note,
+        categoryTier: (norm?.tier ?? "unknown") as BenchmarkAttributeResult["categoryTier"],
+        categoryValue: norm?.canonicalValue ?? null,
+      };
+    }
+  }
+
+  const scoredValues = Object.values(attributeResults);
+  const categoryPresenceScore =
+    scoredValues.length > 0
+      ? Math.round(scoredValues.reduce((sum, r) => sum + r.score, 0) / scoredValues.length)
+      : 0;
+
+  const diagnosticKeys = ATTRIBUTE_KEYS.filter((k) => k !== "identity_summary" && k !== "closest_competitor");
+  const coherentKeys = diagnosticKeys.filter((k) => {
+    const vals = Object.values(aggregated.attributes[k]?.value_counts ?? {});
+    return vals.reduce((a, b) => a + b, 0) > 0;
+  });
+  const identityCoherenceScore =
+    coherentKeys.length > 0
+      ? Math.round(
+          coherentKeys.reduce((sum, k) => sum + (aggregated.attributes[k]?.coherence_pct ?? 0), 0) /
+            coherentKeys.length
+        )
+      : 0;
+
+  return {
+    categoryName: graph.name,
+    categoryPresenceScore,
+    identityCoherenceScore,
+    brandIdentitySummary,
+    wedgeCollision,
+    attributeResults,
+  };
+}
+
 export async function runBrandIntelligence(jobId: number): Promise<void> {
   const [job] = await db.select().from(brandIntelligenceJobs).where(eq(brandIntelligenceJobs.id, jobId));
   if (!job) throw new Error(`Job ${jobId} not found`);
@@ -563,6 +754,19 @@ export async function runBrandIntelligence(jobId: number): Promise<void> {
       results.packetAnalysis = await runPacketAnalysis(job.brandName, results, packet);
     } catch (err) {
       console.error("[brand-intelligence] Packet analysis failed:", err);
+    }
+  }
+
+  if (job.benchmarkMode && job.benchmarkCategory) {
+    const graph = getKnowledgeGraph(job.benchmarkCategory);
+    if (graph) {
+      try {
+        results.benchmarkAnalysis = await runBenchmarkAnalysis(job.brandName, results, graph);
+      } catch (err) {
+        console.error("[brand-intelligence] Benchmark analysis failed:", err);
+      }
+    } else {
+      console.error(`[brand-intelligence] Unknown benchmark category: ${job.benchmarkCategory}`);
     }
   }
 
