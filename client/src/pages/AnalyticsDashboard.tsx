@@ -36,6 +36,7 @@ const CATEGORY_COLOR: Record<string, string> = {
   "Market Research": "#34d399",
   "Jobs Listing": "#94a3b8",
   "Social Media Profile": "#f472b6",
+  "Others (third-party)": "#d1d5db",
 };
 
 const CATEGORY_BADGE: Record<string, string> = {
@@ -172,11 +173,17 @@ export default function AnalyticsDashboard() {
         .filter((r) => parseInt(r[field]) > 0)
         .map((r) => ({ name: r.url_category, value: parseInt(r[field]), total: 0 }))
         .sort((a, b) => b.value - a.value);
+    const othersTotal = (field: "chatgpt_citations" | "gemini_citations") =>
+      thirdParty.reduce((s, r) => s + parseInt(r[field]), 0);
+    const withOthers = (slices: { name: string; value: number; total: number }[], field: "chatgpt_citations" | "gemini_citations") => {
+      const total = othersTotal(field);
+      return total > 0 ? [...slices, { name: "Others (third-party)", value: total, total: 0 }] : slices;
+    };
     return {
       chatgptSlices: toSlices(thirdParty, "chatgpt_citations"),
       geminiSlices: toSlices(thirdParty, "gemini_citations"),
-      chatgptBrandSlices: toSlices(brand, "chatgpt_citations"),
-      geminiBrandSlices: toSlices(brand, "gemini_citations"),
+      chatgptBrandSlices: withOthers(toSlices(brand, "chatgpt_citations"), "chatgpt_citations"),
+      geminiBrandSlices: withOthers(toSlices(brand, "gemini_citations"), "gemini_citations"),
     };
   }, [summaryRows]);
 
