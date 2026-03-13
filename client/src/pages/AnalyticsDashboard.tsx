@@ -9,7 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
 
 interface CitationUrlRow {
   url_category: string;
@@ -150,6 +150,182 @@ function EnginePie({
   );
 }
 
+interface AuthorityUrl {
+  url: string;
+  title: string;
+  engine: string;
+  segment: string;
+  count: number;
+}
+
+interface AuthorityDomain {
+  domain: string;
+  url_category: string;
+  total_citations: string;
+  chatgpt_citations: string;
+  gemini_citations: string;
+  urls: AuthorityUrl[];
+}
+
+function formatSegmentLabel(s: string) {
+  return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function AuthoritySection({ sessionId }: { sessionId: number }) {
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [expandedDomain, setExpandedDomain] = useState<string | null>(null);
+
+  const params = new URLSearchParams({ sessionId: String(sessionId) });
+  if (activeCategory !== "All") params.set("category", activeCategory);
+
+  const { data, isLoading } = useQuery<{
+    domains: AuthorityDomain[];
+    categories: string[];
+    sessionId: number;
+  }>({
+    queryKey: [`/api/citation-urls/authority?${params.toString()}`],
+    staleTime: 30000,
+  });
+
+  const domains = data?.domains || [];
+  const categories = ["All", ...(data?.categories || [])];
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+      <div className="px-6 py-5 border-b border-gray-100">
+        <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+          Authority Sources
+        </h2>
+        <p className="text-xs text-gray-400 mt-0.5">
+          Third-party domains ranked by total citations · click a row to see cited URLs
+        </p>
+        {/* Category pills */}
+        <div className="flex flex-wrap gap-1.5 mt-4">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => { setActiveCategory(cat); setExpandedDomain(null); }}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                activeCategory === cat
+                  ? "bg-gray-900 text-white border-gray-900"
+                  : "bg-white text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-700"
+              }`}
+              data-testid={`authority-cat-${cat}`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="w-5 h-5 animate-spin text-gray-300" />
+        </div>
+      ) : domains.length === 0 ? (
+        <div className="py-16 text-center text-sm text-gray-400">No data</div>
+      ) : (
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b border-gray-100">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide w-8">#</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Domain</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Category</th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-orange-500 uppercase tracking-wide">ChatGPT</th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-blue-500 uppercase tracking-wide">Gemini</th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wide">Total</th>
+              <th className="w-8" />
+            </tr>
+          </thead>
+          <tbody>
+            {domains.flatMap((d, i) => {
+              const isExpanded = expandedDomain === d.domain;
+              const deduped = Object.values(
+                d.urls.reduce((acc: Record<string, AuthorityUrl & { engines: string[] }>, u) => {
+                  const urlKey = u.url;
+                  if (!acc[urlKey]) acc[urlKey] = { ...u, engines: [u.engine], count: u.count };
+                  else { acc[urlKey].engines.push(u.engine); acc[urlKey].count += u.count; }
+                  return acc;
+                }, {})
+              ).sort((a, b) => b.count - a.count);
+
+              const mainRow = (
+                <tr
+                  key={d.domain}
+                  className={`border-b border-gray-50 cursor-pointer transition-colors ${isExpanded ? "bg-gray-50" : "hover:bg-gray-50/60"}`}
+                  onClick={() => setExpandedDomain(isExpanded ? null : d.domain)}
+                  data-testid={`authority-row-${i}`}
+                >
+                  <td className="px-4 py-3 text-gray-400 text-xs font-medium">{i + 1}</td>
+                  <td className="px-4 py-3">
+                    <span className="font-medium text-gray-800">{d.domain}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-block text-xs px-2.5 py-1 rounded-full font-medium ${CATEGORY_BADGE[d.url_category] || "bg-gray-100 text-gray-600"}`}>
+                      {d.url_category}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right text-orange-600 font-medium">{parseInt(d.chatgpt_citations).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right text-blue-600 font-medium">{parseInt(d.gemini_citations).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-bold text-gray-800">{parseInt(d.total_citations).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-gray-400">
+                    {isExpanded
+                      ? <ChevronDown className="w-4 h-4" />
+                      : <ChevronRight className="w-4 h-4" />}
+                  </td>
+                </tr>
+              );
+
+              if (!isExpanded) return [mainRow];
+
+              const expandedRow = (
+                <tr key={`${d.domain}-expanded`} className="border-b border-gray-100 bg-gray-50/80">
+                  <td colSpan={7} className="px-4 py-0">
+                    <div className="ml-6 border-l-2 border-gray-200 pl-4 py-3 space-y-2">
+                      {deduped.map((u, ui) => (
+                        <div key={ui} className="flex items-start gap-3 text-xs py-1.5 border-b border-gray-100 last:border-0">
+                          <span className="text-gray-400 w-4 shrink-0 pt-0.5">{ui + 1}</span>
+                          <div className="flex-1 min-w-0">
+                            <a
+                              href={u.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 hover:underline font-medium flex items-center gap-1 truncate"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <ExternalLink className="w-3 h-3 shrink-0" />
+                              <span className="truncate">{u.url}</span>
+                            </a>
+                            {u.title && u.title !== d.domain && (
+                              <div className="text-gray-400 truncate mt-0.5">{u.title}</div>
+                            )}
+                            <div className="text-gray-400 mt-0.5">{formatSegmentLabel(u.segment)}</div>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {(u as any).engines?.includes("chatgpt") && (
+                              <span className="bg-orange-50 text-orange-600 border border-orange-100 px-1.5 py-0.5 rounded text-xs font-medium">GPT</span>
+                            )}
+                            {(u as any).engines?.includes("gemini") && (
+                              <span className="bg-blue-50 text-blue-600 border border-blue-100 px-1.5 py-0.5 rounded text-xs font-medium">Gem</span>
+                            )}
+                            <span className="text-gray-500 font-semibold w-5 text-right">{u.count}×</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                </tr>
+              );
+
+              return [mainRow, expandedRow];
+            })}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
 export default function AnalyticsDashboard() {
   const params = useParams<{ sessionId?: string }>();
   const sessionId = parseInt(params.sessionId || "77");
@@ -246,6 +422,9 @@ export default function AnalyticsDashboard() {
                 </div>
               </div>
             </div>
+
+            {/* Authority sources */}
+            <AuthoritySection sessionId={sessionId} />
 
             {/* Summary table — collapsible */}
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">

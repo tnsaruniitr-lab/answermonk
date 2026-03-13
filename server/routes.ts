@@ -1521,6 +1521,63 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/citation-urls/authority", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.query.sessionId as string);
+      const category = req.query.category as string | undefined;
+      if (isNaN(sessionId)) { res.status(400).json({ message: "sessionId required" }); return; }
+      const { pool } = await import("./db");
+      const brandCats = ["Brand Homepage","Brand Service Page","Brand Inner Page","Brand About / Contact","Brand Blog / Article"];
+      const catFilter = category ? `AND url_category = $2` : ``;
+      const params: any[] = [sessionId];
+      if (category) params.push(category);
+      const result = await pool.query(`
+        SELECT
+          domain,
+          url_category,
+          COUNT(*) as total_citations,
+          COUNT(*) FILTER (WHERE engine = 'chatgpt') as chatgpt_citations,
+          COUNT(*) FILTER (WHERE engine = 'gemini') as gemini_citations,
+          json_agg(
+            json_build_object(
+              'url', url,
+              'title', title,
+              'engine', engine,
+              'segment', segment_persona,
+              'count', url_count
+            ) ORDER BY url_count DESC
+          ) as urls
+        FROM (
+          SELECT domain, url_category, url, title, engine, segment_persona,
+            COUNT(*) as url_count
+          FROM citation_urls
+          WHERE session_id = $1
+            AND url_category NOT IN (${brandCats.map(c => `'${c}'`).join(",")})
+            ${catFilter}
+          GROUP BY domain, url_category, url, title, engine, segment_persona
+        ) sub
+        GROUP BY domain, url_category
+        ORDER BY total_citations DESC
+      `, params);
+
+      const catResult = await pool.query(`
+        SELECT DISTINCT url_category
+        FROM citation_urls
+        WHERE session_id = $1
+          AND url_category NOT IN (${brandCats.map(c => `'${c}'`).join(",")})
+        ORDER BY url_category
+      `, [sessionId]);
+
+      res.json({
+        domains: result.rows,
+        categories: catResult.rows.map((r: any) => r.url_category),
+        sessionId,
+      });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to load authority data", error: String(err) });
+    }
+  });
+
   app.get("/api/citation-urls/list", async (req, res) => {
     try {
       const sessionId = parseInt(req.query.sessionId as string);
