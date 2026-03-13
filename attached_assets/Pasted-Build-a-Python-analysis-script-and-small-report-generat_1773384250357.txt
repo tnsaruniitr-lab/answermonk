@@ -1,0 +1,237 @@
+Build a Python analysis script and small report generator for the healthcare GEO citation CSV already in the project.
+
+Input data:
+- Use the same CSV file already stored in the DB / project files.
+- Expected useful columns:
+  - brand
+  - context
+  - resolved_url
+  - domain_category
+  - segment_personas
+  - segment_queries
+  - source_type
+- If exact names differ slightly, detect and map them automatically.
+
+Goal:
+Calculate brand-level metrics for 6 main brands:
+- Emirates Home Nursing
+- First Response Healthcare
+- Nightingale Health Services
+- Vesta Care
+- Manzil Health
+- Call Doctor
+
+Important:
+- Work from the raw snippet/context data in the CSV.
+- Deduplicate rows before scoring using:
+  brand + host(resolved_url) + normalized context + segment_persona
+- Normalize context by lowercasing, trimming spaces, collapsing whitespace.
+
+Deliverables:
+1. A Python script `analyze_geo_healthcare.py`
+2. Output CSVs in `/outputs`
+3. A compact Markdown report in `/outputs/report.md`
+
+Metrics to compute:
+
+A) Authority Source Presence
+Definition:
+- Presence on repeated winner-source network and external source spread.
+Use:
+- distinct hosts per brand
+- distinct domain_category per brand
+- external vs own-site presence
+- repeated winner hosts across all 6 brands
+Formula:
+- 40% repeated winner-host presence
+- 25% host diversity
+- 20% domain category diversity
+- 15% external share
+Return 0-100 normalized score.
+
+B) Category Clarity
+Search in `context` for category/provider framing keywords:
+- at-home healthcare
+- in-home healthcare
+- home healthcare
+- care at home
+- home care
+- home care provider
+- at-home care provider
+- home nursing provider
+- healthcare provider
+- provider in dubai
+- based in dubai
+Formula:
+- snippet prevalence = matched deduped snippets / total deduped snippets
+- domain prevalence = matched distinct hosts / total distinct hosts
+- final = 0.7 * snippet prevalence + 0.3 * domain prevalence
+Return 0-100.
+
+C) Trust
+Search in `context` for:
+- dha
+- licensed
+- certified
+- accredited
+- jci
+- iso
+- trained
+- qualified
+- professional
+- professionals
+- doctor-led
+- licensed professionals
+- certified professionals
+- trained caregivers
+- dha-licensed
+Formula:
+- same prevalence logic as Category Clarity
+- final = 0.7 * snippet prevalence + 0.3 * domain prevalence
+Return 0-100.
+
+D) Service Breadth
+Create 4 service buckets from `context`:
+1. home nursing
+2. physiotherapy
+3. doctor support
+4. diagnostics / blood tests
+Use robust keyword matching for each bucket.
+For each bucket:
+- snippet prevalence
+- domain prevalence
+Bucket score = 0.7 * snippet prevalence + 0.3 * domain prevalence
+Final breadth score = average of 4 bucket scores
+Return 0-100.
+
+E) Care Depth
+Search in `context` for:
+- elderly
+- geriatric
+- chronic
+- chronic disease
+- post-op
+- post operative
+- post-hospital
+- recovery
+- dementia
+- palliative
+- long-term
+Formula:
+- same prevalence logic
+Return 0-100.
+
+F) Delivery Reliability
+Search in `context` for:
+- 24/7
+- on-call
+- same-day
+- doorstep
+- responsive
+- rapid response
+- home visit
+Formula:
+- same prevalence logic
+Return 0-100.
+
+G) Authority / Reputation
+Search in `context` for:
+- established
+- founded
+- since
+- recognized
+- reputable
+- leading
+- trusted
+Formula:
+- same prevalence logic
+Return 0-100.
+
+H) Identity Consistency
+Build a packet repeatability score from:
+- category clarity markers
+- trust markers
+- breadth bucket presence
+- care depth markers
+For each deduped snippet, build a boolean packet vector.
+For each brand:
+- dominant packet strength = prevalence of top recurring packet combination
+- cross-domain packet stability = how often dominant packet appears across distinct hosts
+- drift penalty = 1 - normalized entropy of packet combinations
+Final:
+- 50% dominant packet strength
+- 30% cross-domain packet stability
+- 20% inverse drift
+Return 0-100.
+
+Own-site vs external split:
+For Category Clarity, Trust, Service Breadth, Care Depth:
+- calculate snippet num/den and domain num/den separately for:
+  - own website
+  - external web
+Determine own domain automatically from the most obvious brand domain in resolved_url.
+Allow manual override in a small dict at top of script.
+
+Also produce:
+1. `outputs/brand_scores.csv`
+Columns:
+- brand
+- authority_source_presence
+- category_clarity
+- trust
+- service_breadth
+- care_depth
+- delivery_reliability
+- authority_reputation
+- identity_consistency
+
+2. `outputs/category_clarity_breakdown.csv`
+For each brand:
+- own_snippet_num
+- own_snippet_den
+- own_domain_num
+- own_domain_den
+- external_snippet_num
+- external_snippet_den
+- external_domain_num
+- external_domain_den
+
+3. `outputs/trust_breakdown.csv`
+Same structure as above.
+
+4. `outputs/service_breadth_breakdown.csv`
+Include each service bucket score plus own/external prevalence if possible.
+
+5. `outputs/care_depth_breakdown.csv`
+Same style.
+
+6. `outputs/top_authority_sources.csv`
+For all brands combined:
+- host
+- domain_category
+- total_mentions
+- distinct_brands
+- weighted_source_score
+Sort descending.
+
+7. `outputs/report.md`
+Keep concise. Include:
+- top 6 summary table
+- 3 bullet insights
+- strongest brand by each metric
+- weakest brand by each metric
+- note that scores are relative to this file, not universal market truth
+
+Implementation requirements:
+- Python only
+- use pandas + urllib.parse
+- robust to missing columns and nulls
+- print clear logs
+- no notebooks
+- save all outputs to `/outputs`
+- make code readable and modular
+
+After coding:
+- run the script
+- show me where the output files were written
+- if column names differ, print the mapped columns used
