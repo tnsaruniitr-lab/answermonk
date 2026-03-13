@@ -82,6 +82,8 @@ function isPublicPath(path: string): boolean {
   if (path.match(/^\/api\/share\/summary\/by-slug\//)) return true;
   if (path === "/api/share/summary-lead") return true;
   if (path === "/api/internal/migrate-session") return true;
+  if (path.startsWith("/api/citation-urls/")) return true;
+  if (path.match(/^\/api\/analytics\/session\/\d+/)) return true;
   if (!path.startsWith("/api/")) return true;
   return false;
 }

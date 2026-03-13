@@ -52,6 +52,8 @@ function PublicRouter() {
     <Switch>
       <Route path="/share/summary/:id" component={SummaryReport} />
       <Route path="/share/teaser/:id" component={ProspectTeaser} />
+      <Route path="/analytics/:sessionId" component={AnalyticsDashboard} />
+      <Route path="/analytics" component={AnalyticsDashboard} />
       <Route path="/summary/:id" component={SlugSummary} />
       <Route path="/audit/:slug">{(params) => <AuditBySlug params={params} />}</Route>
       <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
