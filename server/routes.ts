@@ -96,6 +96,29 @@ function classifyCitationUrl(url: string, engine: string): string {
   return "Brand Inner Page";
 }
 
+async function resolveVertexRedirect(url: string, timeoutMs = 8000): Promise<string> {
+  const https = await import("https");
+  return new Promise((resolve) => {
+    try {
+      const parsed = new URL(url);
+      const req = (https as any).request(
+        { hostname: parsed.hostname, path: parsed.pathname + parsed.search, method: "HEAD", timeout: timeoutMs,
+          headers: { "User-Agent": "Mozilla/5.0 (compatible; GEO-resolver/1.0)" } },
+        (res: any) => {
+          const loc = res.headers["location"];
+          if (loc) {
+            try { resolve(loc.startsWith("http") ? loc : new URL(loc, url).href); }
+            catch { resolve(url); }
+          } else { resolve(url); }
+        }
+      );
+      req.on("error", () => resolve(url));
+      req.on("timeout", () => { req.destroy(); resolve(url); });
+      req.end();
+    } catch { resolve(url); }
+  });
+}
+
 async function populateCitationUrls(sessionId: number): Promise<void> {
   const { pool } = await import("./db");
   await pool.query(`DELETE FROM citation_urls WHERE session_id = $1`, [sessionId]);
@@ -104,11 +127,7 @@ async function populateCitationUrls(sessionId: number): Promise<void> {
       seg->>'persona' as segment_persona,
       run->>'engine' as engine,
       run->>'prompt_text' as prompt_text,
-      CASE
-        WHEN run->>'engine' = 'gemini'
-          THEN COALESCE(cite->>'title', '')
-        ELSE regexp_replace(COALESCE(cite->>'url', ''), '[?&]utm_source=[^&]*', '')
-      END as raw_url,
+      cite->>'url' as cite_url,
       cite->>'title' as title
     FROM multi_segment_sessions s,
     jsonb_array_elements(s.segments) seg,
@@ -118,7 +137,7 @@ async function populateCitationUrls(sessionId: number): Promise<void> {
       AND run->'citations' != 'null'::jsonb
       AND jsonb_array_length(run->'citations') > 0
       AND (
-        (run->>'engine' = 'gemini' AND cite->>'title' IS NOT NULL AND cite->>'title' != '')
+        (run->>'engine' = 'gemini' AND cite->>'url' IS NOT NULL AND cite->>'url' != '')
         OR
         (run->>'engine' = 'chatgpt' AND cite->>'url' IS NOT NULL AND cite->>'url' != '')
       )
@@ -126,12 +145,44 @@ async function populateCitationUrls(sessionId: number): Promise<void> {
 
   if (res.rows.length === 0) return;
 
+  // Resolve Gemini Vertex redirect URLs concurrently
+  const vertexUrls = [...new Set(
+    res.rows
+      .filter((r: any) => r.engine === "gemini" && r.cite_url?.includes("vertexaisearch"))
+      .map((r: any) => r.cite_url as string)
+  )];
+
+  const resolved = new Map<string, string>();
+  const CONCURRENCY = 5;
+  const queue = [...vertexUrls];
+  async function worker() {
+    while (queue.length > 0) {
+      const url = queue.shift();
+      if (!url || resolved.has(url)) continue;
+      const dest = await resolveVertexRedirect(url);
+      resolved.set(url, dest);
+      await new Promise(r => setTimeout(r, 150));
+    }
+  }
+  await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+
   const values: string[] = [];
   const params: any[] = [sessionId];
   for (const row of res.rows) {
-    let url = row.raw_url || "";
-    if (url && !url.startsWith("http")) url = "https://" + url;
+    let url = "";
+    if (row.engine === "gemini") {
+      if (row.cite_url?.includes("vertexaisearch")) {
+        const dest = resolved.get(row.cite_url);
+        // If resolved to a different URL use it; otherwise fall back to https://title
+        url = (dest && dest !== row.cite_url) ? dest : (row.title ? "https://" + row.title.replace(/^https?:\/\//, "") : "");
+      } else {
+        url = row.cite_url || "";
+      }
+    } else {
+      url = (row.cite_url || "").replace(/[?&]utm_source=[^&]*/g, "").replace(/[?&]$/, "");
+    }
     if (!url) continue;
+    if (!url.startsWith("http")) url = "https://" + url;
     const category = classifyCitationUrl(url, row.engine);
     params.push(row.engine, row.prompt_text, row.segment_persona, url, row.title, category);
     const base = params.length - 5;
