@@ -1,50 +1,37 @@
-# GEO Healthcare Citation Analysis — Session 77
+# GEO Healthcare Citation Analysis — Session 77 (v2)
 *Scores are relative to this dataset only, not universal market truth.*
-*Data source: crawled pages only (fetch_status=crawled) — 292 deduped snippets across ['Emirates Home Nursing', 'First Response Healthcare', 'Nightingale Health Services', 'Vesta Care', 'Manzil Health', 'Call Doctor']*
+*Data: crawled pages only · 292 deduped snippets · v2 calibrated keywords*
 
 ## Summary Scores (0–100)
 
-| Brand | Auth Source | Cat Clarity | Trust | Svc Breadth | Care Depth | Delivery | Reputation | Identity |
+| Brand | Auth Src | Category | Trust | Breadth | Depth | Delivery | Reputation | Identity |
 |---|---|---|---|---|---|---|---|---|
-| Emirates Home Nursing | 82.3 | 41.0 | 32.6 | 29.7 | 21.2 | 12.3 | 17.0 | 63.7 |
-| First Response Healthcare | 75.2 | 50.4 | 42.4 | 10.3 | 23.2 | 27.2 | 25.2 | 44.8 |
-| Nightingale Health Services | 70.8 | 34.2 | 39.3 | 18.7 | 22.2 | 24.5 | 22.2 | 58.9 |
-| Vesta Care | 58.9 | 28.3 | 33.1 | 22.1 | 22.0 | 17.2 | 21.0 | 56.6 |
-| Manzil Health | 23.0 | 20.8 | 36.1 | 3.8 | 0.0 | 0.0 | 20.8 | 73.0 |
-| Call Doctor | 95.6 | 26.7 | 52.4 | 33.8 | 18.2 | 47.5 | 12.1 | 28.4 |
+| Emirates Home Nursing | 82.3 | 100.0 | 42.4 | 30.1 | 19.8 | 12.3 | 17.0 | 59.8 |
+| First Response Healthcare | 75.2 | 57.5 | 42.4 | 20.7 | 19.1 | 33.3 | 25.2 | 42.6 |
+| Nightingale Health Services | 70.8 | 53.7 | 40.9 | 24.4 | 22.2 | 27.6 | 22.2 | 47.8 |
+| Vesta Care | 58.9 | 74.7 | 36.7 | 33.1 | 23.2 | 36.7 | 21.0 | 52.4 |
+| Manzil Health | 23.0 | 41.5 | 41.5 | 10.4 | 15.4 | 0.0 | 41.5 | 60.7 |
+| Call Doctor | 95.6 | 34.0 | 53.6 | 36.8 | 18.2 | 86.5 | 12.1 | 27.2 |
 
 ## Key Insights
 
-- **Broadest AI citation presence:** Call Doctor leads overall when averaging all 8 metrics, reflecting the widest and most consistent footprint across crawled citation pages.
-- **Most service-rich messaging:** Call Doctor covers the most service categories in its cited content, suggesting stronger service breadth signalling to AI engines.
-- **Trust signal density:** Call Doctor has the highest density of trust/accreditation language across its cited pages — a key driver of AI authority scoring.
+- **Overall leader:** Call Doctor leads on average across all 8 dimensions.
+- **Widest service messaging:** Call Doctor covers the most service categories in cited content.
+- **Trust signal density:** Call Doctor has the highest trust/accreditation language.
 
-## Strongest Brand by Metric
+## Strongest / Weakest by Metric
 
-| Metric | Strongest Brand |
-|---|---|
-| Auth Source | Call Doctor |
-| Cat Clarity | First Response Healthcare |
-| Trust | Call Doctor |
-| Svc Breadth | Call Doctor |
-| Care Depth | First Response Healthcare |
-| Delivery | Call Doctor |
-| Reputation | First Response Healthcare |
-| Identity | Manzil Health |
-
-## Weakest Brand by Metric
-
-| Metric | Weakest Brand |
-|---|---|
-| Auth Source | Manzil Health |
-| Cat Clarity | Manzil Health |
-| Trust | Emirates Home Nursing |
-| Svc Breadth | Manzil Health |
-| Care Depth | Manzil Health |
-| Delivery | Manzil Health |
-| Reputation | Call Doctor |
-| Identity | Call Doctor |
+| Metric | Strongest | Weakest |
+|---|---|---|
+| Auth Src | Call Doctor | Manzil Health |
+| Category | Emirates Home Nursing | Call Doctor |
+| Trust | Call Doctor | Vesta Care |
+| Breadth | Call Doctor | Manzil Health |
+| Depth | Vesta Care | Manzil Health |
+| Delivery | Call Doctor | Manzil Health |
+| Reputation | Manzil Health | Call Doctor |
+| Identity | Manzil Health | Call Doctor |
 
 ---
-> **Note:** These scores are derived from 292 deduplicated snippets extracted from AI-cited URLs for session 77 (Valeo home healthcare Dubai competitor analysis).
-> Scores reflect AI citation context — not clinical quality, market share, or consumer ratings.
+> Scores derived from 292 deduplicated snippets from AI-cited URLs.
+> Run `outputs/diagnostics.txt` for per-brand keyword hit counts and sample snippets.

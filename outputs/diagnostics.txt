@@ -1,0 +1,339 @@
+# GEO Metric Diagnostics — v2
+
+
+======================================================================
+BRAND: Emirates Home Nursing  (50 snippets, 9 hosts)
+  Own-domain: emirateshomenursing.ae  (own snippets: 13, ext: 37)
+
+  A. NUMERATORS / DENOMINATORS
+    category_clarity             snippets=50/50     domains=9/9     → 100.0
+    trust                        snippets=16/50     domains=6/9     → 42.4
+    care_depth                   snippets=7/50      domains=3/9     → 19.8
+    delivery_reliability         snippets=4/50      domains=2/9     → 12.3
+    authority_reputation         snippets=5/50      domains=3/9     → 17.0
+
+  B. TOP MATCHED KEYWORDS
+    category_clarity             "home nursing"(50), "home care"(10), "home health care"(9), "home nursing services"(7), "home healthcare"(4), "in-home visit"(2), "personalized home care"(2), "based in dubai"(2)
+    trust                        "professional"(6), "verified"(5), "quality care"(2), "excellence"(2), "trusted"(2), "quality healthcare"(2), "skilled nurses"(1), "certified"(1)
+    care_depth                   "elderly"(5), "elderly care"(5), "specialized medical"(2), "palliative"(1), "palliative care"(1), "geriatric"(1), "geriatric care"(1), "post-op"(1)
+    delivery_reliability         "home visit"(2), "home visits"(2), "24/7"(1), "on call"(1), "doorstep"(1), "at your door"(1)
+    authority_reputation         "trusted"(2), "founded"(2), "established"(1), "top-rated"(1)
+
+  C. SAMPLE SNIPPETS — Category Clarity
+  MATCHED (up to 5):
+    + 10 home nursing services in dubai 2024. our updated and ranking list features reliable and trusted providers offering quality care for your 
+    + services in dubai 2024. our updated and ranking list features reliable and trusted providers offering quality care for your loved ones at ho
+    + emirates home nursing
+    + home nursing services in dubai | emirates home nursing services newborn, mother care & child care exceptional care from nurses who speak rus
+    + language comprehension and social communication with compassionate care. book now doctor on call -> professional medical consultations -> pr
+  MISSED (up to 5):
+
+  C2. SAMPLE SNIPPETS — Trust
+  MATCHED (up to 5):
+    + 10 home nursing services in dubai 2024. our updated and ranking list features reliable and trusted providers offering quality care for your 
+    + services in dubai 2024. our updated and ranking list features reliable and trusted providers offering quality care for your loved ones at ho
+    + language comprehension and social communication with compassionate care. book now doctor on call -> professional medical consultations -> pr
+    + -> virtual consultations or in-home visits -> delivering high-quality healthcare services book now emirates home nursing supporting our comm
+    + home in dubai: meeting every need at home admin october 14, 2024 as people age, their healthcare needs often become more complex, making eld
+  MISSED (up to 5):
+    - emirates home nursing
+    - home nursing services in dubai | emirates home nursing services newborn, mother care & child care exceptional care from nurses who speak rus
+    - emirates home nursing
+    - emirates home nursing is always ready to help you look after your little ones.
+    - child care services in dubai – best nanny child care in dubai emirates home nursing child care rest assured that your child is in safe hands
+
+======================================================================
+BRAND: First Response Healthcare  (69 snippets, 10 hosts)
+  Own-domain: firstresponsehealthcare.com  (own snippets: 41, ext: 28)
+
+  A. NUMERATORS / DENOMINATORS
+    category_clarity             snippets=36/69     domains=7/10    → 57.5
+    trust                        snippets=24/69     domains=6/10    → 42.4
+    care_depth                   snippets=10/69     domains=3/10    → 19.1
+    delivery_reliability         snippets=18/69     domains=5/10    → 33.3
+    authority_reputation         snippets=13/69     domains=4/10    → 25.2
+
+  B. TOP MATCHED KEYWORDS
+    category_clarity             "home healthcare"(18), "home care"(12), "home health care"(11), "home nursing"(8), "home care services"(4), "home nursing services"(3), "healthcare provider"(2), "personalized medical"(1)
+    trust                        "jci"(13), "professional"(9), "accreditation"(9), "licensed"(5), "license"(5), "accredited"(5), "excellence"(4), "professionals"(3)
+    care_depth                   "elderly"(7), "elderly care"(3), "recovery"(3), "geriatric"(1), "post-op"(1), "post-operative"(1), "palliative"(1), "dementia"(1)
+    delivery_reliability         "on call"(7), "24/7"(6), "doorstep"(6), "at your door"(3)
+    authority_reputation         "leading"(7), "recognized"(3), "established"(2), "trusted"(2), "since"(1)
+
+  C. SAMPLE SNIPPETS — Category Clarity
+  MATCHED (up to 5):
+    + feel at ease during a stressful time. dr. nadir explained everything clearly, and nurse eden was kind, professional, and supportive. they we
+    + time. dr. nadir explained everything clearly, and nurse eden was kind, professional, and supportive. they went above and beyond, and we’re d
+    + elderly care programs, hotel nursing, travel nursing and professional nanny coaching. al maktab building, office 101, al barsha 1 p.o.box 48
+    + hotel nursing, travel nursing and professional nanny coaching. al maktab building, office 101, al barsha 1 p.o.box 486206 dubai uae . +971 4
+    + home healthcare services available 24x7 in uae & qatar schedule an appointment bringing quality healthcare to your doorstep --> 24x7 expert 
+  MISSED (up to 5):
+    - about first response healthcare
+    - son at our hotel. they were professional, kind, and calming—offering outstanding advice and care. i can’t recommend them enough for their ki
+    - dubai emergencies helpline number 999 and an ambulance from dubai corporation of ambulance services will reach you. what is the alternative 
+    - why choose first response healthcare?
+    - what services do first response healthcare&#039;s homecare nurses provide?
+
+  C2. SAMPLE SNIPPETS — Trust
+  MATCHED (up to 5):
+    + son at our hotel. they were professional, kind, and calming—offering outstanding advice and care. i can’t recommend them enough for their ki
+    + feel at ease during a stressful time. dr. nadir explained everything clearly, and nurse eden was kind, professional, and supportive. they we
+    + time. dr. nadir explained everything clearly, and nurse eden was kind, professional, and supportive. they went above and beyond, and we’re d
+    + dubai emergencies helpline number 999 and an ambulance from dubai corporation of ambulance services will reach you. what is the alternative 
+    + elderly care programs, hotel nursing, travel nursing and professional nanny coaching. al maktab building, office 101, al barsha 1 p.o.box 48
+  MISSED (up to 5):
+    - about first response healthcare
+    - what sets first response healthcare apart from other healthcare providers?
+    - why choose first response healthcare?
+    - symptoms please choose a username. phone number please choose a username. name please choose a username. location please choose a username. 
+    - what services do first response healthcare&#039;s homecare nurses provide?
+
+======================================================================
+BRAND: Nightingale Health Services  (45 snippets, 7 hosts)
+  Own-domain: nightingaledubai.com  (own snippets: 19, ext: 26)
+
+  A. NUMERATORS / DENOMINATORS
+    category_clarity             snippets=18/45     domains=6/7     → 53.7
+    trust                        snippets=18/45     domains=3/7     → 40.9
+    care_depth                   snippets=6/45      domains=3/7     → 22.2
+    delivery_reliability         snippets=15/45     domains=1/7     → 27.6
+    authority_reputation         snippets=6/45      domains=3/7     → 22.2
+
+  B. TOP MATCHED KEYWORDS
+    category_clarity             "home health care"(12), "home nursing"(6), "home healthcare"(6), "home care"(5), "home care services"(3), "care at home"(2), "home care provider"(1)
+    trust                        "professional"(7), "license"(6), "dha"(6), "professionals"(5), "qualified"(4), "highly qualified"(3), "licensed"(3), "certified"(2)
+    care_depth                   "elderly"(3), "elderly care"(2), "recovery"(2), "palliative"(1), "palliative care"(1), "elder care"(1), "chronic"(1), "chronic condition"(1)
+    delivery_reliability         "on call"(7), "doorstep"(7), "home visit"(7), "at your door"(5), "24/7"(5), "on-call"(1)
+    authority_reputation         "established"(3), "founded"(2), "leading"(1)
+
+  C. SAMPLE SNIPPETS — Category Clarity
+  MATCHED (up to 5):
+    + 1801, al ameri tower, 18th floor - شارع الشيخ زايد - barsha heights - دبي - united arab emirates (direction) 4.9 (333+ reviews) 472+ end-of-
+    + al maktab building, office 101 al barsha dubai, dubai po box 486206, ae get directions employees at sublime nursing marlene alam maribil mar
+    + nightingale health services co l l c home health care
+    + nightingale health services co l l c home health care - dubai health license skip to content go back bookmark share facebook x linkedin repo
+    + nightingale health services co l l c home health care - dubai health license skip to content go back bookmark share facebook x linkedin repo
+  MISSED (up to 5):
+    - how can i contact nightingale health services? you can contact nightingale health services at their phone number 0561680391 or through conta
+    - where is nightingale health services located? nightingale health services in is located at al ameri tower - office suite 1006 - 10th floor s
+    - how is nightingale health services rated by patients? based on 401 reviews, nightingale health services has a rating of 4.8 out of 5 stars.
+    - nightingale health services
+    - how can i contact nightingale health services?
+
+  C2. SAMPLE SNIPPETS — Trust
+  MATCHED (up to 5):
+    + nightingale health services co l l c home health care - dubai health license skip to content go back bookmark share facebook x linkedin repo
+    + nightingale health services co l l c home health care - dubai health license skip to content go back bookmark share facebook x linkedin repo
+    + skip to content go back bookmark share facebook x linkedin report your complaint * submit nightingale health services co l l c home health c
+    + report your complaint * submit nightingale health services co l l c home health care 0 (0 reviews) --> popular homecare companies in uae dub
+    + dubai - united arab emirates social media facebook contact details phone: +971 800 823 operating hours monday - sunday: 8:00 am - 8:00 pm el
+  MISSED (up to 5):
+    - how can i contact nightingale health services? you can contact nightingale health services at their phone number 0561680391 or through conta
+    - where is nightingale health services located? nightingale health services in is located at al ameri tower - office suite 1006 - 10th floor s
+    - how is nightingale health services rated by patients? based on 401 reviews, nightingale health services has a rating of 4.8 out of 5 stars.
+    - nightingale health services
+    - how can i contact nightingale health services?
+
+======================================================================
+BRAND: Vesta Care  (58 snippets, 4 hosts)
+  Own-domain: vestacare.ae  (own snippets: 43, ext: 15)
+
+  A. NUMERATORS / DENOMINATORS
+    category_clarity             snippets=37/58     domains=4/4     → 74.7
+    trust                        snippets=18/58     domains=2/4     → 36.7
+    care_depth                   snippets=13/58     domains=1/4     → 23.2
+    delivery_reliability         snippets=18/58     domains=2/4     → 36.7
+    authority_reputation         snippets=5/58      domains=2/4     → 21.0
+
+  B. TOP MATCHED KEYWORDS
+    category_clarity             "home health care"(23), "home nursing"(12), "home nursing services"(10), "home healthcare"(7), "personalized care"(6), "care at home"(4), "home care"(2), "home healthcare provider"(2)
+    trust                        "license"(13), "licensed"(11), "dha"(11), "dha-licensed"(7), "professional"(6), "skilled nurses"(3), "dha licensed"(2), "trained"(1)
+    care_depth                   "elderly"(7), "elderly care"(6), "chronic"(5), "recovery"(5), "chronic disease"(4), "disease management"(4), "dementia"(4), "post-surgical"(3)
+    delivery_reliability         "on call"(8), "doorstep"(3), "at your door"(3), "24/7"(2), "on-call"(2), "around the clock"(2), "same-day"(1)
+    authority_reputation         "established"(3), "since"(1), "trusted"(1)
+
+  C. SAMPLE SNIPPETS — Category Clarity
+  MATCHED (up to 5):
+    + how can i contact vesta care home health care center? you can contact vesta care home health care center at their phone number +971 52 270 4
+    + where is vesta care home health care center located? vesta care home health care center in is located at suite 1605, damac executive heights
+    + how is vesta care home health care center rated by patients? based on 75 reviews, vesta care home health care center has a rating of 4.7 out
+    + vesta care home health care center
+    + how can i contact vesta care home health care center?
+  MISSED (up to 5):
+    - welcome to vesta care
+    - why choose vesta care?
+    - vesta care in numbers
+    - why most families in dubai choose vesta care
+    - under one roof, including: post-operative care and wound care iv infusion therapy and medication management. chronic disease management (dia
+
+  C2. SAMPLE SNIPPETS — Trust
+  MATCHED (up to 5):
+    + highly recommend this clinic to anyone seeking quality medical care useful report reply from vesta care home health care center 2025.11.11 h
+    + hpv molecular tests we execute any custom prescription from your doctor upon request. we are fully licensed to issue e-prescription for medi
+    + and prefer home care dubai s expat population and high volume of medical tourists make home nursing especially practical. you get profession
+    + home care dubai s expat population and high volume of medical tourists make home nursing especially practical. you get professional care wit
+    + infusion therapy haemodialysis at home occupational health services manpower outsourcing clinic design, setup and licensing academic institu
+  MISSED (up to 5):
+    - how can i contact vesta care home health care center? you can contact vesta care home health care center at their phone number +971 52 270 4
+    - where is vesta care home health care center located? vesta care home health care center in is located at suite 1605, damac executive heights
+    - how is vesta care home health care center rated by patients? based on 75 reviews, vesta care home health care center has a rating of 4.7 out
+    - vesta care home health care center
+    - how can i contact vesta care home health care center?
+
+======================================================================
+BRAND: Manzil Health  (13 snippets, 3 hosts)
+  Own-domain: manzilhealth.com  (own snippets: 5, ext: 8)
+
+  A. NUMERATORS / DENOMINATORS
+    category_clarity             snippets=4/13      domains=2/3     → 41.5
+    trust                        snippets=4/13      domains=2/3     → 41.5
+    care_depth                   snippets=1/13      domains=1/3     → 15.4
+    delivery_reliability         snippets=0/13      domains=0/3     → 0.0
+    authority_reputation         snippets=4/13      domains=2/3     → 41.5
+
+  B. TOP MATCHED KEYWORDS
+    category_clarity             "home healthcare"(2), "home healthcare provider"(2), "healthcare provider"(2), "home health care"(2), "personalized medical"(2)
+    trust                        "professional"(2), "accreditation"(1), "jci"(1), "excellence"(1), "award"(1)
+    care_depth                   "disease management"(1)
+    delivery_reliability         (none)
+    authority_reputation         "largest"(2), "founded"(2), "recognized"(2), "most recognized"(2)
+
+  C. SAMPLE SNIPPETS — Category Clarity
+  MATCHED (up to 5):
+    + dubai uae directory hospitals in uae hospitals in dubai manzil healthcare services - mhcs manzil healthcare services - mhcs ( google reviews
+    + reviews: 4.8 | number of reviews: 88 ) hospital in dubai our mission at "manzil health" is to transform home healthcare by providing high-qu
+    + that are known for their quality, compassion, and professionalism. here s a look at some of the best home health care agencies in dubai that
+    + known for their quality, compassion, and professionalism. here s a look at some of the best home health care agencies in dubai that are maki
+  MISSED (up to 5):
+    - manzil healthcare services - mhcs
+    - ai evaluation of manzil healthcare services - mhcs
+    - contact information: manzil healthcare services - mhcs
+    - manzil healthcare services
+    - manzil healthcare launches office in dubai
+
+  C2. SAMPLE SNIPPETS — Trust
+  MATCHED (up to 5):
+    + manzil health becomes first company to renew jci accreditation
+    + manzil health bags prestigious sheikh khalifa excellence award at first try
+    + that are known for their quality, compassion, and professionalism. here s a look at some of the best home health care agencies in dubai that
+    + known for their quality, compassion, and professionalism. here s a look at some of the best home health care agencies in dubai that are maki
+  MISSED (up to 5):
+    - manzil healthcare services - mhcs
+    - ai evaluation of manzil healthcare services - mhcs
+    - contact information: manzil healthcare services - mhcs
+    - dubai uae directory hospitals in uae hospitals in dubai manzil healthcare services - mhcs manzil healthcare services - mhcs ( google reviews
+    - reviews: 4.8 | number of reviews: 88 ) hospital in dubai our mission at "manzil health" is to transform home healthcare by providing high-qu
+
+======================================================================
+BRAND: Call Doctor  (57 snippets, 25 hosts)
+  Own-domain: emahs.ae  (own snippets: 4, ext: 53)
+
+  A. NUMERATORS / DENOMINATORS
+    category_clarity             snippets=16/57     domains=12/25   → 34.0
+    trust                        snippets=29/57     domains=15/25   → 53.6
+    care_depth                   snippets=8/57      domains=7/25    → 18.2
+    delivery_reliability         snippets=47/57     domains=24/25   → 86.5
+    authority_reputation         snippets=5/57      domains=5/25    → 12.1
+
+  B. TOP MATCHED KEYWORDS
+    category_clarity             "home healthcare"(7), "home nursing"(6), "home health care"(3), "care at home"(3), "personalized care"(2), "home care"(2), "personalized healthcare"(1)
+    trust                        "professional"(17), "dha"(9), "license"(8), "professionals"(7), "certified"(7), "licensed"(7), "qualified"(4), "quality healthcare"(4)
+    care_depth                   "elderly"(6), "elderly care"(3), "chronic"(2), "specialized medical"(1), "recovery"(1), "chronic condition"(1)
+    delivery_reliability         "on call"(33), "home visit"(14), "24/7"(14), "on-call"(5), "available anytime"(1), "home visits"(1), "doorstep"(1), "at your door"(1)
+    authority_reputation         "trusted"(3), "leading"(2)
+
+  C. SAMPLE SNIPPETS — Category Clarity
+  MATCHED (up to 5):
+    + doctor on call in dubai | 24/7 home healthcare services menu home about doctor on call doctor at home doctor at hotel lab tests at home duba
+    + glutathione skin whitening drip energy booster iv treatment trusted physicians across the globe book your consultation urgent medical care a
+    + care services in dubai? indeed, it s essential for providers to hold a dha license. this affirms commitment to top-notch care. what emergenc
+    + unnecessary hospital stays and giving you peace of mind. available 24/7 for elderly home healthcare licensed in-home nurses caregivers perso
+    + for post-surgery and recovery support private nursing services for chronic illness management reliable private nursing agency in dubai you c
+  MISSED (up to 5):
+    - call doctor at home anywhere in dubai in just 3 easy steps
+    - you receive compassionate, hospital-level care that puts your well-being first—allowing you to recover in the familiarity of your home, surr
+    - jumeirah to al barsha, our doctor on call service ensures fast, reliable care anywhere in dubai. experienced professionals our qualified doc
+    - so impressed with their service! the nurses were caring and explained everything clearly. i felt relaxed and energized afterward — highly re
+    - injuries, our dha-licensed doctors for home visits are just a call away. we also provide support for mild infections, blood pressure issues,
+
+  C2. SAMPLE SNIPPETS — Trust
+  MATCHED (up to 5):
+    + you receive compassionate, hospital-level care that puts your well-being first—allowing you to recover in the familiarity of your home, surr
+    + jumeirah to al barsha, our doctor on call service ensures fast, reliable care anywhere in dubai. experienced professionals our qualified doc
+    + so impressed with their service! the nurses were caring and explained everything clearly. i felt relaxed and energized afterward — highly re
+    + injuries, our dha-licensed doctors for home visits are just a call away. we also provide support for mild infections, blood pressure issues,
+    + from dubai corporation of ambulance services will reach you. what is the alternative to going to a hospital or clinic for non-emergencies? w
+  MISSED (up to 5):
+    - call doctor at home anywhere in dubai in just 3 easy steps
+    - doctor on call doctor at home
+    - doctor on call in dubai | 24/7 home healthcare services menu home about doctor on call doctor at home doctor at hotel lab tests at home duba
+    - information to a confused patient like me. the services were delivered promptly, and the aftercare was excellent. read more instant appointm
+    - services doctor on call doctor at home
+
+
+======================================================================
+E. RANK ORDER BY METRIC
+
+  authority_source_presence
+    1. Call Doctor                         95.6
+    2. Emirates Home Nursing               82.3
+    3. First Response Healthcare           75.2
+    4. Nightingale Health Services         70.8
+    5. Vesta Care                          58.9
+    6. Manzil Health                       23.0
+
+  category_clarity
+    1. Emirates Home Nursing               100.0
+    2. Vesta Care                          74.7
+    3. First Response Healthcare           57.5
+    4. Nightingale Health Services         53.7
+    5. Manzil Health                       41.5
+    6. Call Doctor                         34.0
+
+  trust
+    1. Call Doctor                         53.6
+    2. Emirates Home Nursing               42.4
+    3. First Response Healthcare           42.4
+    4. Manzil Health                       41.5
+    5. Nightingale Health Services         40.9
+    6. Vesta Care                          36.7
+
+  service_breadth
+    1. Call Doctor                         36.8
+    2. Vesta Care                          33.1
+    3. Emirates Home Nursing               30.1
+    4. Nightingale Health Services         24.4
+    5. First Response Healthcare           20.7
+    6. Manzil Health                       10.4
+
+  care_depth
+    1. Vesta Care                          23.2
+    2. Nightingale Health Services         22.2
+    3. Emirates Home Nursing               19.8
+    4. First Response Healthcare           19.1
+    5. Call Doctor                         18.2
+    6. Manzil Health                       15.4
+
+  delivery_reliability
+    1. Call Doctor                         86.5
+    2. Vesta Care                          36.7
+    3. First Response Healthcare           33.3
+    4. Nightingale Health Services         27.6
+    5. Emirates Home Nursing               12.3
+    6. Manzil Health                       0.0
+
+  authority_reputation
+    1. Manzil Health                       41.5
+    2. First Response Healthcare           25.2
+    3. Nightingale Health Services         22.2
+    4. Vesta Care                          21.0
+    5. Emirates Home Nursing               17.0
+    6. Call Doctor                         12.1
+
+  identity_consistency
+    1. Manzil Health                       60.7
+    2. Emirates Home Nursing               59.8
+    3. Vesta Care                          52.4
+    4. Nightingale Health Services         47.8
+    5. First Response Healthcare           42.6
+    6. Call Doctor                         27.2

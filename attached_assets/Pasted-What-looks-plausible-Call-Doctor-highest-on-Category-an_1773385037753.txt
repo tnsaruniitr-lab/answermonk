@@ -1,0 +1,164 @@
+What looks plausible
+
+Call Doctor highest on Category and strong on Breadth/Delivery: believable.
+
+Emirates / First Response / Nightingale reasonably strong on Auth Source: believable.
+
+Manzil highest on Identity: believable.
+
+What looks wrong or at least suspicious
+1. Manzil is far too low on Category / Trust / Depth / Delivery
+
+That does not fit the corpus patterns we saw earlier.
+A likely issue is:
+
+wrong own-domain mapping
+
+bad keyword coverage
+
+over-aggressive deduping
+
+regex missing variants like “home healthcare”, “in-home”, “personalized medical services”, “chronic disease”, “physiotherapy”
+
+2. Trust scores look too low across the board
+
+Example:
+
+Emirates 41
+
+Nightingale 34
+
+Vesta 28
+
+Given how often DHA / licensed / certified language appeared, these look undercounted.
+Likely causes:
+
+too strict matching
+
+matching only exact words
+
+not counting phrases like “DHA-licensed”, “licensed professionals”, “certified team”, etc. properly
+
+3. Depth scores are compressed too low
+
+If Vesta is only 22 and Emirates 30, while Call Doctor is 34, that likely means your depth markers are not well separated from convenience-service language.
+
+Depth should usually reward:
+
+elderly
+
+chronic
+
+post-op
+
+post-hospital
+
+dementia
+
+palliative
+
+If Call Doctor beats Vesta on depth, I would inspect the keyword logic.
+
+4. Identity score for Call Doctor = 28
+
+This may be possible, but if Category = 96 and Breadth = 52, identity that low suggests your identity-consistency formula may be punishing diversity too hard.
+
+My overall read
+Probably usable:
+
+Category
+
+Auth Source
+
+maybe Breadth
+
+maybe Delivery
+
+Needs debugging:
+
+Trust
+
+Depth
+
+Reputation
+
+Identity
+
+especially Manzil’s rows
+
+Fast validation checks
+
+Do these 5 checks before trusting the scores:
+
+A. Print numerators / denominators for each metric
+
+For each brand, show:
+
+matched snippets / total snippets
+
+matched domains / total domains
+
+B. Print top matched keywords per brand
+
+Example for Vesta:
+
+dha
+
+licensed
+
+elderly
+
+chronic
+
+post-op
+
+C. Print 10 sample matched snippets and 10 missed snippets
+
+This will show instantly whether regex coverage is weak.
+
+D. Check own-domain mapping
+
+Especially for:
+
+Manzil
+
+Call Doctor
+
+Emirates
+
+E. Compare rank order, not raw score
+
+If the raw scores are noisy, rankings are still useful.
+
+Best interpretation of this version
+Strong:
+
+Emirates
+
+First Response
+
+Nightingale
+
+Distinct:
+
+Call Doctor = broad category fit, weaker authority/reputation
+
+Manzil = stable identity, but current extraction clearly undercounting other dimensions
+
+Vesta = should be stronger on trust/depth than this output shows
+
+Bottom line
+
+The framework is right. This specific output still needs calibration.
+The biggest red flag is Manzil, and second is Vesta/Trust/Depth undercounting.
+
+The next step is not to redesign the framework.
+It is to inspect:
+
+keyword lists
+
+matched snippet examples
+
+numerator/denominator tables
+
+domain mapping.

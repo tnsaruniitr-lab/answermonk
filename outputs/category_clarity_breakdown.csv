@@ -1,7 +1,7 @@
-brand,own_snippet_num,own_snippet_den,own_domain_num,own_domain_den,ext_snippet_num,ext_snippet_den,ext_domain_num,ext_domain_den
-Emirates Home Nursing,3,13,1,1,12,37,5,8
-First Response Healthcare,22,41,3,3,7,28,4,7
-Nightingale Health Services,6,19,1,1,5,26,3,6
-Vesta Care,10,43,1,1,1,15,1,3
-Manzil Health,0,5,0,1,2,8,1,2
-Call Doctor,1,4,1,1,11,53,9,24
+brand,own_sn,own_sd,own_dn,own_dd,ext_sn,ext_sd,ext_dn,ext_dd
+Emirates Home Nursing,13,13,1,1,37,37,8,8
+First Response Healthcare,27,41,3,3,9,28,4,7
+Nightingale Health Services,8,19,1,1,10,26,5,6
+Vesta Care,22,43,1,1,15,15,3,3
+Manzil Health,0,5,0,1,4,8,2,2
+Call Doctor,2,4,1,1,14,53,11,24
