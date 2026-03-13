@@ -227,15 +227,42 @@ function ScoreArc({ score, color, max = 10 }: { score: number; color: string; ma
 }
 
 export default function CrawlabilityReport() {
+  const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+
   return (
     <div className="min-h-screen bg-slate-50">
+      <style>{`
+        @media print {
+          * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+          .no-print { display: none !important; }
+          .print-break-inside-avoid { break-inside: avoid; }
+          body { background: white; }
+          @page { size: A4 landscape; margin: 12mm 14mm; }
+        }
+      `}</style>
+
+      {/* Download button — hidden on print */}
+      <div className="no-print fixed top-4 right-4 z-50">
+        <button
+          onClick={() => window.print()}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-xl shadow-lg hover:bg-slate-700 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3" />
+          </svg>
+          Download PDF
+        </button>
+      </div>
 
       {/* Header */}
       <div className="bg-slate-900 px-8 py-6">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">GEO Extractibility Audit</p>
-          <h1 className="text-white text-2xl font-bold">Crawlability Comparison</h1>
-          <p className="text-slate-400 text-sm mt-1">How well can AI systems parse, understand, and cite each brand from its web presence?</p>
+        <div className="max-w-6xl mx-auto flex items-end justify-between">
+          <div>
+            <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">GEO Extractibility Audit</p>
+            <h1 className="text-white text-2xl font-bold">Crawlability Comparison</h1>
+            <p className="text-slate-400 text-sm mt-1">How well can AI systems parse, understand, and cite each brand from its web presence?</p>
+          </div>
+          <p className="text-slate-500 text-xs hidden print:block">{today} · Confidential</p>
         </div>
       </div>
 
@@ -247,7 +274,7 @@ export default function CrawlabilityReport() {
             { name: "First Response Healthcare", domain: "firstresponsehealthcare.com", score: 7.5, color: FRH_COLOR, verdict: "Strong crawlable presence. LLM-ready content architecture with room to add schema markup." },
             { name: "Valeo Health", domain: "feelvaleo.com/en-ae", score: 3.0, color: VALEO_COLOR, verdict: "Landing page is a navigation shell. Rich content exists on sub-pages but is JS-locked and unlisted." },
           ].map((brand) => (
-            <div key={brand.name} className="bg-white rounded-2xl border border-slate-200 p-5 flex items-start gap-5 shadow-sm">
+            <div key={brand.name} className="print-break-inside-avoid bg-white rounded-2xl border border-slate-200 p-5 flex items-start gap-5 shadow-sm">
               <ScoreArc score={brand.score} color={brand.color} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
@@ -311,7 +338,7 @@ export default function CrawlabilityReport() {
           ))}
 
           {/* Overall score footer */}
-          <div className="grid grid-cols-[220px_1fr_1fr] bg-slate-900">
+          <div className="print-break-inside-avoid grid grid-cols-[220px_1fr_1fr] bg-slate-900">
             <div className="px-5 py-5 border-r border-slate-700 flex items-center">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Overall Score</span>
             </div>
