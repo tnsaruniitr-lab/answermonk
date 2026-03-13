@@ -2557,6 +2557,7 @@ export async function registerRoutes(
         detached: true,
         stdio: "ignore",
         env: { ...process.env },
+        cwd: process.cwd(),
       });
       proc.unref();
       res.json({ message: "Crawl started in background", sessionId });
