@@ -167,7 +167,8 @@ interface AuthorityDomain {
   urls: AuthorityUrl[];
 }
 
-function formatSegmentLabel(s: string) {
+function formatSegmentLabel(s: string | null | undefined) {
+  if (!s) return "";
   return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
@@ -309,7 +310,7 @@ function AuthoritySection({ sessionId }: { sessionId: number }) {
                             {u.title && u.title !== d.domain && (
                               <div className="text-gray-400 truncate mt-0.5">{u.title}</div>
                             )}
-                            <div className="text-gray-400 mt-0.5">{formatSegmentLabel(u.segment)}</div>
+                            {u.segment && <div className="text-gray-400 mt-0.5">{formatSegmentLabel(u.segment)}</div>}
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
                             {(u as any).engines?.includes("chatgpt") && (
