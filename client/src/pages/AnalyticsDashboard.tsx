@@ -164,20 +164,19 @@ export default function AnalyticsDashboard() {
 
   const summaryRows = summaryData?.rows || [];
 
-  const { chatgptSlices, geminiSlices, chatgptBrand, geminiBrand } = useMemo(() => {
+  const { chatgptSlices, geminiSlices, chatgptBrandSlices, geminiBrandSlices } = useMemo(() => {
     const thirdParty = summaryRows.filter((r) => !BRAND_CATEGORIES.has(r.url_category));
     const brand = summaryRows.filter((r) => BRAND_CATEGORIES.has(r.url_category));
+    const toSlices = (rows: CitationUrlRow[], field: "chatgpt_citations" | "gemini_citations") =>
+      rows
+        .filter((r) => parseInt(r[field]) > 0)
+        .map((r) => ({ name: r.url_category, value: parseInt(r[field]), total: 0 }))
+        .sort((a, b) => b.value - a.value);
     return {
-      chatgptSlices: thirdParty
-        .filter((r) => parseInt(r.chatgpt_citations) > 0)
-        .map((r) => ({ name: r.url_category, value: parseInt(r.chatgpt_citations), total: 0 }))
-        .sort((a, b) => b.value - a.value),
-      geminiSlices: thirdParty
-        .filter((r) => parseInt(r.gemini_citations) > 0)
-        .map((r) => ({ name: r.url_category, value: parseInt(r.gemini_citations), total: 0 }))
-        .sort((a, b) => b.value - a.value),
-      chatgptBrand: brand.reduce((s, r) => s + parseInt(r.chatgpt_citations), 0),
-      geminiBrand: brand.reduce((s, r) => s + parseInt(r.gemini_citations), 0),
+      chatgptSlices: toSlices(thirdParty, "chatgpt_citations"),
+      geminiSlices: toSlices(thirdParty, "gemini_citations"),
+      chatgptBrandSlices: toSlices(brand, "chatgpt_citations"),
+      geminiBrandSlices: toSlices(brand, "gemini_citations"),
     };
   }, [summaryRows]);
 
@@ -204,46 +203,38 @@ export default function AnalyticsDashboard() {
           </div>
         ) : (
           <>
-            {/* Pie charts */}
+            {/* Brand-owned pie charts */}
             <div className="bg-white border border-gray-200 rounded-2xl p-6">
-              <div className="flex items-start justify-between mb-5">
-                <div>
-                  <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                    Third-Party Source Mix
-                  </h2>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    All segments combined · non-unique citation events · brand-owned excluded · hover a slice to inspect
-                  </p>
-                </div>
-                {/* Brand citations summary pill */}
-                <div className="flex items-center gap-3 shrink-0 ml-4">
-                  <div className="text-right">
-                    <div className="text-xs text-gray-400 mb-1 uppercase tracking-wide font-medium">Brand citations (excluded)</div>
-                    <div className="flex gap-3">
-                      <span className="text-xs bg-orange-50 text-orange-700 border border-orange-100 px-2.5 py-1 rounded-full font-semibold">
-                        ChatGPT {chatgptBrand.toLocaleString()}
-                      </span>
-                      <span className="text-xs bg-blue-50 text-blue-700 border border-blue-100 px-2.5 py-1 rounded-full font-semibold">
-                        Gemini {geminiBrand.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+              <div className="mb-5">
+                <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                  Brand-Owned Citation Mix
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  All segments combined · non-unique citation events · how deeply AI indexes the brand's own pages
+                </p>
               </div>
               <div className="flex gap-6 divide-x divide-gray-100">
-                <EnginePie
-                  engine="chatgpt"
-                  data={chatgptSlices}
-                  label="ChatGPT"
-                  accentColor="#f97316"
-                />
+                <EnginePie engine="chatgpt" data={chatgptBrandSlices} label="ChatGPT" accentColor="#f97316" />
                 <div className="pl-6 flex-1 flex flex-col">
-                  <EnginePie
-                    engine="gemini"
-                    data={geminiSlices}
-                    label="Gemini"
-                    accentColor="#3b82f6"
-                  />
+                  <EnginePie engine="gemini" data={geminiBrandSlices} label="Gemini" accentColor="#3b82f6" />
+                </div>
+              </div>
+            </div>
+
+            {/* Third-party pie charts */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+              <div className="mb-5">
+                <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                  Third-Party Source Mix
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  All segments combined · non-unique citation events · independent sources AI trusts in this category
+                </p>
+              </div>
+              <div className="flex gap-6 divide-x divide-gray-100">
+                <EnginePie engine="chatgpt" data={chatgptSlices} label="ChatGPT" accentColor="#f97316" />
+                <div className="pl-6 flex-1 flex flex-col">
+                  <EnginePie engine="gemini" data={geminiSlices} label="Gemini" accentColor="#3b82f6" />
                 </div>
               </div>
             </div>
