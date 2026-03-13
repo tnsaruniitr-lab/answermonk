@@ -21,14 +21,6 @@ interface CitationUrlRow {
   gemini_unique_urls: string;
 }
 
-interface SegmentRow {
-  segment_persona: string;
-  engine: string;
-  url_category: string;
-  citations: string;
-  unique_urls: string;
-}
-
 const CATEGORY_COLOR: Record<string, string> = {
   "Brand Homepage": "#60a5fa",
   "Brand Service Page": "#818cf8",
@@ -70,10 +62,6 @@ const BRAND_CATEGORIES = new Set([
   "Brand About / Contact",
   "Brand Blog / Article",
 ]);
-
-function formatSegment(s: string) {
-  return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
 
 function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
@@ -164,19 +152,9 @@ function EnginePie({
 export default function AnalyticsDashboard() {
   const params = useParams<{ sessionId?: string }>();
   const sessionId = parseInt(params.sessionId || "77");
-  const [selectedSegment, setSelectedSegment] = useState<string | null>(null);
   const [tableEngine, setTableEngine] = useState<"all" | "chatgpt" | "gemini">("all");
 
-  const { data: segData, isLoading: segLoading } = useQuery<{
-    rows: SegmentRow[];
-    segments: string[];
-    sessionId: number;
-  }>({
-    queryKey: [`/api/citation-urls/by-segment?sessionId=${sessionId}`],
-    staleTime: 30000,
-  });
-
-  const { data: summaryData, isLoading: summaryLoading } = useQuery<{
+  const { data: summaryData, isLoading } = useQuery<{
     rows: CitationUrlRow[];
     sessionId: number;
   }>({
@@ -184,30 +162,25 @@ export default function AnalyticsDashboard() {
     staleTime: 30000,
   });
 
-  const segments = segData?.segments || [];
-  const activeSegment = selectedSegment || segments[0] || null;
+  const summaryRows = summaryData?.rows || [];
 
   const { chatgptSlices, geminiSlices, chatgptBrand, geminiBrand } = useMemo(() => {
-    if (!segData || !activeSegment) return { chatgptSlices: [], geminiSlices: [], chatgptBrand: 0, geminiBrand: 0 };
-    const rows = segData.rows.filter((r) => r.segment_persona === activeSegment);
-    const toSlices = (eng: string) =>
-      rows
-        .filter((r) => r.engine === eng && parseInt(r.citations) > 0 && !BRAND_CATEGORIES.has(r.url_category))
-        .map((r) => ({ name: r.url_category, value: parseInt(r.citations), total: 0 }))
-        .sort((a, b) => b.value - a.value);
-    const brandTotal = (eng: string) =>
-      rows
-        .filter((r) => r.engine === eng && BRAND_CATEGORIES.has(r.url_category))
-        .reduce((s, r) => s + parseInt(r.citations), 0);
+    const thirdParty = summaryRows.filter((r) => !BRAND_CATEGORIES.has(r.url_category));
+    const brand = summaryRows.filter((r) => BRAND_CATEGORIES.has(r.url_category));
     return {
-      chatgptSlices: toSlices("chatgpt"),
-      geminiSlices: toSlices("gemini"),
-      chatgptBrand: brandTotal("chatgpt"),
-      geminiBrand: brandTotal("gemini"),
+      chatgptSlices: thirdParty
+        .filter((r) => parseInt(r.chatgpt_citations) > 0)
+        .map((r) => ({ name: r.url_category, value: parseInt(r.chatgpt_citations), total: 0 }))
+        .sort((a, b) => b.value - a.value),
+      geminiSlices: thirdParty
+        .filter((r) => parseInt(r.gemini_citations) > 0)
+        .map((r) => ({ name: r.url_category, value: parseInt(r.gemini_citations), total: 0 }))
+        .sort((a, b) => b.value - a.value),
+      chatgptBrand: brand.reduce((s, r) => s + parseInt(r.chatgpt_citations), 0),
+      geminiBrand: brand.reduce((s, r) => s + parseInt(r.gemini_citations), 0),
     };
-  }, [segData, activeSegment]);
+  }, [summaryRows]);
 
-  const summaryRows = summaryData?.rows || [];
   const tableRows = summaryRows.map((r) => {
     if (tableEngine === "chatgpt") return { ...r, total_citations: r.chatgpt_citations, total_unique_urls: r.chatgpt_unique_urls };
     if (tableEngine === "gemini") return { ...r, total_citations: r.gemini_citations, total_unique_urls: r.gemini_unique_urls };
@@ -216,8 +189,6 @@ export default function AnalyticsDashboard() {
 
   const grandTotal = tableRows.reduce((s, r) => s + parseInt(r.total_citations), 0);
   const grandUnique = tableRows.reduce((s, r) => s + parseInt(r.total_unique_urls), 0);
-
-  const isLoading = segLoading || summaryLoading;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -233,24 +204,6 @@ export default function AnalyticsDashboard() {
           </div>
         ) : (
           <>
-            {/* Segment tabs */}
-            <div className="flex flex-wrap gap-2">
-              {segments.map((seg) => (
-                <button
-                  key={seg}
-                  onClick={() => setSelectedSegment(seg)}
-                  className={`px-4 py-2 rounded-full text-xs font-medium transition-all border ${
-                    activeSegment === seg
-                      ? "bg-gray-900 text-white border-gray-900"
-                      : "bg-white text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-700"
-                  }`}
-                  data-testid={`segment-tab-${seg}`}
-                >
-                  {formatSegment(seg)}
-                </button>
-              ))}
-            </div>
-
             {/* Pie charts */}
             <div className="bg-white border border-gray-200 rounded-2xl p-6">
               <div className="flex items-start justify-between mb-5">
@@ -258,11 +211,9 @@ export default function AnalyticsDashboard() {
                   <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                     Third-Party Source Mix
                   </h2>
-                  {activeSegment && (
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {formatSegment(activeSegment)} · non-unique citation events · brand-owned excluded · hover a slice to inspect
-                    </p>
-                  )}
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    All segments combined · non-unique citation events · brand-owned excluded · hover a slice to inspect
+                  </p>
                 </div>
                 {/* Brand citations summary pill */}
                 <div className="flex items-center gap-3 shrink-0 ml-4">
