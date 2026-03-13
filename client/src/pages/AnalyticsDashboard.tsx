@@ -119,7 +119,7 @@ function EnginePie({
       <div className="flex items-center gap-2 mb-3 px-2">
         <span className="w-2.5 h-2.5 rounded-full" style={{ background: accentColor }} />
         <span className="text-sm font-semibold text-gray-700">{label}</span>
-        <span className="ml-auto text-xs text-gray-400 font-medium">{total.toLocaleString()} citations</span>
+        <span className="ml-auto text-xs text-gray-400 font-medium">{total.toLocaleString()} citations (non-unique)</span>
       </div>
       <ResponsiveContainer width="100%" height={300}>
         <PieChart>
@@ -260,7 +260,7 @@ export default function AnalyticsDashboard() {
                   </h2>
                   {activeSegment && (
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {formatSegment(activeSegment)} · brand-owned citations excluded · hover a slice to inspect
+                      {formatSegment(activeSegment)} · non-unique citation events · brand-owned excluded · hover a slice to inspect
                     </p>
                   )}
                 </div>
