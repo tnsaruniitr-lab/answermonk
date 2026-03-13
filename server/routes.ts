@@ -143,6 +143,13 @@ async function populateCitationUrls(sessionId: number): Promise<void> {
     INSERT INTO citation_urls (session_id, engine, prompt_text, segment_persona, url, title, url_category)
     VALUES ${values.join(",")}
   `, params);
+
+  // Set domain column from url
+  await pool.query(`
+    UPDATE citation_urls
+    SET domain = regexp_replace(regexp_replace(url, '^https?://(www\\.)?', ''), '/.*$', '')
+    WHERE session_id = $1 AND url IS NOT NULL
+  `, [sessionId]);
 }
 
 export async function registerRoutes(
