@@ -172,6 +172,7 @@ function formatSegmentLabel(s: string) {
 }
 
 function AuthoritySection({ sessionId }: { sessionId: number }) {
+  const [open, setOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
   const [expandedDomain, setExpandedDomain] = useState<string | null>(null);
 
@@ -185,6 +186,7 @@ function AuthoritySection({ sessionId }: { sessionId: number }) {
   }>({
     queryKey: [`/api/citation-urls/authority?${params.toString()}`],
     staleTime: 30000,
+    enabled: open,
   });
 
   const domains = data?.domains || [];
@@ -192,51 +194,59 @@ function AuthoritySection({ sessionId }: { sessionId: number }) {
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-      <div className="px-6 py-5 border-b border-gray-100">
-        <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-          Authority Sources
-        </h2>
-        <p className="text-xs text-gray-400 mt-0.5">
-          Third-party domains ranked by total citations · click a row to see cited URLs
-        </p>
-        {/* Category pills */}
-        <div className="flex flex-wrap gap-1.5 mt-4">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => { setActiveCategory(cat); setExpandedDomain(null); }}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
-                activeCategory === cat
-                  ? "bg-gray-900 text-white border-gray-900"
-                  : "bg-white text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-700"
-              }`}
-              data-testid={`authority-cat-${cat}`}
-            >
-              {cat}
-            </button>
-          ))}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50/60 transition-colors"
+        data-testid="authority-toggle"
+      >
+        <div>
+          <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Authority Sources</span>
+          <span className="text-xs text-gray-400 ml-3">Third-party domains ranked by total citation events</span>
         </div>
-      </div>
+        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-5 h-5 animate-spin text-gray-300" />
-        </div>
-      ) : domains.length === 0 ? (
-        <div className="py-16 text-center text-sm text-gray-400">No data</div>
-      ) : (
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-100">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide w-8">#</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Domain</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Category</th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-orange-500 uppercase tracking-wide">ChatGPT</th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-blue-500 uppercase tracking-wide">Gemini</th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wide">Total</th>
-              <th className="w-8" />
-            </tr>
-          </thead>
+      {open && (
+        <>
+          <div className="px-6 pb-4 border-b border-gray-100">
+            <p className="text-xs text-gray-400 mb-3">Click a row to see cited URLs</p>
+            <div className="flex flex-wrap gap-1.5">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => { setActiveCategory(cat); setExpandedDomain(null); }}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                    activeCategory === cat
+                      ? "bg-gray-900 text-white border-gray-900"
+                      : "bg-white text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-700"
+                  }`}
+                  data-testid={`authority-cat-${cat}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-5 h-5 animate-spin text-gray-300" />
+            </div>
+          ) : domains.length === 0 ? (
+            <div className="py-16 text-center text-sm text-gray-400">No data</div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide w-8">#</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Domain</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Category</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-orange-500 uppercase tracking-wide">ChatGPT</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-blue-500 uppercase tracking-wide">Gemini</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wide">Total</th>
+                  <th className="w-8" />
+                </tr>
+              </thead>
           <tbody>
             {domains.flatMap((d, i) => {
               const isExpanded = expandedDomain === d.domain;
@@ -319,8 +329,10 @@ function AuthoritySection({ sessionId }: { sessionId: number }) {
 
               return [mainRow, expandedRow];
             })}
-          </tbody>
-        </table>
+              </tbody>
+            </table>
+          )}
+        </>
       )}
     </div>
   );
