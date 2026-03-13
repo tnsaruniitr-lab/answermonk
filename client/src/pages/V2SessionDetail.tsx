@@ -587,6 +587,8 @@ function SourcesList({ runs }: { runs: RawRun[] }) {
       {allCitations.map((c, i) => {
         let hostname = c.url;
         try { hostname = new URL(c.url).hostname.replace(/^www\./, ""); } catch {}
+        const isVertexRedirect = c.url?.includes("vertexaisearch.cloud.google.com");
+        const displayUrl = isVertexRedirect ? null : c.url;
         return (
           <a
             key={i}
@@ -598,6 +600,11 @@ function SourcesList({ runs }: { runs: RawRun[] }) {
             <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0 group-hover:text-blue-500" />
             <span className="text-xs text-blue-600 dark:text-blue-400 group-hover:underline truncate flex-1">
               {c.title || hostname}
+              {displayUrl && (
+                <span className="text-muted-foreground font-normal ml-1 group-hover:no-underline">
+                  ({displayUrl})
+                </span>
+              )}
             </span>
             <span className="text-[9px] px-1 py-0.5 rounded bg-secondary text-muted-foreground shrink-0">
               {(ENGINE_LABELS[c.engine] || c.engine).slice(0, 3)}
