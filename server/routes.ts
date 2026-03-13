@@ -69,6 +69,82 @@ function rankScore(posByEngine: Record<string, number | null>, weights: Record<s
   return Math.round(s * 100);
 }
 
+function classifyCitationUrl(url: string, engine: string): string {
+  const u = (url || "").toLowerCase();
+  if (u.includes("reddit.com") || u.includes("quora.com") || u.includes("/forum") || u.includes("expatsofdubai")) return "Community Thread";
+  if (u.includes("indeed.com") || u.includes("/jobs") || u.includes("/careers") || u.includes("/cmp/")) return "Jobs Listing";
+  if (u.includes("linkedin.com")) return "Social Media Profile";
+  if (u.includes("dha.gov") || u.includes("mohap") || u.includes("dhcc.ae") || u.includes("ocat.ae") || u.includes("haad.")) return "Government / Regulatory";
+  if (u.includes("mordorintelligence") || u.includes("statista") || u.includes("cbinsights")) return "Market Research";
+  const newsDomains = ["gulfnews", "zawya", "thenational", "baabeetv", "digitalmarketingdeal", "meamarkets", "dxbnews", "uaetimes", "uaedigital", "arabianews", "linkcentre"];
+  if (newsDomains.some(d => u.includes(d))) return "News / PR";
+  if (u.includes("/press-release") || u.includes("/press/")) return "News / PR";
+  const reviewDomains = ["trustpilot", "trustindex", "sitejabber", "provenexpert", "goprofiled", "bestthings", "zaubee", "dubaireview", "doctify", "okadoc"];
+  if (reviewDomains.some(d => u.includes(d))) return "Review Platform";
+  if (u.includes("/reviews")) return "Review Platform";
+  const dirDomains = ["healthfinder", "ensun.io", "elderlycareindubai", "trusteddoctors", "health1.ae", "edarabia", "justdial", "zorg4u", "bestinhood", "servicemarket", "dubai.clinic", "edurar", "justlife", "arabiamd", "dubaisbest", "2gis.ae"];
+  if (dirDomains.some(d => u.includes(d))) return "Directory Listing";
+  if (u.includes("/listing") || u.includes("/listings/") || u.includes("/search/")) return "Directory Listing";
+  const compPhrases = ["best-home", "top-home", "best-nursing", "home-health-care-agencies", "top-10", "best-10", "complete-guide", "best-home-healthcare", "top-rated"];
+  if (compPhrases.some(p => u.includes(p))) return "Comparison Article";
+  if (u.includes("/blog/") || u.includes("/article") || u.includes("/post/") || u.includes("/news/") || u.includes("/insights/")) return "Brand Blog / Article";
+  if (u.includes("/about") || u.includes("/team") || u.includes("/contact") || u.includes("/faq") || u.includes("/accreditation")) return "Brand About / Contact";
+  const serviceTerms = ["/home-nursing", "/doctor", "/physio", "/elderly", "/palliative", "/wound", "/iv-", "/nursing", "/services", "/home-care", "/healthcare", "/at-home", "/nurse"];
+  if (serviceTerms.some(p => u.includes(p))) return "Brand Service Page";
+  if (u.match(/^https?:\/\/[^/]+\/?$/) || u.endsWith("/")) return "Brand Homepage";
+  if (engine === "gemini") return "Brand Homepage";
+  return "Brand Inner Page";
+}
+
+async function populateCitationUrls(sessionId: number): Promise<void> {
+  const { pool } = await import("./db");
+  await pool.query(`DELETE FROM citation_urls WHERE session_id = $1`, [sessionId]);
+  const res = await pool.query(`
+    SELECT
+      seg->>'persona' as segment_persona,
+      run->>'engine' as engine,
+      run->>'prompt_text' as prompt_text,
+      CASE
+        WHEN run->>'engine' = 'gemini'
+          THEN COALESCE(cite->>'title', '')
+        ELSE regexp_replace(COALESCE(cite->>'url', ''), '[?&]utm_source=[^&]*', '')
+      END as raw_url,
+      cite->>'title' as title
+    FROM multi_segment_sessions s,
+    jsonb_array_elements(s.segments) seg,
+    jsonb_array_elements(seg->'scoringResult'->'raw_runs') run,
+    jsonb_array_elements(run->'citations') cite
+    WHERE s.id = $1
+      AND run->'citations' != 'null'::jsonb
+      AND jsonb_array_length(run->'citations') > 0
+      AND (
+        (run->>'engine' = 'gemini' AND cite->>'title' IS NOT NULL AND cite->>'title' != '')
+        OR
+        (run->>'engine' = 'chatgpt' AND cite->>'url' IS NOT NULL AND cite->>'url' != '')
+      )
+  `, [sessionId]);
+
+  if (res.rows.length === 0) return;
+
+  const values: string[] = [];
+  const params: any[] = [sessionId];
+  for (const row of res.rows) {
+    let url = row.raw_url || "";
+    if (url && !url.startsWith("http")) url = "https://" + url;
+    if (!url) continue;
+    const category = classifyCitationUrl(url, row.engine);
+    params.push(row.engine, row.prompt_text, row.segment_persona, url, row.title, category);
+    const base = params.length - 5;
+    values.push(`($1, $${base}, $${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`);
+  }
+
+  if (values.length === 0) return;
+  await pool.query(`
+    INSERT INTO citation_urls (session_id, engine, prompt_text, segment_persona, url, title, url_category)
+    VALUES ${values.join(",")}
+  `, params);
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -1361,6 +1437,12 @@ export async function registerRoutes(
         } catch (persistErr) {
           console.error("Failed to persist citation report:", persistErr);
         }
+        try {
+          await populateCitationUrls(sessionId);
+          console.log(`[segment-analysis] Populated citation_urls for session ${sessionId}`);
+        } catch (citErr) {
+          console.error("Failed to populate citation_urls:", citErr);
+        }
       } else if (groupKey && typeof groupKey === "string") {
         try {
           const cacheKey = `group:${groupKey}:citation`;
@@ -1380,6 +1462,55 @@ export async function registerRoutes(
       analysisProgress.set(progressKey, { step: "error", detail: String(err), pct: 0, startedAt: analysisProgress.get(progressKey)?.startedAt || Date.now() });
       setTimeout(() => analysisProgress.delete(progressKey), 30000);
       res.status(500).json({ message: "Analysis failed", error: String(err) });
+    }
+  });
+
+  app.get("/api/citation-urls/summary", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.query.sessionId as string);
+      if (isNaN(sessionId)) { res.status(400).json({ message: "sessionId required" }); return; }
+      const { pool } = await import("./db");
+      const result = await pool.query(`
+        SELECT
+          url_category,
+          COUNT(*) as total_citations,
+          COUNT(DISTINCT url) as total_unique_urls,
+          COUNT(*) FILTER (WHERE engine = 'chatgpt') as chatgpt_citations,
+          COUNT(DISTINCT url) FILTER (WHERE engine = 'chatgpt') as chatgpt_unique_urls,
+          COUNT(*) FILTER (WHERE engine = 'gemini') as gemini_citations,
+          COUNT(DISTINCT url) FILTER (WHERE engine = 'gemini') as gemini_unique_urls
+        FROM citation_urls
+        WHERE session_id = $1
+        GROUP BY url_category
+        ORDER BY total_citations DESC
+      `, [sessionId]);
+      res.json({ rows: result.rows, sessionId });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to load citation URL summary", error: String(err) });
+    }
+  });
+
+  app.get("/api/citation-urls/list", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.query.sessionId as string);
+      const category = req.query.category as string | undefined;
+      const engine = req.query.engine as string | undefined;
+      if (isNaN(sessionId)) { res.status(400).json({ message: "sessionId required" }); return; }
+      const { pool } = await import("./db");
+      const conditions = ["session_id = $1"];
+      const params: any[] = [sessionId];
+      if (category) { params.push(category); conditions.push(`url_category = $${params.length}`); }
+      if (engine) { params.push(engine); conditions.push(`engine = $${params.length}`); }
+      const result = await pool.query(`
+        SELECT url, engine, url_category, segment_persona, title,
+          COUNT(*) OVER (PARTITION BY url) as citation_count
+        FROM citation_urls
+        WHERE ${conditions.join(" AND ")}
+        ORDER BY citation_count DESC, url
+      `, params);
+      res.json({ rows: result.rows });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to load citation URLs", error: String(err) });
     }
   });
 

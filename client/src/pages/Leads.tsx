@@ -75,6 +75,16 @@ export default function Leads() {
                 Prompts
               </span>
             </Link>
+            <Link href="/brand-intelligence">
+              <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer" data-testid="link-brain">
+                AI Brain
+              </span>
+            </Link>
+            <Link href="/analytics">
+              <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer" data-testid="link-analytics">
+                Analytics
+              </span>
+            </Link>
           </div>
         </div>
 

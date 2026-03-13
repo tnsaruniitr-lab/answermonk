@@ -411,9 +411,209 @@ function DomainList({
   );
 }
 
+interface CitationUrlRow {
+  url_category: string;
+  total_citations: string;
+  total_unique_urls: string;
+  chatgpt_citations: string;
+  chatgpt_unique_urls: string;
+  gemini_citations: string;
+  gemini_unique_urls: string;
+}
+
+interface CitationListRow {
+  url: string;
+  engine: string;
+  url_category: string;
+  segment_persona: string;
+  title: string;
+  citation_count: string;
+}
+
+const CATEGORY_BADGE: Record<string, string> = {
+  "Brand Homepage": "bg-blue-50 text-blue-700",
+  "Brand Service Page": "bg-indigo-50 text-indigo-700",
+  "Brand Inner Page": "bg-violet-50 text-violet-700",
+  "Brand About / Contact": "bg-purple-50 text-purple-700",
+  "Brand Blog / Article": "bg-fuchsia-50 text-fuchsia-700",
+  "Directory Listing": "bg-teal-50 text-teal-700",
+  "Review Platform": "bg-yellow-50 text-yellow-700",
+  "Comparison Article": "bg-orange-50 text-orange-700",
+  "Government / Regulatory": "bg-sky-50 text-sky-700",
+  "Community Thread": "bg-green-50 text-green-700",
+  "News / PR": "bg-amber-50 text-amber-700",
+  "Market Research": "bg-emerald-50 text-emerald-700",
+  "Jobs Listing": "bg-slate-50 text-slate-600",
+  "Social Media Profile": "bg-pink-50 text-pink-700",
+};
+
+function CitationSummaryTab({ sessionId }: { sessionId: number }) {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedEngine, setSelectedEngine] = useState<string>("all");
+
+  const { data: summaryData, isLoading: summaryLoading } = useQuery<{ rows: CitationUrlRow[]; sessionId: number }>({
+    queryKey: [`/api/citation-urls/summary?sessionId=${sessionId}`],
+    staleTime: 30000,
+  });
+
+  const listParams = new URLSearchParams({ sessionId: String(sessionId) });
+  if (selectedCategory) listParams.set("category", selectedCategory);
+  if (selectedEngine !== "all") listParams.set("engine", selectedEngine);
+
+  const { data: listData, isLoading: listLoading } = useQuery<{ rows: CitationListRow[] }>({
+    queryKey: [`/api/citation-urls/list?${listParams.toString()}`],
+    staleTime: 30000,
+    enabled: !!selectedCategory || selectedEngine !== "all",
+  });
+
+  const rows = summaryData?.rows || [];
+  const totalCitations = rows.reduce((s, r) => s + parseInt(r.total_citations), 0);
+  const totalChatgpt = rows.reduce((s, r) => s + parseInt(r.chatgpt_citations), 0);
+  const totalGemini = rows.reduce((s, r) => s + parseInt(r.gemini_citations), 0);
+
+  if (summaryLoading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="w-7 h-7 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  if (rows.length === 0) {
+    return (
+      <div className="text-center py-24 text-gray-400 text-sm">
+        No citation URL data for this session. Run a segment crawl to generate it.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-4">
+        {[
+          { label: "Total Citations", value: totalCitations, color: "text-gray-900" },
+          { label: "ChatGPT", value: totalChatgpt, color: "text-orange-600" },
+          { label: "Gemini", value: totalGemini, color: "text-blue-600" },
+        ].map(s => (
+          <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-5 flex-1">
+            <div className={`text-3xl font-bold ${s.color}`}>{s.value.toLocaleString()}</div>
+            <div className="text-xs text-gray-400 mt-1">{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Citation URLs by Category</h2>
+          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 text-xs font-medium">
+            {["all", "chatgpt", "gemini"].map(e => (
+              <button
+                key={e}
+                onClick={() => { setSelectedEngine(e); setSelectedCategory(null); }}
+                className={`px-3 py-1.5 rounded-md transition-all ${selectedEngine === e ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+                data-testid={`engine-filter-${e}`}
+              >
+                {e === "all" ? "All" : e === "chatgpt" ? "ChatGPT" : "Gemini"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b border-gray-100">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Category</th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Total</th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-orange-500 uppercase tracking-wide">ChatGPT</th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-orange-400 uppercase tracking-wide">Unique</th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-blue-500 uppercase tracking-wide">Gemini</th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-blue-400 uppercase tracking-wide">Unique</th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Total Unique</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr
+                key={row.url_category}
+                className={`border-b border-gray-50 cursor-pointer transition-colors ${selectedCategory === row.url_category ? "bg-blue-50/60" : "hover:bg-gray-50/80"}`}
+                onClick={() => setSelectedCategory(selectedCategory === row.url_category ? null : row.url_category)}
+                data-testid={`citation-category-row-${i}`}
+              >
+                <td className="px-6 py-3">
+                  <span className={`inline-block text-xs px-2.5 py-1 rounded-full font-medium ${CATEGORY_BADGE[row.url_category] || "bg-gray-100 text-gray-600"}`}>
+                    {row.url_category}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right font-semibold text-gray-800">{parseInt(row.total_citations).toLocaleString()}</td>
+                <td className="px-4 py-3 text-right text-orange-600 font-medium">{parseInt(row.chatgpt_citations).toLocaleString()}</td>
+                <td className="px-4 py-3 text-right text-orange-400 text-xs">{parseInt(row.chatgpt_unique_urls).toLocaleString()}</td>
+                <td className="px-4 py-3 text-right text-blue-600 font-medium">{parseInt(row.gemini_citations).toLocaleString()}</td>
+                <td className="px-4 py-3 text-right text-blue-400 text-xs">{parseInt(row.gemini_unique_urls).toLocaleString()}</td>
+                <td className="px-4 py-3 text-right text-gray-500 text-xs">{parseInt(row.total_unique_urls).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {selectedCategory && (
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700">
+                {selectedCategory}
+                {selectedEngine !== "all" && <span className="ml-2 text-xs font-normal text-gray-400">— {selectedEngine}</span>}
+              </h3>
+              <p className="text-xs text-gray-400 mt-0.5">Click a row in the table above to drill into URLs</p>
+            </div>
+            <button onClick={() => setSelectedCategory(null)} className="text-xs text-gray-400 hover:text-gray-600" data-testid="close-url-list">✕</button>
+          </div>
+          {listLoading ? (
+            <div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-gray-400" /></div>
+          ) : (
+            <div className="overflow-x-auto max-h-96 overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100 sticky top-0">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">URL</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Engine</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Segment</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(listData?.rows || []).map((row, i) => (
+                    <tr key={i} className="border-b border-gray-50 hover:bg-gray-50" data-testid={`url-row-${i}`}>
+                      <td className="px-6 py-3 max-w-xs">
+                        <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs truncate block" title={row.url}>
+                          {row.url}
+                        </a>
+                        {row.title && row.title !== row.url && (
+                          <span className="text-xs text-gray-400 block truncate">{row.title}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded ${row.engine === "chatgpt" ? "bg-orange-50 text-orange-700" : "bg-blue-50 text-blue-700"}`}>
+                          {row.engine}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-gray-500">{row.segment_persona?.replace(/_/g, " ")}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-gray-700">{row.citation_count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AnalyticsDashboard() {
   const params = useParams<{ sessionId: string }>();
   const sessionId = parseInt(params.sessionId || "77");
+  const [activeTab, setActiveTab] = useState<"overview" | "citations">("overview");
   const [thirdPartyOnly, setThirdPartyOnly] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
 
@@ -545,7 +745,7 @@ export default function AnalyticsDashboard() {
       <div className="bg-gray-900 text-white px-8 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-xs text-gray-400 uppercase tracking-widest mb-2 font-medium">Engine Intelligence</div>
-          <div className="flex items-end justify-between gap-6">
+          <div className="flex items-end justify-between gap-6" data-testid="analytics-header">
             <div>
               <h1 className="text-2xl font-bold mb-1" data-testid="session-brand-name">
                 {data.session.brandName}
@@ -578,7 +778,26 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
+      <div className="bg-gray-800 border-b border-gray-700 px-8">
+        <div className="max-w-6xl mx-auto flex gap-0">
+          {(["overview", "citations"] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab ? "border-white text-white" : "border-transparent text-gray-400 hover:text-gray-200"}`}
+              data-testid={`tab-${tab}`}
+            >
+              {tab === "overview" ? "Overview" : "Citation URLs"}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="max-w-6xl mx-auto px-8 py-8 space-y-8">
+        {activeTab === "citations" ? (
+          <CitationSummaryTab sessionId={sessionId} />
+        ) : (
+        <>
         <div className="flex gap-4">
           <StatCard
             engine="gemini"
@@ -696,7 +915,8 @@ export default function AnalyticsDashboard() {
             </p>
           </div>
         )}
-
+        </>
+        )}
       </div>
     </div>
   );
