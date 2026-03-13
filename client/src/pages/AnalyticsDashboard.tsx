@@ -423,6 +423,7 @@ interface CitationUrlRow {
 
 interface CitationListRow {
   url: string;
+  domain: string;
   engine: string;
   url_category: string;
   segment_persona: string;
@@ -574,7 +575,8 @@ function CitationSummaryTab({ sessionId }: { sessionId: number }) {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-100 sticky top-0">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">URL</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Domain</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Full URL</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Engine</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Segment</th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Count</th>
@@ -583,6 +585,7 @@ function CitationSummaryTab({ sessionId }: { sessionId: number }) {
                 <tbody>
                   {(listData?.rows || []).map((row, i) => (
                     <tr key={i} className="border-b border-gray-50 hover:bg-gray-50" data-testid={`url-row-${i}`}>
+                      <td className="px-4 py-3 font-medium text-gray-800 text-sm whitespace-nowrap">{row.domain}</td>
                       <td className="px-6 py-3 max-w-xs">
                         <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs truncate block" title={row.url}>
                           {row.url}

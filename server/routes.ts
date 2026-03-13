@@ -1509,7 +1509,7 @@ export async function registerRoutes(
       if (category) { params.push(category); conditions.push(`url_category = $${params.length}`); }
       if (engine) { params.push(engine); conditions.push(`engine = $${params.length}`); }
       const result = await pool.query(`
-        SELECT url, engine, url_category, segment_persona, title,
+        SELECT url, domain, engine, url_category, segment_persona, title,
           COUNT(*) OVER (PARTITION BY url) as citation_count
         FROM citation_urls
         WHERE ${conditions.join(" AND ")}
