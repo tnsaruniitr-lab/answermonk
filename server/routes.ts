@@ -2705,5 +2705,19 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/geo-metrics-detail/:sessionId", async (_req, res) => {
+    try {
+      const fs = await import("fs");
+      const jsonPath = path.join(process.cwd(), "outputs", "brand_metrics_detail.json");
+      if (!fs.existsSync(jsonPath)) {
+        return res.status(404).json({ message: "Brand detail not yet generated. Run analyze_geo_healthcare.py first." });
+      }
+      const data = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to load geo metrics detail", error: String(err) });
+    }
+  });
+
   return httpServer;
 }

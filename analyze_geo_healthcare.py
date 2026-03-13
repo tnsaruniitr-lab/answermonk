@@ -692,8 +692,192 @@ report += f"""
 (OUTPUT_DIR / "report.md").write_text(report)
 print(f"    ✓ {OUTPUT_DIR}/report.md")
 
+# ─── SUBSIGNAL DEFINITIONS ───────────────────────────────────────────────────
+
+METRIC_SUBSIGNALS = {
+    "trust": {
+        "dha":              {"label": "DHA",                 "keywords": ["dha", "dha-licensed", "dha licensed"]},
+        "licensed":         {"label": "Licensed",            "keywords": ["licensed", "license", "licensed professionals"]},
+        "certified":        {"label": "Certified",           "keywords": ["certified", "certification", "certified professionals"]},
+        "accredited":       {"label": "Accredited",          "keywords": ["accredited", "accreditation"]},
+        "jci":              {"label": "JCI",                 "keywords": ["jci"]},
+        "iso":              {"label": "ISO",                 "keywords": ["iso"]},
+        "trained_qual":     {"label": "Trained / Qualified", "keywords": ["trained", "qualified", "highly qualified", "trained caregivers", "qualified nurses", "qualified staff"]},
+        "doctor_led":       {"label": "Doctor-Led",          "keywords": ["doctor-led"]},
+        "quality_excell":   {"label": "Quality / Excellence","keywords": ["quality care", "quality healthcare", "quality services", "excellence", "award"]},
+        "professional":     {"label": "Professional Staff",  "keywords": ["professional", "professionals", "skilled nurses", "verified"]},
+    },
+    "category_clarity": {
+        "home_healthcare":  {"label": "Home Healthcare",     "keywords": ["home healthcare", "home health care"]},
+        "home_care":        {"label": "Home Care",           "keywords": ["home care", "home care services", "home care provider"]},
+        "in_home":          {"label": "In-Home",             "keywords": ["in-home healthcare", "in-home care", "in-home visit", "in-home nursing"]},
+        "at_home":          {"label": "At-Home",             "keywords": ["at-home healthcare", "at-home care", "at-home care provider"]},
+        "provider_id":      {"label": "Provider Identity",   "keywords": ["home healthcare provider", "home nursing provider", "healthcare provider", "provider in dubai"]},
+        "home_nursing_cat": {"label": "Home Nursing",        "keywords": ["home nursing", "home nursing services"]},
+        "personalized":     {"label": "Personalized Care",   "keywords": ["personalized home care", "personalized healthcare", "personalized care", "personalized medical"]},
+        "based_dubai":      {"label": "Based in Dubai",      "keywords": ["based in dubai"]},
+    },
+    "service_breadth": {
+        "home_nursing":     {"label": "Home Nursing",              "keywords": KW_SERVICE_BUCKETS["home_nursing"]},
+        "physiotherapy":    {"label": "Physiotherapy",             "keywords": KW_SERVICE_BUCKETS["physiotherapy"]},
+        "doctor_support":   {"label": "Doctor Support",            "keywords": KW_SERVICE_BUCKETS["doctor_support"]},
+        "diagnostics":      {"label": "Diagnostics / Blood Tests", "keywords": KW_SERVICE_BUCKETS["diagnostics"]},
+    },
+    "care_depth": {
+        "elderly":          {"label": "Elderly Care",             "keywords": ["elderly", "elderly care", "elder care", "senior care", "geriatric", "geriatric care", "aging", "ageing"]},
+        "chronic":          {"label": "Chronic / Disease Mgmt",   "keywords": ["chronic", "chronic disease", "chronic condition", "disease management"]},
+        "post_acute":       {"label": "Post-Acute",               "keywords": ["post-op", "post operative", "post-operative", "post-hospital", "post-surgical"]},
+        "recovery":         {"label": "Recovery",                 "keywords": ["recovery"]},
+        "cognitive":        {"label": "Dementia / Cognitive",     "keywords": ["dementia", "alzheimer"]},
+        "palliative":       {"label": "Palliative",               "keywords": ["palliative", "palliative care"]},
+        "long_term":        {"label": "Long-Term Care",           "keywords": ["long-term care", "long term care"]},
+    },
+    "delivery_reliability": {
+        "always_on":        {"label": "24/7",                     "keywords": ["24/7", "24 hours", "around the clock"]},
+        "on_call":          {"label": "On-Call",                  "keywords": ["on-call", "on call"]},
+        "same_day":         {"label": "Same-Day",                 "keywords": ["same-day", "same day"]},
+        "doorstep":         {"label": "Doorstep",                 "keywords": ["doorstep", "at your door"]},
+        "home_visit":       {"label": "Home Visit",               "keywords": ["home visit", "home visits"]},
+        "responsive":       {"label": "Responsive / Rapid",       "keywords": ["responsive", "rapid response", "available anytime"]},
+    },
+    "authority_reputation": {
+        "established":      {"label": "Established / Founded",    "keywords": ["established", "founded", "since"]},
+        "recognized":       {"label": "Recognized / Reputable",   "keywords": ["recognized", "most recognized", "well-known", "well known", "reputable", "top-rated", "top rated"]},
+        "leading":          {"label": "Leading / Largest",        "keywords": ["leading", "largest", "pioneer"]},
+        "trusted":          {"label": "Trusted",                  "keywords": ["trusted", "trusted provider"]},
+        "award":            {"label": "Award-Winning",            "keywords": ["award-winning", "award winning", "award"]},
+    },
+}
+
+METRICS_WITH_SUBSIGNALS = list(METRIC_SUBSIGNALS.keys())
+
+
+def compute_subsignal_detail(bdf: pd.DataFrame, subsignals_def: dict) -> dict:
+    own = bdf[bdf["is_own"]]
+    ext = bdf[~bdf["is_own"]]
+
+    def _counts(sub, kws):
+        if sub.empty:
+            return 0, len(sub), 0, sub["host"].nunique()
+        matched = sub["norm_context"].apply(lambda t: keyword_match(t, kws))
+        return int(matched.sum()), len(sub), sub[matched]["host"].nunique(), sub["host"].nunique()
+
+    subsignals = {}
+    for sig_key, sig_def in subsignals_def.items():
+        kws = sig_def["keywords"]
+        osn, osd, odn, odd = _counts(own, kws)
+        esn, esd, edn, edd = _counts(ext, kws)
+        subsignals[sig_key] = {
+            "label":           sig_def["label"],
+            "own_snippet_num": osn, "own_snippet_den": osd,
+            "ext_snippet_num": esn, "ext_snippet_den": esd,
+            "own_domain_num":  odn, "own_domain_den":  odd,
+            "ext_domain_num":  edn, "ext_domain_den":  edd,
+        }
+    return subsignals
+
+
+def collect_examples(bdf: pd.DataFrame, all_kws: list, n: int = 5) -> list:
+    matched_mask = bdf["norm_context"].apply(lambda t: keyword_match(t, all_kws))
+    matched_rows = bdf[matched_mask].copy()
+    # Sort: external first (more interesting), then by text length (longer = richer context)
+    matched_rows["_ext"] = (~matched_rows["is_own"]).astype(int)
+    matched_rows["_len"] = matched_rows["norm_context"].str.len()
+    matched_rows = matched_rows.sort_values(["_ext", "_len"], ascending=[False, False])
+    examples = []
+    for _, row in matched_rows.head(n).iterrows():
+        examples.append({
+            "host":   row["host"],
+            "url":    str(row.get("url", "")),
+            "text":   row["norm_context"][:300],
+            "is_own": bool(row["is_own"]),
+        })
+    return examples
+
+
+def compute_identity_detail(bdf: pd.DataFrame) -> dict:
+    if bdf.empty:
+        return {}
+    def make_packet(row):
+        t = row["norm_context"]
+        return (
+            keyword_match(t, KW_IC_CATEGORY),
+            keyword_match(t, KW_IC_TRUST),
+            keyword_match(t, KW_IC_BREADTH),
+            keyword_match(t, KW_IC_DEPTH),
+        )
+    bdf = bdf.copy()
+    bdf["packet"] = bdf.apply(make_packet, axis=1)
+    packet_counts = Counter(bdf["packet"])
+    total = len(bdf)
+    DIMS = ["Category", "Trust", "Breadth", "Depth"]
+
+    packets_out = []
+    for packet, count in packet_counts.most_common(4):
+        label = " + ".join(DIMS[i] for i, v in enumerate(packet) if v) or "(none)"
+        packets_out.append({
+            "packet":    list(packet),
+            "label":     label,
+            "count":     count,
+            "pct":       round(100 * count / total, 1),
+            "hosts":     int(bdf[bdf["packet"] == packet]["host"].nunique()),
+            "total_hosts": int(bdf["host"].nunique()),
+        })
+    return {"packets": packets_out, "total_snippets": total}
+
+
+# ─── GENERATE DETAIL JSON ────────────────────────────────────────────────────
+
+print("\n[5] Generating brand_metrics_detail.json ...")
+
+brand_detail: dict = {}
+for brand in TARGET_BRANDS:
+    bdf = df_dedup[df_dedup["brand"] == brand]
+    score_row = df_scores[df_scores["brand"] == brand].iloc[0]
+    total_s = len(bdf)
+    total_d = bdf["host"].nunique()
+
+    brand_detail[brand] = {}
+
+    # Authority source — no keywords, show components
+    brand_detail[brand]["authority_source_presence"] = {
+        "score": float(score_row["authority_source_presence"]),
+        "components": {
+            "total_snippets": total_s,
+            "total_hosts":    total_d,
+            "own_snippets":   int(bdf["is_own"].sum()),
+            "ext_snippets":   int((~bdf["is_own"]).sum()),
+            "own_domain":     OWN_DOMAIN_OVERRIDES.get(brand, ""),
+        },
+        "subsignals": {},
+        "examples": [],
+    }
+
+    # Keyword metrics with subsignals
+    for metric_key, subsignals_def in METRIC_SUBSIGNALS.items():
+        all_kws = [kw for sig in subsignals_def.values() for kw in sig["keywords"]]
+        subsignals = compute_subsignal_detail(bdf, subsignals_def)
+        examples = collect_examples(bdf, all_kws, n=5)
+        brand_detail[brand][metric_key] = {
+            "score":      float(score_row[metric_key]),
+            "subsignals": subsignals,
+            "examples":   examples,
+        }
+
+    # Identity consistency — special packet analysis
+    brand_detail[brand]["identity_consistency"] = {
+        "score":   float(score_row["identity_consistency"]),
+        "packets": compute_identity_detail(bdf),
+        "subsignals": {},
+        "examples": [],
+    }
+
+detail_path = OUTPUT_DIR / "brand_metrics_detail.json"
+detail_path.write_text(json.dumps(brand_detail, indent=2, ensure_ascii=False))
+print(f"    ✓ {detail_path}")
+
 # ─── PRINT SCORES ────────────────────────────────────────────────────────────
 
-print("\n[5] Final scores (v2):")
+print("\n[6] Final scores (v2):")
 print(df_scores.to_string(index=False))
 print("\nDone.")

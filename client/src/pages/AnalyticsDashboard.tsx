@@ -718,11 +718,160 @@ function scoreColor(v: number): string {
   return "#f43f5e";
 }
 
+// ─── GEO types ───────────────────────────────────────────────────────────────
+
+type GeoSubsignal = {
+  label: string;
+  own_snippet_num: number; own_snippet_den: number;
+  ext_snippet_num: number; ext_snippet_den: number;
+  own_domain_num: number;  own_domain_den: number;
+  ext_domain_num: number;  ext_domain_den: number;
+};
+type GeoExample  = { host: string; url: string; text: string; is_own: boolean };
+type GeoPacket   = { packet: boolean[]; label: string; count: number; pct: number; hosts: number; total_hosts: number };
+type GeoMetricDetail = {
+  score: number;
+  subsignals: Record<string, GeoSubsignal>;
+  examples: GeoExample[];
+  packets?: { packets: GeoPacket[]; total_snippets: number };
+  components?: Record<string, number | string>;
+};
+type GeoDetailData = Record<string, Record<string, GeoMetricDetail>>;
+
+// ─── MetricDetailPanel ────────────────────────────────────────────────────────
+
+function MetricDetailPanel({ detail, metricKey }: { detail: GeoMetricDetail; metricKey: string }) {
+  const subsignalRows = Object.values(detail.subsignals ?? {}).filter(
+    (s) => s.own_snippet_num + s.ext_snippet_num > 0
+  );
+
+  return (
+    <div className="mt-1 mb-3 ml-[88px] bg-gray-50 border border-gray-100 rounded-lg overflow-hidden">
+
+      {/* ── Identity consistency: packet table ── */}
+      {metricKey === "identity_consistency" && detail.packets?.packets?.length ? (
+        <div className="p-3">
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Messaging Packets</p>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-gray-400 text-[10px]">
+                <th className="text-left pb-1 font-medium">Packet dimensions</th>
+                <th className="text-right pb-1 font-medium">%</th>
+                <th className="text-right pb-1 font-medium">Snippets</th>
+                <th className="text-right pb-1 font-medium">Hosts</th>
+              </tr>
+            </thead>
+            <tbody>
+              {detail.packets.packets.map((pkt, i) => (
+                <tr key={i} className="border-t border-gray-100">
+                  <td className="py-1 text-gray-700 pr-2">{pkt.label || "(none)"}</td>
+                  <td className="text-right py-1 font-medium text-gray-600">{pkt.pct}%</td>
+                  <td className="text-right py-1 text-gray-500">{pkt.count}/{detail.packets!.total_snippets}</td>
+                  <td className="text-right py-1 text-gray-500">{pkt.hosts}/{pkt.total_hosts}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+      ) : metricKey === "authority_source_presence" && detail.components ? (
+        /* ── Authority source: component factors ── */
+        <div className="p-3 grid grid-cols-2 gap-x-6 gap-y-1.5 text-xs">
+          {Object.entries(detail.components).map(([k, v]) => (
+            <div key={k} className="flex justify-between">
+              <span className="text-gray-400 capitalize">{k.replace(/_/g, " ")}</span>
+              <span className="font-medium text-gray-700">{String(v)}</span>
+            </div>
+          ))}
+        </div>
+
+      ) : subsignalRows.length > 0 ? (
+        /* ── Keyword metric: sub-signal table ── */
+        <div className="p-3">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-[10px] text-gray-400 uppercase tracking-wider">
+                <th className="text-left pb-1.5 font-medium">Sub-signal</th>
+                <th className="text-right pb-1.5 font-medium">Own snips</th>
+                <th className="text-right pb-1.5 font-medium">Ext snips</th>
+                <th className="text-right pb-1.5 font-medium">Own dom</th>
+                <th className="text-right pb-1.5 font-medium">Ext dom</th>
+              </tr>
+            </thead>
+            <tbody>
+              {subsignalRows.map((s, i) => (
+                <tr key={i} className="border-t border-gray-100">
+                  <td className="py-1 text-gray-700 pr-2">{s.label}</td>
+                  <td className="text-right py-1 text-gray-600 font-medium">
+                    {s.own_snippet_num > 0
+                      ? <span className="text-blue-600">{s.own_snippet_num}</span>
+                      : <span className="text-gray-300">0</span>}/{s.own_snippet_den}
+                  </td>
+                  <td className="text-right py-1 text-gray-600 font-medium">
+                    {s.ext_snippet_num > 0
+                      ? <span className="text-emerald-600">{s.ext_snippet_num}</span>
+                      : <span className="text-gray-300">0</span>}/{s.ext_snippet_den}
+                  </td>
+                  <td className="text-right py-1 text-gray-500">{s.own_domain_num}/{s.own_domain_den}</td>
+                  <td className="text-right py-1 text-gray-500">{s.ext_domain_num}/{s.ext_domain_den}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+      ) : (
+        <div className="p-3 text-xs text-gray-400 italic">No matching signals found for this metric.</div>
+      )}
+
+      {/* ── Evidence snippets ── */}
+      {detail.examples?.length > 0 && (
+        <div className="border-t border-gray-100 p-3 space-y-2.5">
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Evidence</p>
+          {detail.examples.map((ex, i) => (
+            <div key={i} className="text-xs">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wide ${
+                  ex.is_own ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-500"
+                }`}>
+                  {ex.is_own ? "own" : "ext"}
+                </span>
+                <span className="text-gray-400 font-medium">{ex.host}</span>
+                {ex.url && (
+                  <a
+                    href={ex.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-300 hover:text-gray-500"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <ExternalLink className="w-2.5 h-2.5" />
+                  </a>
+                )}
+              </div>
+              <p className="text-gray-600 leading-relaxed line-clamp-3">{ex.text}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── GeoMetricsSection ───────────────────────────────────────────────────────
+
 function GeoMetricsSection({ sessionId }: { sessionId: number }) {
   const [open, setOpen] = useState(false);
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery<{ brands: Record<string, string | number>[] }>({
     queryKey: [`/api/geo-metrics/${sessionId}`],
+    staleTime: 60000,
+    enabled: open,
+  });
+
+  const { data: detailData } = useQuery<GeoDetailData>({
+    queryKey: [`/api/geo-metrics-detail/${sessionId}`],
     staleTime: 60000,
     enabled: open,
   });
@@ -743,6 +892,11 @@ function GeoMetricsSection({ sessionId }: { sessionId: number }) {
       return avg > bestAvg ? b : best;
     });
   }, [brands]);
+
+  const toggleMetric = useCallback((brandName: string, metricKey: string) => {
+    const key = `${brandName}::${metricKey}`;
+    setExpandedKey((prev) => (prev === key ? null : key));
+  }, []);
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
@@ -791,10 +945,7 @@ function GeoMetricsSection({ sessionId }: { sessionId: number }) {
                 <ResponsiveContainer width="100%" height={360}>
                   <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
                     <PolarGrid stroke="#e5e7eb" />
-                    <PolarAngleAxis
-                      dataKey="metric"
-                      tick={{ fontSize: 11, fill: "#6b7280" }}
-                    />
+                    <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: "#6b7280" }} />
                     <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
                     {brands.map((b) => (
                       <Radar
@@ -808,11 +959,7 @@ function GeoMetricsSection({ sessionId }: { sessionId: number }) {
                         dot={false}
                       />
                     ))}
-                    <Legend
-                      iconType="circle"
-                      iconSize={8}
-                      wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
-                    />
+                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
                     <Tooltip
                       formatter={(val: number) => [`${val.toFixed(1)}`, undefined]}
                       contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e5e7eb" }}
@@ -827,6 +974,8 @@ function GeoMetricsSection({ sessionId }: { sessionId: number }) {
                   const brandName = b.brand as string;
                   const color = BRAND_COLORS[brandName] ?? "#6b7280";
                   const avg = METRIC_KEYS.reduce((s, k) => s + Number(b[k] ?? 0), 0) / METRIC_KEYS.length;
+                  const brandDetail = detailData?.[brandName];
+
                   return (
                     <div
                       key={brandName}
@@ -836,37 +985,51 @@ function GeoMetricsSection({ sessionId }: { sessionId: number }) {
                       {/* Card header */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: color }}
-                          />
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
                           <span className="text-sm font-semibold text-gray-800 truncate">{brandName}</span>
                         </div>
-                        <span
-                          className="text-xs font-bold shrink-0 ml-2"
-                          style={{ color }}
-                        >
+                        <span className="text-xs font-bold shrink-0 ml-2" style={{ color }}>
                           {avg.toFixed(0)}
                         </span>
                       </div>
 
-                      {/* Metric bars */}
-                      <div className="space-y-2">
+                      {/* Metric rows — each clickable */}
+                      <div className="space-y-0.5">
                         {METRIC_KEYS.map((key) => {
-                          const val = Number(b[key] ?? 0);
-                          const barColor = scoreColor(val);
+                          const val       = Number(b[key] ?? 0);
+                          const barColor  = scoreColor(val);
+                          const expandKey = `${brandName}::${key}`;
+                          const isExpanded = expandedKey === expandKey;
+                          const detail    = brandDetail?.[key];
+
                           return (
-                            <div key={key} className="flex items-center gap-2" data-testid={`geo-metric-${key}-${brandName.replace(/\s+/g, "-").toLowerCase()}`}>
-                              <span className="text-xs text-gray-400 w-20 shrink-0">{METRIC_LABELS[key]}</span>
-                              <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                <div
-                                  className="h-full rounded-full transition-all"
-                                  style={{ width: `${val}%`, backgroundColor: barColor }}
+                            <div key={key}>
+                              <button
+                                onClick={() => toggleMetric(brandName, key)}
+                                className="w-full flex items-center gap-2 py-1.5 rounded hover:bg-gray-50 px-1 -mx-1 group transition-colors"
+                                data-testid={`geo-metric-${key}-${brandName.replace(/\s+/g, "-").toLowerCase()}`}
+                                title={detail ? "Click to expand sub-signals and evidence" : undefined}
+                              >
+                                <span className="text-xs text-gray-400 w-20 shrink-0 text-left">{METRIC_LABELS[key]}</span>
+                                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full transition-all"
+                                    style={{ width: `${val}%`, backgroundColor: barColor }}
+                                  />
+                                </div>
+                                <span className="text-xs font-medium w-8 text-right shrink-0" style={{ color: barColor }}>
+                                  {val.toFixed(0)}
+                                </span>
+                                <ChevronRight
+                                  className={`w-3 h-3 shrink-0 transition-transform duration-150 ${
+                                    isExpanded ? "rotate-90 text-gray-400" : "text-gray-200 group-hover:text-gray-400"
+                                  }`}
                                 />
-                              </div>
-                              <span className="text-xs font-medium w-8 text-right" style={{ color: barColor }}>
-                                {val.toFixed(0)}
-                              </span>
+                              </button>
+
+                              {isExpanded && detail && (
+                                <MetricDetailPanel detail={detail} metricKey={key} />
+                              )}
                             </div>
                           );
                         })}
@@ -877,7 +1040,7 @@ function GeoMetricsSection({ sessionId }: { sessionId: number }) {
               </div>
 
               <p className="text-xs text-gray-300 mt-6 text-center">
-                Scores derived from {brands.length} brands · 292 deduped snippets · crawled citation pages only · relative to this session
+                Scores derived from {brands.length} brands · crawled citation pages only · click any metric row to expand sub-signals and evidence
               </p>
             </div>
           )}

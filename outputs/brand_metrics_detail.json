@@ -1,0 +1,4351 @@
+{
+  "Emirates Home Nursing": {
+    "authority_source_presence": {
+      "score": 82.35,
+      "components": {
+        "total_snippets": 50,
+        "total_hosts": 9,
+        "own_snippets": 13,
+        "ext_snippets": 37,
+        "own_domain": "emirateshomenursing.ae"
+      },
+      "subsignals": {},
+      "examples": []
+    },
+    "trust": {
+      "score": 42.4,
+      "subsignals": {
+        "dha": {
+          "label": "DHA",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "licensed": {
+          "label": "Licensed",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "certified": {
+          "label": "Certified",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 8
+        },
+        "accredited": {
+          "label": "Accredited",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "jci": {
+          "label": "JCI",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "iso": {
+          "label": "ISO",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "trained_qual": {
+          "label": "Trained / Qualified",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "doctor_led": {
+          "label": "Doctor-Led",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "quality_excell": {
+          "label": "Quality / Excellence",
+          "own_snippet_num": 2,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 37,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 8
+        },
+        "professional": {
+          "label": "Professional Staff",
+          "own_snippet_num": 3,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 9,
+          "ext_snippet_den": 37,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 4,
+          "ext_domain_den": 8
+        }
+      },
+      "examples": [
+        {
+          "host": "healthfinder.ae",
+          "url": "https://healthfinder.ae/listings/emirates-home-nursing-llc/",
+          "text": "maria brovarets reviewed 874 days ago emirates home nursing has been an incredible support for our family. the nanny services they provide are exceptional. the professionalism, warmth, and genuine care exhibited by their staff have truly impressed us. our nanny has been nurturing, responsible, and p",
+          "is_own": false
+        },
+        {
+          "host": "www.mordorintelligence.com",
+          "url": "https://www.mordorintelligence.com/industry-reports/market-entry-home-healthcare-industry-in-uae",
+          "text": "co-develop digital therapeutics. agencies also vie for clinician loyalty through continuous professional development and housing subsidies to curb turnover—central to sustaining service quality. uae home healthcare market leaders nmc healthcare sublime nursing db health group emirates home nursing t",
+          "is_own": false
+        },
+        {
+          "host": "expatsofdubai.com",
+          "url": "https://expatsofdubai.com/business/emirates-home-nursing/",
+          "text": "emirates home nursing opening tag is omitted --> tag --> emirates home nursing verified listing personalized home nursing services in dubai website call now profile prev next get directions prev next description emirates home nursing is a highly sought-after home nursing service provider based in du",
+          "is_own": false
+        },
+        {
+          "host": "montgohealth.com",
+          "url": "https://montgohealth.com/what-are-the-best-home-health-care-agencies-in-dubai/",
+          "text": "services range from post-operative support to elderly care and rehabilitation therapy. what makes them stand out is their focus on using modern techniques and international protocols, ensuring premium quality service tailored to individual needs. 5. emirates home nursing one of the first companies i",
+          "is_own": false
+        },
+        {
+          "host": "montgohealth.com",
+          "url": "https://montgohealth.com/what-are-the-best-home-health-care-agencies-in-dubai/",
+          "text": "using modern techniques and international protocols, ensuring premium quality service tailored to individual needs. 5. emirates home nursing one of the first companies in the united arab emirates to offer professional home care services was emirates home nursing, which was founded in 2003. with over",
+          "is_own": false
+        }
+      ]
+    },
+    "category_clarity": {
+      "score": 100.0,
+      "subsignals": {
+        "home_healthcare": {
+          "label": "Home Healthcare",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 9,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 3,
+          "ext_domain_den": 8
+        },
+        "home_care": {
+          "label": "Home Care",
+          "own_snippet_num": 3,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 7,
+          "ext_snippet_den": 37,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 4,
+          "ext_domain_den": 8
+        },
+        "in_home": {
+          "label": "In-Home",
+          "own_snippet_num": 2,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "at_home": {
+          "label": "At-Home",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "provider_id": {
+          "label": "Provider Identity",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "home_nursing_cat": {
+          "label": "Home Nursing",
+          "own_snippet_num": 13,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 37,
+          "ext_snippet_den": 37,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 8,
+          "ext_domain_den": 8
+        },
+        "personalized": {
+          "label": "Personalized Care",
+          "own_snippet_num": 2,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 37,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 8
+        },
+        "based_dubai": {
+          "label": "Based in Dubai",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 8
+        }
+      },
+      "examples": [
+        {
+          "host": "healthfinder.ae",
+          "url": "https://healthfinder.ae/listings/emirates-home-nursing-llc/",
+          "text": "maria brovarets reviewed 874 days ago emirates home nursing has been an incredible support for our family. the nanny services they provide are exceptional. the professionalism, warmth, and genuine care exhibited by their staff have truly impressed us. our nanny has been nurturing, responsible, and p",
+          "is_own": false
+        },
+        {
+          "host": "www.mordorintelligence.com",
+          "url": "https://www.mordorintelligence.com/industry-reports/market-entry-home-healthcare-industry-in-uae",
+          "text": "co-develop digital therapeutics. agencies also vie for clinician loyalty through continuous professional development and housing subsidies to curb turnover—central to sustaining service quality. uae home healthcare market leaders nmc healthcare sublime nursing db health group emirates home nursing t",
+          "is_own": false
+        },
+        {
+          "host": "www.mordorintelligence.com",
+          "url": "https://www.mordorintelligence.com/industry-reports/market-entry-home-healthcare-industry-in-uae",
+          "text": "available, strategic information, market rank/share for key companies, products services, and recent developments) 6.3.1 24seven home health 6.3.2 aims healthcare 6.3.3 alleanza 6.3.4 aster dm homecare 6.3.5 burjeel home care 6.3.6 db health group 6.3.7 emirates home nursing 6.3.8 eve medical servic",
+          "is_own": false
+        },
+        {
+          "host": "health.baabeetv.com",
+          "url": "https://health.baabeetv.com/?p=5",
+          "text": "offered in packages or on an hourly basis, with costs reflecting the skill level of the clinician. 9. emirates home nursing ⭐ overall rating: 8.0/10 | 🏥 best for: long-term nursing and technical medical care emirates home nursing has built a strong reputation for providing reliable and competent lon",
+          "is_own": false
+        },
+        {
+          "host": "jm.linkedin.com",
+          "url": "https://jm.linkedin.com/company/sublime-home-care",
+          "text": "similar pages nightingale health services llc hospitals and health care dubai, dubai babies beyond uae hospitals and health care lana life care hospitals and health care dubai, uae, dubai onelife homehealthcare home health care services emirates home nursing (ehn) home health care services belgravia",
+          "is_own": false
+        }
+      ]
+    },
+    "service_breadth": {
+      "score": 30.08,
+      "subsignals": {
+        "home_nursing": {
+          "label": "Home Nursing",
+          "own_snippet_num": 13,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 37,
+          "ext_snippet_den": 37,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 8,
+          "ext_domain_den": 8
+        },
+        "physiotherapy": {
+          "label": "Physiotherapy",
+          "own_snippet_num": 1,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 37,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 8
+        },
+        "doctor_support": {
+          "label": "Doctor Support",
+          "own_snippet_num": 2,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "diagnostics": {
+          "label": "Diagnostics / Blood Tests",
+          "own_snippet_num": 1,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        }
+      },
+      "examples": [
+        {
+          "host": "healthfinder.ae",
+          "url": "https://healthfinder.ae/listings/emirates-home-nursing-llc/",
+          "text": "maria brovarets reviewed 874 days ago emirates home nursing has been an incredible support for our family. the nanny services they provide are exceptional. the professionalism, warmth, and genuine care exhibited by their staff have truly impressed us. our nanny has been nurturing, responsible, and p",
+          "is_own": false
+        },
+        {
+          "host": "www.mordorintelligence.com",
+          "url": "https://www.mordorintelligence.com/industry-reports/market-entry-home-healthcare-industry-in-uae",
+          "text": "co-develop digital therapeutics. agencies also vie for clinician loyalty through continuous professional development and housing subsidies to curb turnover—central to sustaining service quality. uae home healthcare market leaders nmc healthcare sublime nursing db health group emirates home nursing t",
+          "is_own": false
+        },
+        {
+          "host": "www.mordorintelligence.com",
+          "url": "https://www.mordorintelligence.com/industry-reports/market-entry-home-healthcare-industry-in-uae",
+          "text": "available, strategic information, market rank/share for key companies, products services, and recent developments) 6.3.1 24seven home health 6.3.2 aims healthcare 6.3.3 alleanza 6.3.4 aster dm homecare 6.3.5 burjeel home care 6.3.6 db health group 6.3.7 emirates home nursing 6.3.8 eve medical servic",
+          "is_own": false
+        },
+        {
+          "host": "health.baabeetv.com",
+          "url": "https://health.baabeetv.com/?p=5",
+          "text": "offered in packages or on an hourly basis, with costs reflecting the skill level of the clinician. 9. emirates home nursing ⭐ overall rating: 8.0/10 | 🏥 best for: long-term nursing and technical medical care emirates home nursing has built a strong reputation for providing reliable and competent lon",
+          "is_own": false
+        },
+        {
+          "host": "jm.linkedin.com",
+          "url": "https://jm.linkedin.com/company/sublime-home-care",
+          "text": "similar pages nightingale health services llc hospitals and health care dubai, dubai babies beyond uae hospitals and health care lana life care hospitals and health care dubai, uae, dubai onelife homehealthcare home health care services emirates home nursing (ehn) home health care services belgravia",
+          "is_own": false
+        }
+      ]
+    },
+    "care_depth": {
+      "score": 19.8,
+      "subsignals": {
+        "elderly": {
+          "label": "Elderly Care",
+          "own_snippet_num": 4,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 37,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 2,
+          "ext_domain_den": 8
+        },
+        "chronic": {
+          "label": "Chronic / Disease Mgmt",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 8
+        },
+        "post_acute": {
+          "label": "Post-Acute",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 8
+        },
+        "recovery": {
+          "label": "Recovery",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "cognitive": {
+          "label": "Dementia / Cognitive",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "palliative": {
+          "label": "Palliative",
+          "own_snippet_num": 1,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "long_term": {
+          "label": "Long-Term Care",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        }
+      },
+      "examples": [
+        {
+          "host": "health.baabeetv.com",
+          "url": "https://health.baabeetv.com/?p=5",
+          "text": "development to stay abreast of the latest best practices in geriatric care. pricing: nursing services are typically offered in packages or on an hourly basis, with costs reflecting the skill level of the clinician. 9. emirates home nursing ⭐ overall rating: 8.0/10 | 🏥 best for: long-term nursing and",
+          "is_own": false
+        },
+        {
+          "host": "montgohealth.com",
+          "url": "https://montgohealth.com/what-are-the-best-home-health-care-agencies-in-dubai/",
+          "text": "services range from post-operative support to elderly care and rehabilitation therapy. what makes them stand out is their focus on using modern techniques and international protocols, ensuring premium quality service tailored to individual needs. 5. emirates home nursing one of the first companies i",
+          "is_own": false
+        },
+        {
+          "host": "montgohealth.com",
+          "url": "https://montgohealth.com/what-are-the-best-home-health-care-agencies-in-dubai/",
+          "text": "using modern techniques and international protocols, ensuring premium quality service tailored to individual needs. 5. emirates home nursing one of the first companies in the united arab emirates to offer professional home care services was emirates home nursing, which was founded in 2003. with over",
+          "is_own": false
+        },
+        {
+          "host": "emirateshomenursing.ae",
+          "url": "https://emirateshomenursing.ae/elderly-care-services-dubai/",
+          "text": "their own homes. from daily assistance to specialized medical care, our elderly care services are designed to enhance the quality of life for seniors while giving families peace of mind. personalized and compassionate care at emirates home nursing, we understand that every senior has unique needs. o",
+          "is_own": true
+        },
+        {
+          "host": "emirateshomenursing.ae",
+          "url": "https://emirateshomenursing.ae/elderly-care-services-dubai/",
+          "text": "home in dubai: meeting every need at home admin october 14, 2024 as people age, their healthcare needs often become more complex, making elderly care services in dubai essential for families seeking professional, compassionate support. emirates home nursing offers comprehensive elderly home care in ",
+          "is_own": true
+        }
+      ]
+    },
+    "delivery_reliability": {
+      "score": 12.27,
+      "subsignals": {
+        "always_on": {
+          "label": "24/7",
+          "own_snippet_num": 1,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "on_call": {
+          "label": "On-Call",
+          "own_snippet_num": 1,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "same_day": {
+          "label": "Same-Day",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "doorstep": {
+          "label": "Doorstep",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 8
+        },
+        "home_visit": {
+          "label": "Home Visit",
+          "own_snippet_num": 2,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "responsive": {
+          "label": "Responsive / Rapid",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        }
+      },
+      "examples": [
+        {
+          "host": "expatsofdubai.com",
+          "url": "https://expatsofdubai.com/business/emirates-home-nursing/",
+          "text": "emirates home nursing opening tag is omitted --> tag --> emirates home nursing verified listing personalized home nursing services in dubai website call now profile prev next get directions prev next description emirates home nursing is a highly sought-after home nursing service provider based in du",
+          "is_own": false
+        },
+        {
+          "host": "emirateshomenursing.ae",
+          "url": "https://emirateshomenursing.ae/",
+          "text": "language comprehension and social communication with compassionate care. book now doctor on call -> professional medical consultations -> provides personalized care plans -> virtual consultations or in-home visits -> delivering high-quality healthcare services book now emirates home nursing supporti",
+          "is_own": true
+        },
+        {
+          "host": "emirateshomenursing.ae",
+          "url": "https://emirateshomenursing.ae/",
+          "text": "-> virtual consultations or in-home visits -> delivering high-quality healthcare services book now emirates home nursing supporting our community with high-quality personalized home care from childhood to old age. contact us - contact us - emirates home nursing supporting our community with high-qua",
+          "is_own": true
+        },
+        {
+          "host": "emirateshomenursing.ae",
+          "url": "https://emirateshomenursing.ae/",
+          "text": "home nursing services in dubai | emirates home nursing services newborn, mother care & child care exceptional care from nurses who speak russian, english, french, spanish, and arabic. our nurses are fluent in russian, english, french, spanish, and arabic, offering you 24/7 bespoke support",
+          "is_own": true
+        }
+      ]
+    },
+    "authority_reputation": {
+      "score": 17.0,
+      "subsignals": {
+        "established": {
+          "label": "Established / Founded",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 3,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 2,
+          "ext_domain_den": 8
+        },
+        "recognized": {
+          "label": "Recognized / Reputable",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 8
+        },
+        "leading": {
+          "label": "Leading / Largest",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        },
+        "trusted": {
+          "label": "Trusted",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 8
+        },
+        "award": {
+          "label": "Award-Winning",
+          "own_snippet_num": 0,
+          "own_snippet_den": 13,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 37,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 8
+        }
+      },
+      "examples": [
+        {
+          "host": "expatsofdubai.com",
+          "url": "https://expatsofdubai.com/business/emirates-home-nursing/",
+          "text": "emirates home nursing opening tag is omitted --> tag --> emirates home nursing verified listing personalized home nursing services in dubai website call now profile prev next get directions prev next description emirates home nursing is a highly sought-after home nursing service provider based in du",
+          "is_own": false
+        },
+        {
+          "host": "montgohealth.com",
+          "url": "https://montgohealth.com/what-are-the-best-home-health-care-agencies-in-dubai/",
+          "text": "services range from post-operative support to elderly care and rehabilitation therapy. what makes them stand out is their focus on using modern techniques and international protocols, ensuring premium quality service tailored to individual needs. 5. emirates home nursing one of the first companies i",
+          "is_own": false
+        },
+        {
+          "host": "montgohealth.com",
+          "url": "https://montgohealth.com/what-are-the-best-home-health-care-agencies-in-dubai/",
+          "text": "using modern techniques and international protocols, ensuring premium quality service tailored to individual needs. 5. emirates home nursing one of the first companies in the united arab emirates to offer professional home care services was emirates home nursing, which was founded in 2003. with over",
+          "is_own": false
+        },
+        {
+          "host": "digitalmarketingdeal.me",
+          "url": "https://digitalmarketingdeal.me/blog/home-nursing-services-in-dubai/",
+          "text": "services in dubai 2024. our updated and ranking list features reliable and trusted providers offering quality care for your loved ones at home. top 10 home nursing services in dubai 2024 #1. emirates home nursing emirates home nursing was able to achieve excellence in nursing and caregiving and beco",
+          "is_own": false
+        },
+        {
+          "host": "digitalmarketingdeal.me",
+          "url": "https://digitalmarketingdeal.me/blog/home-nursing-services-in-dubai/",
+          "text": "10 home nursing services in dubai 2024. our updated and ranking list features reliable and trusted providers offering quality care for your loved ones at home. top 10 home nursing services in dubai 2024 #1. emirates home nursing emirates home nursing was able to achieve excellence in nursing and car",
+          "is_own": false
+        }
+      ]
+    },
+    "identity_consistency": {
+      "score": 59.77,
+      "packets": {
+        "packets": [
+          {
+            "packet": [
+              true,
+              false,
+              true,
+              false
+            ],
+            "label": "Category + Breadth",
+            "count": 31,
+            "pct": 62.0,
+            "hosts": 7,
+            "total_hosts": 9
+          },
+          {
+            "packet": [
+              true,
+              true,
+              true,
+              false
+            ],
+            "label": "Category + Trust + Breadth",
+            "count": 12,
+            "pct": 24.0,
+            "hosts": 5,
+            "total_hosts": 9
+          },
+          {
+            "packet": [
+              true,
+              true,
+              true,
+              true
+            ],
+            "label": "Category + Trust + Breadth + Depth",
+            "count": 4,
+            "pct": 8.0,
+            "hosts": 2,
+            "total_hosts": 9
+          },
+          {
+            "packet": [
+              true,
+              false,
+              true,
+              true
+            ],
+            "label": "Category + Breadth + Depth",
+            "count": 3,
+            "pct": 6.0,
+            "hosts": 2,
+            "total_hosts": 9
+          }
+        ],
+        "total_snippets": 50
+      },
+      "subsignals": {},
+      "examples": []
+    }
+  },
+  "First Response Healthcare": {
+    "authority_source_presence": {
+      "score": 75.25,
+      "components": {
+        "total_snippets": 69,
+        "total_hosts": 10,
+        "own_snippets": 41,
+        "ext_snippets": 28,
+        "own_domain": "firstresponsehealthcare.com"
+      },
+      "subsignals": {},
+      "examples": []
+    },
+    "trust": {
+      "score": 42.35,
+      "subsignals": {
+        "dha": {
+          "label": "DHA",
+          "own_snippet_num": 3,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 2,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "licensed": {
+          "label": "Licensed",
+          "own_snippet_num": 5,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 2,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "certified": {
+          "label": "Certified",
+          "own_snippet_num": 0,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 0,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "accredited": {
+          "label": "Accredited",
+          "own_snippet_num": 13,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 28,
+          "own_domain_num": 3,
+          "own_domain_den": 3,
+          "ext_domain_num": 1,
+          "ext_domain_den": 7
+        },
+        "jci": {
+          "label": "JCI",
+          "own_snippet_num": 12,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 28,
+          "own_domain_num": 3,
+          "own_domain_den": 3,
+          "ext_domain_num": 1,
+          "ext_domain_den": 7
+        },
+        "iso": {
+          "label": "ISO",
+          "own_snippet_num": 0,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 0,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "trained_qual": {
+          "label": "Trained / Qualified",
+          "own_snippet_num": 2,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 1,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "doctor_led": {
+          "label": "Doctor-Led",
+          "own_snippet_num": 0,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 0,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "quality_excell": {
+          "label": "Quality / Excellence",
+          "own_snippet_num": 8,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 2,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "professional": {
+          "label": "Professional Staff",
+          "own_snippet_num": 5,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 4,
+          "ext_snippet_den": 28,
+          "own_domain_num": 2,
+          "own_domain_den": 3,
+          "ext_domain_num": 2,
+          "ext_domain_den": 7
+        }
+      },
+      "examples": [
+        {
+          "host": "oncalldoctordubai.com",
+          "url": "https://oncalldoctordubai.com/",
+          "text": "alhuishmawi (general practitioner) mbbs from iraq. dynamic, accomplished, and talented general practitioner professional with 4+ years of experience in handling general medicine, emergency, and dialysis units. languages english, arabic know more --> healthcare --> about first response healthcare fir",
+          "is_own": false
+        },
+        {
+          "host": "oncalldoctordubai.com",
+          "url": "https://oncalldoctordubai.com/",
+          "text": "mbbs from iraq. dynamic, accomplished, and talented general practitioner professional with 4+ years of experience in handling general medicine, emergency, and dialysis units. languages english, arabic know more --> healthcare --> about first response healthcare first response healthcare is a profici",
+          "is_own": false
+        },
+        {
+          "host": "digitalmarketingdeal.me",
+          "url": "https://digitalmarketingdeal.me/blog/home-nursing-services-in-dubai/",
+          "text": "elderly care programs, hotel nursing, travel nursing and professional nanny coaching. al maktab building, office 101, al barsha 1 p.o.box 486206 dubai uae . +971 4 347 0504 +971 52 572 8850 info@sublimehomecare.com website: https://sublimehomecare.com/ #6.first response healthcare first response hea",
+          "is_own": false
+        },
+        {
+          "host": "digitalmarketingdeal.me",
+          "url": "https://digitalmarketingdeal.me/blog/home-nursing-services-in-dubai/",
+          "text": "hotel nursing, travel nursing and professional nanny coaching. al maktab building, office 101, al barsha 1 p.o.box 486206 dubai uae . +971 4 347 0504 +971 52 572 8850 info@sublimehomecare.com website: https://sublimehomecare.com/ #6.first response healthcare first response healthcare is a proficient",
+          "is_own": false
+        },
+        {
+          "host": "gulfnews.com",
+          "url": "https://gulfnews.com/uae/health/first-response-healthcare-delivers-healthcare-at-home-with-prestigious-jci-accreditation-1.1655976972746",
+          "text": "first response healthcare: delivers healthcare-at-home with prestigious jci accreditation googletag.cmd.push(function () { googletag.display('gulfnews_oop_1_100'); googlet",
+          "is_own": false
+        }
+      ]
+    },
+    "category_clarity": {
+      "score": 57.52,
+      "subsignals": {
+        "home_healthcare": {
+          "label": "Home Healthcare",
+          "own_snippet_num": 17,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 9,
+          "ext_snippet_den": 28,
+          "own_domain_num": 3,
+          "own_domain_den": 3,
+          "ext_domain_num": 4,
+          "ext_domain_den": 7
+        },
+        "home_care": {
+          "label": "Home Care",
+          "own_snippet_num": 12,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 2,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "in_home": {
+          "label": "In-Home",
+          "own_snippet_num": 0,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 0,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "at_home": {
+          "label": "At-Home",
+          "own_snippet_num": 0,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 0,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "provider_id": {
+          "label": "Provider Identity",
+          "own_snippet_num": 3,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 2,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "home_nursing_cat": {
+          "label": "Home Nursing",
+          "own_snippet_num": 8,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 1,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "personalized": {
+          "label": "Personalized Care",
+          "own_snippet_num": 1,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 1,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "based_dubai": {
+          "label": "Based in Dubai",
+          "own_snippet_num": 0,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 0,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        }
+      },
+      "examples": [
+        {
+          "host": "oncalldoctordubai.com",
+          "url": "https://oncalldoctordubai.com/",
+          "text": "alhuishmawi (general practitioner) mbbs from iraq. dynamic, accomplished, and talented general practitioner professional with 4+ years of experience in handling general medicine, emergency, and dialysis units. languages english, arabic know more --> healthcare --> about first response healthcare fir",
+          "is_own": false
+        },
+        {
+          "host": "oncalldoctordubai.com",
+          "url": "https://oncalldoctordubai.com/",
+          "text": "mbbs from iraq. dynamic, accomplished, and talented general practitioner professional with 4+ years of experience in handling general medicine, emergency, and dialysis units. languages english, arabic know more --> healthcare --> about first response healthcare first response healthcare is a profici",
+          "is_own": false
+        },
+        {
+          "host": "digitalmarketingdeal.me",
+          "url": "https://digitalmarketingdeal.me/blog/home-nursing-services-in-dubai/",
+          "text": "elderly care programs, hotel nursing, travel nursing and professional nanny coaching. al maktab building, office 101, al barsha 1 p.o.box 486206 dubai uae . +971 4 347 0504 +971 52 572 8850 info@sublimehomecare.com website: https://sublimehomecare.com/ #6.first response healthcare first response hea",
+          "is_own": false
+        },
+        {
+          "host": "digitalmarketingdeal.me",
+          "url": "https://digitalmarketingdeal.me/blog/home-nursing-services-in-dubai/",
+          "text": "hotel nursing, travel nursing and professional nanny coaching. al maktab building, office 101, al barsha 1 p.o.box 486206 dubai uae . +971 4 347 0504 +971 52 572 8850 info@sublimehomecare.com website: https://sublimehomecare.com/ #6.first response healthcare first response healthcare is a proficient",
+          "is_own": false
+        },
+        {
+          "host": "www.trustpilot.com",
+          "url": "https://www.trustpilot.com/review/firstresponse.ae",
+          "text": "based on a genuine experience. we recognise we may not catch everything, and you can flag anything you think we may have missed. read more company details home health care service written by the company first response healthcare is a proficient and leading home healthcare company in dubai, committed",
+          "is_own": false
+        }
+      ]
+    },
+    "service_breadth": {
+      "score": 20.67,
+      "subsignals": {
+        "home_nursing": {
+          "label": "Home Nursing",
+          "own_snippet_num": 22,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 9,
+          "ext_snippet_den": 28,
+          "own_domain_num": 3,
+          "own_domain_den": 3,
+          "ext_domain_num": 4,
+          "ext_domain_den": 7
+        },
+        "physiotherapy": {
+          "label": "Physiotherapy",
+          "own_snippet_num": 7,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 28,
+          "own_domain_num": 1,
+          "own_domain_den": 3,
+          "ext_domain_num": 1,
+          "ext_domain_den": 7
+        },
+        "doctor_support": {
+          "label": "Doctor Support",
+          "own_snippet_num": 4,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 28,
+          "own_domain_num": 2,
+          "own_domain_den": 3,
+          "ext_domain_num": 1,
+          "ext_domain_den": 7
+        },
+        "diagnostics": {
+          "label": "Diagnostics / Blood Tests",
+          "own_snippet_num": 0,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 0,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        }
+      },
+      "examples": [
+        {
+          "host": "oncalldoctordubai.com",
+          "url": "https://oncalldoctordubai.com/",
+          "text": "alhuishmawi (general practitioner) mbbs from iraq. dynamic, accomplished, and talented general practitioner professional with 4+ years of experience in handling general medicine, emergency, and dialysis units. languages english, arabic know more --> healthcare --> about first response healthcare fir",
+          "is_own": false
+        },
+        {
+          "host": "oncalldoctordubai.com",
+          "url": "https://oncalldoctordubai.com/",
+          "text": "mbbs from iraq. dynamic, accomplished, and talented general practitioner professional with 4+ years of experience in handling general medicine, emergency, and dialysis units. languages english, arabic know more --> healthcare --> about first response healthcare first response healthcare is a profici",
+          "is_own": false
+        },
+        {
+          "host": "digitalmarketingdeal.me",
+          "url": "https://digitalmarketingdeal.me/blog/home-nursing-services-in-dubai/",
+          "text": "elderly care programs, hotel nursing, travel nursing and professional nanny coaching. al maktab building, office 101, al barsha 1 p.o.box 486206 dubai uae . +971 4 347 0504 +971 52 572 8850 info@sublimehomecare.com website: https://sublimehomecare.com/ #6.first response healthcare first response hea",
+          "is_own": false
+        },
+        {
+          "host": "digitalmarketingdeal.me",
+          "url": "https://digitalmarketingdeal.me/blog/home-nursing-services-in-dubai/",
+          "text": "hotel nursing, travel nursing and professional nanny coaching. al maktab building, office 101, al barsha 1 p.o.box 486206 dubai uae . +971 4 347 0504 +971 52 572 8850 info@sublimehomecare.com website: https://sublimehomecare.com/ #6.first response healthcare first response healthcare is a proficient",
+          "is_own": false
+        },
+        {
+          "host": "www.trustpilot.com",
+          "url": "https://www.trustpilot.com/review/firstresponse.ae",
+          "text": "based on a genuine experience. we recognise we may not catch everything, and you can flag anything you think we may have missed. read more company details home health care service written by the company first response healthcare is a proficient and leading home healthcare company in dubai, committed",
+          "is_own": false
+        }
+      ]
+    },
+    "care_depth": {
+      "score": 19.14,
+      "subsignals": {
+        "elderly": {
+          "label": "Elderly Care",
+          "own_snippet_num": 6,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 28,
+          "own_domain_num": 1,
+          "own_domain_den": 3,
+          "ext_domain_num": 1,
+          "ext_domain_den": 7
+        },
+        "chronic": {
+          "label": "Chronic / Disease Mgmt",
+          "own_snippet_num": 1,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 1,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "post_acute": {
+          "label": "Post-Acute",
+          "own_snippet_num": 2,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 1,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "recovery": {
+          "label": "Recovery",
+          "own_snippet_num": 2,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 28,
+          "own_domain_num": 1,
+          "own_domain_den": 3,
+          "ext_domain_num": 1,
+          "ext_domain_den": 7
+        },
+        "cognitive": {
+          "label": "Dementia / Cognitive",
+          "own_snippet_num": 1,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 1,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "palliative": {
+          "label": "Palliative",
+          "own_snippet_num": 1,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 1,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "long_term": {
+          "label": "Long-Term Care",
+          "own_snippet_num": 0,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 0,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        }
+      },
+      "examples": [
+        {
+          "host": "digitalmarketingdeal.me",
+          "url": "https://digitalmarketingdeal.me/blog/home-nursing-services-in-dubai/",
+          "text": "elderly care programs, hotel nursing, travel nursing and professional nanny coaching. al maktab building, office 101, al barsha 1 p.o.box 486206 dubai uae . +971 4 347 0504 +971 52 572 8850 info@sublimehomecare.com website: https://sublimehomecare.com/ #6.first response healthcare first response hea",
+          "is_own": false
+        },
+        {
+          "host": "oncalldoctordubai.com",
+          "url": "https://oncalldoctordubai.com/",
+          "text": "indicates, we excel at providing prompt and reliable medical care to our patients to help them achieve rapid recovery from illnesses and be in the best of their health always. doctor on call services from first response healthcare information : call us to make an appointment at 0505050 387 time for ",
+          "is_own": false
+        },
+        {
+          "host": "firstresponsehealthcare.com",
+          "url": "https://firstresponsehealthcare.com/ae/dubai/home-nursing-services",
+          "text": "major operation by a surgeon general & specialized homecare nursing as per clinical requirement, helping families with quality nursing care regular doctor visits | timely medications | health monitoring our home care nursing services the first response healthcare nursing team is comprised of highly ",
+          "is_own": true
+        },
+        {
+          "host": "firstresponsehealthcare.com",
+          "url": "https://firstresponsehealthcare.com/blog/ae/dubai/the-benefits-of-physiotherapy-sessions-at-home-in-jumeirah/",
+          "text": "fostering a healthier and more resilient community in the heart of dubai. the journey to optimal health and recovery begins within the familiar and comfortable walls of your home. physiotherapy home services in jumeirah | first response healthcare first response healthcare (frh) is a leading home he",
+          "is_own": true
+        },
+        {
+          "host": "firstresponsehealthcare.com",
+          "url": "https://firstresponsehealthcare.com/blog/ae/dubai/the-benefits-of-physiotherapy-sessions-at-home-in-jumeirah/",
+          "text": "and more resilient community in the heart of dubai. the journey to optimal health and recovery begins within the familiar and comfortable walls of your home. physiotherapy home services in jumeirah | first response healthcare first response healthcare (frh) is a leading home healthcare company in du",
+          "is_own": true
+        }
+      ]
+    },
+    "delivery_reliability": {
+      "score": 33.26,
+      "subsignals": {
+        "always_on": {
+          "label": "24/7",
+          "own_snippet_num": 4,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 28,
+          "own_domain_num": 3,
+          "own_domain_den": 3,
+          "ext_domain_num": 2,
+          "ext_domain_den": 7
+        },
+        "on_call": {
+          "label": "On-Call",
+          "own_snippet_num": 5,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 28,
+          "own_domain_num": 2,
+          "own_domain_den": 3,
+          "ext_domain_num": 1,
+          "ext_domain_den": 7
+        },
+        "same_day": {
+          "label": "Same-Day",
+          "own_snippet_num": 0,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 0,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "doorstep": {
+          "label": "Doorstep",
+          "own_snippet_num": 6,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 2,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "home_visit": {
+          "label": "Home Visit",
+          "own_snippet_num": 0,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 0,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "responsive": {
+          "label": "Responsive / Rapid",
+          "own_snippet_num": 0,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 0,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        }
+      },
+      "examples": [
+        {
+          "host": "health.baabeetv.com",
+          "url": "https://health.baabeetv.com/?p=5",
+          "text": "community focus: they have a strong commitment to serving the wider community, including emirati and expatriate families. pricing: highly competitive, with consultation and care packages starting from lower price points than many private competitors. 5. first response healthcare (frh) ⭐ overall rati",
+          "is_own": false
+        },
+        {
+          "host": "oncalldoctordubai.com",
+          "url": "https://oncalldoctordubai.com/",
+          "text": "indicates, we excel at providing prompt and reliable medical care to our patients to help them achieve rapid recovery from illnesses and be in the best of their health always. doctor on call services from first response healthcare information : call us to make an appointment at 0505050 387 time for ",
+          "is_own": false
+        },
+        {
+          "host": "oncalldoctordubai.com",
+          "url": "https://oncalldoctordubai.com/",
+          "text": "doctor on call services from first response healthcare",
+          "is_own": false
+        },
+        {
+          "host": "24x7dubai.firstresponsehealthcare.com",
+          "url": "https://24x7dubai.firstresponsehealthcare.com/doctor-on-call/",
+          "text": "time. dr. nadir explained everything clearly, and nurse eden was kind, professional, and supportive. they went above and beyond, and we’re doing so much better now. highly recommend! about first response healthcare established in 2018, first response healthcare is a jci-accredited organization and b",
+          "is_own": true
+        },
+        {
+          "host": "firstresponsehealthcare.com",
+          "url": "https://firstresponsehealthcare.com/ae/dubai/jci-accreditation",
+          "text": "healthcare receives jci gold accreditation | doctor on call dubai | home, hotels - 24x7x365 --> --> december 10, 2019 views likes post views: 8,474 jci accreditation: first response healthcare's commitment to excellence in dubai first response healthcare llc receives joint commission international’s",
+          "is_own": true
+        }
+      ]
+    },
+    "authority_reputation": {
+      "score": 25.19,
+      "subsignals": {
+        "established": {
+          "label": "Established / Founded",
+          "own_snippet_num": 3,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 1,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "recognized": {
+          "label": "Recognized / Reputable",
+          "own_snippet_num": 3,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 1,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "leading": {
+          "label": "Leading / Largest",
+          "own_snippet_num": 4,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 3,
+          "ext_snippet_den": 28,
+          "own_domain_num": 2,
+          "own_domain_den": 3,
+          "ext_domain_num": 2,
+          "ext_domain_den": 7
+        },
+        "trusted": {
+          "label": "Trusted",
+          "own_snippet_num": 2,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 1,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        },
+        "award": {
+          "label": "Award-Winning",
+          "own_snippet_num": 0,
+          "own_snippet_den": 41,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 28,
+          "own_domain_num": 0,
+          "own_domain_den": 3,
+          "ext_domain_num": 0,
+          "ext_domain_den": 7
+        }
+      },
+      "examples": [
+        {
+          "host": "digitalmarketingdeal.me",
+          "url": "https://digitalmarketingdeal.me/blog/home-nursing-services-in-dubai/",
+          "text": "elderly care programs, hotel nursing, travel nursing and professional nanny coaching. al maktab building, office 101, al barsha 1 p.o.box 486206 dubai uae . +971 4 347 0504 +971 52 572 8850 info@sublimehomecare.com website: https://sublimehomecare.com/ #6.first response healthcare first response hea",
+          "is_own": false
+        },
+        {
+          "host": "digitalmarketingdeal.me",
+          "url": "https://digitalmarketingdeal.me/blog/home-nursing-services-in-dubai/",
+          "text": "hotel nursing, travel nursing and professional nanny coaching. al maktab building, office 101, al barsha 1 p.o.box 486206 dubai uae . +971 4 347 0504 +971 52 572 8850 info@sublimehomecare.com website: https://sublimehomecare.com/ #6.first response healthcare first response healthcare is a proficient",
+          "is_own": false
+        },
+        {
+          "host": "www.trustpilot.com",
+          "url": "https://www.trustpilot.com/review/firstresponse.ae",
+          "text": "based on a genuine experience. we recognise we may not catch everything, and you can flag anything you think we may have missed. read more company details home health care service written by the company first response healthcare is a proficient and leading home healthcare company in dubai, committed",
+          "is_own": false
+        },
+        {
+          "host": "24x7dubai.firstresponsehealthcare.com",
+          "url": "https://24x7dubai.firstresponsehealthcare.com/doctor-on-call/",
+          "text": "time. dr. nadir explained everything clearly, and nurse eden was kind, professional, and supportive. they went above and beyond, and we’re doing so much better now. highly recommend! about first response healthcare established in 2018, first response healthcare is a jci-accredited organization and b",
+          "is_own": true
+        },
+        {
+          "host": "firstresponsehealthcare.com",
+          "url": "https://firstresponsehealthcare.com/ae/dubai/jci-accreditation",
+          "text": "healthcare receives jci gold accreditation | doctor on call dubai | home, hotels - 24x7x365 --> --> december 10, 2019 views likes post views: 8,474 jci accreditation: first response healthcare's commitment to excellence in dubai first response healthcare llc receives joint commission international’s",
+          "is_own": true
+        }
+      ]
+    },
+    "identity_consistency": {
+      "score": 42.56,
+      "packets": {
+        "packets": [
+          {
+            "packet": [
+              false,
+              false,
+              false,
+              false
+            ],
+            "label": "(none)",
+            "count": 21,
+            "pct": 30.4,
+            "hosts": 8,
+            "total_hosts": 10
+          },
+          {
+            "packet": [
+              true,
+              true,
+              true,
+              false
+            ],
+            "label": "Category + Trust + Breadth",
+            "count": 14,
+            "pct": 20.3,
+            "hosts": 5,
+            "total_hosts": 10
+          },
+          {
+            "packet": [
+              true,
+              false,
+              true,
+              false
+            ],
+            "label": "Category + Breadth",
+            "count": 10,
+            "pct": 14.5,
+            "hosts": 4,
+            "total_hosts": 10
+          },
+          {
+            "packet": [
+              false,
+              false,
+              true,
+              false
+            ],
+            "label": "Breadth",
+            "count": 6,
+            "pct": 8.7,
+            "hosts": 3,
+            "total_hosts": 10
+          }
+        ],
+        "total_snippets": 69
+      },
+      "subsignals": {},
+      "examples": []
+    }
+  },
+  "Nightingale Health Services": {
+    "authority_source_presence": {
+      "score": 70.75,
+      "components": {
+        "total_snippets": 45,
+        "total_hosts": 7,
+        "own_snippets": 19,
+        "ext_snippets": 26,
+        "own_domain": "nightingaledubai.com"
+      },
+      "subsignals": {},
+      "examples": []
+    },
+    "trust": {
+      "score": 40.86,
+      "subsignals": {
+        "dha": {
+          "label": "DHA",
+          "own_snippet_num": 6,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "licensed": {
+          "label": "Licensed",
+          "own_snippet_num": 4,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 6
+        },
+        "certified": {
+          "label": "Certified",
+          "own_snippet_num": 2,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "accredited": {
+          "label": "Accredited",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "jci": {
+          "label": "JCI",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "iso": {
+          "label": "ISO",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "trained_qual": {
+          "label": "Trained / Qualified",
+          "own_snippet_num": 5,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "doctor_led": {
+          "label": "Doctor-Led",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "quality_excell": {
+          "label": "Quality / Excellence",
+          "own_snippet_num": 2,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 6
+        },
+        "professional": {
+          "label": "Professional Staff",
+          "own_snippet_num": 4,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 3,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 6
+        }
+      },
+      "examples": [
+        {
+          "host": "www.dubaihealthlicense.com",
+          "url": "https://www.dubaihealthlicense.com/directory/nightingale-health-services-co-l-l-c-home-health-care-2/",
+          "text": "skip to content go back bookmark share facebook x linkedin report your complaint * submit nightingale health services co l l c home health care 0 (0 reviews) --> popular homecare companies in uae dubai nightingale health services co l l c home health care nightingale health services was established ",
+          "is_own": false
+        },
+        {
+          "host": "www.dubaisbest.com",
+          "url": "https://www.dubaisbest.com/best-elderly-care-facilities-dubai/",
+          "text": "dubai - united arab emirates social media facebook contact details phone: +971 800 823 operating hours monday - sunday: 8:00 am - 8:00 pm elderly care in dubai is getting a fresh twist thanks to nightingale health services. founded by british experts, they’re all about bringing top-notch home nursin",
+          "is_own": false
+        },
+        {
+          "host": "www.dubaihealthlicense.com",
+          "url": "https://www.dubaihealthlicense.com/directory/nightingale-health-services-co-l-l-c-home-health-care-2/",
+          "text": "report your complaint * submit nightingale health services co l l c home health care 0 (0 reviews) --> popular homecare companies in uae dubai nightingale health services co l l c home health care nightingale health services was established by british professionals to bring the highest standards of ",
+          "is_own": false
+        },
+        {
+          "host": "www.dubaihealthlicense.com",
+          "url": "https://www.dubaihealthlicense.com/directory/nightingale-health-services-co-l-l-c-home-health-care-2/",
+          "text": "nightingale health services co l l c home health care - dubai health license skip to content go back bookmark share facebook x linkedin report your complaint * submit nightingale health services co l l c home health care 0 (0 reviews) --> popular homecare companies in uae dubai nightingale health se",
+          "is_own": false
+        },
+        {
+          "host": "www.dubaihealthlicense.com",
+          "url": "https://www.dubaihealthlicense.com/directory/nightingale-health-services-co-l-l-c-home-health-care-2/",
+          "text": "nightingale health services co l l c home health care - dubai health license skip to content go back bookmark share facebook x linkedin report your complaint * submit nightingale health services co l l c home health",
+          "is_own": false
+        }
+      ]
+    },
+    "category_clarity": {
+      "score": 53.71,
+      "subsignals": {
+        "home_healthcare": {
+          "label": "Home Healthcare",
+          "own_snippet_num": 7,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 9,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 5,
+          "ext_domain_den": 6
+        },
+        "home_care": {
+          "label": "Home Care",
+          "own_snippet_num": 1,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 4,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 3,
+          "ext_domain_den": 6
+        },
+        "in_home": {
+          "label": "In-Home",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "at_home": {
+          "label": "At-Home",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "provider_id": {
+          "label": "Provider Identity",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "home_nursing_cat": {
+          "label": "Home Nursing",
+          "own_snippet_num": 1,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 5,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 4,
+          "ext_domain_den": 6
+        },
+        "personalized": {
+          "label": "Personalized Care",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "based_dubai": {
+          "label": "Based in Dubai",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        }
+      },
+      "examples": [
+        {
+          "host": "www.linkedin.com",
+          "url": "https://www.linkedin.com/company/nightingale-home-health-care-llc",
+          "text": "alain, doctor, and patientcare locations primary p.o. box 129396 abu dhabi, ., ae get directions employees at nightingale home health care llc ma.vida facurib mishon toliver kristine habla nightingale group see all employees similar pages nightingale health services llc hospitals and health care dub",
+          "is_own": false
+        },
+        {
+          "host": "jm.linkedin.com",
+          "url": "https://jm.linkedin.com/company/sublime-home-care",
+          "text": "al maktab building, office 101 al barsha dubai, dubai po box 486206, ae get directions employees at sublime nursing marlene alam maribil marquez jeanny canonero lhiza escala see all employees affiliated pages sublimehomecare similar pages nightingale health services llc hospitals and health care dub",
+          "is_own": false
+        },
+        {
+          "host": "healthfinder.ae",
+          "url": "https://healthfinder.ae/listings/nightingale-home-healthcare-dubai/",
+          "text": "1801, al ameri tower, 18th floor - شارع الشيخ زايد - barsha heights - دبي - united arab emirates (direction) 4.9 (333+ reviews) 472+ end-of-life care doctors, hospice specialists +971 800 823 book via provider nightingale health services llc | dubai home health care (newborn, midwife, elderly)| bloo",
+          "is_own": false
+        },
+        {
+          "host": "www.dubaihealthlicense.com",
+          "url": "https://www.dubaihealthlicense.com/directory/nightingale-health-services-co-l-l-c-home-health-care-2/",
+          "text": "skip to content go back bookmark share facebook x linkedin report your complaint * submit nightingale health services co l l c home health care 0 (0 reviews) --> popular homecare companies in uae dubai nightingale health services co l l c home health care nightingale health services was established ",
+          "is_own": false
+        },
+        {
+          "host": "www.dubaisbest.com",
+          "url": "https://www.dubaisbest.com/best-elderly-care-facilities-dubai/",
+          "text": "dubai - united arab emirates social media facebook contact details phone: +971 800 823 operating hours monday - sunday: 8:00 am - 8:00 pm elderly care in dubai is getting a fresh twist thanks to nightingale health services. founded by british experts, they’re all about bringing top-notch home nursin",
+          "is_own": false
+        }
+      ]
+    },
+    "service_breadth": {
+      "score": 24.42,
+      "subsignals": {
+        "home_nursing": {
+          "label": "Home Nursing",
+          "own_snippet_num": 9,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 11,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 5,
+          "ext_domain_den": 6
+        },
+        "physiotherapy": {
+          "label": "Physiotherapy",
+          "own_snippet_num": 1,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "doctor_support": {
+          "label": "Doctor Support",
+          "own_snippet_num": 13,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "diagnostics": {
+          "label": "Diagnostics / Blood Tests",
+          "own_snippet_num": 4,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        }
+      },
+      "examples": [
+        {
+          "host": "www.linkedin.com",
+          "url": "https://www.linkedin.com/company/nightingale-home-health-care-llc",
+          "text": "alain, doctor, and patientcare locations primary p.o. box 129396 abu dhabi, ., ae get directions employees at nightingale home health care llc ma.vida facurib mishon toliver kristine habla nightingale group see all employees similar pages nightingale health services llc hospitals and health care dub",
+          "is_own": false
+        },
+        {
+          "host": "jm.linkedin.com",
+          "url": "https://jm.linkedin.com/company/sublime-home-care",
+          "text": "al maktab building, office 101 al barsha dubai, dubai po box 486206, ae get directions employees at sublime nursing marlene alam maribil marquez jeanny canonero lhiza escala see all employees affiliated pages sublimehomecare similar pages nightingale health services llc hospitals and health care dub",
+          "is_own": false
+        },
+        {
+          "host": "healthfinder.ae",
+          "url": "https://healthfinder.ae/listings/nightingale-home-healthcare-dubai/",
+          "text": "1801, al ameri tower, 18th floor - شارع الشيخ زايد - barsha heights - دبي - united arab emirates (direction) 4.9 (333+ reviews) 472+ end-of-life care doctors, hospice specialists +971 800 823 book via provider nightingale health services llc | dubai home health care (newborn, midwife, elderly)| bloo",
+          "is_own": false
+        },
+        {
+          "host": "www.dubaisbest.com",
+          "url": "https://www.dubaisbest.com/best-elderly-care-facilities-dubai/",
+          "text": "the nurses or caregivers. communication : it’s important for us that the staff are easy to reach and keep clients updated, so you’ll have peace of mind knowing your elder is in good hands. 1. nightingale health services llc test info website https://www.nightingaledubai.com/ address office suite 180",
+          "is_own": false
+        },
+        {
+          "host": "www.dubaihealthlicense.com",
+          "url": "https://www.dubaihealthlicense.com/directory/nightingale-health-services-co-l-l-c-home-health-care-2/",
+          "text": "skip to content go back bookmark share facebook x linkedin report your complaint * submit nightingale health services co l l c home health care 0 (0 reviews) --> popular homecare companies in uae dubai nightingale health services co l l c home health care nightingale health services was established ",
+          "is_own": false
+        }
+      ]
+    },
+    "care_depth": {
+      "score": 22.19,
+      "subsignals": {
+        "elderly": {
+          "label": "Elderly Care",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 3,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 2,
+          "ext_domain_den": 6
+        },
+        "chronic": {
+          "label": "Chronic / Disease Mgmt",
+          "own_snippet_num": 1,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "post_acute": {
+          "label": "Post-Acute",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "recovery": {
+          "label": "Recovery",
+          "own_snippet_num": 2,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "cognitive": {
+          "label": "Dementia / Cognitive",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "palliative": {
+          "label": "Palliative",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 6
+        },
+        "long_term": {
+          "label": "Long-Term Care",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        }
+      },
+      "examples": [
+        {
+          "host": "healthfinder.ae",
+          "url": "https://healthfinder.ae/listings/nightingale-home-healthcare-dubai/",
+          "text": "1801, al ameri tower, 18th floor - شارع الشيخ زايد - barsha heights - دبي - united arab emirates (direction) 4.9 (333+ reviews) 472+ end-of-life care doctors, hospice specialists +971 800 823 book via provider nightingale health services llc | dubai home health care (newborn, midwife, elderly)| bloo",
+          "is_own": false
+        },
+        {
+          "host": "www.dubaisbest.com",
+          "url": "https://www.dubaisbest.com/best-elderly-care-facilities-dubai/",
+          "text": "dubai - united arab emirates social media facebook contact details phone: +971 800 823 operating hours monday - sunday: 8:00 am - 8:00 pm elderly care in dubai is getting a fresh twist thanks to nightingale health services. founded by british experts, they’re all about bringing top-notch home nursin",
+          "is_own": false
+        },
+        {
+          "host": "www.dubaisbest.com",
+          "url": "https://www.dubaisbest.com/best-elderly-care-facilities-dubai/",
+          "text": "for whenever the need arises. if you’re seeking golden-tier elder care in the city of gold, check out my reviews below! contents show how much does elder care cost in dubai? how we chose 1. nightingale health services llc 2. vital zone home healthcare center 3. sublime nursing 4. carexperts home hea",
+          "is_own": false
+        },
+        {
+          "host": "www.nightingaledubai.com",
+          "url": "https://www.nightingaledubai.com/",
+          "text": "recovery and improved quality of life. read more get appointment, book now! select service doctor on call home physiotherapy newborn child care midwifery care at home home care blood tests iv drips nightingale healthcare, dubai nightingale health services, founded by british professionals, is dedica",
+          "is_own": true
+        },
+        {
+          "host": "www.nightingaledubai.com",
+          "url": "https://www.nightingaledubai.com/why-more-dubai-residents-are-choosing-doctor-at-home-services-over-clinic-visits/",
+          "text": "(via lab test at home ) post-surgery recovery std testing at home in privacy book your doctor at home in dubai today skip the traffic. skip the waiting room. let healthcare come to you. contact nightingale health services now to schedule your doctor on call : visit us: www.nightingaledubai.com/docto",
+          "is_own": true
+        }
+      ]
+    },
+    "delivery_reliability": {
+      "score": 27.62,
+      "subsignals": {
+        "always_on": {
+          "label": "24/7",
+          "own_snippet_num": 5,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "on_call": {
+          "label": "On-Call",
+          "own_snippet_num": 7,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "same_day": {
+          "label": "Same-Day",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "doorstep": {
+          "label": "Doorstep",
+          "own_snippet_num": 7,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "home_visit": {
+          "label": "Home Visit",
+          "own_snippet_num": 7,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "responsive": {
+          "label": "Responsive / Rapid",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        }
+      },
+      "examples": [
+        {
+          "host": "www.nightingaledubai.com",
+          "url": "https://www.nightingaledubai.com/",
+          "text": "recovery and improved quality of life. read more get appointment, book now! select service doctor on call home physiotherapy newborn child care midwifery care at home home care blood tests iv drips nightingale healthcare, dubai nightingale health services, founded by british professionals, is dedica",
+          "is_own": true
+        },
+        {
+          "host": "www.nightingaledubai.com",
+          "url": "https://www.nightingaledubai.com/home-health-care/",
+          "text": "skip to the content because the need for care never stops, neither do we ! search for: menu doctor on call +971561680391 24/7 toll free 800 uae (823) home home health care home health care nightingale health services for comprehensive healthcare solutions delivered right to your doorstep! comprehens",
+          "is_own": true
+        },
+        {
+          "host": "www.nightingaledubai.com",
+          "url": "https://www.nightingaledubai.com/",
+          "text": "your doorstep. our highly qualified and experienced doctors are equipped to handle a wide range of medical conditions, ensuring you receive the best possible care without leaving your home. from the health care blog at nightingale health services, we understand the importance of receiving medical ca",
+          "is_own": true
+        },
+        {
+          "host": "www.nightingaledubai.com",
+          "url": "https://www.nightingaledubai.com/why-more-dubai-residents-are-choosing-doctor-at-home-services-over-clinic-visits/",
+          "text": "(via lab test at home ) post-surgery recovery std testing at home in privacy book your doctor at home in dubai today skip the traffic. skip the waiting room. let healthcare come to you. contact nightingale health services now to schedule your doctor on call : visit us: www.nightingaledubai.com/docto",
+          "is_own": true
+        },
+        {
+          "host": "www.nightingaledubai.com",
+          "url": "https://www.nightingaledubai.com/",
+          "text": "receive the highest quality care in the comfort of your home. for a tailored quote on home healthcare services in dubai, including all our specialized offerings, contact us today . read more our services at nightingale health services, we understand the importance of receiving medical care in the co",
+          "is_own": true
+        }
+      ]
+    },
+    "authority_reputation": {
+      "score": 22.19,
+      "subsignals": {
+        "established": {
+          "label": "Established / Founded",
+          "own_snippet_num": 1,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 4,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 2,
+          "ext_domain_den": 6
+        },
+        "recognized": {
+          "label": "Recognized / Reputable",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "leading": {
+          "label": "Leading / Largest",
+          "own_snippet_num": 1,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "trusted": {
+          "label": "Trusted",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 6
+        },
+        "award": {
+          "label": "Award-Winning",
+          "own_snippet_num": 0,
+          "own_snippet_den": 19,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 26,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 6
+        }
+      },
+      "examples": [
+        {
+          "host": "www.dubaihealthlicense.com",
+          "url": "https://www.dubaihealthlicense.com/directory/nightingale-health-services-co-l-l-c-home-health-care-2/",
+          "text": "skip to content go back bookmark share facebook x linkedin report your complaint * submit nightingale health services co l l c home health care 0 (0 reviews) --> popular homecare companies in uae dubai nightingale health services co l l c home health care nightingale health services was established ",
+          "is_own": false
+        },
+        {
+          "host": "www.dubaisbest.com",
+          "url": "https://www.dubaisbest.com/best-elderly-care-facilities-dubai/",
+          "text": "dubai - united arab emirates social media facebook contact details phone: +971 800 823 operating hours monday - sunday: 8:00 am - 8:00 pm elderly care in dubai is getting a fresh twist thanks to nightingale health services. founded by british experts, they’re all about bringing top-notch home nursin",
+          "is_own": false
+        },
+        {
+          "host": "www.dubaihealthlicense.com",
+          "url": "https://www.dubaihealthlicense.com/directory/nightingale-health-services-co-l-l-c-home-health-care-2/",
+          "text": "report your complaint * submit nightingale health services co l l c home health care 0 (0 reviews) --> popular homecare companies in uae dubai nightingale health services co l l c home health care nightingale health services was established by british professionals to bring the highest standards of ",
+          "is_own": false
+        },
+        {
+          "host": "www.dubaihealthlicense.com",
+          "url": "https://www.dubaihealthlicense.com/directory/nightingale-health-services-co-l-l-c-home-health-care-2/",
+          "text": "nightingale health services co l l c home health care - dubai health license skip to content go back bookmark share facebook x linkedin report your complaint * submit nightingale health services co l l c home health care 0 (0 reviews) --> popular homecare companies in uae dubai nightingale health se",
+          "is_own": false
+        },
+        {
+          "host": "www.nightingaledubai.com",
+          "url": "https://www.nightingaledubai.com/",
+          "text": "recovery and improved quality of life. read more get appointment, book now! select service doctor on call home physiotherapy newborn child care midwifery care at home home care blood tests iv drips nightingale healthcare, dubai nightingale health services, founded by british professionals, is dedica",
+          "is_own": true
+        }
+      ]
+    },
+    "identity_consistency": {
+      "score": 47.82,
+      "packets": {
+        "packets": [
+          {
+            "packet": [
+              false,
+              false,
+              false,
+              false
+            ],
+            "label": "(none)",
+            "count": 17,
+            "pct": 37.8,
+            "hosts": 6,
+            "total_hosts": 7
+          },
+          {
+            "packet": [
+              true,
+              true,
+              true,
+              false
+            ],
+            "label": "Category + Trust + Breadth",
+            "count": 8,
+            "pct": 17.8,
+            "hosts": 2,
+            "total_hosts": 7
+          },
+          {
+            "packet": [
+              true,
+              false,
+              true,
+              false
+            ],
+            "label": "Category + Breadth",
+            "count": 5,
+            "pct": 11.1,
+            "hosts": 4,
+            "total_hosts": 7
+          },
+          {
+            "packet": [
+              false,
+              true,
+              true,
+              false
+            ],
+            "label": "Trust + Breadth",
+            "count": 5,
+            "pct": 11.1,
+            "hosts": 1,
+            "total_hosts": 7
+          }
+        ],
+        "total_snippets": 45
+      },
+      "subsignals": {},
+      "examples": []
+    }
+  },
+  "Vesta Care": {
+    "authority_source_presence": {
+      "score": 58.88,
+      "components": {
+        "total_snippets": 58,
+        "total_hosts": 4,
+        "own_snippets": 43,
+        "ext_snippets": 15,
+        "own_domain": "vestacare.ae"
+      },
+      "subsignals": {},
+      "examples": []
+    },
+    "trust": {
+      "score": 36.72,
+      "subsignals": {
+        "dha": {
+          "label": "DHA",
+          "own_snippet_num": 11,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "licensed": {
+          "label": "Licensed",
+          "own_snippet_num": 13,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "certified": {
+          "label": "Certified",
+          "own_snippet_num": 1,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "accredited": {
+          "label": "Accredited",
+          "own_snippet_num": 0,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "jci": {
+          "label": "JCI",
+          "own_snippet_num": 0,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "iso": {
+          "label": "ISO",
+          "own_snippet_num": 0,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "trained_qual": {
+          "label": "Trained / Qualified",
+          "own_snippet_num": 2,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "doctor_led": {
+          "label": "Doctor-Led",
+          "own_snippet_num": 0,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "quality_excell": {
+          "label": "Quality / Excellence",
+          "own_snippet_num": 0,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "professional": {
+          "label": "Professional Staff",
+          "own_snippet_num": 7,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 3
+        }
+      },
+      "examples": [
+        {
+          "host": "www.trustindex.io",
+          "url": "https://www.trustindex.io/reviews/vestacare.ae",
+          "text": "highly recommend this clinic to anyone seeking quality medical care useful report reply from vesta care home health care center 2025.11.11 hi viola katawu, thank you so much for your kind words and for trusting vesta care with your health needs. we’re delighted to know that our team made you feel co",
+          "is_own": false
+        },
+        {
+          "host": "www.vestacare.ae",
+          "url": "https://www.vestacare.ae/services/home-nursing",
+          "text": "settings, addressing a wide array of medical conditions. her commitment to professional development is evident through her completion of numerous certification courses, including fluid therapy, basic quality systems, infection control, and pharmaceutical vigilance training. at vesta care , dr. amal ",
+          "is_own": true
+        },
+        {
+          "host": "www.vestacare.ae",
+          "url": "https://www.vestacare.ae/services/home-nursing",
+          "text": "options including post-surgical care, chronic disease management, wound care, medication management, elderly care, and palliative care. our skilled nurses ensure that patients receive comprehensive and personalized care in the comfort of their own homes. are vesta care s home nurses qualified and ex",
+          "is_own": true
+        },
+        {
+          "host": "www.vestacare.ae",
+          "url": "https://www.vestacare.ae/home-nursing/elderly-care-at-home-in-dubai",
+          "text": "with alzheimer’s and dementia read more message us and our health experts will reach you shortly inquire elderly care assisted living at home in dubai everyone deserves comfort, dignity, and independence as they age. at vesta care, we provide compassionate elderly care services in dubai, bringing dh",
+          "is_own": true
+        },
+        {
+          "host": "www.vestacare.ae",
+          "url": "https://www.vestacare.ae/home-nursing/elderly-care-at-home-in-dubai",
+          "text": "of their own home. instead of moving to a nursing home or care facility, seniors can stay in familiar surroundings while getting help with their daily activities, medication management, mobility, personal hygiene, and companionship. at vesta care, we make aging at home safe, comfortable, and dignifi",
+          "is_own": true
+        }
+      ]
+    },
+    "category_clarity": {
+      "score": 74.66,
+      "subsignals": {
+        "home_healthcare": {
+          "label": "Home Healthcare",
+          "own_snippet_num": 12,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 15,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 3,
+          "ext_domain_den": 3
+        },
+        "home_care": {
+          "label": "Home Care",
+          "own_snippet_num": 2,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "in_home": {
+          "label": "In-Home",
+          "own_snippet_num": 0,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "at_home": {
+          "label": "At-Home",
+          "own_snippet_num": 0,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "provider_id": {
+          "label": "Provider Identity",
+          "own_snippet_num": 2,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "home_nursing_cat": {
+          "label": "Home Nursing",
+          "own_snippet_num": 12,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "personalized": {
+          "label": "Personalized Care",
+          "own_snippet_num": 6,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "based_dubai": {
+          "label": "Based in Dubai",
+          "own_snippet_num": 0,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        }
+      },
+      "examples": [
+        {
+          "host": "www.trustindex.io",
+          "url": "https://www.trustindex.io/reviews/vestacare.ae",
+          "text": "highly recommend this clinic to anyone seeking quality medical care useful report reply from vesta care home health care center 2025.11.11 hi viola katawu, thank you so much for your kind words and for trusting vesta care with your health needs. we’re delighted to know that our team made you feel co",
+          "is_own": false
+        },
+        {
+          "host": "www.trustindex.io",
+          "url": "https://www.trustindex.io/reviews/vestacare.ae",
+          "text": "me feel comfortable and treated me with great care and respect. the treatment was effective, and i truly appreciate their support. highly recommend this clinic to anyone seeking quality medical care useful report reply from vesta care home health care center 2025.11.11 hi viola katawu, thank you so ",
+          "is_own": false
+        },
+        {
+          "host": "servicemarket.com",
+          "url": "https://servicemarket.com/service-provider/vestacare-home",
+          "text": "center llc 468 ratings 4.57/5 budget established 2021 location dubai, uae class budget class budget established 2021 location dubai, uae class budget class budget services offered health dubai , pets dubai get a quote from vesta care home health care center llc . start by selecting the service you n",
+          "is_own": false
+        },
+        {
+          "host": "servicemarket.com",
+          "url": "https://servicemarket.com/service-provider/vestacare-home",
+          "text": "vesta care home health care center llc - dubai | servicemarket vesta care home health care center llc 468 ratings 4.57/5 budget established 2021 location dubai, uae class budget class budget established 2021 location dubai, uae class budget class budget services offered health dubai , pets dubai get",
+          "is_own": false
+        },
+        {
+          "host": "servicemarket.com",
+          "url": "https://servicemarket.com/service-provider/vestacare-home",
+          "text": "vesta care home health care center llc - dubai | servicemarket vesta care home health care center llc 468 ratings 4.57/5 budget established 2021 location dubai, uae class budget class budget established 2021 location dubai, uae class",
+          "is_own": false
+        }
+      ]
+    },
+    "service_breadth": {
+      "score": 33.1,
+      "subsignals": {
+        "home_nursing": {
+          "label": "Home Nursing",
+          "own_snippet_num": 20,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 15,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 3,
+          "ext_domain_den": 3
+        },
+        "physiotherapy": {
+          "label": "Physiotherapy",
+          "own_snippet_num": 14,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "doctor_support": {
+          "label": "Doctor Support",
+          "own_snippet_num": 7,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 3
+        },
+        "diagnostics": {
+          "label": "Diagnostics / Blood Tests",
+          "own_snippet_num": 3,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        }
+      },
+      "examples": [
+        {
+          "host": "www.trustindex.io",
+          "url": "https://www.trustindex.io/reviews/vestacare.ae",
+          "text": "highly recommend this clinic to anyone seeking quality medical care useful report reply from vesta care home health care center 2025.11.11 hi viola katawu, thank you so much for your kind words and for trusting vesta care with your health needs. we’re delighted to know that our team made you feel co",
+          "is_own": false
+        },
+        {
+          "host": "www.trustindex.io",
+          "url": "https://www.trustindex.io/reviews/vestacare.ae",
+          "text": "me feel comfortable and treated me with great care and respect. the treatment was effective, and i truly appreciate their support. highly recommend this clinic to anyone seeking quality medical care useful report reply from vesta care home health care center 2025.11.11 hi viola katawu, thank you so ",
+          "is_own": false
+        },
+        {
+          "host": "servicemarket.com",
+          "url": "https://servicemarket.com/service-provider/vestacare-home",
+          "text": "center llc 468 ratings 4.57/5 budget established 2021 location dubai, uae class budget class budget established 2021 location dubai, uae class budget class budget services offered health dubai , pets dubai get a quote from vesta care home health care center llc . start by selecting the service you n",
+          "is_own": false
+        },
+        {
+          "host": "servicemarket.com",
+          "url": "https://servicemarket.com/service-provider/vestacare-home",
+          "text": "vesta care home health care center llc - dubai | servicemarket vesta care home health care center llc 468 ratings 4.57/5 budget established 2021 location dubai, uae class budget class budget established 2021 location dubai, uae class budget class budget services offered health dubai , pets dubai get",
+          "is_own": false
+        },
+        {
+          "host": "servicemarket.com",
+          "url": "https://servicemarket.com/service-provider/vestacare-home",
+          "text": "vesta care home health care center llc - dubai | servicemarket vesta care home health care center llc 468 ratings 4.57/5 budget established 2021 location dubai, uae class budget class budget established 2021 location dubai, uae class",
+          "is_own": false
+        }
+      ]
+    },
+    "care_depth": {
+      "score": 23.19,
+      "subsignals": {
+        "elderly": {
+          "label": "Elderly Care",
+          "own_snippet_num": 8,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "chronic": {
+          "label": "Chronic / Disease Mgmt",
+          "own_snippet_num": 5,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "post_acute": {
+          "label": "Post-Acute",
+          "own_snippet_num": 6,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "recovery": {
+          "label": "Recovery",
+          "own_snippet_num": 5,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "cognitive": {
+          "label": "Dementia / Cognitive",
+          "own_snippet_num": 4,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "palliative": {
+          "label": "Palliative",
+          "own_snippet_num": 3,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "long_term": {
+          "label": "Long-Term Care",
+          "own_snippet_num": 0,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        }
+      },
+      "examples": [
+        {
+          "host": "www.vestacare.ae",
+          "url": "https://www.vestacare.ae/home-nursing/post-operative-care",
+          "text": "with your doctor, and adjust care routines as needed to ensure a smooth, complete recovery. different types of surgeries we help with: people who are recovering from several different surgeries can get specialized treatment from vesta care: ‍ orthopedic surgeries: knee and hip replacements, spine pr",
+          "is_own": true
+        },
+        {
+          "host": "www.vestacare.ae",
+          "url": "https://www.vestacare.ae/services/home-nursing",
+          "text": "options including post-surgical care, chronic disease management, wound care, medication management, elderly care, and palliative care. our skilled nurses ensure that patients receive comprehensive and personalized care in the comfort of their own homes. are vesta care s home nurses qualified and ex",
+          "is_own": true
+        },
+        {
+          "host": "www.vestacare.ae",
+          "url": "https://www.vestacare.ae/blog/how-to-choose-best-home-nursing-service-dubai",
+          "text": "under one roof, including: post-operative care and wound care iv infusion therapy and medication management. chronic disease management (diabetes, hypertension, dementia, etc.) elderly care and physiotherapy support mother and newborn care a good provider like vesta care with comprehensive services ",
+          "is_own": true
+        },
+        {
+          "host": "www.vestacare.ae",
+          "url": "https://www.vestacare.ae/home-nursing/elderly-care-at-home-in-dubai",
+          "text": "with alzheimer’s and dementia read more message us and our health experts will reach you shortly inquire elderly care assisted living at home in dubai everyone deserves comfort, dignity, and independence as they age. at vesta care, we provide compassionate elderly care services in dubai, bringing dh",
+          "is_own": true
+        },
+        {
+          "host": "www.vestacare.ae",
+          "url": "https://www.vestacare.ae/home-nursing/elderly-care-at-home-in-dubai",
+          "text": "of their own home. instead of moving to a nursing home or care facility, seniors can stay in familiar surroundings while getting help with their daily activities, medication management, mobility, personal hygiene, and companionship. at vesta care, we make aging at home safe, comfortable, and dignifi",
+          "is_own": true
+        }
+      ]
+    },
+    "delivery_reliability": {
+      "score": 36.72,
+      "subsignals": {
+        "always_on": {
+          "label": "24/7",
+          "own_snippet_num": 4,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "on_call": {
+          "label": "On-Call",
+          "own_snippet_num": 9,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 3
+        },
+        "same_day": {
+          "label": "Same-Day",
+          "own_snippet_num": 1,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "doorstep": {
+          "label": "Doorstep",
+          "own_snippet_num": 3,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "home_visit": {
+          "label": "Home Visit",
+          "own_snippet_num": 0,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "responsive": {
+          "label": "Responsive / Rapid",
+          "own_snippet_num": 0,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        }
+      },
+      "examples": [
+        {
+          "host": "www.trustindex.io",
+          "url": "https://www.trustindex.io/reviews/vestacare.ae",
+          "text": "highly recommend this clinic to anyone seeking quality medical care useful report reply from vesta care home health care center 2025.11.11 hi viola katawu, thank you so much for your kind words and for trusting vesta care with your health needs. we’re delighted to know that our team made you feel co",
+          "is_own": false
+        },
+        {
+          "host": "www.vestacare.ae",
+          "url": "https://www.vestacare.ae/blog/how-to-choose-best-home-nursing-service-dubai",
+          "text": "under one roof, including: post-operative care and wound care iv infusion therapy and medication management. chronic disease management (diabetes, hypertension, dementia, etc.) elderly care and physiotherapy support mother and newborn care a good provider like vesta care with comprehensive services ",
+          "is_own": true
+        },
+        {
+          "host": "www.vestacare.ae",
+          "url": "https://www.vestacare.ae/home-nursing/post-natal-care",
+          "text": "few weeks. we educate mothers on pelvic floor exercises, gradual return to activity, balanced diet planning, contraception options, and follow-up medical visits. this ongoing guidance promotes lasting physical and emotional health after childbirth. why choose vesta care for home nusring service in d",
+          "is_own": true
+        },
+        {
+          "host": "www.vestacare.ae",
+          "url": "https://www.vestacare.ae/home-nursing/post-operative-care",
+          "text": "helps patients with alzheimer’s and dementia read more message us and our health experts will reach you shortly inquire post-operative care at home in dubai recovering after surgery requires expert care, monitoring, and support. at vesta care, we bring hospital-level post-operative care to your home",
+          "is_own": true
+        },
+        {
+          "host": "www.vestacare.ae",
+          "url": "https://www.vestacare.ae/services/home-nursing",
+          "text": "of your needs are addressed on-time and around the clock getting attention from our most senior team members do you have questions? what types of care are provided through vesta care s home nursing services? vesta care’s home nursing services offer a range of care options including post-surgical car",
+          "is_own": true
+        }
+      ]
+    },
+    "authority_reputation": {
+      "score": 21.03,
+      "subsignals": {
+        "established": {
+          "label": "Established / Founded",
+          "own_snippet_num": 1,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 3,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 3
+        },
+        "recognized": {
+          "label": "Recognized / Reputable",
+          "own_snippet_num": 0,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "leading": {
+          "label": "Leading / Largest",
+          "own_snippet_num": 0,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "trusted": {
+          "label": "Trusted",
+          "own_snippet_num": 1,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        },
+        "award": {
+          "label": "Award-Winning",
+          "own_snippet_num": 0,
+          "own_snippet_den": 43,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 15,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 3
+        }
+      },
+      "examples": [
+        {
+          "host": "servicemarket.com",
+          "url": "https://servicemarket.com/service-provider/vestacare-home",
+          "text": "center llc 468 ratings 4.57/5 budget established 2021 location dubai, uae class budget class budget established 2021 location dubai, uae class budget class budget services offered health dubai , pets dubai get a quote from vesta care home health care center llc . start by selecting the service you n",
+          "is_own": false
+        },
+        {
+          "host": "servicemarket.com",
+          "url": "https://servicemarket.com/service-provider/vestacare-home",
+          "text": "vesta care home health care center llc - dubai | servicemarket vesta care home health care center llc 468 ratings 4.57/5 budget established 2021 location dubai, uae class budget class budget established 2021 location dubai, uae class budget class budget services offered health dubai , pets dubai get",
+          "is_own": false
+        },
+        {
+          "host": "servicemarket.com",
+          "url": "https://servicemarket.com/service-provider/vestacare-home",
+          "text": "vesta care home health care center llc - dubai | servicemarket vesta care home health care center llc 468 ratings 4.57/5 budget established 2021 location dubai, uae class budget class budget established 2021 location dubai, uae class",
+          "is_own": false
+        },
+        {
+          "host": "www.vestacare.ae",
+          "url": "https://www.vestacare.ae/services/physiotherapy-rehabilitation",
+          "text": "physiotherapy near me, as you can contact us, and we will arrive at your door to provide personalized care in the comfort of your own home. you cannot prioritize anything over your health; that’s why vesta care stands as your trusted partner. ‍ at vesta care, we aim not only to provide exceptional p",
+          "is_own": true
+        },
+        {
+          "host": "www.vestacare.ae",
+          "url": "https://www.vestacare.ae/",
+          "text": "hpv molecular tests we execute any custom prescription from your doctor upon request. we are fully licensed to issue e-prescription for medicine and arrange the delivery of your medication. contact us about us welcome to vesta care 🩺 i should check on that symptom 🏥 it s been a while since my last c",
+          "is_own": true
+        }
+      ]
+    },
+    "identity_consistency": {
+      "score": 52.35,
+      "packets": {
+        "packets": [
+          {
+            "packet": [
+              true,
+              false,
+              true,
+              false
+            ],
+            "label": "Category + Breadth",
+            "count": 21,
+            "pct": 36.2,
+            "hosts": 4,
+            "total_hosts": 4
+          },
+          {
+            "packet": [
+              false,
+              false,
+              false,
+              false
+            ],
+            "label": "(none)",
+            "count": 10,
+            "pct": 17.2,
+            "hosts": 1,
+            "total_hosts": 4
+          },
+          {
+            "packet": [
+              true,
+              true,
+              true,
+              false
+            ],
+            "label": "Category + Trust + Breadth",
+            "count": 7,
+            "pct": 12.1,
+            "hosts": 2,
+            "total_hosts": 4
+          },
+          {
+            "packet": [
+              true,
+              true,
+              true,
+              true
+            ],
+            "label": "Category + Trust + Breadth + Depth",
+            "count": 5,
+            "pct": 8.6,
+            "hosts": 1,
+            "total_hosts": 4
+          }
+        ],
+        "total_snippets": 58
+      },
+      "subsignals": {},
+      "examples": []
+    }
+  },
+  "Manzil Health": {
+    "authority_source_presence": {
+      "score": 22.98,
+      "components": {
+        "total_snippets": 13,
+        "total_hosts": 3,
+        "own_snippets": 5,
+        "ext_snippets": 8,
+        "own_domain": "manzilhealth.com"
+      },
+      "subsignals": {},
+      "examples": []
+    },
+    "trust": {
+      "score": 41.54,
+      "subsignals": {
+        "dha": {
+          "label": "DHA",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "licensed": {
+          "label": "Licensed",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "certified": {
+          "label": "Certified",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "accredited": {
+          "label": "Accredited",
+          "own_snippet_num": 1,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "jci": {
+          "label": "JCI",
+          "own_snippet_num": 1,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "iso": {
+          "label": "ISO",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "trained_qual": {
+          "label": "Trained / Qualified",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "doctor_led": {
+          "label": "Doctor-Led",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "quality_excell": {
+          "label": "Quality / Excellence",
+          "own_snippet_num": 1,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "professional": {
+          "label": "Professional Staff",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 2
+        }
+      },
+      "examples": [
+        {
+          "host": "montgohealth.com",
+          "url": "https://montgohealth.com/what-are-the-best-home-health-care-agencies-in-dubai/",
+          "text": "known for their quality, compassion, and professionalism. here s a look at some of the best home health care agencies in dubai that are making a real difference in people’s lives. blogs 1. manzil health manzil health is one of the most recognized names in the uae when it comes to home health care. f",
+          "is_own": false
+        },
+        {
+          "host": "montgohealth.com",
+          "url": "https://montgohealth.com/what-are-the-best-home-health-care-agencies-in-dubai/",
+          "text": "that are known for their quality, compassion, and professionalism. here s a look at some of the best home health care agencies in dubai that are making a real difference in people’s lives. blogs 1. manzil health manzil health is one of the most recognized names in the uae when it comes to home healt",
+          "is_own": false
+        },
+        {
+          "host": "manzilhealth.com",
+          "url": "https://manzilhealth.com/manzil-healthcare-launches-office-in-dubai/",
+          "text": "manzil health bags prestigious sheikh khalifa excellence award at first try",
+          "is_own": true
+        },
+        {
+          "host": "manzilhealth.com",
+          "url": "https://manzilhealth.com/manzil-healthcare-launches-office-in-dubai/",
+          "text": "manzil health becomes first company to renew jci accreditation",
+          "is_own": true
+        }
+      ]
+    },
+    "category_clarity": {
+      "score": 41.54,
+      "subsignals": {
+        "home_healthcare": {
+          "label": "Home Healthcare",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 4,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 2,
+          "ext_domain_den": 2
+        },
+        "home_care": {
+          "label": "Home Care",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "in_home": {
+          "label": "In-Home",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "at_home": {
+          "label": "At-Home",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "provider_id": {
+          "label": "Provider Identity",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 2
+        },
+        "home_nursing_cat": {
+          "label": "Home Nursing",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "personalized": {
+          "label": "Personalized Care",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 2
+        },
+        "based_dubai": {
+          "label": "Based in Dubai",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        }
+      },
+      "examples": [
+        {
+          "host": "gludo.org",
+          "url": "https://gludo.org/en/business-directory/584-manzil-healthcare-services---mhcs",
+          "text": "reviews: 4.8 | number of reviews: 88 ) hospital in dubai our mission at \"manzil health\" is to transform home healthcare by providing high-quality, technology-supported, and multidisciplinary care to our patients in their comfortable environment. \"manzil health\" is the largest home healthcare provide",
+          "is_own": false
+        },
+        {
+          "host": "gludo.org",
+          "url": "https://gludo.org/en/business-directory/584-manzil-healthcare-services---mhcs",
+          "text": "dubai uae directory hospitals in uae hospitals in dubai manzil healthcare services - mhcs manzil healthcare services - mhcs ( google reviews: 4.8 | number of reviews: 88 ) hospital in dubai our mission at \"manzil health\" is to transform home healthcare by providing high-quality, technology-supported",
+          "is_own": false
+        },
+        {
+          "host": "montgohealth.com",
+          "url": "https://montgohealth.com/what-are-the-best-home-health-care-agencies-in-dubai/",
+          "text": "known for their quality, compassion, and professionalism. here s a look at some of the best home health care agencies in dubai that are making a real difference in people’s lives. blogs 1. manzil health manzil health is one of the most recognized names in the uae when it comes to home health care. f",
+          "is_own": false
+        },
+        {
+          "host": "montgohealth.com",
+          "url": "https://montgohealth.com/what-are-the-best-home-health-care-agencies-in-dubai/",
+          "text": "that are known for their quality, compassion, and professionalism. here s a look at some of the best home health care agencies in dubai that are making a real difference in people’s lives. blogs 1. manzil health manzil health is one of the most recognized names in the uae when it comes to home healt",
+          "is_own": false
+        }
+      ]
+    },
+    "service_breadth": {
+      "score": 10.38,
+      "subsignals": {
+        "home_nursing": {
+          "label": "Home Nursing",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 4,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 2,
+          "ext_domain_den": 2
+        },
+        "physiotherapy": {
+          "label": "Physiotherapy",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "doctor_support": {
+          "label": "Doctor Support",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "diagnostics": {
+          "label": "Diagnostics / Blood Tests",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        }
+      },
+      "examples": [
+        {
+          "host": "gludo.org",
+          "url": "https://gludo.org/en/business-directory/584-manzil-healthcare-services---mhcs",
+          "text": "reviews: 4.8 | number of reviews: 88 ) hospital in dubai our mission at \"manzil health\" is to transform home healthcare by providing high-quality, technology-supported, and multidisciplinary care to our patients in their comfortable environment. \"manzil health\" is the largest home healthcare provide",
+          "is_own": false
+        },
+        {
+          "host": "gludo.org",
+          "url": "https://gludo.org/en/business-directory/584-manzil-healthcare-services---mhcs",
+          "text": "dubai uae directory hospitals in uae hospitals in dubai manzil healthcare services - mhcs manzil healthcare services - mhcs ( google reviews: 4.8 | number of reviews: 88 ) hospital in dubai our mission at \"manzil health\" is to transform home healthcare by providing high-quality, technology-supported",
+          "is_own": false
+        },
+        {
+          "host": "montgohealth.com",
+          "url": "https://montgohealth.com/what-are-the-best-home-health-care-agencies-in-dubai/",
+          "text": "known for their quality, compassion, and professionalism. here s a look at some of the best home health care agencies in dubai that are making a real difference in people’s lives. blogs 1. manzil health manzil health is one of the most recognized names in the uae when it comes to home health care. f",
+          "is_own": false
+        },
+        {
+          "host": "montgohealth.com",
+          "url": "https://montgohealth.com/what-are-the-best-home-health-care-agencies-in-dubai/",
+          "text": "that are known for their quality, compassion, and professionalism. here s a look at some of the best home health care agencies in dubai that are making a real difference in people’s lives. blogs 1. manzil health manzil health is one of the most recognized names in the uae when it comes to home healt",
+          "is_own": false
+        }
+      ]
+    },
+    "care_depth": {
+      "score": 15.38,
+      "subsignals": {
+        "elderly": {
+          "label": "Elderly Care",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "chronic": {
+          "label": "Chronic / Disease Mgmt",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 2
+        },
+        "post_acute": {
+          "label": "Post-Acute",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "recovery": {
+          "label": "Recovery",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "cognitive": {
+          "label": "Dementia / Cognitive",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "palliative": {
+          "label": "Palliative",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "long_term": {
+          "label": "Long-Term Care",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        }
+      },
+      "examples": [
+        {
+          "host": "gludo.org",
+          "url": "https://gludo.org/en/business-directory/584-manzil-healthcare-services---mhcs",
+          "text": "reviews: 4.8 | number of reviews: 88 ) hospital in dubai our mission at \"manzil health\" is to transform home healthcare by providing high-quality, technology-supported, and multidisciplinary care to our patients in their comfortable environment. \"manzil health\" is the largest home healthcare provide",
+          "is_own": false
+        }
+      ]
+    },
+    "delivery_reliability": {
+      "score": 0.0,
+      "subsignals": {
+        "always_on": {
+          "label": "24/7",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "on_call": {
+          "label": "On-Call",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "same_day": {
+          "label": "Same-Day",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "doorstep": {
+          "label": "Doorstep",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "home_visit": {
+          "label": "Home Visit",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "responsive": {
+          "label": "Responsive / Rapid",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        }
+      },
+      "examples": []
+    },
+    "authority_reputation": {
+      "score": 41.54,
+      "subsignals": {
+        "established": {
+          "label": "Established / Founded",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 2
+        },
+        "recognized": {
+          "label": "Recognized / Reputable",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 2
+        },
+        "leading": {
+          "label": "Leading / Largest",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 2
+        },
+        "trusted": {
+          "label": "Trusted",
+          "own_snippet_num": 0,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        },
+        "award": {
+          "label": "Award-Winning",
+          "own_snippet_num": 1,
+          "own_snippet_den": 5,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 8,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 2
+        }
+      },
+      "examples": [
+        {
+          "host": "gludo.org",
+          "url": "https://gludo.org/en/business-directory/584-manzil-healthcare-services---mhcs",
+          "text": "reviews: 4.8 | number of reviews: 88 ) hospital in dubai our mission at \"manzil health\" is to transform home healthcare by providing high-quality, technology-supported, and multidisciplinary care to our patients in their comfortable environment. \"manzil health\" is the largest home healthcare provide",
+          "is_own": false
+        },
+        {
+          "host": "gludo.org",
+          "url": "https://gludo.org/en/business-directory/584-manzil-healthcare-services---mhcs",
+          "text": "dubai uae directory hospitals in uae hospitals in dubai manzil healthcare services - mhcs manzil healthcare services - mhcs ( google reviews: 4.8 | number of reviews: 88 ) hospital in dubai our mission at \"manzil health\" is to transform home healthcare by providing high-quality, technology-supported",
+          "is_own": false
+        },
+        {
+          "host": "montgohealth.com",
+          "url": "https://montgohealth.com/what-are-the-best-home-health-care-agencies-in-dubai/",
+          "text": "known for their quality, compassion, and professionalism. here s a look at some of the best home health care agencies in dubai that are making a real difference in people’s lives. blogs 1. manzil health manzil health is one of the most recognized names in the uae when it comes to home health care. f",
+          "is_own": false
+        },
+        {
+          "host": "montgohealth.com",
+          "url": "https://montgohealth.com/what-are-the-best-home-health-care-agencies-in-dubai/",
+          "text": "that are known for their quality, compassion, and professionalism. here s a look at some of the best home health care agencies in dubai that are making a real difference in people’s lives. blogs 1. manzil health manzil health is one of the most recognized names in the uae when it comes to home healt",
+          "is_own": false
+        },
+        {
+          "host": "manzilhealth.com",
+          "url": "https://manzilhealth.com/manzil-healthcare-launches-office-in-dubai/",
+          "text": "manzil health bags prestigious sheikh khalifa excellence award at first try",
+          "is_own": true
+        }
+      ]
+    },
+    "identity_consistency": {
+      "score": 60.72,
+      "packets": {
+        "packets": [
+          {
+            "packet": [
+              false,
+              false,
+              false,
+              false
+            ],
+            "label": "(none)",
+            "count": 7,
+            "pct": 53.8,
+            "hosts": 3,
+            "total_hosts": 3
+          },
+          {
+            "packet": [
+              false,
+              true,
+              false,
+              false
+            ],
+            "label": "Trust",
+            "count": 2,
+            "pct": 15.4,
+            "hosts": 1,
+            "total_hosts": 3
+          },
+          {
+            "packet": [
+              true,
+              true,
+              true,
+              false
+            ],
+            "label": "Category + Trust + Breadth",
+            "count": 2,
+            "pct": 15.4,
+            "hosts": 1,
+            "total_hosts": 3
+          },
+          {
+            "packet": [
+              true,
+              false,
+              true,
+              false
+            ],
+            "label": "Category + Breadth",
+            "count": 1,
+            "pct": 7.7,
+            "hosts": 1,
+            "total_hosts": 3
+          }
+        ],
+        "total_snippets": 13
+      },
+      "subsignals": {},
+      "examples": []
+    }
+  },
+  "Call Doctor": {
+    "authority_source_presence": {
+      "score": 95.61,
+      "components": {
+        "total_snippets": 57,
+        "total_hosts": 25,
+        "own_snippets": 4,
+        "ext_snippets": 53,
+        "own_domain": "emahs.ae"
+      },
+      "subsignals": {},
+      "examples": []
+    },
+    "trust": {
+      "score": 53.61,
+      "subsignals": {
+        "dha": {
+          "label": "DHA",
+          "own_snippet_num": 1,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 8,
+          "ext_snippet_den": 53,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 5,
+          "ext_domain_den": 24
+        },
+        "licensed": {
+          "label": "Licensed",
+          "own_snippet_num": 2,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 6,
+          "ext_snippet_den": 53,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 6,
+          "ext_domain_den": 24
+        },
+        "certified": {
+          "label": "Certified",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 7,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 5,
+          "ext_domain_den": 24
+        },
+        "accredited": {
+          "label": "Accredited",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 2,
+          "ext_domain_den": 24
+        },
+        "jci": {
+          "label": "JCI",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 2,
+          "ext_domain_den": 24
+        },
+        "iso": {
+          "label": "ISO",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 24
+        },
+        "trained_qual": {
+          "label": "Trained / Qualified",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 5,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 5,
+          "ext_domain_den": 24
+        },
+        "doctor_led": {
+          "label": "Doctor-Led",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 24
+        },
+        "quality_excell": {
+          "label": "Quality / Excellence",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 5,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 4,
+          "ext_domain_den": 24
+        },
+        "professional": {
+          "label": "Professional Staff",
+          "own_snippet_num": 1,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 16,
+          "ext_snippet_den": 53,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 9,
+          "ext_domain_den": 24
+        }
+      },
+      "examples": [
+        {
+          "host": "fastcareuae.com",
+          "url": "https://fastcareuae.com/services/dubai-home-care/",
+          "text": "living for their families who need special medical care. health education our specialized clinical team will provide continuous patient, family, and home health care services and preventive education in the home. chronic care our on call doctor and professional home care nursing team evaluate and tr",
+          "is_own": false
+        },
+        {
+          "host": "loyalhealthcare.ae",
+          "url": "https://loyalhealthcare.ae/",
+          "text": "hotel, or office, eliminating the need for travel and long queue our healthcare professionals at home in dubai offers expert care, and treatment plan for various health conditions. whether you need regular care, a house call doctor, or routine health check-ups, our licensed professionals are availab",
+          "is_own": false
+        },
+        {
+          "host": "24x7dubai.firstresponsehealthcare.com",
+          "url": "https://24x7dubai.firstresponsehealthcare.com/doctor-on-call/",
+          "text": "from dubai corporation of ambulance services will reach you. what is the alternative to going to a hospital or clinic for non-emergencies? with achievement of jci accreditation, first response healthcare is the only dedicated house call doctor service provider offering international standard doctor ",
+          "is_own": false
+        },
+        {
+          "host": "oncalldoctordubai.com",
+          "url": "https://oncalldoctordubai.com/",
+          "text": "dubai corporation of ambulance services will reach you. 12. what is the alternative to going to a hospital or clinic for non-emergencies? with achievement of jci accreditation, first response healthcare is the only dedicated house call doctor service provider offering international standard doctor o",
+          "is_own": false
+        },
+        {
+          "host": "24x7.trusteddoctors.ae",
+          "url": "https://24x7.trusteddoctors.ae/",
+          "text": "you receive compassionate, hospital-level care that puts your well-being first—allowing you to recover in the familiarity of your home, surrounded by the support of loved ones. so whether you’re searching for “doctor at my home,” “call doctor near me,” or “doctor on a call,” you’ve come to the right",
+          "is_own": false
+        }
+      ]
+    },
+    "category_clarity": {
+      "score": 34.05,
+      "subsignals": {
+        "home_healthcare": {
+          "label": "Home Healthcare",
+          "own_snippet_num": 1,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 8,
+          "ext_snippet_den": 53,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 7,
+          "ext_domain_den": 24
+        },
+        "home_care": {
+          "label": "Home Care",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 2,
+          "ext_domain_den": 24
+        },
+        "in_home": {
+          "label": "In-Home",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 24
+        },
+        "at_home": {
+          "label": "At-Home",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 24
+        },
+        "provider_id": {
+          "label": "Provider Identity",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 24
+        },
+        "home_nursing_cat": {
+          "label": "Home Nursing",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 6,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 5,
+          "ext_domain_den": 24
+        },
+        "personalized": {
+          "label": "Personalized Care",
+          "own_snippet_num": 2,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 53,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 24
+        },
+        "based_dubai": {
+          "label": "Based in Dubai",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 24
+        }
+      },
+      "examples": [
+        {
+          "host": "simshomehealthcare.ae",
+          "url": "https://simshomehealthcare.ae/",
+          "text": "our services doctor on call doctor at home doctor at hotel pediatrician at home pediatrician on call lab test at home std test at home nipt test at home dna test at home hiv test at home semen analysis hormones lab test beta hcg test at home vitamin &#038; minerals test at home physiotherapy at home",
+          "is_own": false
+        },
+        {
+          "host": "www.simshomehealthcare.ae",
+          "url": "https://www.simshomehealthcare.ae/services/",
+          "text": "our services doctor on call doctor at home doctor at hotel pediatrician at home pediatrician on call lab test at home std test at home nipt test at home dna test at home hiv test at home semen analysis hormones lab test beta hcg test at home vitamin &#038; minerals test at home physiotherapy at home",
+          "is_own": false
+        },
+        {
+          "host": "fastcareuae.com",
+          "url": "https://fastcareuae.com/services/dubai-home-care/",
+          "text": "living for their families who need special medical care. health education our specialized clinical team will provide continuous patient, family, and home health care services and preventive education in the home. chronic care our on call doctor and professional home care nursing team evaluate and tr",
+          "is_own": false
+        },
+        {
+          "host": "doctoroncall.ae",
+          "url": "https://doctoroncall.ae/",
+          "text": "glutathione skin whitening drip energy booster iv treatment trusted physicians across the globe book your consultation urgent medical care at your location home visit doctor dubai | fast medical response in 30 minutes doctor on call doctor at home doctor at hotel trusted physicians across the globe ",
+          "is_own": false
+        },
+        {
+          "host": "www.okadoc.com",
+          "url": "https://www.okadoc.com/en-ae/dubai/home-services",
+          "text": "at home services home services 800 doctor dubai covid-testing at home covid-testing at home homecare services for lab@home, covid-19 testing, vaccination, and nurse visit medcare homecare dubai doctor on call doctor at home doctor on call doctor at home home services mrod healthcare dubai home nursi",
+          "is_own": false
+        }
+      ]
+    },
+    "service_breadth": {
+      "score": 36.81,
+      "subsignals": {
+        "home_nursing": {
+          "label": "Home Nursing",
+          "own_snippet_num": 2,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 13,
+          "ext_snippet_den": 53,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 11,
+          "ext_domain_den": 24
+        },
+        "physiotherapy": {
+          "label": "Physiotherapy",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 9,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 8,
+          "ext_domain_den": 24
+        },
+        "doctor_support": {
+          "label": "Doctor Support",
+          "own_snippet_num": 3,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 39,
+          "ext_snippet_den": 53,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 20,
+          "ext_domain_den": 24
+        },
+        "diagnostics": {
+          "label": "Diagnostics / Blood Tests",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 7,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 7,
+          "ext_domain_den": 24
+        }
+      },
+      "examples": [
+        {
+          "host": "simshomehealthcare.ae",
+          "url": "https://simshomehealthcare.ae/",
+          "text": "our services doctor on call doctor at home doctor at hotel pediatrician at home pediatrician on call lab test at home std test at home nipt test at home dna test at home hiv test at home semen analysis hormones lab test beta hcg test at home vitamin &#038; minerals test at home physiotherapy at home",
+          "is_own": false
+        },
+        {
+          "host": "www.simshomehealthcare.ae",
+          "url": "https://www.simshomehealthcare.ae/services/",
+          "text": "our services doctor on call doctor at home doctor at hotel pediatrician at home pediatrician on call lab test at home std test at home nipt test at home dna test at home hiv test at home semen analysis hormones lab test beta hcg test at home vitamin &#038; minerals test at home physiotherapy at home",
+          "is_own": false
+        },
+        {
+          "host": "fastcareuae.com",
+          "url": "https://fastcareuae.com/services/dubai-home-care/",
+          "text": "living for their families who need special medical care. health education our specialized clinical team will provide continuous patient, family, and home health care services and preventive education in the home. chronic care our on call doctor and professional home care nursing team evaluate and tr",
+          "is_own": false
+        },
+        {
+          "host": "doctoroncall.ae",
+          "url": "https://doctoroncall.ae/",
+          "text": "glutathione skin whitening drip energy booster iv treatment trusted physicians across the globe book your consultation urgent medical care at your location home visit doctor dubai | fast medical response in 30 minutes doctor on call doctor at home doctor at hotel trusted physicians across the globe ",
+          "is_own": false
+        },
+        {
+          "host": "24x7dubai.firstresponsehealthcare.com",
+          "url": "https://24x7dubai.firstresponsehealthcare.com/doctor-on-call/",
+          "text": "from dubai corporation of ambulance services will reach you. what is the alternative to going to a hospital or clinic for non-emergencies? with achievement of jci accreditation, first response healthcare is the only dedicated house call doctor service provider offering international standard doctor ",
+          "is_own": false
+        }
+      ]
+    },
+    "care_depth": {
+      "score": 18.22,
+      "subsignals": {
+        "elderly": {
+          "label": "Elderly Care",
+          "own_snippet_num": 1,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 5,
+          "ext_snippet_den": 53,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 5,
+          "ext_domain_den": 24
+        },
+        "chronic": {
+          "label": "Chronic / Disease Mgmt",
+          "own_snippet_num": 1,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 53,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 24
+        },
+        "post_acute": {
+          "label": "Post-Acute",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 24
+        },
+        "recovery": {
+          "label": "Recovery",
+          "own_snippet_num": 1,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 53,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 24
+        },
+        "cognitive": {
+          "label": "Dementia / Cognitive",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 24
+        },
+        "palliative": {
+          "label": "Palliative",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 24
+        },
+        "long_term": {
+          "label": "Long-Term Care",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 24
+        }
+      },
+      "examples": [
+        {
+          "host": "simshomehealthcare.ae",
+          "url": "https://simshomehealthcare.ae/",
+          "text": "our services doctor on call doctor at home doctor at hotel pediatrician at home pediatrician on call lab test at home std test at home nipt test at home dna test at home hiv test at home semen analysis hormones lab test beta hcg test at home vitamin &#038; minerals test at home physiotherapy at home",
+          "is_own": false
+        },
+        {
+          "host": "www.simshomehealthcare.ae",
+          "url": "https://www.simshomehealthcare.ae/services/",
+          "text": "our services doctor on call doctor at home doctor at hotel pediatrician at home pediatrician on call lab test at home std test at home nipt test at home dna test at home hiv test at home semen analysis hormones lab test beta hcg test at home vitamin &#038; minerals test at home physiotherapy at home",
+          "is_own": false
+        },
+        {
+          "host": "fastcareuae.com",
+          "url": "https://fastcareuae.com/services/dubai-home-care/",
+          "text": "living for their families who need special medical care. health education our specialized clinical team will provide continuous patient, family, and home health care services and preventive education in the home. chronic care our on call doctor and professional home care nursing team evaluate and tr",
+          "is_own": false
+        },
+        {
+          "host": "trucareplus.ae",
+          "url": "https://trucareplus.ae/",
+          "text": "is ideal for: elderly patients busy professionals tourists hotel guests patients with fever, flu, pain, infections, or mobility issues one call is all it takes to have a doctor on call at your doorstep . call doctor dubai for complete at-home medical services health concerns don’t wait — and neither",
+          "is_own": false
+        },
+        {
+          "host": "www.nightingaledubai.com",
+          "url": "https://www.nightingaledubai.com/doctor-on-call-dubai/",
+          "text": "now! call +971 56 168 0391 trusted doctor at home services in dubai nightingale is known for the best doctor at home services in dubai, and below are a few instances when you need an on-call doctor at your home or hotel; physically challenged individuals or elderly people who cannot travel to the ho",
+          "is_own": false
+        }
+      ]
+    },
+    "delivery_reliability": {
+      "score": 86.52,
+      "subsignals": {
+        "always_on": {
+          "label": "24/7",
+          "own_snippet_num": 1,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 13,
+          "ext_snippet_den": 53,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 8,
+          "ext_domain_den": 24
+        },
+        "on_call": {
+          "label": "On-Call",
+          "own_snippet_num": 4,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 33,
+          "ext_snippet_den": 53,
+          "own_domain_num": 1,
+          "own_domain_den": 1,
+          "ext_domain_num": 22,
+          "ext_domain_den": 24
+        },
+        "same_day": {
+          "label": "Same-Day",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 24
+        },
+        "doorstep": {
+          "label": "Doorstep",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 24
+        },
+        "home_visit": {
+          "label": "Home Visit",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 14,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 6,
+          "ext_domain_den": 24
+        },
+        "responsive": {
+          "label": "Responsive / Rapid",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 24
+        }
+      },
+      "examples": [
+        {
+          "host": "simshomehealthcare.ae",
+          "url": "https://simshomehealthcare.ae/",
+          "text": "our services doctor on call doctor at home doctor at hotel pediatrician at home pediatrician on call lab test at home std test at home nipt test at home dna test at home hiv test at home semen analysis hormones lab test beta hcg test at home vitamin &#038; minerals test at home physiotherapy at home",
+          "is_own": false
+        },
+        {
+          "host": "www.simshomehealthcare.ae",
+          "url": "https://www.simshomehealthcare.ae/services/",
+          "text": "our services doctor on call doctor at home doctor at hotel pediatrician at home pediatrician on call lab test at home std test at home nipt test at home dna test at home hiv test at home semen analysis hormones lab test beta hcg test at home vitamin &#038; minerals test at home physiotherapy at home",
+          "is_own": false
+        },
+        {
+          "host": "fastcareuae.com",
+          "url": "https://fastcareuae.com/services/dubai-home-care/",
+          "text": "living for their families who need special medical care. health education our specialized clinical team will provide continuous patient, family, and home health care services and preventive education in the home. chronic care our on call doctor and professional home care nursing team evaluate and tr",
+          "is_own": false
+        },
+        {
+          "host": "doctoroncall.ae",
+          "url": "https://doctoroncall.ae/",
+          "text": "glutathione skin whitening drip energy booster iv treatment trusted physicians across the globe book your consultation urgent medical care at your location home visit doctor dubai | fast medical response in 30 minutes doctor on call doctor at home doctor at hotel trusted physicians across the globe ",
+          "is_own": false
+        },
+        {
+          "host": "loyalhealthcare.ae",
+          "url": "https://loyalhealthcare.ae/",
+          "text": "hotel, or office, eliminating the need for travel and long queue our healthcare professionals at home in dubai offers expert care, and treatment plan for various health conditions. whether you need regular care, a house call doctor, or routine health check-ups, our licensed professionals are availab",
+          "is_own": false
+        }
+      ]
+    },
+    "authority_reputation": {
+      "score": 12.14,
+      "subsignals": {
+        "established": {
+          "label": "Established / Founded",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 24
+        },
+        "recognized": {
+          "label": "Recognized / Reputable",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 0,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 0,
+          "ext_domain_den": 24
+        },
+        "leading": {
+          "label": "Leading / Largest",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 2,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 2,
+          "ext_domain_den": 24
+        },
+        "trusted": {
+          "label": "Trusted",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 3,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 3,
+          "ext_domain_den": 24
+        },
+        "award": {
+          "label": "Award-Winning",
+          "own_snippet_num": 0,
+          "own_snippet_den": 4,
+          "ext_snippet_num": 1,
+          "ext_snippet_den": 53,
+          "own_domain_num": 0,
+          "own_domain_den": 1,
+          "ext_domain_num": 1,
+          "ext_domain_den": 24
+        }
+      },
+      "examples": [
+        {
+          "host": "doctoroncall.ae",
+          "url": "https://doctoroncall.ae/",
+          "text": "glutathione skin whitening drip energy booster iv treatment trusted physicians across the globe book your consultation urgent medical care at your location home visit doctor dubai | fast medical response in 30 minutes doctor on call doctor at home doctor at hotel trusted physicians across the globe ",
+          "is_own": false
+        },
+        {
+          "host": "24x7dubai.firstresponsehealthcare.com",
+          "url": "https://24x7dubai.firstresponsehealthcare.com/doctor-on-call/",
+          "text": "from dubai corporation of ambulance services will reach you. what is the alternative to going to a hospital or clinic for non-emergencies? with achievement of jci accreditation, first response healthcare is the only dedicated house call doctor service provider offering international standard doctor ",
+          "is_own": false
+        },
+        {
+          "host": "oncalldoctordubai.com",
+          "url": "https://oncalldoctordubai.com/",
+          "text": "dubai corporation of ambulance services will reach you. 12. what is the alternative to going to a hospital or clinic for non-emergencies? with achievement of jci accreditation, first response healthcare is the only dedicated house call doctor service provider offering international standard doctor o",
+          "is_own": false
+        },
+        {
+          "host": "24x7.trusteddoctors.ae",
+          "url": "https://24x7.trusteddoctors.ae/",
+          "text": "jumeirah to al barsha, our doctor on call service ensures fast, reliable care anywhere in dubai. experienced professionals our qualified doctors and nurses deliver trusted care. if you’ve looked up “dr for home visit” or “call doctor dubai,” you’re in safe hands. visit time doctors typically arrive ",
+          "is_own": false
+        },
+        {
+          "host": "www.nightingaledubai.com",
+          "url": "https://www.nightingaledubai.com/doctor-on-call-dubai/",
+          "text": "now! call +971 56 168 0391 trusted doctor at home services in dubai nightingale is known for the best doctor at home services in dubai, and below are a few instances when you need an on-call doctor at your home or hotel; physically challenged individuals or elderly people who cannot travel to the ho",
+          "is_own": false
+        }
+      ]
+    },
+    "identity_consistency": {
+      "score": 27.17,
+      "packets": {
+        "packets": [
+          {
+            "packet": [
+              false,
+              true,
+              true,
+              false
+            ],
+            "label": "Trust + Breadth",
+            "count": 16,
+            "pct": 28.1,
+            "hosts": 9,
+            "total_hosts": 25
+          },
+          {
+            "packet": [
+              false,
+              false,
+              true,
+              false
+            ],
+            "label": "Breadth",
+            "count": 11,
+            "pct": 19.3,
+            "hosts": 11,
+            "total_hosts": 25
+          },
+          {
+            "packet": [
+              false,
+              false,
+              false,
+              false
+            ],
+            "label": "(none)",
+            "count": 8,
+            "pct": 14.0,
+            "hosts": 6,
+            "total_hosts": 25
+          },
+          {
+            "packet": [
+              true,
+              false,
+              true,
+              false
+            ],
+            "label": "Category + Breadth",
+            "count": 7,
+            "pct": 12.3,
+            "hosts": 6,
+            "total_hosts": 25
+          }
+        ],
+        "total_snippets": 57
+      },
+      "subsignals": {},
+      "examples": []
+    }
+  }
+}

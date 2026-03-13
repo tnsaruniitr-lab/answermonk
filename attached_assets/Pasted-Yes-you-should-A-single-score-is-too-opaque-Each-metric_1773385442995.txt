@@ -1,0 +1,256 @@
+Yes — you should.
+
+A single score is too opaque. Each metric should expand into a driver breakdown.
+
+Best UI pattern
+
+For every metric card, add a dropdown with 3 layers:
+
+1. Sub-signals
+
+Example for Trust:
+
+DHA mentions
+
+licensed mentions
+
+certified mentions
+
+JCI mentions
+
+doctor-led mentions
+
+trained professionals mentions
+
+2. Counts
+
+For each sub-signal show:
+
+snippet numerator / denominator
+
+domain numerator / denominator
+
+own-site vs external split
+
+Example:
+
+DHA: 18/42 snippets, 6/10 domains
+
+JCI: 2/42 snippets, 1/10 domains
+
+3. Evidence examples
+
+Show 3–5 matched snippets with:
+
+source
+
+URL/host
+
+raw text highlight
+
+That makes it visible and debuggable.
+
+Suggested dropdowns by metric
+Trust
+
+Break into:
+
+DHA
+
+licensed
+
+certified
+
+accredited
+
+JCI
+
+ISO
+
+trained / qualified
+
+doctor-led
+
+Category clarity
+
+Break into:
+
+home healthcare
+
+in-home healthcare
+
+at-home healthcare
+
+home care provider
+
+healthcare provider in Dubai
+
+Service breadth
+
+Break into service buckets:
+
+home nursing
+
+physiotherapy
+
+doctor support
+
+diagnostics / blood tests
+
+Care depth
+
+Break into:
+
+elderly care
+
+chronic care
+
+post-op
+
+post-hospital
+
+recovery
+
+dementia
+
+palliative
+
+long-term care
+
+Delivery
+
+Break into:
+
+24/7
+
+on-call
+
+same-day
+
+doorstep
+
+home visit
+
+responsive / rapid
+
+Reputation
+
+Break into:
+
+established
+
+founded
+
+since
+
+recognized
+
+leading
+
+trusted
+
+reputable
+
+Identity consistency
+
+This one should not just be a score. Show:
+
+top repeated packet
+
+second packet
+
+drift terms
+
+Example:
+
+dominant packet: home healthcare + DHA + elderly care
+
+secondary packet: physiotherapy + chronic care
+
+drift: diagnostics-only, wellness-only
+
+Best table inside dropdown
+
+For each metric:
+
+Sub-signal	Own snippets	External snippets	Own domains	External domains
+
+Then below it:
+
+Evidence
+
+nightingaledubai.com — “DHA-licensed nurses…”
+
+reddit.com — “best home nursing…”
+
+directory.com — “24/7 home healthcare in Dubai…”
+
+For consistency specifically
+
+Yes, show the repeated packet explicitly.
+
+Good consistency dropdown
+Dominant packet
+
+home healthcare provider
+
+DHA/licensed
+
+elderly/chronic care
+
+physiotherapy
+
+Coverage
+
+appears in 61% of snippets
+
+appears across 8/12 domains
+
+Drift terms
+
+diagnostics-only: 9%
+
+wellness-only: 6%
+
+doctor-on-call only: 11%
+
+That makes the score interpretable.
+
+How to achieve this technically
+
+Store metrics in a nested structure like:
+
+{
+  "trust": {
+    "score": 54,
+    "subsignals": {
+      "dha": {"snippet_num": 18, "snippet_den": 42, "domain_num": 6, "domain_den": 10},
+      "licensed": {...},
+      "jci": {...}
+    },
+    "examples": [
+      {"host": "example.com", "text": "DHA-licensed nurses..."},
+      {"host": "directory.com", "text": "certified professionals..."}
+    ]
+  }
+}
+
+Then the UI can render:
+
+top score
+
+dropdown table
+
+evidence snippets
+
+Best principle
+
+Every metric should answer:
+
+What drove this score?
+
+Which exact terms were found?
+
+Where were they found?
+
+Was it own-site or external?
