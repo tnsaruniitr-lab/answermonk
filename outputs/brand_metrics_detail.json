@@ -729,6 +729,11 @@
       },
       "subsignals": {},
       "examples": []
+    },
+    "_slug": {
+      "core": "professional-staff · home-nursing · elderly-care · nursing-care",
+      "support": "quality-focused · in-home · palliative",
+      "drift": "home-healthcare"
     }
   },
   "First Response Healthcare": {
@@ -1467,6 +1472,11 @@
       },
       "subsignals": {},
       "examples": []
+    },
+    "_slug": {
+      "core": "accredited · home-healthcare · elderly-care · nursing-care",
+      "support": "jci-accredited · home-nursing · post-op",
+      "drift": ""
     }
   },
   "Nightingale Health Services": {
@@ -2205,6 +2215,11 @@
       },
       "subsignals": {},
       "examples": []
+    },
+    "_slug": {
+      "core": "dha-licensed · home-healthcare · recovery-care · doctor-visits",
+      "support": "trained-staff · home-nursing · chronic-disease",
+      "drift": "elderly-care · established"
     }
   },
   "Vesta Care": {
@@ -2943,6 +2958,11 @@
       },
       "subsignals": {},
       "examples": []
+    },
+    "_slug": {
+      "core": "licensed · home-healthcare · elderly-care · nursing-care",
+      "support": "dha-licensed · home-nursing · post-op",
+      "drift": "established"
     }
   },
   "Manzil Health": {
@@ -3608,6 +3628,11 @@
       },
       "subsignals": {},
       "examples": []
+    },
+    "_slug": {
+      "core": "jci-accredited",
+      "support": "accredited",
+      "drift": "home-healthcare · nursing-care"
     }
   },
   "Call Doctor": {
@@ -4346,6 +4371,11 @@
       },
       "subsignals": {},
       "examples": []
+    },
+    "_slug": {
+      "core": "licensed · personalized-care · elderly-care · doctor-visits",
+      "support": "dha-licensed · home-healthcare · chronic-disease",
+      "drift": "home-visits · physio-rehab · certified"
     }
   }
 }

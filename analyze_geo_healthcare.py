@@ -826,6 +826,148 @@ def compute_identity_detail(bdf: pd.DataFrame) -> dict:
     return {"packets": packets_out, "total_snippets": total}
 
 
+# ─── ATTRIBUTE SLUG GENERATION ───────────────────────────────────────────────
+
+# Map subsignal keys → short slug tokens
+SLUG_TOKENS: dict = {
+    "trust": {
+        "dha":           "dha-licensed",
+        "jci":           "jci-accredited",
+        "accredited":    "accredited",
+        "licensed":      "licensed",
+        "quality_excell":"quality-focused",
+        "trained_qual":  "trained-staff",
+        "professional":  "professional-staff",
+        "doctor_led":    "doctor-led",
+        "certified":     "certified",
+    },
+    "category_clarity": {
+        "home_healthcare":  "home-healthcare",
+        "home_nursing_cat": "home-nursing",
+        "in_home":          "in-home",
+        "at_home":          "at-home",
+        "personalized":     "personalized-care",
+        "provider_id":      "care-provider",
+    },
+    "care_depth": {
+        "elderly":   "elderly-care",
+        "chronic":   "chronic-disease",
+        "post_acute":"post-op",
+        "cognitive": "dementia-care",
+        "palliative":"palliative",
+        "long_term": "long-term-care",
+        "recovery":  "recovery-care",
+    },
+    "service_breadth": {
+        "physiotherapy":  "physio-rehab",
+        "doctor_support": "doctor-visits",
+        "diagnostics":    "diagnostics",
+        "home_nursing":   "nursing-care",
+    },
+    "delivery_reliability": {
+        "always_on": "24/7",
+        "home_visit":"home-visits",
+        "same_day":  "same-day",
+        "on_call":   "on-call",
+        "responsive":"rapid-response",
+    },
+    "authority_reputation": {
+        "established":"established",
+        "recognized": "recognized",
+        "leading":    "market-leader",
+        "trusted":    "trusted",
+    },
+}
+
+# Priority order for core slug dimension selection
+CORE_DIM_PRIORITY = [
+    "trust",
+    "category_clarity",
+    "care_depth",
+    "service_breadth",
+    "delivery_reliability",
+    "authority_reputation",
+]
+
+
+def generate_brand_slug(bdf: pd.DataFrame) -> dict:
+    """
+    Derive a 3-part attribute slug from snippet evidence:
+      core    — dominant own-site identity (up to 4 tokens)
+      support — secondary signals
+      drift   — external-heavy signals the brand doesn't own
+    """
+    if bdf.empty:
+        return {"core": "no-data", "support": "", "drift": ""}
+
+    own = bdf[bdf["is_own"]]
+    ext = bdf[~bdf["is_own"]]
+    total_own = max(1, len(own))
+    total_ext = max(1, len(ext))
+
+    # Score every subsignal in every dimension
+    signals = []
+    for dim, subs in SLUG_TOKENS.items():
+        if dim not in METRIC_SUBSIGNALS:
+            continue
+        for sig_key, token in subs.items():
+            if sig_key not in METRIC_SUBSIGNALS[dim]:
+                continue
+            kws = METRIC_SUBSIGNALS[dim][sig_key]["keywords"]
+            own_match = int(own["norm_context"].apply(lambda t: keyword_match(t, kws)).sum()) if not own.empty else 0
+            ext_match = int(ext["norm_context"].apply(lambda t: keyword_match(t, kws)).sum()) if not ext.empty else 0
+            signals.append({
+                "dim": dim, "key": sig_key, "token": token,
+                "own_prev": own_match / total_own,
+                "ext_prev": ext_match / total_ext,
+                "own_match": own_match,
+                "ext_match": ext_match,
+            })
+
+    # ── Core: best own-site signal per dimension ──
+    core_tokens = []
+    for dim in CORE_DIM_PRIORITY:
+        dim_sigs = [s for s in signals if s["dim"] == dim and s["own_prev"] > 0.05]
+        if dim_sigs:
+            top = max(dim_sigs, key=lambda s: s["own_prev"])
+            if top["token"] not in core_tokens:
+                core_tokens.append(top["token"])
+        if len(core_tokens) >= 4:
+            break
+    core = " · ".join(core_tokens[:4]) if core_tokens else "no-clear-identity"
+
+    # ── Support: second-tier own-site signals ──
+    support_tokens = []
+    for dim in CORE_DIM_PRIORITY:
+        dim_sigs = sorted(
+            [s for s in signals if s["dim"] == dim and s["own_prev"] > 0.03],
+            key=lambda s: s["own_prev"], reverse=True
+        )
+        # Skip token already in core, take next best
+        for s in dim_sigs:
+            if s["token"] not in core_tokens and s["token"] not in support_tokens:
+                support_tokens.append(s["token"])
+                break
+        if len(support_tokens) >= 3:
+            break
+    support = " · ".join(support_tokens[:3]) if support_tokens else ""
+
+    # ── Drift: external-heavy, low own-site presence ──
+    drift_signals = sorted(
+        [s for s in signals
+         if s["ext_prev"] > 0.10 and s["ext_match"] >= 3
+         and (s["own_prev"] < s["ext_prev"] * 0.5)],
+        key=lambda s: s["ext_prev"] - s["own_prev"], reverse=True
+    )
+    drift_tokens = []
+    for s in drift_signals[:3]:
+        if s["token"] not in core_tokens and s["token"] not in support_tokens and s["token"] not in drift_tokens:
+            drift_tokens.append(s["token"])
+    drift = " · ".join(drift_tokens) if drift_tokens else ""
+
+    return {"core": core, "support": support, "drift": drift}
+
+
 # ─── GENERATE DETAIL JSON ────────────────────────────────────────────────────
 
 print("\n[5] Generating brand_metrics_detail.json ...")
@@ -871,6 +1013,9 @@ for brand in TARGET_BRANDS:
         "subsignals": {},
         "examples": [],
     }
+
+    # Attribute slug
+    brand_detail[brand]["_slug"] = generate_brand_slug(bdf)
 
 detail_path = OUTPUT_DIR / "brand_metrics_detail.json"
 detail_path.write_text(json.dumps(brand_detail, indent=2, ensure_ascii=False))

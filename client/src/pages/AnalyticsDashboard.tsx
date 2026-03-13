@@ -736,7 +736,9 @@ type GeoMetricDetail = {
   packets?: { packets: GeoPacket[]; total_snippets: number };
   components?: Record<string, number | string>;
 };
-type GeoDetailData = Record<string, Record<string, GeoMetricDetail>>;
+type GeoSlug = { core: string; support: string; drift: string };
+type GeoBrandEntry = { _slug?: GeoSlug } & Record<string, GeoMetricDetail>;
+type GeoDetailData = Record<string, GeoBrandEntry>;
 
 // ─── MetricDetailPanel ────────────────────────────────────────────────────────
 
@@ -974,7 +976,8 @@ function GeoMetricsSection({ sessionId }: { sessionId: number }) {
                   const brandName = b.brand as string;
                   const color = BRAND_COLORS[brandName] ?? "#6b7280";
                   const avg = METRIC_KEYS.reduce((s, k) => s + Number(b[k] ?? 0), 0) / METRIC_KEYS.length;
-                  const brandDetail = detailData?.[brandName];
+                  const brandEntry  = detailData?.[brandName];
+                  const slug        = brandEntry?._slug as GeoSlug | undefined;
 
                   return (
                     <div
@@ -983,7 +986,7 @@ function GeoMetricsSection({ sessionId }: { sessionId: number }) {
                       data-testid={`geo-brand-card-${brandName.replace(/\s+/g, "-").toLowerCase()}`}
                     >
                       {/* Card header */}
-                      <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2 min-w-0">
                           <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
                           <span className="text-sm font-semibold text-gray-800 truncate">{brandName}</span>
@@ -993,6 +996,35 @@ function GeoMetricsSection({ sessionId }: { sessionId: number }) {
                         </span>
                       </div>
 
+                      {/* Attribute slug */}
+                      {slug && slug.core !== "no-data" && (
+                        <div className="mb-3 pb-3 border-b border-gray-100 space-y-1.5">
+                          <div className="flex items-start gap-1.5">
+                            <span
+                              className="mt-0.5 text-[9px] font-bold uppercase tracking-widest shrink-0 pt-0.5"
+                              style={{ color }}
+                            >
+                              ●
+                            </span>
+                            <span className="text-xs text-gray-700 font-medium leading-snug">{slug.core}</span>
+                          </div>
+                          {slug.support && (
+                            <div className="flex items-start gap-1.5">
+                              <span className="mt-0.5 text-[9px] text-gray-300 shrink-0 pt-0.5">◦</span>
+                              <span className="text-xs text-gray-400 leading-snug">{slug.support}</span>
+                            </div>
+                          )}
+                          {slug.drift && (
+                            <div className="flex items-start gap-1.5">
+                              <span className="mt-0.5 text-[9px] text-amber-400 shrink-0 pt-0.5">~</span>
+                              <span className="text-xs text-amber-600/70 italic leading-snug" title="Attributed by external sources more than own site">
+                                {slug.drift}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       {/* Metric rows — each clickable */}
                       <div className="space-y-0.5">
                         {METRIC_KEYS.map((key) => {
@@ -1000,7 +1032,7 @@ function GeoMetricsSection({ sessionId }: { sessionId: number }) {
                           const barColor  = scoreColor(val);
                           const expandKey = `${brandName}::${key}`;
                           const isExpanded = expandedKey === expandKey;
-                          const detail    = brandDetail?.[key];
+                          const detail    = brandEntry?.[key] as GeoMetricDetail | undefined;
 
                           return (
                             <div key={key}>
