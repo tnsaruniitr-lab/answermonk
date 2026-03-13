@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import {
   PieChart,
@@ -9,7 +9,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { Loader2, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
+import { Loader2, ChevronDown, ChevronRight, ExternalLink, RefreshCw, Play } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 interface CitationUrlRow {
   url_category: string;
@@ -339,9 +340,311 @@ function AuthoritySection({ sessionId }: { sessionId: number }) {
   );
 }
 
+interface CrawlStatus {
+  total_citation_urls: number;
+  crawled: number;
+  accessible: number;
+  failed: number;
+  analyzed: number;
+}
+
+interface BrandConsistency {
+  brand: string;
+  page_count: string;
+  category_count: string;
+  positive_pages: string;
+  neutral_pages: string;
+  negative_pages: string;
+  best_rank: string | null;
+  ranked_pages: string;
+  all_attributes: string[];
+  all_services: string[];
+  all_trust_signals: string[];
+}
+
+interface BrandContextPage {
+  page_url: string;
+  page_title: string;
+  url_category: string;
+  domain: string;
+  brand: string;
+  mention_count: number;
+  rank_position: number | null;
+  attributes: string[];
+  services: string[];
+  trust_signals: string[];
+  sentiment: string;
+  framing: string;
+  snippets: string[];
+  publish_date: string | null;
+}
+
+const SENTIMENT_BADGE: Record<string, string> = {
+  positive: "bg-green-50 text-green-700 border-green-100",
+  neutral: "bg-gray-50 text-gray-600 border-gray-200",
+  negative: "bg-red-50 text-red-700 border-red-100",
+};
+
+const FRAMING_BADGE: Record<string, string> = {
+  recommended: "bg-emerald-50 text-emerald-700",
+  listed: "bg-blue-50 text-blue-700",
+  compared: "bg-indigo-50 text-indigo-700",
+  criticized: "bg-red-50 text-red-700",
+  mentioned: "bg-gray-50 text-gray-600",
+};
+
+function ContextAuditSection({ sessionId }: { sessionId: number }) {
+  const qc = useQueryClient();
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
+
+  const { data: statusData, isLoading: statusLoading } = useQuery<CrawlStatus>({
+    queryKey: [`/api/crawl/status/${sessionId}`],
+    refetchInterval: 8000,
+    staleTime: 5000,
+  });
+
+  const { data: consistencyData, isLoading: consistencyLoading } = useQuery<{ brands: BrandConsistency[] }>({
+    queryKey: [`/api/context-consistency/${sessionId}`],
+    staleTime: 30000,
+    enabled: (statusData?.analyzed ?? 0) > 0,
+  });
+
+  const { data: brandData, isLoading: brandLoading } = useQuery<{ brand: string; pages: BrandContextPage[] }>({
+    queryKey: [`/api/brand-context/${sessionId}/${selectedBrand}`],
+    staleTime: 30000,
+    enabled: !!selectedBrand,
+  });
+
+  const crawlMut = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/crawl/run/${sessionId}`),
+    onSuccess: () => setTimeout(() => qc.invalidateQueries({ queryKey: [`/api/crawl/status/${sessionId}`] }), 2000),
+  });
+
+  const analyzeMut = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/crawl/analyze/${sessionId}`),
+    onSuccess: () => setTimeout(() => qc.invalidateQueries({ queryKey: [`/api/crawl/status/${sessionId}`] }), 2000),
+  });
+
+  const status = statusData;
+  const crawlPct = status ? Math.round((status.crawled / status.total_citation_urls) * 100) : 0;
+  const analyzedPct = status && status.accessible > 0 ? Math.round((status.analyzed / status.accessible) * 100) : 0;
+  const brands = consistencyData?.brands || [];
+
+  return (
+    <div className="space-y-6">
+      {/* Status Card */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Crawl Status</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Fetch cited pages · extract brand intelligence · compare across sources</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => crawlMut.mutate()}
+              disabled={crawlMut.isPending}
+              data-testid="btn-start-crawl"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 transition-colors"
+            >
+              {crawlMut.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+              Crawl Pages
+            </button>
+            <button
+              onClick={() => analyzeMut.mutate()}
+              disabled={analyzeMut.isPending || (status?.accessible ?? 0) === 0}
+              data-testid="btn-start-analyze"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            >
+              {analyzeMut.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+              Analyze
+            </button>
+          </div>
+        </div>
+
+        {statusLoading ? (
+          <div className="flex items-center justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-gray-300" /></div>
+        ) : status ? (
+          <div className="grid grid-cols-4 gap-4">
+            {[
+              { label: "Citation URLs", value: status.total_citation_urls, color: "text-gray-900" },
+              { label: "Crawled", value: `${status.crawled} (${crawlPct}%)`, color: "text-blue-700" },
+              { label: "Accessible", value: status.accessible, color: "text-green-700" },
+              { label: "Analyzed", value: `${status.analyzed} (${analyzedPct}%)`, color: "text-purple-700" },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="bg-gray-50 rounded-xl p-4 text-center">
+                <div className={`text-xl font-bold ${color}`}>{value}</div>
+                <div className="text-xs text-gray-400 mt-1">{label}</div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {(crawlMut.data || analyzeMut.data) && (
+          <p className="text-xs text-green-600 mt-3 bg-green-50 rounded-lg px-3 py-2">
+            {crawlMut.data ? "Crawl running in background — refresh status in ~10 min" : "Analysis running in background — check back shortly"}
+          </p>
+        )}
+      </div>
+
+      {/* Consistency Overview */}
+      {consistencyLoading ? (
+        <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-gray-300" /></div>
+      ) : brands.length === 0 ? (
+        <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
+          <p className="text-sm text-gray-400">No brand context data yet — run the crawl then the analysis to populate this section.</p>
+        </div>
+      ) : (
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Brand Context Overview</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Attributes, services, and sentiment extracted from all cited pages per brand</p>
+          </div>
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Brand</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wide">Pages</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wide">Best Rank</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-green-600 uppercase tracking-wide">+</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wide">~</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-red-500 uppercase tracking-wide">−</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Top Attributes</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Services</th>
+              </tr>
+            </thead>
+            <tbody>
+              {brands.map((b, i) => (
+                <tr
+                  key={b.brand}
+                  onClick={() => setSelectedBrand(selectedBrand === b.brand ? null : b.brand)}
+                  className={`border-b border-gray-50 cursor-pointer transition-colors ${selectedBrand === b.brand ? "bg-blue-50/40" : "hover:bg-gray-50/60"}`}
+                  data-testid={`brand-row-${i}`}
+                >
+                  <td className="px-4 py-3 font-medium text-gray-800">{b.brand}</td>
+                  <td className="px-4 py-3 text-center text-gray-600">{b.page_count}</td>
+                  <td className="px-4 py-3 text-center">
+                    {b.best_rank ? <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded text-xs font-semibold">#{b.best_rank}</span> : <span className="text-gray-300">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-center text-green-600 font-medium">{b.positive_pages}</td>
+                  <td className="px-4 py-3 text-center text-gray-500">{b.neutral_pages}</td>
+                  <td className="px-4 py-3 text-center text-red-500 font-medium">{b.negative_pages}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {(b.all_attributes || []).slice(0, 4).map((a, ai) => (
+                        <span key={ai} className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-xs">{a}</span>
+                      ))}
+                      {(b.all_attributes || []).length > 4 && <span className="text-gray-400 text-xs">+{b.all_attributes.length - 4}</span>}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {(b.all_services || []).slice(0, 3).map((s, si) => (
+                        <span key={si} className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded text-xs">{s}</span>
+                      ))}
+                      {(b.all_services || []).length > 3 && <span className="text-gray-400 text-xs">+{b.all_services.length - 3}</span>}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Brand Detail Drilldown */}
+      {selectedBrand && (
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                Brand Context — <span className="text-gray-900 normal-case">{selectedBrand}</span>
+              </h2>
+              <p className="text-xs text-gray-400 mt-0.5">How each cited page describes this brand</p>
+            </div>
+            <button onClick={() => setSelectedBrand(null)} className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded hover:bg-gray-100">✕ close</button>
+          </div>
+
+          {brandLoading ? (
+            <div className="flex items-center justify-center py-16"><Loader2 className="w-5 h-5 animate-spin text-gray-300" /></div>
+          ) : (brandData?.pages || []).length === 0 ? (
+            <div className="py-12 text-center text-sm text-gray-400">No pages found for this brand</div>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {(brandData?.pages || []).map((page, i) => (
+                <div key={i} className="px-6 py-4 hover:bg-gray-50/40 transition-colors">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${SENTIMENT_BADGE[page.sentiment] || SENTIMENT_BADGE.neutral}`}>
+                          {page.sentiment}
+                        </span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${FRAMING_BADGE[page.framing] || FRAMING_BADGE.mentioned}`}>
+                          {page.framing}
+                        </span>
+                        {page.rank_position != null && (
+                          <span className="bg-amber-50 text-amber-700 border border-amber-100 text-xs px-2 py-0.5 rounded-full font-semibold">
+                            Rank #{page.rank_position}
+                          </span>
+                        )}
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_BADGE[page.url_category] || "bg-gray-100 text-gray-600"}`}>
+                          {page.url_category}
+                        </span>
+                      </div>
+                      <a
+                        href={page.page_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline text-sm font-medium flex items-center gap-1 truncate"
+                      >
+                        <ExternalLink className="w-3 h-3 shrink-0" />
+                        <span className="truncate">{page.page_title || page.domain}</span>
+                      </a>
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">{page.page_url}</p>
+
+                      {page.attributes?.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {page.attributes.map((a, ai) => (
+                            <span key={ai} className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-xs">{a}</span>
+                          ))}
+                        </div>
+                      )}
+                      {page.services?.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {page.services.map((s, si) => (
+                            <span key={si} className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded text-xs">{s}</span>
+                          ))}
+                        </div>
+                      )}
+                      {page.trust_signals?.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {page.trust_signals.map((t, ti) => (
+                            <span key={ti} className="bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-xs border border-green-100">✓ {t}</span>
+                          ))}
+                        </div>
+                      )}
+                      {page.snippets?.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {page.snippets.slice(0, 2).map((s, si) => (
+                            <p key={si} className="text-xs text-gray-500 italic border-l-2 border-gray-200 pl-2">&ldquo;{s}&rdquo;</p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AnalyticsDashboard() {
   const params = useParams<{ sessionId?: string }>();
   const sessionId = parseInt(params.sessionId || "77");
+  const [activeTab, setActiveTab] = useState<"citations" | "context">("citations");
   const [tableEngine, setTableEngine] = useState<"all" | "chatgpt" | "gemini">("all");
   const [showTable, setShowTable] = useState(false);
 
@@ -388,18 +691,38 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-5xl mx-auto px-6 py-10 space-y-8">
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">Citation Analytics</h1>
-          <p className="text-sm text-gray-400 mt-1">Session {sessionId} · source: citation_urls</p>
+      <div className="max-w-5xl mx-auto px-6 py-10 space-y-6">
+        <div className="flex items-end justify-between">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900">Citation Analytics</h1>
+            <p className="text-sm text-gray-400 mt-1">Session {sessionId} · source: citation_urls</p>
+          </div>
+          <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+            {(["citations", "context"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                data-testid={`tab-${tab}`}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  activeTab === tab
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {tab === "citations" ? "Citation Analysis" : "Context Audit"}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {isLoading ? (
+        {activeTab === "context" ? (
+          <ContextAuditSection sessionId={sessionId} />
+        ) : isLoading ? (
           <div className="flex items-center justify-center py-32">
             <Loader2 className="w-7 h-7 animate-spin text-gray-300" />
           </div>
         ) : (
-          <>
+          <div className="space-y-8">
             {/* Brand-owned pie charts */}
             <div className="bg-white border border-gray-200 rounded-2xl p-6">
               <div className="mb-5">
@@ -539,7 +862,7 @@ export default function AnalyticsDashboard() {
                 </>
               )}
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

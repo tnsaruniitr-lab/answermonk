@@ -2519,5 +2519,161 @@ export async function registerRoutes(
     }
   });
 
+  // ── Context Audit: crawl status ──────────────────────────────────────────
+  app.get("/api/crawl/status/:sessionId", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId);
+      const { pool } = await import("./db");
+      const [statusRes, totalRes] = await Promise.all([
+        pool.query(`
+          SELECT
+            count(*) AS crawled,
+            count(*) FILTER (WHERE accessible = true) AS accessible,
+            count(*) FILTER (WHERE accessible = false) AS failed,
+            count(*) FILTER (WHERE accessible = true AND EXISTS (
+              SELECT 1 FROM page_brand_mentions pbm WHERE pbm.crawled_page_url = url
+            )) AS analyzed
+          FROM crawled_pages WHERE session_id = $1
+        `, [sessionId]),
+        pool.query(`SELECT count(*) AS total FROM citation_urls WHERE session_id = $1`, [sessionId]),
+      ]);
+      res.json({
+        total_citation_urls: parseInt(totalRes.rows[0].total),
+        crawled: parseInt(statusRes.rows[0].crawled),
+        accessible: parseInt(statusRes.rows[0].accessible),
+        failed: parseInt(statusRes.rows[0].failed),
+        analyzed: parseInt(statusRes.rows[0].analyzed),
+      });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to get crawl status", error: String(err) });
+    }
+  });
+
+  app.post("/api/crawl/run/:sessionId", requireAdmin, async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId);
+      const { spawn } = await import("child_process");
+      const proc = spawn("node", ["server/crawl/crawl-citation-urls.mjs", String(sessionId)], {
+        detached: true,
+        stdio: "ignore",
+        env: { ...process.env },
+      });
+      proc.unref();
+      res.json({ message: "Crawl started in background", sessionId });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to start crawl", error: String(err) });
+    }
+  });
+
+  app.post("/api/crawl/analyze/:sessionId", requireAdmin, async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId);
+      const { spawn } = await import("child_process");
+      const proc = spawn("node", ["server/crawl/analyze-crawled-pages.mjs", String(sessionId)], {
+        detached: true,
+        stdio: "ignore",
+        env: { ...process.env },
+      });
+      proc.unref();
+      res.json({ message: "Analysis started in background", sessionId });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to start analysis", error: String(err) });
+    }
+  });
+
+  // ── Context Audit: per-brand context ─────────────────────────────────────
+  app.get("/api/brand-context/:sessionId/:brand", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId);
+      const brand = req.params.brand;
+      const { pool } = await import("./db");
+      const { rows } = await pool.query(`
+        SELECT
+          pbm.brand, pbm.mention_count, pbm.rank_position,
+          pbm.attributes, pbm.services, pbm.trust_signals,
+          pbm.sentiment, pbm.framing, pbm.snippets, pbm.analyzed_at,
+          cp.url AS page_url, cp.title AS page_title, cp.url_category,
+          cp.domain, cp.publish_date, cp.trust_signals AS page_trust_signals,
+          cp.word_count
+        FROM page_brand_mentions pbm
+        JOIN crawled_pages cp ON cp.url = pbm.crawled_page_url
+        WHERE pbm.session_id = $1 AND pbm.brand = $2
+        ORDER BY
+          CASE cp.url_category
+            WHEN 'Comparison Article' THEN 1
+            WHEN 'Community Thread' THEN 2
+            WHEN 'Review Platform' THEN 3
+            WHEN 'Directory Listing' THEN 4
+            WHEN 'Brand Homepage' THEN 5
+            ELSE 6
+          END,
+          pbm.rank_position NULLS LAST
+      `, [sessionId, brand]);
+      res.json({ brand, pages: rows });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to get brand context", error: String(err) });
+    }
+  });
+
+  // ── Context Audit: consistency overview ──────────────────────────────────
+  app.get("/api/context-consistency/:sessionId", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId);
+      const { pool } = await import("./db");
+      const { rows } = await pool.query(`
+        WITH brand_stats AS (
+          SELECT
+            pbm.brand,
+            count(DISTINCT pbm.crawled_page_url) AS page_count,
+            count(DISTINCT cp.url_category) AS category_count,
+            count(*) FILTER (WHERE pbm.sentiment = 'positive') AS positive_pages,
+            count(*) FILTER (WHERE pbm.sentiment = 'neutral') AS neutral_pages,
+            count(*) FILTER (WHERE pbm.sentiment = 'negative') AS negative_pages,
+            min(pbm.rank_position) AS best_rank,
+            count(*) FILTER (WHERE pbm.rank_position IS NOT NULL) AS ranked_pages
+          FROM page_brand_mentions pbm
+          JOIN crawled_pages cp ON cp.url = pbm.crawled_page_url
+          WHERE pbm.session_id = $1
+          GROUP BY pbm.brand
+        ),
+        brand_attrs AS (
+          SELECT pbm.brand, jsonb_agg(DISTINCT attr) AS all_attributes
+          FROM page_brand_mentions pbm,
+               jsonb_array_elements_text(pbm.attributes) attr
+          WHERE pbm.session_id = $1
+          GROUP BY pbm.brand
+        ),
+        brand_svcs AS (
+          SELECT pbm.brand, jsonb_agg(DISTINCT svc) AS all_services
+          FROM page_brand_mentions pbm,
+               jsonb_array_elements_text(pbm.services) svc
+          WHERE pbm.session_id = $1
+          GROUP BY pbm.brand
+        ),
+        brand_trust AS (
+          SELECT pbm.brand, jsonb_agg(DISTINCT ts) AS all_trust_signals
+          FROM page_brand_mentions pbm,
+               jsonb_array_elements_text(pbm.trust_signals) ts
+          WHERE pbm.session_id = $1
+          GROUP BY pbm.brand
+        )
+        SELECT
+          bs.*,
+          COALESCE(ba.all_attributes, '[]') AS all_attributes,
+          COALESCE(bsv.all_services, '[]') AS all_services,
+          COALESCE(bt.all_trust_signals, '[]') AS all_trust_signals
+        FROM brand_stats bs
+        LEFT JOIN brand_attrs ba ON ba.brand = bs.brand
+        LEFT JOIN brand_svcs bsv ON bsv.brand = bs.brand
+        LEFT JOIN brand_trust bt ON bt.brand = bs.brand
+        ORDER BY bs.page_count DESC
+        LIMIT 30
+      `, [sessionId]);
+      res.json({ brands: rows });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to get context consistency", error: String(err) });
+    }
+  });
+
   return httpServer;
 }
