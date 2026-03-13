@@ -8,6 +8,11 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
 } from "recharts";
 import { Loader2, ChevronDown, ChevronRight, ExternalLink, RefreshCw, Play } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
@@ -685,6 +690,203 @@ function ContextAuditSection({ sessionId }: { sessionId: number }) {
   );
 }
 
+const BRAND_COLORS: Record<string, string> = {
+  "Call Doctor":               "#3b82f6",
+  "Emirates Home Nursing":     "#8b5cf6",
+  "First Response Healthcare": "#10b981",
+  "Nightingale Health Services": "#f97316",
+  "Vesta Care":                "#f43f5e",
+  "Manzil Health":             "#f59e0b",
+};
+
+const METRIC_LABELS: Record<string, string> = {
+  authority_source_presence: "Auth Source",
+  category_clarity:          "Category",
+  trust:                     "Trust",
+  service_breadth:           "Breadth",
+  care_depth:                "Depth",
+  delivery_reliability:      "Delivery",
+  authority_reputation:      "Reputation",
+  identity_consistency:      "Identity",
+};
+
+const METRIC_KEYS = Object.keys(METRIC_LABELS);
+
+function scoreColor(v: number): string {
+  if (v >= 66) return "#10b981";
+  if (v >= 40) return "#f59e0b";
+  return "#f43f5e";
+}
+
+function GeoMetricsSection({ sessionId }: { sessionId: number }) {
+  const [open, setOpen] = useState(false);
+
+  const { data, isLoading } = useQuery<{ brands: Record<string, string | number>[] }>({
+    queryKey: [`/api/geo-metrics/${sessionId}`],
+    staleTime: 60000,
+    enabled: open,
+  });
+
+  const brands = data?.brands || [];
+
+  const radarData = METRIC_KEYS.map((key) => {
+    const row: Record<string, string | number> = { metric: METRIC_LABELS[key] };
+    brands.forEach((b) => { row[b.brand as string] = Number(b[key] ?? 0); });
+    return row;
+  });
+
+  const topBrand = useMemo(() => {
+    if (!brands.length) return null;
+    return brands.reduce((best, b) => {
+      const avg = METRIC_KEYS.reduce((s, k) => s + Number(b[k] ?? 0), 0) / METRIC_KEYS.length;
+      const bestAvg = METRIC_KEYS.reduce((s, k) => s + Number(best[k] ?? 0), 0) / METRIC_KEYS.length;
+      return avg > bestAvg ? b : best;
+    });
+  }, [brands]);
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50/60 transition-colors"
+        data-testid="geo-metrics-toggle"
+      >
+        <div>
+          <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Brand GEO Intelligence</span>
+          <span className="text-xs text-gray-400 ml-3">8-dimension scoring from AI citation context · crawled pages only</span>
+        </div>
+        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-5 h-5 animate-spin text-gray-300" />
+            </div>
+          ) : brands.length === 0 ? (
+            <div className="py-16 text-center text-sm text-gray-400">No brand scores found.</div>
+          ) : (
+            <div className="px-6 pb-8">
+
+              {/* top bar */}
+              {topBrand && (
+                <div className="flex items-center gap-3 py-4 border-b border-gray-100 mb-6">
+                  <span className="text-xs text-gray-400 uppercase tracking-wide">Overall leader</span>
+                  <span
+                    className="px-3 py-1 rounded-full text-xs font-semibold text-white"
+                    style={{ backgroundColor: BRAND_COLORS[topBrand.brand as string] ?? "#6b7280" }}
+                  >
+                    {topBrand.brand as string}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    avg {(METRIC_KEYS.reduce((s, k) => s + Number(topBrand[k] ?? 0), 0) / METRIC_KEYS.length).toFixed(1)} / 100
+                  </span>
+                </div>
+              )}
+
+              {/* Radar chart */}
+              <div className="mb-8">
+                <p className="text-xs text-gray-400 mb-4 uppercase tracking-wide">Radar — all brands across all dimensions</p>
+                <ResponsiveContainer width="100%" height={360}>
+                  <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
+                    <PolarGrid stroke="#e5e7eb" />
+                    <PolarAngleAxis
+                      dataKey="metric"
+                      tick={{ fontSize: 11, fill: "#6b7280" }}
+                    />
+                    <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
+                    {brands.map((b) => (
+                      <Radar
+                        key={b.brand as string}
+                        name={b.brand as string}
+                        dataKey={b.brand as string}
+                        stroke={BRAND_COLORS[b.brand as string] ?? "#6b7280"}
+                        fill={BRAND_COLORS[b.brand as string] ?? "#6b7280"}
+                        fillOpacity={0.08}
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    ))}
+                    <Legend
+                      iconType="circle"
+                      iconSize={8}
+                      wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
+                    />
+                    <Tooltip
+                      formatter={(val: number) => [`${val.toFixed(1)}`, undefined]}
+                      contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e5e7eb" }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Brand cards grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {brands.map((b) => {
+                  const brandName = b.brand as string;
+                  const color = BRAND_COLORS[brandName] ?? "#6b7280";
+                  const avg = METRIC_KEYS.reduce((s, k) => s + Number(b[k] ?? 0), 0) / METRIC_KEYS.length;
+                  return (
+                    <div
+                      key={brandName}
+                      className="border border-gray-100 rounded-xl p-4 hover:shadow-sm transition-shadow"
+                      data-testid={`geo-brand-card-${brandName.replace(/\s+/g, "-").toLowerCase()}`}
+                    >
+                      {/* Card header */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                            style={{ backgroundColor: color }}
+                          />
+                          <span className="text-sm font-semibold text-gray-800 truncate">{brandName}</span>
+                        </div>
+                        <span
+                          className="text-xs font-bold shrink-0 ml-2"
+                          style={{ color }}
+                        >
+                          {avg.toFixed(0)}
+                        </span>
+                      </div>
+
+                      {/* Metric bars */}
+                      <div className="space-y-2">
+                        {METRIC_KEYS.map((key) => {
+                          const val = Number(b[key] ?? 0);
+                          const barColor = scoreColor(val);
+                          return (
+                            <div key={key} className="flex items-center gap-2" data-testid={`geo-metric-${key}-${brandName.replace(/\s+/g, "-").toLowerCase()}`}>
+                              <span className="text-xs text-gray-400 w-20 shrink-0">{METRIC_LABELS[key]}</span>
+                              <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full rounded-full transition-all"
+                                  style={{ width: `${val}%`, backgroundColor: barColor }}
+                                />
+                              </div>
+                              <span className="text-xs font-medium w-8 text-right" style={{ color: barColor }}>
+                                {val.toFixed(0)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <p className="text-xs text-gray-300 mt-6 text-center">
+                Scores derived from {brands.length} brands · 292 deduped snippets · crawled citation pages only · relative to this session
+              </p>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function AnalyticsDashboard() {
   const params = useParams<{ sessionId?: string }>();
   const sessionId = parseInt(params.sessionId || "77");
@@ -805,6 +1007,9 @@ export default function AnalyticsDashboard() {
 
             {/* Authority sources */}
             <AuthoritySection sessionId={sessionId} />
+
+            {/* Brand GEO Intelligence metrics */}
+            <GeoMetricsSection sessionId={sessionId} />
 
             {/* Summary table — collapsible */}
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">

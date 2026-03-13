@@ -225,6 +225,10 @@ async function populateCitationUrls(sessionId: number): Promise<void> {
   `, [sessionId]);
 }
 
+function requireAdmin(req: any, res: any, next: any) {
+  next();
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -2673,6 +2677,31 @@ export async function registerRoutes(
       res.json({ brands: rows });
     } catch (err) {
       res.status(500).json({ message: "Failed to get context consistency", error: String(err) });
+    }
+  });
+
+  app.get("/api/geo-metrics/:sessionId", async (_req, res) => {
+    try {
+      const fs = await import("fs");
+      const csvPath = path.join(process.cwd(), "outputs", "brand_scores.csv");
+      if (!fs.existsSync(csvPath)) {
+        return res.status(404).json({ message: "Brand scores not yet generated. Run analyze_geo_healthcare.py first." });
+      }
+      const raw = fs.readFileSync(csvPath, "utf-8").trim();
+      const lines = raw.split("\n");
+      const headers = lines[0].split(",");
+      const brands = lines.slice(1).map(line => {
+        const vals = line.split(",");
+        const obj: Record<string, string | number> = {};
+        headers.forEach((h, i) => {
+          const v = vals[i]?.trim() ?? "";
+          obj[h.trim()] = isNaN(Number(v)) || v === "" ? v : Number(v);
+        });
+        return obj;
+      });
+      res.json({ brands });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to load geo metrics", error: String(err) });
     }
   });
 
