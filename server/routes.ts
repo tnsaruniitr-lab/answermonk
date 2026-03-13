@@ -144,11 +144,21 @@ async function populateCitationUrls(sessionId: number): Promise<void> {
     VALUES ${values.join(",")}
   `, params);
 
-  // Set domain column from url
+  // Set domain and brand columns from url
   await pool.query(`
     UPDATE citation_urls
     SET domain = regexp_replace(regexp_replace(url, '^https?://(www\\.)?', ''), '/.*$', '')
     WHERE session_id = $1 AND url IS NOT NULL
+  `, [sessionId]);
+
+  await pool.query(`
+    UPDATE citation_urls
+    SET brand = CASE
+      WHEN split_part(domain, '.', 1) IN ('www','m','en','blog','mobile','shop','store','app','go','get','my','help','support','mail','api','cdn','media','news','jobs','careers')
+        THEN split_part(domain, '.', 2)
+      ELSE split_part(domain, '.', 1)
+    END
+    WHERE session_id = $1 AND domain IS NOT NULL AND brand IS NULL
   `, [sessionId]);
 }
 
