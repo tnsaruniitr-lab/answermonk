@@ -1497,6 +1497,30 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/citation-urls/by-segment", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.query.sessionId as string);
+      if (isNaN(sessionId)) { res.status(400).json({ message: "sessionId required" }); return; }
+      const { pool } = await import("./db");
+      const result = await pool.query(`
+        SELECT
+          segment_persona,
+          engine,
+          url_category,
+          COUNT(*) as citations,
+          COUNT(DISTINCT url) as unique_urls
+        FROM citation_urls
+        WHERE session_id = $1
+        GROUP BY segment_persona, engine, url_category
+        ORDER BY segment_persona, engine, citations DESC
+      `, [sessionId]);
+      const segments = [...new Set(result.rows.map((r: any) => r.segment_persona))].sort();
+      res.json({ rows: result.rows, segments, sessionId });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to load segment breakdown", error: String(err) });
+    }
+  });
+
   app.get("/api/citation-urls/list", async (req, res) => {
     try {
       const sessionId = parseInt(req.query.sessionId as string);
