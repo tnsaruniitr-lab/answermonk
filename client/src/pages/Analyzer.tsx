@@ -4,7 +4,7 @@ import { AnalysisResults } from "@/components/AnalysisResults";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ArrowRight, History, Sparkles, Brain, BarChart2 } from "lucide-react";
+import { Loader2, ArrowRight, History, Sparkles, Brain, BarChart2, FileSearch } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -61,6 +61,10 @@ export default function Analyzer() {
             <Link href="/analytics" className="text-sm text-muted-foreground flex items-center gap-1.5 transition-colors hover:text-foreground" data-testid="link-analytics">
               <BarChart2 className="w-3.5 h-3.5" />
               Analytics
+            </Link>
+            <Link href="/reports/crawlability" className="text-sm text-muted-foreground flex items-center gap-1.5 transition-colors hover:text-foreground" data-testid="link-crawlability">
+              <FileSearch className="w-3.5 h-3.5" />
+              Crawlability
             </Link>
           </div>
         </div>

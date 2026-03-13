@@ -85,6 +85,11 @@ export default function Leads() {
                 Analytics
               </span>
             </Link>
+            <Link href="/reports/crawlability">
+              <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer" data-testid="link-crawlability">
+                Crawlability
+              </span>
+            </Link>
           </div>
         </div>
 
