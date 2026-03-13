@@ -88,7 +88,6 @@ function AuthGate() {
         <Switch>
           <Route path="/share/summary/:id" component={SummaryReport} />
           <Route path="/share/teaser/:id" component={ProspectTeaser} />
-          <Route path="/" component={Analyzer} />
           <Route path="/history" component={HistoryPage} />
           <Route path="/prompts" component={PromptGenerator} />
           <Route path="/scoring/:id" component={ScoringDetail} />
@@ -101,6 +100,7 @@ function AuthGate() {
           <Route path="/analytics" component={AnalyticsDashboard} />
           <Route path="/brand-intelligence" component={BrandIntelligence} />
           <Route path="/audit/:slug">{(params) => <AuditBySlug params={params} />}</Route>
+          <Route path="/" component={Analyzer} />
           <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
           <Route component={NotFound} />
         </Switch>
