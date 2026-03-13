@@ -63,6 +63,14 @@ const CATEGORY_BADGE: Record<string, string> = {
   "Social Media Profile": "bg-pink-50 text-pink-700",
 };
 
+const BRAND_CATEGORIES = new Set([
+  "Brand Homepage",
+  "Brand Service Page",
+  "Brand Inner Page",
+  "Brand About / Contact",
+  "Brand Blog / Article",
+]);
+
 function formatSegment(s: string) {
   return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -179,15 +187,24 @@ export default function AnalyticsDashboard() {
   const segments = segData?.segments || [];
   const activeSegment = selectedSegment || segments[0] || null;
 
-  const { chatgptSlices, geminiSlices } = useMemo(() => {
-    if (!segData || !activeSegment) return { chatgptSlices: [], geminiSlices: [] };
+  const { chatgptSlices, geminiSlices, chatgptBrand, geminiBrand } = useMemo(() => {
+    if (!segData || !activeSegment) return { chatgptSlices: [], geminiSlices: [], chatgptBrand: 0, geminiBrand: 0 };
     const rows = segData.rows.filter((r) => r.segment_persona === activeSegment);
     const toSlices = (eng: string) =>
       rows
-        .filter((r) => r.engine === eng && parseInt(r.citations) > 0)
+        .filter((r) => r.engine === eng && parseInt(r.citations) > 0 && !BRAND_CATEGORIES.has(r.url_category))
         .map((r) => ({ name: r.url_category, value: parseInt(r.citations), total: 0 }))
         .sort((a, b) => b.value - a.value);
-    return { chatgptSlices: toSlices("chatgpt"), geminiSlices: toSlices("gemini") };
+    const brandTotal = (eng: string) =>
+      rows
+        .filter((r) => r.engine === eng && BRAND_CATEGORIES.has(r.url_category))
+        .reduce((s, r) => s + parseInt(r.citations), 0);
+    return {
+      chatgptSlices: toSlices("chatgpt"),
+      geminiSlices: toSlices("gemini"),
+      chatgptBrand: brandTotal("chatgpt"),
+      geminiBrand: brandTotal("gemini"),
+    };
   }, [segData, activeSegment]);
 
   const summaryRows = summaryData?.rows || [];
@@ -236,15 +253,31 @@ export default function AnalyticsDashboard() {
 
             {/* Pie charts */}
             <div className="bg-white border border-gray-200 rounded-2xl p-6">
-              <div className="mb-5">
-                <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                  Source Category Mix
-                </h2>
-                {activeSegment && (
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {formatSegment(activeSegment)} · hover a slice to inspect
-                  </p>
-                )}
+              <div className="flex items-start justify-between mb-5">
+                <div>
+                  <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                    Third-Party Source Mix
+                  </h2>
+                  {activeSegment && (
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {formatSegment(activeSegment)} · brand-owned citations excluded · hover a slice to inspect
+                    </p>
+                  )}
+                </div>
+                {/* Brand citations summary pill */}
+                <div className="flex items-center gap-3 shrink-0 ml-4">
+                  <div className="text-right">
+                    <div className="text-xs text-gray-400 mb-1 uppercase tracking-wide font-medium">Brand citations (excluded)</div>
+                    <div className="flex gap-3">
+                      <span className="text-xs bg-orange-50 text-orange-700 border border-orange-100 px-2.5 py-1 rounded-full font-semibold">
+                        ChatGPT {chatgptBrand.toLocaleString()}
+                      </span>
+                      <span className="text-xs bg-blue-50 text-blue-700 border border-blue-100 px-2.5 py-1 rounded-full font-semibold">
+                        Gemini {geminiBrand.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="flex gap-6 divide-x divide-gray-100">
                 <EnginePie
