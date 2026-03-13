@@ -166,6 +166,7 @@ async function populateCitationUrls(sessionId: number): Promise<void> {
   }
   await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
 
+  const urlEngineMap = new Map<string, { engine: string; url: string; title: string; count: number }>();
   const values: string[] = [];
   const params: any[] = [sessionId];
   for (const row of res.rows) {
@@ -173,7 +174,6 @@ async function populateCitationUrls(sessionId: number): Promise<void> {
     if (row.engine === "gemini") {
       if (row.cite_url?.includes("vertexaisearch")) {
         const dest = resolved.get(row.cite_url);
-        // If resolved to a different URL use it; otherwise fall back to https://title
         url = (dest && dest !== row.cite_url) ? dest : (row.title ? "https://" + row.title.replace(/^https?:\/\//, "") : "");
       } else {
         url = row.cite_url || "";
@@ -183,15 +183,27 @@ async function populateCitationUrls(sessionId: number): Promise<void> {
     }
     if (!url) continue;
     if (!url.startsWith("http")) url = "https://" + url;
-    const category = classifyCitationUrl(url, row.engine);
-    params.push(row.engine, row.prompt_text, row.segment_persona, url, row.title, category);
-    const base = params.length - 5;
-    values.push(`($1, $${base}, $${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`);
+
+    const key = `${row.engine}||${url}`;
+    const existing = urlEngineMap.get(key);
+    if (existing) {
+      existing.count++;
+    } else {
+      urlEngineMap.set(key, { engine: row.engine, url, title: row.title || "", count: 1 });
+    }
+  }
+
+  // Build deduplicated insert rows (unique per url+engine, with citation_count)
+  for (const { engine, url, title, count } of urlEngineMap.values()) {
+    const category = classifyCitationUrl(url, engine);
+    params.push(engine, url, title, category, count);
+    const base = params.length - 4;
+    values.push(`($1, $${base}, $${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`);
   }
 
   if (values.length === 0) return;
   await pool.query(`
-    INSERT INTO citation_urls (session_id, engine, prompt_text, segment_persona, url, title, url_category)
+    INSERT INTO citation_urls (session_id, engine, url, title, url_category, citation_count)
     VALUES ${values.join(",")}
   `, params);
 
