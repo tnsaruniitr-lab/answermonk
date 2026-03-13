@@ -154,6 +154,7 @@ export default function AnalyticsDashboard() {
   const params = useParams<{ sessionId?: string }>();
   const sessionId = parseInt(params.sessionId || "77");
   const [tableEngine, setTableEngine] = useState<"all" | "chatgpt" | "gemini">("all");
+  const [showTable, setShowTable] = useState(false);
 
   const { data: summaryData, isLoading } = useQuery<{
     rows: CitationUrlRow[];
@@ -246,114 +247,105 @@ export default function AnalyticsDashboard() {
               </div>
             </div>
 
-            {/* Summary table */}
+            {/* Summary table — collapsible */}
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                  All Sessions · Category Totals
-                </h2>
-                <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 text-xs font-medium">
-                  {(["all", "chatgpt", "gemini"] as const).map((e) => (
-                    <button
-                      key={e}
-                      onClick={() => setTableEngine(e)}
-                      className={`px-3 py-1.5 rounded-md transition-all ${
-                        tableEngine === e
-                          ? "bg-white shadow text-gray-900"
-                          : "text-gray-500 hover:text-gray-700"
-                      }`}
-                      data-testid={`engine-filter-${e}`}
-                    >
-                      {e === "all" ? "All" : e === "chatgpt" ? "ChatGPT" : "Gemini"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
-                      Category
-                    </th>
-                    {tableEngine === "all" && (
-                      <>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-orange-500 uppercase tracking-wide">ChatGPT</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-orange-400 uppercase tracking-wide">Unique</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-blue-500 uppercase tracking-wide">Gemini</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-blue-400 uppercase tracking-wide">Unique</th>
-                      </>
-                    )}
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wide">
-                      {tableEngine === "all" ? "Total" : "Citations"}
-                    </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">
-                      Unique URLs
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tableRows.map((row, i) => (
-                    <tr
-                      key={row.url_category}
-                      className="border-b border-gray-50 hover:bg-gray-50/60 transition-colors"
-                      data-testid={`category-row-${i}`}
-                    >
-                      <td className="px-6 py-3">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ background: CATEGORY_COLOR[row.url_category] || "#d1d5db" }}
-                          />
-                          <span
-                            className={`inline-block text-xs px-2.5 py-1 rounded-full font-medium ${
-                              CATEGORY_BADGE[row.url_category] || "bg-gray-100 text-gray-600"
-                            }`}
-                          >
-                            {row.url_category}
-                          </span>
-                        </div>
-                      </td>
-                      {tableEngine === "all" && (
-                        <>
-                          <td className="px-4 py-3 text-right text-orange-600 font-medium">{parseInt(row.chatgpt_citations).toLocaleString()}</td>
-                          <td className="px-4 py-3 text-right text-orange-400 text-xs">{parseInt(row.chatgpt_unique_urls).toLocaleString()}</td>
-                          <td className="px-4 py-3 text-right text-blue-600 font-medium">{parseInt(row.gemini_citations).toLocaleString()}</td>
-                          <td className="px-4 py-3 text-right text-blue-400 text-xs">{parseInt(row.gemini_unique_urls).toLocaleString()}</td>
-                        </>
-                      )}
-                      <td className="px-4 py-3 text-right font-semibold text-gray-800">
-                        {parseInt(row.total_citations).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-right text-gray-500 text-xs">
-                        {parseInt(row.total_unique_urls).toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot className="bg-gray-50 border-t border-gray-200">
-                  <tr>
-                    <td className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Total</td>
-                    {tableEngine === "all" && (
-                      <>
-                        <td className="px-4 py-3 text-right text-orange-600 font-bold">
-                          {summaryRows.reduce((s, r) => s + parseInt(r.chatgpt_citations), 0).toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-right text-orange-400 text-xs font-semibold">
-                          {summaryRows.reduce((s, r) => s + parseInt(r.chatgpt_unique_urls), 0).toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-right text-blue-600 font-bold">
-                          {summaryRows.reduce((s, r) => s + parseInt(r.gemini_citations), 0).toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-right text-blue-400 text-xs font-semibold">
-                          {summaryRows.reduce((s, r) => s + parseInt(r.gemini_unique_urls), 0).toLocaleString()}
-                        </td>
-                      </>
-                    )}
-                    <td className="px-4 py-3 text-right font-bold text-gray-900">{grandTotal.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right text-gray-500 text-xs font-semibold">{grandUnique.toLocaleString()}</td>
-                  </tr>
-                </tfoot>
-              </table>
+              <button
+                onClick={() => setShowTable((v) => !v)}
+                className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50/60 transition-colors"
+                data-testid="toggle-table"
+              >
+                <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                  Full Breakdown · Category Totals
+                </span>
+                <span className="text-xs text-gray-400 font-medium">
+                  {showTable ? "Hide ↑" : "Show details ↓"}
+                </span>
+              </button>
+
+              {showTable && (
+                <>
+                  <div className="px-6 pb-3 border-b border-gray-100 flex justify-end">
+                    <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 text-xs font-medium">
+                      {(["all", "chatgpt", "gemini"] as const).map((e) => (
+                        <button
+                          key={e}
+                          onClick={() => setTableEngine(e)}
+                          className={`px-3 py-1.5 rounded-md transition-all ${
+                            tableEngine === e
+                              ? "bg-white shadow text-gray-900"
+                              : "text-gray-500 hover:text-gray-700"
+                          }`}
+                          data-testid={`engine-filter-${e}`}
+                        >
+                          {e === "all" ? "All" : e === "chatgpt" ? "ChatGPT" : "Gemini"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 border-b border-gray-100">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Category</th>
+                        {tableEngine === "all" && (
+                          <>
+                            <th className="px-4 py-3 text-right text-xs font-medium text-orange-500 uppercase tracking-wide">ChatGPT</th>
+                            <th className="px-4 py-3 text-right text-xs font-medium text-orange-400 uppercase tracking-wide">Unique</th>
+                            <th className="px-4 py-3 text-right text-xs font-medium text-blue-500 uppercase tracking-wide">Gemini</th>
+                            <th className="px-4 py-3 text-right text-xs font-medium text-blue-400 uppercase tracking-wide">Unique</th>
+                          </>
+                        )}
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wide">
+                          {tableEngine === "all" ? "Total" : "Citations"}
+                        </th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Unique URLs</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tableRows.map((row, i) => (
+                        <tr
+                          key={row.url_category}
+                          className="border-b border-gray-50 hover:bg-gray-50/60 transition-colors"
+                          data-testid={`category-row-${i}`}
+                        >
+                          <td className="px-6 py-3">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: CATEGORY_COLOR[row.url_category] || "#d1d5db" }} />
+                              <span className={`inline-block text-xs px-2.5 py-1 rounded-full font-medium ${CATEGORY_BADGE[row.url_category] || "bg-gray-100 text-gray-600"}`}>
+                                {row.url_category}
+                              </span>
+                            </div>
+                          </td>
+                          {tableEngine === "all" && (
+                            <>
+                              <td className="px-4 py-3 text-right text-orange-600 font-medium">{parseInt(row.chatgpt_citations).toLocaleString()}</td>
+                              <td className="px-4 py-3 text-right text-orange-400 text-xs">{parseInt(row.chatgpt_unique_urls).toLocaleString()}</td>
+                              <td className="px-4 py-3 text-right text-blue-600 font-medium">{parseInt(row.gemini_citations).toLocaleString()}</td>
+                              <td className="px-4 py-3 text-right text-blue-400 text-xs">{parseInt(row.gemini_unique_urls).toLocaleString()}</td>
+                            </>
+                          )}
+                          <td className="px-4 py-3 text-right font-semibold text-gray-800">{parseInt(row.total_citations).toLocaleString()}</td>
+                          <td className="px-4 py-3 text-right text-gray-500 text-xs">{parseInt(row.total_unique_urls).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-gray-50 border-t border-gray-200">
+                      <tr>
+                        <td className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Total</td>
+                        {tableEngine === "all" && (
+                          <>
+                            <td className="px-4 py-3 text-right text-orange-600 font-bold">{summaryRows.reduce((s, r) => s + parseInt(r.chatgpt_citations), 0).toLocaleString()}</td>
+                            <td className="px-4 py-3 text-right text-orange-400 text-xs font-semibold">{summaryRows.reduce((s, r) => s + parseInt(r.chatgpt_unique_urls), 0).toLocaleString()}</td>
+                            <td className="px-4 py-3 text-right text-blue-600 font-bold">{summaryRows.reduce((s, r) => s + parseInt(r.gemini_citations), 0).toLocaleString()}</td>
+                            <td className="px-4 py-3 text-right text-blue-400 text-xs font-semibold">{summaryRows.reduce((s, r) => s + parseInt(r.gemini_unique_urls), 0).toLocaleString()}</td>
+                          </>
+                        )}
+                        <td className="px-4 py-3 text-right font-bold text-gray-900">{grandTotal.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-right text-gray-500 text-xs font-semibold">{grandUnique.toLocaleString()}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </>
+              )}
             </div>
           </>
         )}
