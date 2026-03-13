@@ -399,8 +399,14 @@ function ContextAuditSection({ sessionId }: { sessionId: number }) {
 
   const { data: statusData, isLoading: statusLoading } = useQuery<CrawlStatus>({
     queryKey: [`/api/crawl/status/${sessionId}`],
-    refetchInterval: 8000,
-    staleTime: 5000,
+    refetchInterval: (query) => {
+      const d = query.state.data as CrawlStatus | undefined;
+      if (!d) return 5000;
+      const crawling = d.crawled > 0 && d.crawled < d.total_citation_urls;
+      const analyzing = d.analyzed > 0 && d.analyzed < d.accessible;
+      return (crawling || analyzing) ? 3000 : 10000;
+    },
+    staleTime: 2000,
   });
 
   const { data: consistencyData, isLoading: consistencyLoading } = useQuery<{ brands: BrandConsistency[] }>({
@@ -428,6 +434,9 @@ function ContextAuditSection({ sessionId }: { sessionId: number }) {
   const status = statusData;
   const crawlPct = status ? Math.round((status.crawled / status.total_citation_urls) * 100) : 0;
   const analyzedPct = status && status.accessible > 0 ? Math.round((status.analyzed / status.accessible) * 100) : 0;
+  const isCrawling = !!status && status.crawled > 0 && status.crawled < status.total_citation_urls;
+  const isAnalyzing = !!status && status.analyzed > 0 && status.analyzed < status.accessible;
+  const isActive = isCrawling || isAnalyzing;
   const brands = consistencyData?.brands || [];
 
   return (
@@ -435,9 +444,14 @@ function ContextAuditSection({ sessionId }: { sessionId: number }) {
       {/* Status Card */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-5">
-          <div>
+          <div className="flex items-center gap-2.5">
             <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Crawl Status</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Fetch cited pages · extract brand intelligence · compare across sources</p>
+            {isActive && (
+              <span className="flex items-center gap-1.5 text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                {isCrawling ? "Crawling…" : "Analyzing…"}
+              </span>
+            )}
           </div>
           <div className="flex gap-2">
             <button
@@ -464,26 +478,56 @@ function ContextAuditSection({ sessionId }: { sessionId: number }) {
         {statusLoading ? (
           <div className="flex items-center justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-gray-300" /></div>
         ) : status ? (
-          <div className="grid grid-cols-4 gap-4">
-            {[
-              { label: "Citation URLs", value: status.total_citation_urls, color: "text-gray-900" },
-              { label: "Crawled", value: `${status.crawled} (${crawlPct}%)`, color: "text-blue-700" },
-              { label: "Accessible", value: status.accessible, color: "text-green-700" },
-              { label: "Analyzed", value: `${status.analyzed} (${analyzedPct}%)`, color: "text-purple-700" },
-            ].map(({ label, value, color }) => (
-              <div key={label} className="bg-gray-50 rounded-xl p-4 text-center">
-                <div className={`text-xl font-bold ${color}`}>{value}</div>
-                <div className="text-xs text-gray-400 mt-1">{label}</div>
+          <div className="space-y-4">
+            {/* Stat pills */}
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { label: "Total URLs", value: status.total_citation_urls, color: "text-gray-900" },
+                { label: "Crawled", value: status.crawled, color: "text-blue-700" },
+                { label: "Accessible", value: status.accessible, color: "text-green-700" },
+                { label: "Analyzed", value: status.analyzed, color: "text-purple-700" },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="bg-gray-50 rounded-xl p-3 text-center">
+                  <div className={`text-xl font-bold ${color}`}>{value}</div>
+                  <div className="text-xs text-gray-400 mt-0.5">{label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Crawl progress bar */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Crawl progress</span>
+                <span className="font-medium text-blue-700">{status.crawled} / {status.total_citation_urls} — {crawlPct}%</span>
               </div>
-            ))}
+              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-500 rounded-full transition-all duration-700"
+                  style={{ width: `${crawlPct}%` }}
+                />
+              </div>
+              {status.failed > 0 && (
+                <p className="text-xs text-gray-400">{status.failed} URLs blocked or timed out (normal for Reddit, rate-limited sites)</p>
+              )}
+            </div>
+
+            {/* Analysis progress bar — only show once crawling has some results */}
+            {status.accessible > 0 && (
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>LLM analysis progress</span>
+                  <span className="font-medium text-purple-700">{status.analyzed} / {status.accessible} — {analyzedPct}%</span>
+                </div>
+                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-purple-500 rounded-full transition-all duration-700"
+                    style={{ width: `${analyzedPct}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         ) : null}
-
-        {(crawlMut.data || analyzeMut.data) && (
-          <p className="text-xs text-green-600 mt-3 bg-green-50 rounded-lg px-3 py-2">
-            {crawlMut.data ? "Crawl running in background — refresh status in ~10 min" : "Analysis running in background — check back shortly"}
-          </p>
-        )}
       </div>
 
       {/* Consistency Overview */}
