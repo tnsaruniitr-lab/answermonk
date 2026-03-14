@@ -2459,26 +2459,26 @@ export default function PromptGenerator() {
                             </SelectGroup>
                             <SelectGroup>
                               <SelectLabel>B2B SaaS – Collections</SelectLabel>
-                              <SelectItem value="invoice_reminder_software">Invoice Reminder Software</SelectItem>
-                              <SelectItem value="payment_reminder_software">Payment Reminder Software</SelectItem>
-                              <SelectItem value="collections_automation_platform">Collections Automation Platform</SelectItem>
-                              <SelectItem value="invoice_collection_software">Invoice Collection Software</SelectItem>
-                              <SelectItem value="accounts_receivable_automation_software">AR Automation Software</SelectItem>
-                              <SelectItem value="debt_collection_software">Debt Collection Software</SelectItem>
-                              <SelectItem value="collections_software">Collections Software</SelectItem>
-                              <SelectItem value="invoice_chasing_software">Invoice Chasing Software</SelectItem>
-                              <SelectItem value="receivables_automation_platform">Receivables Automation Platform</SelectItem>
-                              <SelectItem value="whitelabel_collections_software">White-label Collections Software</SelectItem>
-                              <SelectItem value="whitelabel_payment_reminder_software">White-label Payment Reminder Software</SelectItem>
-                              <SelectItem value="dunning_software">Dunning Software</SelectItem>
-                              <SelectItem value="digital_collections_platform">Digital Collections Platform</SelectItem>
-                              <SelectItem value="ar_workflow_automation_software">AR Workflow Automation Software</SelectItem>
-                              <SelectItem value="sme_collections_software">SME Collections Software</SelectItem>
-                              <SelectItem value="midmarket_collections_platform">Mid-market Collections Platform</SelectItem>
-                              <SelectItem value="paas_collections_platform">PaaS Collections Platform</SelectItem>
-                              <SelectItem value="debt_recovery_software">Debt Recovery Software</SelectItem>
-                              <SelectItem value="first_party_collections_software">First-party Collections Software</SelectItem>
-                              <SelectItem value="eu_payment_link_software">EU Payment Link Software</SelectItem>
+                              <SelectItem value="invoice_reminder_software">Invoice Reminder</SelectItem>
+                              <SelectItem value="payment_reminder_software">Payment Reminder</SelectItem>
+                              <SelectItem value="collections_automation_platform">Collections Automation</SelectItem>
+                              <SelectItem value="invoice_collection_software">Invoice Collection</SelectItem>
+                              <SelectItem value="accounts_receivable_automation_software">AR Automation</SelectItem>
+                              <SelectItem value="debt_collection_software">Debt Collection</SelectItem>
+                              <SelectItem value="collections_software">Collections</SelectItem>
+                              <SelectItem value="invoice_chasing_software">Invoice Chasing</SelectItem>
+                              <SelectItem value="receivables_automation_platform">Receivables Automation</SelectItem>
+                              <SelectItem value="whitelabel_collections_software">White-label Collections</SelectItem>
+                              <SelectItem value="whitelabel_payment_reminder_software">White-label Payment Reminder</SelectItem>
+                              <SelectItem value="dunning_software">Dunning</SelectItem>
+                              <SelectItem value="digital_collections_platform">Digital Collections</SelectItem>
+                              <SelectItem value="ar_workflow_automation_software">AR Workflow Automation</SelectItem>
+                              <SelectItem value="sme_collections_software">SME Collections</SelectItem>
+                              <SelectItem value="midmarket_collections_platform">Mid-market Collections</SelectItem>
+                              <SelectItem value="paas_collections_platform">PaaS Collections</SelectItem>
+                              <SelectItem value="debt_recovery_software">Debt Recovery</SelectItem>
+                              <SelectItem value="first_party_collections_software">First-party Collections</SelectItem>
+                              <SelectItem value="eu_payment_link_software">EU Payment Link</SelectItem>
                               {/* [PG:DD1_CM_TAIL] */}
                             </SelectGroup>
                             {/* [PG:DD1_NEW_GROUP] */}
@@ -2994,7 +2994,7 @@ export default function PromptGenerator() {
                                           persona: v,
                                           customerType: "",
                                           serviceType: "",
-                                          seedType: v === "restaurant" ? "restaurants" : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests", "at_home_nurses", "at_home_care_provider", "care_at_home_services", "doctor_at_home", "home_physiotherapy", "home_iv_therapy", "elderly_care_at_home", "home_health_checkup"].includes(v) ? "__blank__" : ["invoice_reminder_software","payment_reminder_software","collections_automation_platform","invoice_collection_software","accounts_receivable_automation_software","debt_collection_software","collections_software","invoice_chasing_software","receivables_automation_platform","whitelabel_collections_software","whitelabel_payment_reminder_software","dunning_software","digital_collections_platform","ar_workflow_automation_software","sme_collections_software","midmarket_collections_platform","paas_collections_platform","debt_recovery_software","first_party_collections_software","eu_payment_link_software"].includes(v) ? v.replace(/_/g, " ") : agencyPersonas.includes(v) ? "agencies" : realEstatePersonas.includes(v) ? "agencies" : "providers",
+                                          seedType: v === "restaurant" ? "restaurants" : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests", "at_home_nurses", "at_home_care_provider", "care_at_home_services", "doctor_at_home", "home_physiotherapy", "home_iv_therapy", "elderly_care_at_home", "home_health_checkup"].includes(v) ? "__blank__" : ["invoice_reminder_software","payment_reminder_software","collections_automation_platform","invoice_collection_software","accounts_receivable_automation_software","debt_collection_software","collections_software","invoice_chasing_software","receivables_automation_platform","whitelabel_collections_software","whitelabel_payment_reminder_software","dunning_software","digital_collections_platform","ar_workflow_automation_software","sme_collections_software","midmarket_collections_platform","paas_collections_platform","debt_recovery_software","first_party_collections_software","eu_payment_link_software"].includes(v) ? "software" : agencyPersonas.includes(v) ? "agencies" : realEstatePersonas.includes(v) ? "agencies" : "providers",
                                           prompts: null,
                                         });
                                       }}
@@ -3025,26 +3025,26 @@ export default function PromptGenerator() {
                                         </SelectGroup>
                                         <SelectGroup>
                                           <SelectLabel>B2B SaaS – Collections</SelectLabel>
-                                          <SelectItem value="invoice_reminder_software">Invoice Reminder Software</SelectItem>
-                                          <SelectItem value="payment_reminder_software">Payment Reminder Software</SelectItem>
-                                          <SelectItem value="collections_automation_platform">Collections Automation Platform</SelectItem>
-                                          <SelectItem value="invoice_collection_software">Invoice Collection Software</SelectItem>
-                                          <SelectItem value="accounts_receivable_automation_software">AR Automation Software</SelectItem>
-                                          <SelectItem value="debt_collection_software">Debt Collection Software</SelectItem>
-                                          <SelectItem value="collections_software">Collections Software</SelectItem>
-                                          <SelectItem value="invoice_chasing_software">Invoice Chasing Software</SelectItem>
-                                          <SelectItem value="receivables_automation_platform">Receivables Automation Platform</SelectItem>
-                                          <SelectItem value="whitelabel_collections_software">White-label Collections Software</SelectItem>
-                                          <SelectItem value="whitelabel_payment_reminder_software">White-label Payment Reminder Software</SelectItem>
-                                          <SelectItem value="dunning_software">Dunning Software</SelectItem>
-                                          <SelectItem value="digital_collections_platform">Digital Collections Platform</SelectItem>
-                                          <SelectItem value="ar_workflow_automation_software">AR Workflow Automation Software</SelectItem>
-                                          <SelectItem value="sme_collections_software">SME Collections Software</SelectItem>
-                                          <SelectItem value="midmarket_collections_platform">Mid-market Collections Platform</SelectItem>
-                                          <SelectItem value="paas_collections_platform">PaaS Collections Platform</SelectItem>
-                                          <SelectItem value="debt_recovery_software">Debt Recovery Software</SelectItem>
-                                          <SelectItem value="first_party_collections_software">First-party Collections Software</SelectItem>
-                                          <SelectItem value="eu_payment_link_software">EU Payment Link Software</SelectItem>
+                                          <SelectItem value="invoice_reminder_software">Invoice Reminder</SelectItem>
+                                          <SelectItem value="payment_reminder_software">Payment Reminder</SelectItem>
+                                          <SelectItem value="collections_automation_platform">Collections Automation</SelectItem>
+                                          <SelectItem value="invoice_collection_software">Invoice Collection</SelectItem>
+                                          <SelectItem value="accounts_receivable_automation_software">AR Automation</SelectItem>
+                                          <SelectItem value="debt_collection_software">Debt Collection</SelectItem>
+                                          <SelectItem value="collections_software">Collections</SelectItem>
+                                          <SelectItem value="invoice_chasing_software">Invoice Chasing</SelectItem>
+                                          <SelectItem value="receivables_automation_platform">Receivables Automation</SelectItem>
+                                          <SelectItem value="whitelabel_collections_software">White-label Collections</SelectItem>
+                                          <SelectItem value="whitelabel_payment_reminder_software">White-label Payment Reminder</SelectItem>
+                                          <SelectItem value="dunning_software">Dunning</SelectItem>
+                                          <SelectItem value="digital_collections_platform">Digital Collections</SelectItem>
+                                          <SelectItem value="ar_workflow_automation_software">AR Workflow Automation</SelectItem>
+                                          <SelectItem value="sme_collections_software">SME Collections</SelectItem>
+                                          <SelectItem value="midmarket_collections_platform">Mid-market Collections</SelectItem>
+                                          <SelectItem value="paas_collections_platform">PaaS Collections</SelectItem>
+                                          <SelectItem value="debt_recovery_software">Debt Recovery</SelectItem>
+                                          <SelectItem value="first_party_collections_software">First-party Collections</SelectItem>
+                                          <SelectItem value="eu_payment_link_software">EU Payment Link</SelectItem>
                                           {/* [PG:DD2_CM_TAIL] */}
                                         </SelectGroup>
                                         {/* [PG:DD2_NEW_GROUP] */}
@@ -3095,29 +3095,6 @@ export default function PromptGenerator() {
                                             <SelectItem value="eateries">Eateries</SelectItem>
                                             <SelectItem value="dining options">Dining Options</SelectItem>
                                             <SelectItem value="cafes">Cafes</SelectItem>
-                                          </>
-                                        ) : ["invoice_reminder_software","payment_reminder_software","collections_automation_platform","invoice_collection_software","accounts_receivable_automation_software","debt_collection_software","collections_software","invoice_chasing_software","receivables_automation_platform","whitelabel_collections_software","whitelabel_payment_reminder_software","dunning_software","digital_collections_platform","ar_workflow_automation_software","sme_collections_software","midmarket_collections_platform","paas_collections_platform","debt_recovery_software","first_party_collections_software","eu_payment_link_software"].includes(seg.persona) ? (
-                                          <>
-                                            <SelectItem value="invoice reminder software">Invoice reminder software</SelectItem>
-                                            <SelectItem value="payment reminder software">Payment reminder software</SelectItem>
-                                            <SelectItem value="collections automation platform">Collections automation platform</SelectItem>
-                                            <SelectItem value="invoice collection software">Invoice collection software</SelectItem>
-                                            <SelectItem value="accounts receivable automation software">Accounts receivable automation software</SelectItem>
-                                            <SelectItem value="debt collection software">Debt collection software</SelectItem>
-                                            <SelectItem value="collections software">Collections software</SelectItem>
-                                            <SelectItem value="invoice chasing software">Invoice chasing software</SelectItem>
-                                            <SelectItem value="receivables automation platform">Receivables automation platform</SelectItem>
-                                            <SelectItem value="white-label collections software">White-label collections software</SelectItem>
-                                            <SelectItem value="white-label payment reminder software">White-label payment reminder software</SelectItem>
-                                            <SelectItem value="dunning software">Dunning software</SelectItem>
-                                            <SelectItem value="digital collections platform">Digital collections platform</SelectItem>
-                                            <SelectItem value="AR workflow automation software">AR workflow automation software</SelectItem>
-                                            <SelectItem value="SME collections software">SME collections software</SelectItem>
-                                            <SelectItem value="mid-market collections platform">Mid-market collections platform</SelectItem>
-                                            <SelectItem value="PaaS collections platform">PaaS collections platform</SelectItem>
-                                            <SelectItem value="debt recovery software">Debt recovery software</SelectItem>
-                                            <SelectItem value="first-party collections software">First-party collections software</SelectItem>
-                                            <SelectItem value="EU payment link software">EU payment link software</SelectItem>
                                           </>
                                         ) : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests", "at_home_nurses", "at_home_care_provider", "care_at_home_services", "doctor_at_home", "home_physiotherapy", "home_iv_therapy", "elderly_care_at_home", "home_health_checkup"].includes(seg.persona) ? (
                                           <>
@@ -4021,26 +3998,26 @@ export default function PromptGenerator() {
                           </SelectGroup>
                           <SelectGroup>
                             <SelectLabel>B2B SaaS – Collections</SelectLabel>
-                            <SelectItem value="invoice_reminder_software">Invoice Reminder Software</SelectItem>
-                            <SelectItem value="payment_reminder_software">Payment Reminder Software</SelectItem>
-                            <SelectItem value="collections_automation_platform">Collections Automation Platform</SelectItem>
-                            <SelectItem value="invoice_collection_software">Invoice Collection Software</SelectItem>
-                            <SelectItem value="accounts_receivable_automation_software">AR Automation Software</SelectItem>
-                            <SelectItem value="debt_collection_software">Debt Collection Software</SelectItem>
-                            <SelectItem value="collections_software">Collections Software</SelectItem>
-                            <SelectItem value="invoice_chasing_software">Invoice Chasing Software</SelectItem>
-                            <SelectItem value="receivables_automation_platform">Receivables Automation Platform</SelectItem>
-                            <SelectItem value="whitelabel_collections_software">White-label Collections Software</SelectItem>
-                            <SelectItem value="whitelabel_payment_reminder_software">White-label Payment Reminder Software</SelectItem>
-                            <SelectItem value="dunning_software">Dunning Software</SelectItem>
-                            <SelectItem value="digital_collections_platform">Digital Collections Platform</SelectItem>
-                            <SelectItem value="ar_workflow_automation_software">AR Workflow Automation Software</SelectItem>
-                            <SelectItem value="sme_collections_software">SME Collections Software</SelectItem>
-                            <SelectItem value="midmarket_collections_platform">Mid-market Collections Platform</SelectItem>
-                            <SelectItem value="paas_collections_platform">PaaS Collections Platform</SelectItem>
-                            <SelectItem value="debt_recovery_software">Debt Recovery Software</SelectItem>
-                            <SelectItem value="first_party_collections_software">First-party Collections Software</SelectItem>
-                            <SelectItem value="eu_payment_link_software">EU Payment Link Software</SelectItem>
+                            <SelectItem value="invoice_reminder_software">Invoice Reminder</SelectItem>
+                            <SelectItem value="payment_reminder_software">Payment Reminder</SelectItem>
+                            <SelectItem value="collections_automation_platform">Collections Automation</SelectItem>
+                            <SelectItem value="invoice_collection_software">Invoice Collection</SelectItem>
+                            <SelectItem value="accounts_receivable_automation_software">AR Automation</SelectItem>
+                            <SelectItem value="debt_collection_software">Debt Collection</SelectItem>
+                            <SelectItem value="collections_software">Collections</SelectItem>
+                            <SelectItem value="invoice_chasing_software">Invoice Chasing</SelectItem>
+                            <SelectItem value="receivables_automation_platform">Receivables Automation</SelectItem>
+                            <SelectItem value="whitelabel_collections_software">White-label Collections</SelectItem>
+                            <SelectItem value="whitelabel_payment_reminder_software">White-label Payment Reminder</SelectItem>
+                            <SelectItem value="dunning_software">Dunning</SelectItem>
+                            <SelectItem value="digital_collections_platform">Digital Collections</SelectItem>
+                            <SelectItem value="ar_workflow_automation_software">AR Workflow Automation</SelectItem>
+                            <SelectItem value="sme_collections_software">SME Collections</SelectItem>
+                            <SelectItem value="midmarket_collections_platform">Mid-market Collections</SelectItem>
+                            <SelectItem value="paas_collections_platform">PaaS Collections</SelectItem>
+                            <SelectItem value="debt_recovery_software">Debt Recovery</SelectItem>
+                            <SelectItem value="first_party_collections_software">First-party Collections</SelectItem>
+                            <SelectItem value="eu_payment_link_software">EU Payment Link</SelectItem>
                             {/* [PG:DD3_CM_TAIL] */}
                           </SelectGroup>
                           {/* [PG:DD3_NEW_GROUP] */}

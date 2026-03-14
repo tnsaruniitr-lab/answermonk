@@ -40,6 +40,11 @@ function toSnakeCase(label: string): string {
     .replace(/^_+|_+$/g, "");
 }
 
+/** Strip trailing type-word suffixes for UI display labels only. */
+function toDisplayLabel(label: string): string {
+  return label.replace(/\s+(Software|Platform|Provider|Providers)$/i, "").trim();
+}
+
 interface ParsedInput {
   personas: Array<{ key: string; label: string }>;
   services: string[];
@@ -193,7 +198,7 @@ function patchReportGenerator(
   patchFile("server/report/generator.ts", (c) => {
     const newEntries = personas
       .filter(({ key }) => !c.includes(`  ${key}: `))
-      .map(({ key, label }) => `  ${key}: "${label}",`)
+      .map(({ key, label }) => `  ${key}: "${toDisplayLabel(label)}",`)
       .join("\n");
     if (!newEntries) return c;
     return insertAfterSentinel(c, "  // [PG:REPORT_LABEL_INSERT]", newEntries);
@@ -207,7 +212,7 @@ function patchHistory(
     const indent = "                            ";
     const newEntries = personas
       .filter(({ key }) => !c.includes(`${key}: `))
-      .map(({ key, label }) => `${indent}${key}: "${label}",`)
+      .map(({ key, label }) => `${indent}${key}: "${toDisplayLabel(label)}",`)
       .join("\n");
     if (!newEntries) return c;
     return insertAfterSentinel(
@@ -227,7 +232,7 @@ function patchPromptGenerator(
       .filter(({ key }) => !c.includes(`value="${key}"`))
       .map(
         ({ key, label }) =>
-          `                              <SelectItem value="${key}">${label}</SelectItem>`
+          `                              <SelectItem value="${key}">${toDisplayLabel(label)}</SelectItem>`
       )
       .join("\n");
     if (dd1)
@@ -242,7 +247,7 @@ function patchPromptGenerator(
       .filter(({ key }) => !c.includes(`value="${key}"`))
       .map(
         ({ key, label }) =>
-          `                                          <SelectItem value="${key}">${label}</SelectItem>`
+          `                                          <SelectItem value="${key}">${toDisplayLabel(label)}</SelectItem>`
       )
       .join("\n");
     if (dd2)
@@ -257,7 +262,7 @@ function patchPromptGenerator(
       .filter(({ key }) => !c.includes(`value="${key}"`))
       .map(
         ({ key, label }) =>
-          `                            <SelectItem value="${key}">${label}</SelectItem>`
+          `                            <SelectItem value="${key}">${toDisplayLabel(label)}</SelectItem>`
       )
       .join("\n");
     if (dd3)
