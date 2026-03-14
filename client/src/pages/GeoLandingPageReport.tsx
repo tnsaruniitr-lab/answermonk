@@ -282,7 +282,7 @@ function ScoreArc({ score, color, max = 10 }: { score: number; color: string; ma
   const circ = 2 * Math.PI * r;
   const offset = circ * (1 - score / max);
   return (
-    <svg width="96" height="96" viewBox="0 0 96 96" className="shrink-0">
+    <svg width="80" height="80" viewBox="0 0 96 96" className="shrink-0">
       <circle cx="48" cy="48" r={r} fill="none" stroke="#e5e7eb" strokeWidth="7" />
       <circle cx="48" cy="48" r={r} fill="none" stroke={color} strokeWidth="7"
         strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset}
@@ -397,12 +397,12 @@ export default function GeoLandingPageReport() {
                   verdict: "Mixed page job, misaligned title/H1/intro, and heavy catalog content reduce AI extractability significantly.",
                 },
               ].map((b) => (
-                <div key={b.name} className="print-break-inside-avoid bg-white rounded-2xl border border-slate-200 p-5 flex items-start gap-5 shadow-sm">
+                <div key={b.name} className="print-break-inside-avoid bg-white rounded-2xl border border-slate-200 p-5 shadow-sm" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: "16px", alignItems: "start" }}>
                   <ScoreArc score={b.score} color={b.color} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start gap-2 mb-0.5 min-w-0">
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0 mt-1" style={{ backgroundColor: b.color }} />
-                      <span className="font-bold text-slate-800 text-sm leading-snug break-words min-w-0">{b.name}</span>
+                  <div style={{ minWidth: 0, overflow: "hidden" }}>
+                    <div className="flex items-start gap-2 mb-0.5">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: b.color, flexShrink: 0 }} />
+                      <span className="font-bold text-slate-800 text-sm leading-snug" style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>{b.name}</span>
                     </div>
                     <p className="text-xs text-slate-400 mb-2 truncate">{b.domain}</p>
                     <p className="text-sm text-slate-600 leading-relaxed">{b.verdict}</p>
