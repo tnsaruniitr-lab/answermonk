@@ -2452,6 +2452,7 @@ export default function PromptGenerator() {
                             <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
                             <SelectItem value="accounting_automation">Accounting Automation</SelectItem>
                             <SelectItem value="invoice_management">Invoice Management</SelectItem>
+                            <SelectItem value="credit_management_software">Credit Management Software</SelectItem>
                             <SelectItem value="restaurant">Restaurant</SelectItem>
                             <SelectItem value="construction_management">Construction Management Software</SelectItem>
                           </SelectContent>
@@ -2981,6 +2982,7 @@ export default function PromptGenerator() {
                                         <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
                                         <SelectItem value="accounting_automation">Accounting Automation</SelectItem>
                                         <SelectItem value="invoice_management">Invoice Management</SelectItem>
+                                        <SelectItem value="credit_management_software">Credit Management Software</SelectItem>
                                         <SelectItem value="restaurant">Restaurant</SelectItem>
                                         <SelectItem value="construction_management">Construction Management Software</SelectItem>
                                         <SelectItem value="in_home_healthcare">In-Home Healthcare</SelectItem>
@@ -3918,6 +3920,9 @@ export default function PromptGenerator() {
                           </SelectItem>
                           <SelectItem value="expense_management_software">
                             Expense Management Software
+                          </SelectItem>
+                          <SelectItem value="credit_management_software">
+                            Credit Management Software
                           </SelectItem>
                           <SelectItem value="restaurant">
                             Restaurant

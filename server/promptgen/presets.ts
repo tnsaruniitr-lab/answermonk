@@ -393,6 +393,59 @@ export const INVOICE_MANAGEMENT_MODIFIERS: string[] = [
   "Melio", "Payoneer", "Wise Business", "Chargebee", "Recurly",
 ];
 
+export const CREDIT_MANAGEMENT_SERVICES: string[] = [
+  "automated payment reminders",
+  "email payment reminders",
+  "SMS payment reminders",
+  "AI voice call reminders",
+  "interactive video reminders",
+  "self-service payment portal",
+  "white-label customer portal",
+  "installment plan management",
+  "credit management automation",
+  "consumer debt collection automation",
+  "EU payment links",
+  "Paymail",
+  "recovery rate optimisation",
+  "dunning management",
+  "automated dunning workflows",
+  "payment delay reduction",
+  "multi-channel reminder workflows",
+  "non-payment risk reduction",
+  "ethical debt recovery",
+  "customer-centric collections",
+];
+
+export const CREDIT_MANAGEMENT_VERTICALS: string[] = [
+  "Consumer-facing SME",
+  "Mid-market biller",
+  "Utility provider",
+  "Insurance provider",
+  "Subscription business",
+  "Recurring revenue business",
+  "Debt collection agency",
+  "Financial institution",
+  "Housing association",
+  "Municipality",
+  "Telecom provider",
+  "Multi-country EU biller",
+  "PaaS-ready company",
+  "White-label platform seeker",
+  "Enterprise with high invoice volume",
+  "Membership business",
+  "Household services company",
+  "Government agency",
+  "Healthcare provider",
+  "BNPL provider",
+];
+
+export const CREDIT_MANAGEMENT_MODIFIERS: string[] = [
+  "Payt", "Coeo", "Atradius Collections", "Intrum", "EOS Group",
+  "PAIR Finance", "Riverty", "Hoist Finance", "Creditreform", "Lowell",
+  "Bsure", "GoCardless", "Mollie", "Adyen", "Buckaroo",
+  "Dun & Bradstreet", "Graydon", "Tinubu Square", "Sidetrade", "Aryza",
+];
+
 export const RESTAURANT_OFFERINGS: string[] = [
   "fine dining",
   "casual dining",
@@ -777,6 +830,11 @@ export const BUDGET_ADJECTIVES: Record<PersonaType, Record<BudgetTier, string[]>
     mid: ["mid-market", "scalable", "professional"],
     premium: ["enterprise", "premium", "full-featured"],
   },
+  credit_management_software: {
+    budget: ["affordable", "per-invoice", "no-commitment"],
+    mid: ["scalable", "cost-effective", "flexible"],
+    premium: ["enterprise-grade", "white-label", "full-featured"],
+  },
   restaurant: {
     budget: ["affordable", "budget-friendly", "cheap eats"],
     mid: ["mid-range", "good value", "reasonably priced"],
@@ -963,6 +1021,7 @@ function getModifierKnownList(personaType: PersonaType): string[] {
     case "expense_management_software": return EXPENSE_MANAGEMENT_MODIFIERS;
     case "accounting_automation": return ACCOUNTING_AUTOMATION_MODIFIERS;
     case "invoice_management": return INVOICE_MANAGEMENT_MODIFIERS;
+    case "credit_management_software": return CREDIT_MANAGEMENT_MODIFIERS;
     case "restaurant": return RESTAURANT_MODIFIERS;
     case "construction_management": return CONSTRUCTION_MANAGEMENT_MODIFIERS;
     case "in_home_healthcare":
@@ -1014,6 +1073,7 @@ const SERVICE_VERB_PREFIXES: Record<PersonaType, string[]> = {
   expense_management_software: ["handle", "automate", "manage"],
   accounting_automation: ["automate", "streamline", "manage"],
   invoice_management: ["automate", "handle", "manage"],
+  credit_management_software: ["automate", "reduce", "manage"],
   restaurant: ["serve", "offer", "feature"],
   construction_management: ["provide", "manage", "handle"],
   in_home_healthcare: ["provide", "offer", "deliver"],
@@ -1054,6 +1114,7 @@ export const PERSONA_CATEGORY_LABELS: Record<string, string> = {
   expense_management_software: "expense management software or platforms",
   accounting_automation: "accounting automation software or platforms",
   invoice_management: "invoice management software or platforms",
+  credit_management_software: "credit management software, payment reminder platforms, or debt collection automation solutions",
   restaurant: "restaurants, cafes, or dining establishments",
   construction_management: "construction management software or platforms",
   in_home_healthcare: "in-home healthcare providers or home health services",
@@ -1095,6 +1156,12 @@ export function getPresetsForPersona(personaType: PersonaType) {
     return {
       services: INVOICE_MANAGEMENT_SERVICES,
       verticals: INVOICE_MANAGEMENT_VERTICALS,
+    };
+  }
+  if (personaType === "credit_management_software") {
+    return {
+      services: CREDIT_MANAGEMENT_SERVICES,
+      verticals: CREDIT_MANAGEMENT_VERTICALS,
     };
   }
   if (personaType === "restaurant") {

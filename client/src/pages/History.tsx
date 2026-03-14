@@ -223,6 +223,7 @@ export default function HistoryPage() {
                             expense_management_software: "Expense Management",
                             accounting_automation: "Accounting Automation",
                             invoice_management: "Invoice Management",
+                            credit_management_software: "Credit Management",
                             restaurant: "Restaurant",
                           };
                           const pLabel = seg.persona ? (PERSONA_LABELS[seg.persona] || seg.persona.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())) : "";

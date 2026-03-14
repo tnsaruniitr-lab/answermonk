@@ -26,6 +26,7 @@ const PERSONA_CORE_LABELS: Record<string, string> = {
   expense_management_software: "expense management",
   accounting_automation: "accounting automation",
   invoice_management: "invoice management",
+  credit_management_software: "credit management",
   restaurant: "restaurant",
   in_home_healthcare: "in-home healthcare",
   at_home_healthcare: "at-home healthcare",
