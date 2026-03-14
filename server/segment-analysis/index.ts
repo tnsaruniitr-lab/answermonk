@@ -304,6 +304,7 @@ export async function runSegmentAnalysis(
               pageType: refinePageType(detectPageType(ps.page.resolvedUrl || ps.page.url), classifyDomainCategory(ps.page.domain), ps.page.title || null),
               pageTitle: ps.page.title || null,
               fetchStatus: "crawled",
+              scrapedContent: ps.page.cleanText || null,
             });
           });
         }

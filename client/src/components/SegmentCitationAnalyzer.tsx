@@ -412,7 +412,7 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
             data-testid="button-run-citation-analysis"
           >
             <Search className="w-3.5 h-3.5 mr-1.5" />
-            Analyze {segmentsWithScores.length} Segment{segmentsWithScores.length !== 1 ? "s" : ""}
+            {report ? "Analyse & Crawl" : `Analyze ${segmentsWithScores.length} Segment${segmentsWithScores.length !== 1 ? "s" : ""}`}
           </Button>
         </div>
       </Card>
