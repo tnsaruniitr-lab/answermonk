@@ -30,3 +30,9 @@ id = "uqCx56jlnCH9qD-Ck7VGC"
 uri = "file://citation_page_mentions_94_with_content.csv"
 type = "table"
 title = "Session 94 — Citations with Scraped Content (1,000 rows, 11 MB)"
+
+[[outputs]]
+id = "RVvK6lnPCBqRU6uemXYkZ"
+uri = "file://citation_page_mentions_94_full.csv"
+type = "table"
+title = "Session 94 — Full Citations (scraped text + AI responses, 1,000 rows, 16 MB)"
