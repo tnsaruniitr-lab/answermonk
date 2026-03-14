@@ -17,72 +17,8 @@ const SCORES = [
 ];
 const OVERALL = { valeo: 6.3, frh: 8.0 };
 
-/* ─── Comparison data ─────────────────────────────────── */
+/* ─── Comparison type ─────────────────────────────────── */
 type Winner = "frh" | "tie" | "valeo";
-type CompRow = { check: string; valeo: string; frh: string; winner: Winner };
-
-const COMP_ROWS: CompRow[] = [
-  {
-    check: "Single page job",
-    frh: "Much clearer: Dubai home healthcare page with consistent medical-at-home framing.",
-    valeo: "Mixed: blood test landing + healthcare hub + longevity/wellness marketplace + catalog.",
-    winner: "frh",
-  },
-  {
-    check: "Title / H1 / intro alignment",
-    frh: `Title is "24/7 Home Healthcare Services in Dubai"; visible intro copy repeatedly frames the page as quality home healthcare in Dubai.`,
-    valeo: `Title is blood-test-led; H1 is "At-Home Healthcare"; intro is "Built for prevention, optimisation, & longevity."`,
-    winner: "frh",
-  },
-  {
-    check: "Local proof near top",
-    frh: `Near the top: Available 24/7, JCI Accreditation, Dubai Health Authority, and "We reach anywhere in Dubai in under 30 mins."`,
-    valeo: "Has trust bullets like DHA-licensed professionals and convenient home service, but not one tight local-operational proof block.",
-    winner: "frh",
-  },
-  {
-    check: "Trust markers in visible text",
-    frh: "24/7, JCI accreditation, Dubai Health Authority, DHA-licensed doctors, 300,000+ patients, 20,000+ children served, 180+ premium brands.",
-    valeo: "DHA-licensed professionals, licensed team, DHA-approved results, trusted lab partners, established in 2021, trusted by thousands.",
-    winner: "frh",
-  },
-  {
-    check: "Breadth of service coverage",
-    frh: "Also broad: doctor on call, physiotherapy, home nursing, elderly care, palliative care, checkups, PCR, corporate wellness, teleconsultation, pediatrics, vaccines, ambulance.",
-    valeo: "Very broad: blood tests, DNA tests, IV therapy, doctor on call, newborn care, supplements, GLP-1 weight loss, consultations, programs.",
-    winner: "tie",
-  },
-  {
-    check: "Query fan-out coverage",
-    frh: "Strong across home healthcare, urgent care, nursing, physiotherapy, pediatrics, wellness, diagnostics.",
-    valeo: "Strong across preventive/longevity + at-home diagnostics + weight loss.",
-    winner: "tie",
-  },
-  {
-    check: "Internal-link breadth",
-    frh: "Strong and service-led, with many child medical services in navigation.",
-    valeo: "Strong, but leans into product/program cards and commerce blocks.",
-    winner: "frh",
-  },
-  {
-    check: "Specificity of copy",
-    frh: "More concrete: home healthcare in Dubai, available 24/7, under 30 mins, DHA-licensed, JCI-accredited, non-emergency care scope.",
-    valeo: "Mixed: some concrete claims, but much of the opening copy is brand-language and wellness-language.",
-    winner: "frh",
-  },
-  {
-    check: "Duplication / content cleanliness",
-    frh: "Also repetitive in places, but repetition is mostly around trust/location blocks and service navigation — not multiple competing page identities.",
-    valeo: "Significant duplication: H1 repeated, intro repeated, journey sections repeated, press mentions repeated.",
-    winner: "frh",
-  },
-  {
-    check: "Product / catalog spillover",
-    frh: "Lower: feels like a service-led healthcare site, not a storefront.",
-    valeo: "High: supplements, SKUs, pricing, programs, consultations, products are all mixed into one city page.",
-    winner: "frh",
-  },
-];
 
 /* ─── AI Search Factor data ──────────────────────────── */
 type FactorRow = {
@@ -245,6 +181,24 @@ const FACTOR_ROWS: FactorRow[] = [
     why: "Indexed blog posts signal active, authoritative, up-to-date knowledge",
     valeo: 6, frh: 8.5, winner: "frh",
     evidence: `FRH homepage includes indexed blog cards with recent dates (e.g. 2026-01-29), signalling fresh, regularly updated content. Valeo's homepage does not surface similarly dated content at the top level.`,
+  },
+  {
+    factor: "Query fan-out coverage",
+    why: "Matching a wider range of query phrasings increases retrieval likelihood across diverse search patterns",
+    valeo: 8, frh: 8, winner: "tie",
+    evidence: `Both brands cover a strong range of query types. Valeo is strong across preventive/longevity + at-home diagnostics + weight loss. FRH is strong across home healthcare, urgent care, nursing, physiotherapy, pediatrics, wellness, and diagnostics. Both are competitive here.`,
+  },
+  {
+    factor: "Internal-link structure",
+    why: "Service-led internal linking helps models map the site and attribute service depth to the brand",
+    valeo: 7.5, frh: 8, winner: "frh",
+    evidence: `FRH internal links are consistently service-led, with strong child-page navigation across medical services. Valeo internal links are also strong but skew toward product/program cards and commerce blocks — which can blur the healthcare service model for AI crawlers.`,
+  },
+  {
+    factor: "Duplication / content cleanliness",
+    why: "Repeated sections and competing page identities dilute the signal extracted per crawl",
+    valeo: 4, frh: 6.5, winner: "frh",
+    evidence: `Valeo has significant content duplication: H1 appears twice, the hero intro is repeated, journey sections are repeated, and press mentions appear multiple times — creating competing page identities. FRH is also repetitive in places, but repetition centres on trust and location blocks, not conflicting intents.`,
   },
 ];
 
@@ -526,58 +480,9 @@ export default function GeoLandingPageReport() {
           </div>
         </div>
 
-        {/* ── Section 2: Detailed Comparison ──────────────── */}
+        {/* ── Section 2: Priority Actions ──────────────────── */}
         <div className="print-break-before mb-2">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">02 — Detailed Comparison</h2>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-          {/* Headers */}
-          <div className="grid grid-cols-[160px_1fr_1fr_110px] border-b border-slate-100">
-            <div className="px-4 py-3 bg-slate-50 border-r border-slate-100">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Check</span>
-            </div>
-            <div className="px-4 py-3 border-r border-slate-100" style={{ borderTop: `3px solid ${FRH_COLOR}` }}>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: FRH_COLOR }} />
-                <span className="font-semibold text-slate-700 text-xs">First Response</span>
-              </div>
-            </div>
-            <div className="px-4 py-3 border-r border-slate-100" style={{ borderTop: `3px solid ${VALEO_COLOR}` }}>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: VALEO_COLOR }} />
-                <span className="font-semibold text-slate-700 text-xs">Valeo</span>
-              </div>
-            </div>
-            <div className="px-4 py-3 bg-slate-50" style={{ borderTop: "3px solid #94a3b8" }}>
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Winner</span>
-            </div>
-          </div>
-
-          {COMP_ROWS.map((row, i) => (
-            <div
-              key={row.check}
-              className={`grid grid-cols-[160px_1fr_1fr_110px] hover:bg-slate-50/60 transition-colors ${i < COMP_ROWS.length - 1 ? "border-b border-slate-50" : ""}`}
-            >
-              <div className="px-4 py-3.5 border-r border-slate-100 bg-slate-50/40 flex items-start">
-                <span className="text-xs font-semibold text-slate-700 leading-snug">{row.check}</span>
-              </div>
-              <div className="px-4 py-3.5 border-r border-slate-100">
-                <p className="text-xs text-slate-500 leading-relaxed">{row.frh}</p>
-              </div>
-              <div className="px-4 py-3.5 border-r border-slate-100">
-                <p className="text-xs text-slate-500 leading-relaxed">{row.valeo}</p>
-              </div>
-              <div className="px-4 py-3.5 flex items-start">
-                <WinnerBadge winner={row.winner} />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* ── Section 3: Priority Actions ──────────────────── */}
-        <div className="print-break-before mb-2">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">03 — Priority Actions for Valeo</h2>
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">02 — Priority Actions for Valeo</h2>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
@@ -628,9 +533,9 @@ export default function GeoLandingPageReport() {
           })}
         </div>
 
-        {/* ── Section 4: AI Search Factor Analysis ─────────── */}
+        {/* ── Section 3: AI Search Factor Analysis ─────────── */}
         <div className="print-break-before mb-2">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">04 — AI Search Factor Analysis</h2>
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">03 — AI Search Factor Analysis</h2>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
