@@ -400,9 +400,9 @@ export default function GeoLandingPageReport() {
                 <div key={b.name} className="print-break-inside-avoid bg-white rounded-2xl border border-slate-200 p-5 flex items-start gap-5 shadow-sm">
                   <ScoreArc score={b.score} color={b.color} />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: b.color }} />
-                      <span className="font-bold text-slate-800 text-base leading-tight">{b.name}</span>
+                    <div className="flex items-start gap-2 mb-0.5 min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0 mt-1" style={{ backgroundColor: b.color }} />
+                      <span className="font-bold text-slate-800 text-sm leading-snug break-words min-w-0">{b.name}</span>
                     </div>
                     <p className="text-xs text-slate-400 mb-2 truncate">{b.domain}</p>
                     <p className="text-sm text-slate-600 leading-relaxed">{b.verdict}</p>
