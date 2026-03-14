@@ -235,13 +235,37 @@ export async function runSegmentAnalysis(
           urlSegmentsMap.get(pathKey)!.add(segIdx);
         } catch {}
       };
+      const urlAiResponsesMap = new Map<string, Array<{ engine: string; response: string }>>();
       validSegments.forEach((seg, segIdx) => {
         for (const run of (seg.scoringResult?.raw_runs || [])) {
           for (const cit of (run.citations || [])) {
             addUrlMeta(cit.url, run.engine, segIdx);
+            if (!cit.url || !run.response || !run.engine) continue;
+            const addResponse = (key: string) => {
+              if (!urlAiResponsesMap.has(key)) urlAiResponsesMap.set(key, []);
+              const arr = urlAiResponsesMap.get(key)!;
+              if (!arr.some(r => r.engine === run.engine)) {
+                arr.push({ engine: run.engine, response: run.response });
+              }
+            };
+            addResponse(cit.url);
+            try {
+              const parsed = new URL(cit.url);
+              addResponse(parsed.origin + parsed.pathname);
+            } catch {}
           }
         }
       });
+      const getAiResponses = (url: string): Array<{ engine: string; response: string }> | undefined => {
+        const direct = urlAiResponsesMap.get(url);
+        if (direct?.length) return direct;
+        try {
+          const parsed = new URL(url);
+          const path = urlAiResponsesMap.get(parsed.origin + parsed.pathname);
+          if (path?.length) return path;
+        } catch {}
+        return undefined;
+      };
       const getEngines = (url: string): string[] | undefined => {
         const direct = urlEnginesMap.get(url);
         if (direct) return [...direct];
@@ -305,6 +329,7 @@ export async function runSegmentAnalysis(
               pageTitle: ps.page.title || null,
               fetchStatus: "crawled",
               scrapedContent: ps.page.cleanText || null,
+              aiResponseText: getAiResponses(ps.page.url) || getAiResponses(ps.page.resolvedUrl || "") || null,
             });
           });
         }
@@ -396,6 +421,7 @@ export async function runSegmentAnalysis(
                 pageType: refinePageType(detectPageType(resolvedFallbackUrl), classifyDomainCategory(domain), null),
                 pageTitle: null,
                 fetchStatus: "ai_fallback",
+                aiResponseText: runs.filter(r => r.response && r.engine).map(r => ({ engine: r.engine, response: r.response })),
               });
             });
           }

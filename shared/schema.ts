@@ -129,6 +129,7 @@ export const citationPageMentions = pgTable("citation_page_mentions", {
   pageTitle: text("page_title"),
   fetchStatus: text("fetch_status").notNull(),
   scrapedContent: text("scraped_content"),
+  aiResponseText: jsonb("ai_response_text"),
   createdAt: timestamp("created_at").defaultNow(),
 }, (t) => [
   index("idx_citation_mentions_session").on(t.sessionId),
