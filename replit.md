@@ -98,6 +98,40 @@ The application adopts a monorepo structure, separating concerns into `client/` 
 - **DB Schema**: `brand_intelligence_jobs` table — `benchmark_mode` boolean, `benchmark_category` text, `results` jsonb (includes `benchmarkAnalysis`, `packetAnalysis`, per-attribute `coherence_pct`, `per_run_values`), `raw_runs` jsonb.
 - **AI Models**: Gemini (`gemini-3-flash-preview` standard, `gemini-2.5-flash` web search), ChatGPT (`gpt-4o-mini` standard, `gpt-4o` web search via `OPENAI_DIRECT_API_KEY`), Claude (`claude-sonnet-4-5`). Benchmark/Packet analysis: `gpt-4o-mini` single call.
 
+## Persona Group Management
+
+**IMPORTANT: Never manually edit persona arrays, enums, or dropdowns.** Use the dedicated script instead.
+
+### Adding personas to B2B SaaS – Collections (CM group)
+
+When the user pastes a list of new personas (and optionally services / customers), run:
+
+```bash
+npx tsx scripts/add-persona-group.ts <input-file.txt>
+# or pipe stdin:
+cat input.txt | npx tsx scripts/add-persona-group.ts
+```
+
+**Input format** (plain text, three section headers required):
+
+```
+Personas
+Invoice Reminder Software
+Payment Reminder Software
+
+Services
+invoice reminder automation
+automated payment reminders
+
+Customers
+Consumer-facing SMEs
+Mid-market companies
+```
+
+The script deterministically updates **all 8 target files** (persona enum in `server/promptgen/types.ts`, CM_PERSONAS + service/vertical arrays + BUDGET_ADJ + SERVICE_VERB + PERSONA_CAT_LABEL + switch in `server/promptgen/presets.ts`, category map in `server/segment-analysis/index.ts`, label map in `server/report/generator.ts`, label map in `client/src/pages/History.tsx`, and all 3 persona dropdowns + seedType condition in `client/src/pages/PromptGenerator.tsx`) using sentinel comments (`[PG:…]`) — zero AI cost, fully deterministic.
+
+After running the script, restart the dev server to pick up the changes.
+
 ### Environment Variables
 - `DATABASE_URL`: PostgreSQL connection string.
 - `ADMIN_PASSWORD`: Admin password for accessing the full tool (required).

@@ -2479,7 +2479,9 @@ export default function PromptGenerator() {
                               <SelectItem value="debt_recovery_software">Debt Recovery Software</SelectItem>
                               <SelectItem value="first_party_collections_software">First-party Collections Software</SelectItem>
                               <SelectItem value="eu_payment_link_software">EU Payment Link Software</SelectItem>
+                              {/* [PG:DD1_CM_TAIL] */}
                             </SelectGroup>
+                            {/* [PG:DD1_NEW_GROUP] */}
                             <SelectGroup>
                               <SelectLabel>Real Estate</SelectLabel>
                               <SelectItem value="real_estate_agency">Real Estate Agency</SelectItem>
@@ -3043,7 +3045,9 @@ export default function PromptGenerator() {
                                           <SelectItem value="debt_recovery_software">Debt Recovery Software</SelectItem>
                                           <SelectItem value="first_party_collections_software">First-party Collections Software</SelectItem>
                                           <SelectItem value="eu_payment_link_software">EU Payment Link Software</SelectItem>
+                                          {/* [PG:DD2_CM_TAIL] */}
                                         </SelectGroup>
+                                        {/* [PG:DD2_NEW_GROUP] */}
                                         <SelectGroup>
                                           <SelectLabel>Healthcare</SelectLabel>
                                           <SelectItem value="in_home_healthcare">In-Home Healthcare</SelectItem>
@@ -4037,7 +4041,9 @@ export default function PromptGenerator() {
                             <SelectItem value="debt_recovery_software">Debt Recovery Software</SelectItem>
                             <SelectItem value="first_party_collections_software">First-party Collections Software</SelectItem>
                             <SelectItem value="eu_payment_link_software">EU Payment Link Software</SelectItem>
+                            {/* [PG:DD3_CM_TAIL] */}
                           </SelectGroup>
+                          {/* [PG:DD3_NEW_GROUP] */}
                           <SelectGroup>
                             <SelectLabel>Other</SelectLabel>
                             <SelectItem value="restaurant">Restaurant</SelectItem>

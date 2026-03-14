@@ -314,6 +314,7 @@ const PERSONA_LABELS: Record<string, string> = {
   debt_recovery_software: "Debt Recovery Software",
   first_party_collections_software: "First-party Collections Software",
   eu_payment_link_software: "EU Payment Link Software",
+  // [PG:REPORT_LABEL_INSERT]
   restaurant: "Restaurant",
   construction_management: "Construction Management",
   in_home_healthcare: "In-Home Healthcare",

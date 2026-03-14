@@ -243,6 +243,7 @@ export default function HistoryPage() {
                             debt_recovery_software: "Debt Recovery Software",
                             first_party_collections_software: "First-party Collections Software",
                             eu_payment_link_software: "EU Payment Link Software",
+                            // [PG:HISTORY_LABEL_INSERT]
                             restaurant: "Restaurant",
                           };
                           const pLabel = seg.persona ? (PERSONA_LABELS[seg.persona] || seg.persona.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())) : "";

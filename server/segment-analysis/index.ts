@@ -46,6 +46,7 @@ const PERSONA_CORE_LABELS: Record<string, string> = {
   debt_recovery_software: "credit management",
   first_party_collections_software: "credit management",
   eu_payment_link_software: "credit management",
+  // [PG:SEGMENT_CAT_INSERT]
   restaurant: "restaurant",
   in_home_healthcare: "in-home healthcare",
   at_home_healthcare: "at-home healthcare",

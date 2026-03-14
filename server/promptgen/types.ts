@@ -12,6 +12,7 @@ export const PersonaTypeEnum = z.enum([
   "digital_collections_platform", "ar_workflow_automation_software", "sme_collections_software",
   "midmarket_collections_platform", "paas_collections_platform", "debt_recovery_software",
   "first_party_collections_software", "eu_payment_link_software",
+  // [PG:ENUM_INSERT]
   "restaurant", "construction_management", "in_home_healthcare", "at_home_healthcare",
   "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests",
   "real_estate_agency", "real_estate_broker", "property_dealer",

@@ -401,6 +401,7 @@ export const CM_PERSONAS = [
   "digital_collections_platform", "ar_workflow_automation_software", "sme_collections_software",
   "midmarket_collections_platform", "paas_collections_platform", "debt_recovery_software",
   "first_party_collections_software", "eu_payment_link_software",
+  // [PG:CM_PERSONAS_INSERT]
 ] as const;
 
 export const CREDIT_MANAGEMENT_SERVICES: string[] = [
@@ -424,6 +425,7 @@ export const CREDIT_MANAGEMENT_SERVICES: string[] = [
   "multilingual payment reminders",
   "automated debtor journeys",
   "payment recovery orchestration",
+  // [PG:CM_SERVICES_INSERT]
 ];
 
 export const CREDIT_MANAGEMENT_VERTICALS: string[] = [
@@ -446,6 +448,7 @@ export const CREDIT_MANAGEMENT_VERTICALS: string[] = [
   "Household billing businesses",
   "Government organizations",
   "Healthcare providers",
+  // [PG:CM_VERTICALS_INSERT]
 ];
 
 export const CREDIT_MANAGEMENT_MODIFIERS: string[] = [
@@ -859,6 +862,7 @@ export const BUDGET_ADJECTIVES: Record<PersonaType, Record<BudgetTier, string[]>
   debt_recovery_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
   first_party_collections_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
   eu_payment_link_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  // [PG:CM_BUDGET_ADJ_INSERT]
   restaurant: {
     budget: ["affordable", "budget-friendly", "cheap eats"],
     mid: ["mid-range", "good value", "reasonably priced"],
@@ -1065,6 +1069,7 @@ function getModifierKnownList(personaType: PersonaType): string[] {
     case "debt_recovery_software":
     case "first_party_collections_software":
     case "eu_payment_link_software": return CREDIT_MANAGEMENT_MODIFIERS;
+    // [PG:CM_MODIFIER_CASE_INSERT]
     case "restaurant": return RESTAURANT_MODIFIERS;
     case "construction_management": return CONSTRUCTION_MANAGEMENT_MODIFIERS;
     case "in_home_healthcare":
@@ -1136,6 +1141,7 @@ const SERVICE_VERB_PREFIXES: Record<PersonaType, string[]> = {
   debt_recovery_software: ["automate", "reduce", "manage"],
   first_party_collections_software: ["automate", "reduce", "manage"],
   eu_payment_link_software: ["automate", "reduce", "manage"],
+  // [PG:CM_VERB_INSERT]
   restaurant: ["serve", "offer", "feature"],
   construction_management: ["provide", "manage", "handle"],
   in_home_healthcare: ["provide", "offer", "deliver"],
@@ -1196,6 +1202,7 @@ export const PERSONA_CATEGORY_LABELS: Record<string, string> = {
   debt_recovery_software: "credit management software, payment reminder platforms, or collections automation solutions",
   first_party_collections_software: "credit management software, payment reminder platforms, or collections automation solutions",
   eu_payment_link_software: "credit management software, payment reminder platforms, or collections automation solutions",
+  // [PG:CM_CAT_LABEL_INSERT]
   restaurant: "restaurants, cafes, or dining establishments",
   construction_management: "construction management software or platforms",
   in_home_healthcare: "in-home healthcare providers or home health services",
