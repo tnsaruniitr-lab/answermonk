@@ -3,24 +3,8 @@ import type { ReactNode } from "react";
 const FRH_COLOR = "#4f46e5";
 const VALEO_COLOR = "#0d9488";
 
-/* ─── Scorecard data ──────────────────────────────────── */
-const SCORES = [
-  { area: "Single page job clarity",          valeo: 4.5, frh: 8.0 },
-  { area: "Title / H1 / intro alignment",     valeo: 4.5, frh: 8.0 },
-  { area: "Local proof block",                valeo: 5.0, frh: 8.5 },
-  { area: "Visible trust markers",            valeo: 7.0, frh: 8.5 },
-  { area: "Service breadth",                  valeo: 8.0, frh: 8.0 },
-  { area: "Internal linking quality",         valeo: 7.5, frh: 8.0 },
-  { area: "Query fan-out coverage",           valeo: 8.0, frh: 8.0 },
-  { area: "Specificity of copy",              valeo: 5.5, frh: 8.0 },
-  { area: "Duplication / cleanliness",        valeo: 4.0, frh: 6.5 },
-];
 const avg = (vals: number[]) =>
   Math.round((vals.reduce((s, v) => s + v, 0) / vals.length) * 10) / 10;
-const OVERALL = {
-  valeo: avg(SCORES.map((r) => r.valeo)),
-  frh:   avg(SCORES.map((r) => r.frh)),
-};
 
 /* ─── Comparison type ─────────────────────────────────── */
 type Winner = "frh" | "tie" | "valeo";
@@ -390,104 +374,48 @@ export default function GeoLandingPageReport() {
       <div className="max-w-5xl mx-auto px-8 pb-12">
 
         {/* ── Overall score cards ───────────────────────────── */}
-        <div className="grid grid-cols-2 gap-4 pt-6 pb-6">
-          {[
-            {
-              name: "First Response Healthcare",
-              domain: "firstresponsehealthcare.com/ae/dubai",
-              score: OVERALL.frh,
-              color: FRH_COLOR,
-              verdict: "Clear page identity, strong local proof, and consistent medical-at-home framing make this an LLM-friendly page.",
-            },
-            {
-              name: "Valeo Health",
-              domain: "feelvaleo.com/en-ae/dubai",
-              score: OVERALL.valeo,
-              color: VALEO_COLOR,
-              verdict: "Mixed page job, misaligned title/H1/intro, and heavy catalog content reduce AI extractability significantly.",
-            },
-          ].map((b) => (
-            <div key={b.name} className="print-break-inside-avoid bg-white rounded-2xl border border-slate-200 p-5 flex items-start gap-5 shadow-sm">
-              <ScoreArc score={b.score} color={b.color} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: b.color }} />
-                  <span className="font-bold text-slate-800 text-base leading-tight">{b.name}</span>
+        {(() => {
+          const overall = {
+            valeo: avg(FACTOR_ROWS.map((r) => r.valeo)),
+            frh:   avg(FACTOR_ROWS.map((r) => r.frh)),
+          };
+          return (
+            <div className="grid grid-cols-2 gap-4 pt-6 pb-6">
+              {[
+                {
+                  name: "First Response Healthcare",
+                  domain: "firstresponsehealthcare.com/ae/dubai",
+                  score: overall.frh,
+                  color: FRH_COLOR,
+                  verdict: "Clear page identity, strong local proof, and consistent medical-at-home framing make this an LLM-friendly page.",
+                },
+                {
+                  name: "Valeo Health",
+                  domain: "feelvaleo.com/en-ae/dubai",
+                  score: overall.valeo,
+                  color: VALEO_COLOR,
+                  verdict: "Mixed page job, misaligned title/H1/intro, and heavy catalog content reduce AI extractability significantly.",
+                },
+              ].map((b) => (
+                <div key={b.name} className="print-break-inside-avoid bg-white rounded-2xl border border-slate-200 p-5 flex items-start gap-5 shadow-sm">
+                  <ScoreArc score={b.score} color={b.color} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: b.color }} />
+                      <span className="font-bold text-slate-800 text-base leading-tight">{b.name}</span>
+                    </div>
+                    <p className="text-xs text-slate-400 mb-2">{b.domain}</p>
+                    <p className="text-sm text-slate-600 leading-relaxed">{b.verdict}</p>
+                  </div>
                 </div>
-                <p className="text-xs text-slate-400 mb-2">{b.domain}</p>
-                <p className="text-sm text-slate-600 leading-relaxed">{b.verdict}</p>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
+          );
+        })()}
 
-        {/* ── Section 1: Score Breakdown ───────────────────── */}
-        <div className="mb-2">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">01 — Score Breakdown</h2>
-        </div>
-
-        <div className="print-break-inside-avoid bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-          {/* Column headers */}
-          <div className="grid grid-cols-[1fr_180px_180px] border-b border-slate-100">
-            <div className="px-5 py-3 bg-slate-50 border-r border-slate-100">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Area</span>
-            </div>
-            <div className="px-5 py-3 border-r border-slate-100" style={{ borderTop: `3px solid ${FRH_COLOR}` }}>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: FRH_COLOR }} />
-                <span className="font-semibold text-slate-700 text-xs">First Response</span>
-              </div>
-            </div>
-            <div className="px-5 py-3" style={{ borderTop: `3px solid ${VALEO_COLOR}` }}>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: VALEO_COLOR }} />
-                <span className="font-semibold text-slate-700 text-xs">Valeo</span>
-              </div>
-            </div>
-          </div>
-
-          {SCORES.map((row, i) => (
-            <div
-              key={row.area}
-              className={`grid grid-cols-[1fr_180px_180px] hover:bg-slate-50/60 transition-colors ${i < SCORES.length - 1 ? "border-b border-slate-50" : ""}`}
-            >
-              <div className="px-5 py-3 border-r border-slate-100 bg-slate-50/40 flex items-center">
-                <span className="text-sm font-medium text-slate-700">{row.area}</span>
-              </div>
-              <div className="px-5 py-3 border-r border-slate-100 flex items-center">
-                <ScoreBar value={row.frh} color={FRH_COLOR} />
-              </div>
-              <div className="px-5 py-3 flex items-center">
-                <ScoreBar value={row.valeo} color={VALEO_COLOR} />
-              </div>
-            </div>
-          ))}
-
-          {/* Overall footer */}
-          <div className="grid grid-cols-[1fr_180px_180px] bg-slate-900">
-            <div className="px-5 py-4 border-r border-slate-700 flex items-center">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Overall GEO Readiness</span>
-            </div>
-            <div className="px-5 py-4 border-r border-slate-700 flex items-center gap-3">
-              <span className="text-2xl font-black" style={{ color: FRH_COLOR }}>{OVERALL.frh}</span>
-              <span className="text-slate-500 text-xs">/ 10</span>
-              <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden ml-1">
-                <div className="h-full rounded-full" style={{ width: `${OVERALL.frh * 10}%`, backgroundColor: FRH_COLOR }} />
-              </div>
-            </div>
-            <div className="px-5 py-4 flex items-center gap-3">
-              <span className="text-2xl font-black" style={{ color: VALEO_COLOR }}>{OVERALL.valeo}</span>
-              <span className="text-slate-500 text-xs">/ 10</span>
-              <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden ml-1">
-                <div className="h-full rounded-full" style={{ width: `${OVERALL.valeo * 10}%`, backgroundColor: VALEO_COLOR }} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Section 2: Priority Actions ──────────────────── */}
+        {/* ── Section 1: Priority Actions ──────────────────── */}
         <div className="print-break-before mb-2">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">02 — Priority Actions for Valeo</h2>
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">01 — Priority Actions for Valeo</h2>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
@@ -538,9 +466,9 @@ export default function GeoLandingPageReport() {
           })}
         </div>
 
-        {/* ── Section 3: AI Search Factor Analysis ─────────── */}
+        {/* ── Section 2: AI Search Factor Analysis ─────────── */}
         <div className="print-break-before mb-2">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">03 — AI Search Factor Analysis</h2>
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">02 — AI Search Factor Analysis</h2>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
