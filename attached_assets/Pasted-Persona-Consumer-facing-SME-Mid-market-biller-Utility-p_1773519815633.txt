@@ -1,0 +1,167 @@
+Persona
+
+Consumer-facing SME
+
+Mid-market biller
+
+Utility provider
+
+Insurance provider
+
+Subscription business
+
+Recurring revenue business
+
+Debt collection agency
+
+Financial institution
+
+Housing association
+
+Municipality
+
+Telecom provider
+
+Multi-country EU biller
+
+PaaS-ready company
+
+White-label platform seeker
+
+Enterprise with high invoice volume
+
+Membership business
+
+Household services company
+
+Government agency
+
+Healthcare provider
+
+possible: BNPL provider
+
+Seed Type
+
+Invoice reminder software
+
+Payment reminder software
+
+Collections automation platform
+
+Invoice collection software
+
+Accounts receivable automation software
+
+Debt collection software
+
+Collections software
+
+Invoice chasing software
+
+Receivables automation platform
+
+White-label collections software
+
+White-label payment reminder software
+
+Dunning software
+
+Digital collections platform
+
+AR workflow automation software
+
+SME collections software
+
+Mid-market collections platform
+
+PaaS collections platform
+
+Debt recovery software
+
+First-party collections software
+
+EU payment link software
+
+Service Type
+
+Invoice reminder automation
+
+Automated payment reminders
+
+AI-generated communication flows
+
+Email payment reminders
+
+SMS payment reminders
+
+AI voice payment reminders
+
+Video payment reminders
+
+Installment plan setup
+
+White-label self-service portal
+
+EU-wide payment links
+
+Multichannel invoice follow-up
+
+Invoice follow-up workflows
+
+Customer self-service payment resolution
+
+Payment reminder automation
+
+Collections workflow automation
+
+Digital dunning
+
+Click-to-pay reminders
+
+Multilingual payment reminders
+
+Automated debtor journeys
+
+Payment recovery orchestration
+
+Customer Type
+
+Consumer-facing SMEs
+
+Mid-market companies
+
+Utilities
+
+Insurers
+
+Subscription businesses
+
+Recurring billing companies
+
+Debt collection agencies
+
+Telecom companies
+
+Housing associations
+
+Municipalities
+
+Financial services companies
+
+Enterprise billers
+
+B2C service providers
+
+Water suppliers
+
+SaaS businesses with recurring invoicing
+
+Membership businesses
+
+Household billing businesses
+
+Government organizations
+
+Healthcare providers
+
+possible: BNPL providers
