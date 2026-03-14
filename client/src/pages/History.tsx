@@ -170,9 +170,10 @@ export default function HistoryPage() {
                 );
               } else if (item.type === "v2session") {
                 const d = item.data;
-                const segs = Array.isArray(d.segments) ? d.segments : [];
+                const allSegs = Array.isArray(d.segments) ? d.segments : [];
+                const segs = allSegs.filter((s: any) => s.scoringResult);
                 const segCount = segs.length;
-                const scored = segs.filter((s: any) => s.scoringResult).length;
+                const scored = segs.length;
                 const isCompetitor = (d as any).sessionType === "competitor";
                 const parentBrand = (d as any).parentBrandName;
 

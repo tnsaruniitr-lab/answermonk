@@ -1278,6 +1278,7 @@ export default function PromptGenerator() {
     prompts: Prompt[] | null;
     scoringResult: ScoringResponse | null;
     isScoring: boolean;
+    selected: boolean;
   }
 
   const makeSegment = (): V2Segment => ({
@@ -1292,6 +1293,7 @@ export default function PromptGenerator() {
     prompts: null,
     scoringResult: null,
     isScoring: false,
+    selected: true,
   });
 
   const [v2Segments, setV2Segments] = useState<V2Segment[]>([makeSegment()]);
@@ -1627,6 +1629,7 @@ export default function PromptGenerator() {
       prompts: null,
       scoringResult: null,
       isScoring: false,
+      selected: true,
     }));
     setV2Segments(segs);
     toast({ title: "Config loaded", description: `Loaded "${config.name}" — ${segs.length} segment${segs.length !== 1 ? "s" : ""}.` });
@@ -1664,6 +1667,7 @@ export default function PromptGenerator() {
       prompts: s.prompts || null,
       scoringResult: s.scoringResult || null,
       isScoring: false,
+      selected: true,
     }));
     setV2Segments(segs);
   };
@@ -2893,12 +2897,40 @@ export default function PromptGenerator() {
                     </div>
 
                     <div className="border-t pt-4 space-y-4">
+                      {v2Segments.length > 1 && (
+                        <div className="flex items-center justify-end gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            {v2Segments.filter(s => s.selected).length} of {v2Segments.length} selected
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-xs"
+                            data-testid="button-select-all-segments"
+                            onClick={() => {
+                              const allSelected = v2Segments.every(s => s.selected);
+                              setV2Segments(prev => prev.map(s => ({ ...s, selected: !allSelected })));
+                            }}
+                          >
+                            {v2Segments.every(s => s.selected) ? "Deselect All" : "Select All"}
+                          </Button>
+                        </div>
+                      )}
                       {v2Segments.map((seg, idx) => {
                         const segPresets = presets?.[seg.persona];
                         return (
-                          <Card key={seg.id} className="p-4 space-y-4 relative" data-testid={`v2-segment-${idx}`}>
+                          <Card key={seg.id} className={`p-4 space-y-4 relative transition-opacity ${!seg.selected ? "opacity-50" : ""}`} data-testid={`v2-segment-${idx}`}>
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
+                                {v2Segments.length > 1 && (
+                                  <Checkbox
+                                    checked={seg.selected}
+                                    onCheckedChange={(checked) => updateSegment(seg.id, { selected: !!checked })}
+                                    data-testid={`checkbox-segment-${idx}`}
+                                    className="shrink-0"
+                                  />
+                                )}
                                 <Badge variant="secondary" className="text-xs font-mono">Segment {idx + 1}</Badge>
                                 {seg.scoringResult && (
                                   <Badge variant="outline" className="text-[10px] text-green-600 border-green-300 dark:text-green-400 dark:border-green-700">
@@ -3312,11 +3344,15 @@ export default function PromptGenerator() {
                     </div>
 
                     <div className="flex gap-3">
-                      {!v2Segments.every((s) => s.prompts) ? (
+                      {(() => {
+                        const selectedSegs = v2Segments.filter(s => s.selected);
+                        const allSelectedHavePrompts = selectedSegs.length > 0 && selectedSegs.every(s => s.prompts);
+                        return !allSelectedHavePrompts ? (
                         <Button
                           type="button"
+                          disabled={selectedSegs.length === 0}
                           onClick={() => {
-                            const emptyLocation = v2Segments.find((s) => !s.location.trim());
+                            const emptyLocation = selectedSegs.find((s) => !s.location.trim());
                             if (emptyLocation) {
                               const idx = v2Segments.indexOf(emptyLocation) + 1;
                               toast({ title: `Segment ${idx} missing location`, description: "Enter a location for each segment.", variant: "destructive" });
@@ -3324,6 +3360,7 @@ export default function PromptGenerator() {
                             }
                             setV2Segments((prev) =>
                               prev.map((seg) => {
+                                if (!seg.selected) return seg;
                                 const effectiveCustomerType = (seg.customerTypeEnabled && seg.customerType !== "__none__") ? seg.customerType : "";
                                 const prompts = generateQuickPrompts(seg.persona, seg.seedType, effectiveCustomerType, seg.resultCount, seg.location.trim(), v2PromptsPerSegment, seg.serviceType);
                                 return { ...seg, prompts, scoringResult: null, isScoring: false };
@@ -3334,14 +3371,14 @@ export default function PromptGenerator() {
                           data-testid="button-v2-generate-all"
                         >
                           <Sparkles className="w-4 h-4 mr-2" />
-                          Generate Prompts ({v2Segments.length} segment{v2Segments.length > 1 ? "s" : ""} x {v2PromptsPerSegment} prompts)
+                          Generate Prompts ({selectedSegs.length} segment{selectedSegs.length > 1 ? "s" : ""} x {v2PromptsPerSegment} prompts)
                         </Button>
                       ) : (
                         <Button
                           type="button"
                           onClick={async () => {
                             setV2IsAnalysing(true);
-                            const segSnapshot = v2Segments.map((seg) => ({
+                            const segSnapshot = v2Segments.filter(s => s.selected).map((seg) => ({
                               id: seg.id,
                               persona: seg.persona,
                               seedType: seg.seedType,
@@ -3417,16 +3454,16 @@ export default function PromptGenerator() {
                           {v2IsAnalysing ? (
                             <>
                               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Analysing {v2Segments.length} segment{v2Segments.length > 1 ? "s" : ""} across {enabledEngines.size} AI engine{enabledEngines.size > 1 ? "s" : ""}...
+                              Analysing {v2Segments.filter(s => s.selected).length} segment{v2Segments.filter(s => s.selected).length > 1 ? "s" : ""} across {enabledEngines.size} AI engine{enabledEngines.size > 1 ? "s" : ""}...
                             </>
                           ) : (
                             <>
                               <BarChart3 className="w-4 h-4 mr-2" />
-                              Analyse ({v2Segments.length} segment{v2Segments.length > 1 ? "s" : ""} x {v2PromptsPerSegment} prompts x {enabledEngines.size} engine{enabledEngines.size > 1 ? "s" : ""})
+                              Analyse ({v2Segments.filter(s => s.selected).length} segment{v2Segments.filter(s => s.selected).length > 1 ? "s" : ""} x {v2PromptsPerSegment} prompts x {enabledEngines.size} engine{enabledEngines.size > 1 ? "s" : ""})
                             </>
                           )}
                         </Button>
-                      )}
+                      ); })()}
                       {v2Segments.some((s) => s.prompts) && (
                         <Button
                           type="button"
