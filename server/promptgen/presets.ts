@@ -425,6 +425,7 @@ export const CREDIT_MANAGEMENT_SERVICES: string[] = [
   "multilingual payment reminders",
   "automated debtor journeys",
   "payment recovery orchestration",
+  "AI workflow automation",
   // [PG:CM_SERVICES_INSERT]
 ];
 
@@ -448,6 +449,7 @@ export const CREDIT_MANAGEMENT_VERTICALS: string[] = [
   "Household billing businesses",
   "Government organizations",
   "Healthcare providers",
+  "Utilities companies",
   // [PG:CM_VERTICALS_INSERT]
 ];
 
