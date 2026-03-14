@@ -1,0 +1,187 @@
+1) Put anything static on Static Deployments
+
+If the page is mostly frontend, docs, landing page, or dashboard shell, use Static Deployment. Replit says static deployments do not consume compute units; billing there is mainly outbound transfer beyond allowance.
+
+That means:
+
+marketing site
+
+docs
+
+public status page
+
+simple frontend for your agent tools
+
+Those should not be running as server apps.
+
+2) Use Autoscale for low-traffic APIs, not Reserved VM
+
+For apps that are only hit occasionally, Autoscale is usually much cheaper because Replit bills when the app is actually serving requests, and when idle it stops after inactivity. Replit’s docs say autoscale “only pay[s] when your app is actively working” and goes idle after 15 minutes of inactivity.
+
+Use Autoscale for:
+
+internal API endpoints
+
+admin tools
+
+webhook receivers with modest traffic
+
+demos
+
+Avoid Reserved VM unless you truly need:
+
+always-on background workers
+
+persistent sockets / long-lived connections
+
+guaranteed dedicated compute
+
+heavy crawling or continuous monitoring
+
+Reserved VM is the expensive trap for hobby and early-stage projects.
+
+3) Kill “always-on” bots and convert them to scheduled runs
+
+This is probably the biggest lever for you.
+
+If you have:
+
+LinkedIn / Reddit listeners
+
+scraping jobs
+
+cron checks
+
+finance monitors
+
+lead enrichment pipelines
+
+do not keep one server awake all month just to check something every few minutes.
+
+Instead:
+
+run a Scheduled Deployment or cron-style trigger
+
+wake up
+
+do work
+
+write result to DB / webhook / Telegram
+
+exit
+
+Replit supports Scheduled Deployments specifically for recurring tasks.
+
+That one change often cuts cost dramatically because you stop paying for idle runtime.
+
+4) Set a hard budget cap immediately
+
+Replit explicitly supports:
+
+usage alerts
+
+budget limits / hard caps
+
+usage tracking in account settings
+
+Do this now:
+
+set a monthly usage alert at a low level
+
+set a hard budget cap above that
+
+check Account → Usage weekly
+
+Without this, one noisy job or AI session can quietly burn credits.
+
+5) Be disciplined with Replit AI / Agent usage
+
+Replit’s billing docs say AI spending can be managed with usage alerts and budget controls, and advanced usage is billable.
+
+Practical rule:
+
+use Agent for scaffolding, debugging, and one-shot generation
+
+do not repeatedly regenerate full apps
+
+avoid long autonomous runs unless they save more money than they cost
+
+write prompts outside Replit first, then use the tool surgically
+
+AI usage is convenient, but for iterative experimentation it can become the hidden bill.
+
+6) Keep databases and storage lean
+
+Replit’s docs show database and object storage are usage-billed categories, and object storage charges depend on storage, transfer, and operations.
+
+So:
+
+do not store lots of media, logs, screenshots, or exports in Replit by default
+
+move large files to cheaper storage
+
+prune logs and temp files
+
+avoid excessive polling that repeatedly hits the database
+
+batch writes instead of writing every event one-by-one
+
+For your agent-style systems, noisy logging and cached payloads can quietly add up.
+
+7) Separate “build” from “production”
+
+A good cheap setup is:
+
+Replit: code, prototype UI, quick internal tools, occasional APIs
+
+Static host / CDN: public frontend
+
+Cheaper worker / serverless / VPS: continuous background jobs
+
+External DB / storage when scale grows
+
+That keeps Replit where it is strongest and removes the expensive always-on parts.
+
+8) Do not over-upgrade too early
+
+Current pricing shows:
+
+Starter: free, limited
+
+Core: includes monthly credits
+
+higher plans add more capacity/features
+
+If your use case is mostly coding plus light hosting, Core can be enough if you stay within included credits.
+If your spend is consistently above included credits because of always-on compute, upgrading plans may not solve the root problem. Often the real fix is architecture, not plan tier.
+
+Best setup for you specifically
+
+Given the kinds of tools you build, I would do this:
+
+keep frontend/UI and prototypes on Replit
+
+keep public pages as Static Deployments
+
+keep internal APIs on Autoscale
+
+move continuous listeners, scrapers, and monitoring off always-on Replit compute
+
+convert anything periodic into scheduled jobs
+
+store heavy artifacts outside Replit
+
+set a strict monthly cap
+
+The blunt version
+
+If Replit is getting expensive, it usually means one of two things:
+
+you are hosting workloads there that should be event-driven or elsewhere
+
+you are using AI features too freely without budget controls
+
+The cheapest pattern is:
+static when possible, autoscale when needed, scheduled for periodic work, never-on unless absolutely required.
+
+If you want, I can turn this into a line-by-line cost reduction checklist for your current Replit projects and tell you what to keep on Replit vs move off.
