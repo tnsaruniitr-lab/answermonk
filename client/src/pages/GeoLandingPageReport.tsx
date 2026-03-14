@@ -413,62 +413,9 @@ export default function GeoLandingPageReport() {
           );
         })()}
 
-        {/* ── Section 1: Priority Actions ──────────────────── */}
+        {/* ── Section 1: AI Search Factor Analysis ─────────── */}
         <div className="print-break-before mb-2">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">01 — Priority Actions for Valeo</h2>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-          {/* Headers */}
-          <div className="grid grid-cols-[52px_1fr_2fr_2fr] border-b border-slate-100 bg-slate-50">
-            <div className="px-3 py-3 border-r border-slate-100">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">#</span>
-            </div>
-            <div className="px-4 py-3 border-r border-slate-100">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Action</span>
-            </div>
-            <div className="px-4 py-3 border-r border-slate-100">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Why it matters for LLM visibility</span>
-            </div>
-            <div className="px-4 py-3">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Exact issue in current HTML</span>
-            </div>
-          </div>
-
-          {ACTIONS.map((row, i) => {
-            const ps = PRIORITY_STYLE[row.priority];
-            return (
-              <div key={i} className={i < ACTIONS.length - 1 ? "border-b border-slate-100" : ""}>
-                {/* Main row */}
-                <div className="grid grid-cols-[52px_1fr_2fr_2fr] hover:bg-slate-50/40 transition-colors">
-                  <div className="px-3 py-4 border-r border-slate-100 flex items-start justify-center pt-3.5">
-                    <span className={`inline-flex items-center justify-center w-8 h-6 rounded-md text-xs font-bold ${ps.bg} ${ps.text}`}>
-                      {row.priority}
-                    </span>
-                  </div>
-                  <div className="px-4 py-4 border-r border-slate-100 flex items-start">
-                    <p className="text-xs font-semibold text-slate-700 leading-snug">{row.action}</p>
-                  </div>
-                  <div className="px-4 py-4 border-r border-slate-100">
-                    <p className="text-xs text-slate-500 leading-relaxed">{row.why}</p>
-                  </div>
-                  <div className="px-4 py-4">
-                    <p className="text-xs text-slate-500 leading-relaxed italic">{row.exactIssue}</p>
-                  </div>
-                </div>
-                {/* Specific fix sub-row */}
-                <div className="border-t border-slate-50 px-4 py-2.5 bg-emerald-50/60 flex items-start gap-2">
-                  <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider shrink-0 mt-0.5">Fix →</span>
-                  <p className="text-xs text-emerald-800 leading-relaxed font-medium">{row.specificFix}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* ── Section 2: AI Search Factor Analysis ─────────── */}
-        <div className="print-break-before mb-2">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">02 — AI Search Factor Analysis</h2>
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">01 — AI Search Factor Analysis</h2>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
@@ -558,6 +505,59 @@ export default function GeoLandingPageReport() {
               </div>
             );
           })()}
+        </div>
+
+        {/* ── Section 2: Priority Actions ──────────────────── */}
+        <div className="print-break-before mb-2">
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">02 — Priority Actions for Valeo</h2>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+          {/* Headers */}
+          <div className="grid grid-cols-[52px_1fr_2fr_2fr] border-b border-slate-100 bg-slate-50">
+            <div className="px-3 py-3 border-r border-slate-100">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">#</span>
+            </div>
+            <div className="px-4 py-3 border-r border-slate-100">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Action</span>
+            </div>
+            <div className="px-4 py-3 border-r border-slate-100">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Why it matters for LLM visibility</span>
+            </div>
+            <div className="px-4 py-3">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Exact issue in current HTML</span>
+            </div>
+          </div>
+
+          {ACTIONS.map((row, i) => {
+            const ps = PRIORITY_STYLE[row.priority];
+            return (
+              <div key={i} className={i < ACTIONS.length - 1 ? "border-b border-slate-100" : ""}>
+                {/* Main row */}
+                <div className="grid grid-cols-[52px_1fr_2fr_2fr] hover:bg-slate-50/40 transition-colors">
+                  <div className="px-3 py-4 border-r border-slate-100 flex items-start justify-center pt-3.5">
+                    <span className={`inline-flex items-center justify-center w-8 h-6 rounded-md text-xs font-bold ${ps.bg} ${ps.text}`}>
+                      {row.priority}
+                    </span>
+                  </div>
+                  <div className="px-4 py-4 border-r border-slate-100 flex items-start">
+                    <p className="text-xs font-semibold text-slate-700 leading-snug">{row.action}</p>
+                  </div>
+                  <div className="px-4 py-4 border-r border-slate-100">
+                    <p className="text-xs text-slate-500 leading-relaxed">{row.why}</p>
+                  </div>
+                  <div className="px-4 py-4">
+                    <p className="text-xs text-slate-500 leading-relaxed italic">{row.exactIssue}</p>
+                  </div>
+                </div>
+                {/* Specific fix sub-row */}
+                <div className="border-t border-slate-50 px-4 py-2.5 bg-emerald-50/60 flex items-start gap-2">
+                  <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider shrink-0 mt-0.5">Fix →</span>
+                  <p className="text-xs text-emerald-800 leading-relaxed font-medium">{row.specificFix}</p>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Footer note */}
