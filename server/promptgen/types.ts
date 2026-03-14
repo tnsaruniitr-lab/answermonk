@@ -1,6 +1,20 @@
 import { z } from "zod";
 
-export const PersonaTypeEnum = z.enum(["marketing_agency", "seo_agency", "performance_marketing_agency", "content_marketing_agency", "social_media_agency", "web_design_agency", "pr_agency", "branding_agency", "digital_marketing_agency", "automation_consultant", "corporate_cards_provider", "expense_management_software", "accounting_automation", "invoice_management", "credit_management_software", "restaurant", "construction_management", "in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests", "real_estate_agency", "real_estate_broker", "property_dealer"]);
+export const PersonaTypeEnum = z.enum([
+  "marketing_agency", "seo_agency", "performance_marketing_agency", "content_marketing_agency",
+  "social_media_agency", "web_design_agency", "pr_agency", "branding_agency", "digital_marketing_agency",
+  "automation_consultant", "corporate_cards_provider", "expense_management_software",
+  "accounting_automation", "invoice_management",
+  "consumer_facing_sme", "midmarket_biller", "utility_provider", "insurance_provider",
+  "subscription_business", "recurring_revenue_business", "debt_collection_agency",
+  "financial_institution", "housing_association", "municipality", "telecom_provider",
+  "multicountry_eu_biller", "paas_ready_company", "whitelabel_platform_seeker",
+  "enterprise_high_invoice_volume", "membership_business", "household_services_company",
+  "government_agency", "healthcare_provider", "bnpl_provider",
+  "restaurant", "construction_management", "in_home_healthcare", "at_home_healthcare",
+  "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests",
+  "real_estate_agency", "real_estate_broker", "property_dealer",
+]);
 export type PersonaType = z.infer<typeof PersonaTypeEnum>;
 
 export const ClusterEnum = z.enum(["direct", "persona", "budget", "task"]);

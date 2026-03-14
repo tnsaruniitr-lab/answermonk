@@ -2452,7 +2452,26 @@ export default function PromptGenerator() {
                             <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
                             <SelectItem value="accounting_automation">Accounting Automation</SelectItem>
                             <SelectItem value="invoice_management">Invoice Management</SelectItem>
-                            <SelectItem value="credit_management_software">Credit Management Software</SelectItem>
+                            <SelectItem value="consumer_facing_sme">Consumer-facing SME</SelectItem>
+                            <SelectItem value="midmarket_biller">Mid-market Biller</SelectItem>
+                            <SelectItem value="utility_provider">Utility Provider</SelectItem>
+                            <SelectItem value="insurance_provider">Insurance Provider</SelectItem>
+                            <SelectItem value="subscription_business">Subscription Business</SelectItem>
+                            <SelectItem value="recurring_revenue_business">Recurring Revenue Business</SelectItem>
+                            <SelectItem value="debt_collection_agency">Debt Collection Agency</SelectItem>
+                            <SelectItem value="financial_institution">Financial Institution</SelectItem>
+                            <SelectItem value="housing_association">Housing Association</SelectItem>
+                            <SelectItem value="municipality">Municipality</SelectItem>
+                            <SelectItem value="telecom_provider">Telecom Provider</SelectItem>
+                            <SelectItem value="multicountry_eu_biller">Multi-country EU Biller</SelectItem>
+                            <SelectItem value="paas_ready_company">PaaS-ready Company</SelectItem>
+                            <SelectItem value="whitelabel_platform_seeker">White-label Platform Seeker</SelectItem>
+                            <SelectItem value="enterprise_high_invoice_volume">Enterprise (High Invoice Volume)</SelectItem>
+                            <SelectItem value="membership_business">Membership Business</SelectItem>
+                            <SelectItem value="household_services_company">Household Services Company</SelectItem>
+                            <SelectItem value="government_agency">Government Agency</SelectItem>
+                            <SelectItem value="healthcare_provider">Healthcare Provider</SelectItem>
+                            <SelectItem value="bnpl_provider">BNPL Provider</SelectItem>
                             <SelectItem value="restaurant">Restaurant</SelectItem>
                             <SelectItem value="construction_management">Construction Management Software</SelectItem>
                           </SelectContent>
