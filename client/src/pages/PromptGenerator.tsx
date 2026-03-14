@@ -10,7 +10,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -2435,45 +2437,60 @@ export default function PromptGenerator() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="marketing_agency">Marketing Agency</SelectItem>
-                            <SelectItem value="seo_agency">SEO Agency</SelectItem>
-                            <SelectItem value="performance_marketing_agency">Performance Marketing Agency</SelectItem>
-                            <SelectItem value="content_marketing_agency">Content Marketing Agency</SelectItem>
-                            <SelectItem value="social_media_agency">Social Media Agency</SelectItem>
-                            <SelectItem value="web_design_agency">Web Design Agency</SelectItem>
-                            <SelectItem value="pr_agency">PR Agency</SelectItem>
-                            <SelectItem value="branding_agency">Branding Agency</SelectItem>
-                            <SelectItem value="digital_marketing_agency">Digital Marketing Agency</SelectItem>
-                            <SelectItem value="real_estate_agency">Real Estate Agency</SelectItem>
-                            <SelectItem value="real_estate_broker">Real Estate Broker</SelectItem>
-                            <SelectItem value="property_dealer">Property Dealer</SelectItem>
-                            <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
-                            <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
-                            <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
-                            <SelectItem value="accounting_automation">Accounting Automation</SelectItem>
-                            <SelectItem value="invoice_management">Invoice Management</SelectItem>
-                            <SelectItem value="invoice_reminder_software">Invoice Reminder Software</SelectItem>
-                            <SelectItem value="payment_reminder_software">Payment Reminder Software</SelectItem>
-                            <SelectItem value="collections_automation_platform">Collections Automation Platform</SelectItem>
-                            <SelectItem value="invoice_collection_software">Invoice Collection Software</SelectItem>
-                            <SelectItem value="accounts_receivable_automation_software">AR Automation Software</SelectItem>
-                            <SelectItem value="debt_collection_software">Debt Collection Software</SelectItem>
-                            <SelectItem value="collections_software">Collections Software</SelectItem>
-                            <SelectItem value="invoice_chasing_software">Invoice Chasing Software</SelectItem>
-                            <SelectItem value="receivables_automation_platform">Receivables Automation Platform</SelectItem>
-                            <SelectItem value="whitelabel_collections_software">White-label Collections Software</SelectItem>
-                            <SelectItem value="whitelabel_payment_reminder_software">White-label Payment Reminder Software</SelectItem>
-                            <SelectItem value="dunning_software">Dunning Software</SelectItem>
-                            <SelectItem value="digital_collections_platform">Digital Collections Platform</SelectItem>
-                            <SelectItem value="ar_workflow_automation_software">AR Workflow Automation Software</SelectItem>
-                            <SelectItem value="sme_collections_software">SME Collections Software</SelectItem>
-                            <SelectItem value="midmarket_collections_platform">Mid-market Collections Platform</SelectItem>
-                            <SelectItem value="paas_collections_platform">PaaS Collections Platform</SelectItem>
-                            <SelectItem value="debt_recovery_software">Debt Recovery Software</SelectItem>
-                            <SelectItem value="first_party_collections_software">First-party Collections Software</SelectItem>
-                            <SelectItem value="eu_payment_link_software">EU Payment Link Software</SelectItem>
-                            <SelectItem value="restaurant">Restaurant</SelectItem>
-                            <SelectItem value="construction_management">Construction Management Software</SelectItem>
+                            <SelectGroup>
+                              <SelectLabel>Agencies</SelectLabel>
+                              <SelectItem value="marketing_agency">Marketing Agency</SelectItem>
+                              <SelectItem value="seo_agency">SEO Agency</SelectItem>
+                              <SelectItem value="performance_marketing_agency">Performance Marketing Agency</SelectItem>
+                              <SelectItem value="content_marketing_agency">Content Marketing Agency</SelectItem>
+                              <SelectItem value="social_media_agency">Social Media Agency</SelectItem>
+                              <SelectItem value="web_design_agency">Web Design Agency</SelectItem>
+                              <SelectItem value="pr_agency">PR Agency</SelectItem>
+                              <SelectItem value="branding_agency">Branding Agency</SelectItem>
+                              <SelectItem value="digital_marketing_agency">Digital Marketing Agency</SelectItem>
+                            </SelectGroup>
+                            <SelectGroup>
+                              <SelectLabel>FinTech / B2B SaaS</SelectLabel>
+                              <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
+                              <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
+                              <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
+                              <SelectItem value="accounting_automation">Accounting Automation</SelectItem>
+                              <SelectItem value="invoice_management">Invoice Management</SelectItem>
+                            </SelectGroup>
+                            <SelectGroup>
+                              <SelectLabel>B2B SaaS – Collections</SelectLabel>
+                              <SelectItem value="invoice_reminder_software">Invoice Reminder Software</SelectItem>
+                              <SelectItem value="payment_reminder_software">Payment Reminder Software</SelectItem>
+                              <SelectItem value="collections_automation_platform">Collections Automation Platform</SelectItem>
+                              <SelectItem value="invoice_collection_software">Invoice Collection Software</SelectItem>
+                              <SelectItem value="accounts_receivable_automation_software">AR Automation Software</SelectItem>
+                              <SelectItem value="debt_collection_software">Debt Collection Software</SelectItem>
+                              <SelectItem value="collections_software">Collections Software</SelectItem>
+                              <SelectItem value="invoice_chasing_software">Invoice Chasing Software</SelectItem>
+                              <SelectItem value="receivables_automation_platform">Receivables Automation Platform</SelectItem>
+                              <SelectItem value="whitelabel_collections_software">White-label Collections Software</SelectItem>
+                              <SelectItem value="whitelabel_payment_reminder_software">White-label Payment Reminder Software</SelectItem>
+                              <SelectItem value="dunning_software">Dunning Software</SelectItem>
+                              <SelectItem value="digital_collections_platform">Digital Collections Platform</SelectItem>
+                              <SelectItem value="ar_workflow_automation_software">AR Workflow Automation Software</SelectItem>
+                              <SelectItem value="sme_collections_software">SME Collections Software</SelectItem>
+                              <SelectItem value="midmarket_collections_platform">Mid-market Collections Platform</SelectItem>
+                              <SelectItem value="paas_collections_platform">PaaS Collections Platform</SelectItem>
+                              <SelectItem value="debt_recovery_software">Debt Recovery Software</SelectItem>
+                              <SelectItem value="first_party_collections_software">First-party Collections Software</SelectItem>
+                              <SelectItem value="eu_payment_link_software">EU Payment Link Software</SelectItem>
+                            </SelectGroup>
+                            <SelectGroup>
+                              <SelectLabel>Real Estate</SelectLabel>
+                              <SelectItem value="real_estate_agency">Real Estate Agency</SelectItem>
+                              <SelectItem value="real_estate_broker">Real Estate Broker</SelectItem>
+                              <SelectItem value="property_dealer">Property Dealer</SelectItem>
+                            </SelectGroup>
+                            <SelectGroup>
+                              <SelectLabel>Other</SelectLabel>
+                              <SelectItem value="restaurant">Restaurant</SelectItem>
+                              <SelectItem value="construction_management">Construction Management Software</SelectItem>
+                            </SelectGroup>
                           </SelectContent>
                         </Select>
                       </div>
@@ -2984,58 +3001,76 @@ export default function PromptGenerator() {
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value="marketing_agency">Marketing Agency</SelectItem>
-                                        <SelectItem value="seo_agency">SEO Agency</SelectItem>
-                                        <SelectItem value="performance_marketing_agency">Performance Marketing Agency</SelectItem>
-                                        <SelectItem value="content_marketing_agency">Content Marketing Agency</SelectItem>
-                                        <SelectItem value="social_media_agency">Social Media Agency</SelectItem>
-                                        <SelectItem value="web_design_agency">Web Design Agency</SelectItem>
-                                        <SelectItem value="pr_agency">PR Agency</SelectItem>
-                                        <SelectItem value="branding_agency">Branding Agency</SelectItem>
-                                        <SelectItem value="digital_marketing_agency">Digital Marketing Agency</SelectItem>
-                                        <SelectItem value="real_estate_agency">Real Estate Agency</SelectItem>
-                                        <SelectItem value="real_estate_broker">Real Estate Broker</SelectItem>
-                                        <SelectItem value="property_dealer">Property Dealer</SelectItem>
-                                        <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
-                                        <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
-                                        <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
-                                        <SelectItem value="accounting_automation">Accounting Automation</SelectItem>
-                                        <SelectItem value="invoice_management">Invoice Management</SelectItem>
-                                        <SelectItem value="invoice_reminder_software">Invoice Reminder Software</SelectItem>
-                                        <SelectItem value="payment_reminder_software">Payment Reminder Software</SelectItem>
-                                        <SelectItem value="collections_automation_platform">Collections Automation Platform</SelectItem>
-                                        <SelectItem value="invoice_collection_software">Invoice Collection Software</SelectItem>
-                                        <SelectItem value="accounts_receivable_automation_software">AR Automation Software</SelectItem>
-                                        <SelectItem value="debt_collection_software">Debt Collection Software</SelectItem>
-                                        <SelectItem value="collections_software">Collections Software</SelectItem>
-                                        <SelectItem value="invoice_chasing_software">Invoice Chasing Software</SelectItem>
-                                        <SelectItem value="receivables_automation_platform">Receivables Automation Platform</SelectItem>
-                                        <SelectItem value="whitelabel_collections_software">White-label Collections Software</SelectItem>
-                                        <SelectItem value="whitelabel_payment_reminder_software">White-label Payment Reminder Software</SelectItem>
-                                        <SelectItem value="dunning_software">Dunning Software</SelectItem>
-                                        <SelectItem value="digital_collections_platform">Digital Collections Platform</SelectItem>
-                                        <SelectItem value="ar_workflow_automation_software">AR Workflow Automation Software</SelectItem>
-                                        <SelectItem value="sme_collections_software">SME Collections Software</SelectItem>
-                                        <SelectItem value="midmarket_collections_platform">Mid-market Collections Platform</SelectItem>
-                                        <SelectItem value="paas_collections_platform">PaaS Collections Platform</SelectItem>
-                                        <SelectItem value="debt_recovery_software">Debt Recovery Software</SelectItem>
-                                        <SelectItem value="first_party_collections_software">First-party Collections Software</SelectItem>
-                                        <SelectItem value="eu_payment_link_software">EU Payment Link Software</SelectItem>
-                                        <SelectItem value="restaurant">Restaurant</SelectItem>
-                                        <SelectItem value="construction_management">Construction Management Software</SelectItem>
-                                        <SelectItem value="in_home_healthcare">In-Home Healthcare</SelectItem>
-                                        <SelectItem value="at_home_healthcare">At-Home Healthcare</SelectItem>
-                                        <SelectItem value="at_home_nurses">At-Home Nurses</SelectItem>
-                                        <SelectItem value="at_home_care_provider">At-Home Care Provider</SelectItem>
-                                        <SelectItem value="care_at_home_services">Care at Home Services</SelectItem>
-                                        <SelectItem value="doctor_at_home">Doctor at Home</SelectItem>
-                                        <SelectItem value="home_physiotherapy">Home Physiotherapy</SelectItem>
-                                        <SelectItem value="home_iv_therapy">Home IV Therapy</SelectItem>
-                                        <SelectItem value="elderly_care_at_home">Elderly Care at Home</SelectItem>
-                                        <SelectItem value="home_health_checkup">Home Health Checkup</SelectItem>
-                                        <SelectItem value="weight_loss_help">Weight Loss Help</SelectItem>
-                                        <SelectItem value="in_home_blood_tests">In-Home Blood Tests</SelectItem>
-                                        <SelectItem value="at_home_blood_tests">At-Home Blood Tests</SelectItem>
+                                        <SelectGroup>
+                                          <SelectLabel>Agencies</SelectLabel>
+                                          <SelectItem value="marketing_agency">Marketing Agency</SelectItem>
+                                          <SelectItem value="seo_agency">SEO Agency</SelectItem>
+                                          <SelectItem value="performance_marketing_agency">Performance Marketing Agency</SelectItem>
+                                          <SelectItem value="content_marketing_agency">Content Marketing Agency</SelectItem>
+                                          <SelectItem value="social_media_agency">Social Media Agency</SelectItem>
+                                          <SelectItem value="web_design_agency">Web Design Agency</SelectItem>
+                                          <SelectItem value="pr_agency">PR Agency</SelectItem>
+                                          <SelectItem value="branding_agency">Branding Agency</SelectItem>
+                                          <SelectItem value="digital_marketing_agency">Digital Marketing Agency</SelectItem>
+                                        </SelectGroup>
+                                        <SelectGroup>
+                                          <SelectLabel>FinTech / B2B SaaS</SelectLabel>
+                                          <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
+                                          <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
+                                          <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
+                                          <SelectItem value="accounting_automation">Accounting Automation</SelectItem>
+                                          <SelectItem value="invoice_management">Invoice Management</SelectItem>
+                                        </SelectGroup>
+                                        <SelectGroup>
+                                          <SelectLabel>B2B SaaS – Collections</SelectLabel>
+                                          <SelectItem value="invoice_reminder_software">Invoice Reminder Software</SelectItem>
+                                          <SelectItem value="payment_reminder_software">Payment Reminder Software</SelectItem>
+                                          <SelectItem value="collections_automation_platform">Collections Automation Platform</SelectItem>
+                                          <SelectItem value="invoice_collection_software">Invoice Collection Software</SelectItem>
+                                          <SelectItem value="accounts_receivable_automation_software">AR Automation Software</SelectItem>
+                                          <SelectItem value="debt_collection_software">Debt Collection Software</SelectItem>
+                                          <SelectItem value="collections_software">Collections Software</SelectItem>
+                                          <SelectItem value="invoice_chasing_software">Invoice Chasing Software</SelectItem>
+                                          <SelectItem value="receivables_automation_platform">Receivables Automation Platform</SelectItem>
+                                          <SelectItem value="whitelabel_collections_software">White-label Collections Software</SelectItem>
+                                          <SelectItem value="whitelabel_payment_reminder_software">White-label Payment Reminder Software</SelectItem>
+                                          <SelectItem value="dunning_software">Dunning Software</SelectItem>
+                                          <SelectItem value="digital_collections_platform">Digital Collections Platform</SelectItem>
+                                          <SelectItem value="ar_workflow_automation_software">AR Workflow Automation Software</SelectItem>
+                                          <SelectItem value="sme_collections_software">SME Collections Software</SelectItem>
+                                          <SelectItem value="midmarket_collections_platform">Mid-market Collections Platform</SelectItem>
+                                          <SelectItem value="paas_collections_platform">PaaS Collections Platform</SelectItem>
+                                          <SelectItem value="debt_recovery_software">Debt Recovery Software</SelectItem>
+                                          <SelectItem value="first_party_collections_software">First-party Collections Software</SelectItem>
+                                          <SelectItem value="eu_payment_link_software">EU Payment Link Software</SelectItem>
+                                        </SelectGroup>
+                                        <SelectGroup>
+                                          <SelectLabel>Healthcare</SelectLabel>
+                                          <SelectItem value="in_home_healthcare">In-Home Healthcare</SelectItem>
+                                          <SelectItem value="at_home_healthcare">At-Home Healthcare</SelectItem>
+                                          <SelectItem value="at_home_nurses">At-Home Nurses</SelectItem>
+                                          <SelectItem value="at_home_care_provider">At-Home Care Provider</SelectItem>
+                                          <SelectItem value="care_at_home_services">Care at Home Services</SelectItem>
+                                          <SelectItem value="doctor_at_home">Doctor at Home</SelectItem>
+                                          <SelectItem value="home_physiotherapy">Home Physiotherapy</SelectItem>
+                                          <SelectItem value="home_iv_therapy">Home IV Therapy</SelectItem>
+                                          <SelectItem value="elderly_care_at_home">Elderly Care at Home</SelectItem>
+                                          <SelectItem value="home_health_checkup">Home Health Checkup</SelectItem>
+                                          <SelectItem value="weight_loss_help">Weight Loss Help</SelectItem>
+                                          <SelectItem value="in_home_blood_tests">In-Home Blood Tests</SelectItem>
+                                          <SelectItem value="at_home_blood_tests">At-Home Blood Tests</SelectItem>
+                                        </SelectGroup>
+                                        <SelectGroup>
+                                          <SelectLabel>Real Estate</SelectLabel>
+                                          <SelectItem value="real_estate_agency">Real Estate Agency</SelectItem>
+                                          <SelectItem value="real_estate_broker">Real Estate Broker</SelectItem>
+                                          <SelectItem value="property_dealer">Property Dealer</SelectItem>
+                                        </SelectGroup>
+                                        <SelectGroup>
+                                          <SelectLabel>Other</SelectLabel>
+                                          <SelectItem value="restaurant">Restaurant</SelectItem>
+                                          <SelectItem value="construction_management">Construction Management Software</SelectItem>
+                                        </SelectGroup>
                                       </SelectContent>
                                     </Select>
                                   </div>
@@ -3970,41 +4005,43 @@ export default function PromptGenerator() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="marketing_agency">
-                            Marketing Agency
-                          </SelectItem>
-                          <SelectItem value="automation_consultant">
-                            Automation Consultant
-                          </SelectItem>
-                          <SelectItem value="corporate_cards_provider">
-                            Corporate Cards Provider
-                          </SelectItem>
-                          <SelectItem value="expense_management_software">
-                            Expense Management Software
-                          </SelectItem>
-                          <SelectItem value="invoice_reminder_software">Invoice Reminder Software</SelectItem>
-                          <SelectItem value="payment_reminder_software">Payment Reminder Software</SelectItem>
-                          <SelectItem value="collections_automation_platform">Collections Automation Platform</SelectItem>
-                          <SelectItem value="invoice_collection_software">Invoice Collection Software</SelectItem>
-                          <SelectItem value="accounts_receivable_automation_software">AR Automation Software</SelectItem>
-                          <SelectItem value="debt_collection_software">Debt Collection Software</SelectItem>
-                          <SelectItem value="collections_software">Collections Software</SelectItem>
-                          <SelectItem value="invoice_chasing_software">Invoice Chasing Software</SelectItem>
-                          <SelectItem value="receivables_automation_platform">Receivables Automation Platform</SelectItem>
-                          <SelectItem value="whitelabel_collections_software">White-label Collections Software</SelectItem>
-                          <SelectItem value="whitelabel_payment_reminder_software">White-label Payment Reminder Software</SelectItem>
-                          <SelectItem value="dunning_software">Dunning Software</SelectItem>
-                          <SelectItem value="digital_collections_platform">Digital Collections Platform</SelectItem>
-                          <SelectItem value="ar_workflow_automation_software">AR Workflow Automation Software</SelectItem>
-                          <SelectItem value="sme_collections_software">SME Collections Software</SelectItem>
-                          <SelectItem value="midmarket_collections_platform">Mid-market Collections Platform</SelectItem>
-                          <SelectItem value="paas_collections_platform">PaaS Collections Platform</SelectItem>
-                          <SelectItem value="debt_recovery_software">Debt Recovery Software</SelectItem>
-                          <SelectItem value="first_party_collections_software">First-party Collections Software</SelectItem>
-                          <SelectItem value="eu_payment_link_software">EU Payment Link Software</SelectItem>
-                          <SelectItem value="restaurant">
-                            Restaurant
-                          </SelectItem>
+                          <SelectGroup>
+                            <SelectLabel>Agencies</SelectLabel>
+                            <SelectItem value="marketing_agency">Marketing Agency</SelectItem>
+                          </SelectGroup>
+                          <SelectGroup>
+                            <SelectLabel>FinTech / B2B SaaS</SelectLabel>
+                            <SelectItem value="automation_consultant">Automation Consultant</SelectItem>
+                            <SelectItem value="corporate_cards_provider">Corporate Cards Provider</SelectItem>
+                            <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
+                          </SelectGroup>
+                          <SelectGroup>
+                            <SelectLabel>B2B SaaS – Collections</SelectLabel>
+                            <SelectItem value="invoice_reminder_software">Invoice Reminder Software</SelectItem>
+                            <SelectItem value="payment_reminder_software">Payment Reminder Software</SelectItem>
+                            <SelectItem value="collections_automation_platform">Collections Automation Platform</SelectItem>
+                            <SelectItem value="invoice_collection_software">Invoice Collection Software</SelectItem>
+                            <SelectItem value="accounts_receivable_automation_software">AR Automation Software</SelectItem>
+                            <SelectItem value="debt_collection_software">Debt Collection Software</SelectItem>
+                            <SelectItem value="collections_software">Collections Software</SelectItem>
+                            <SelectItem value="invoice_chasing_software">Invoice Chasing Software</SelectItem>
+                            <SelectItem value="receivables_automation_platform">Receivables Automation Platform</SelectItem>
+                            <SelectItem value="whitelabel_collections_software">White-label Collections Software</SelectItem>
+                            <SelectItem value="whitelabel_payment_reminder_software">White-label Payment Reminder Software</SelectItem>
+                            <SelectItem value="dunning_software">Dunning Software</SelectItem>
+                            <SelectItem value="digital_collections_platform">Digital Collections Platform</SelectItem>
+                            <SelectItem value="ar_workflow_automation_software">AR Workflow Automation Software</SelectItem>
+                            <SelectItem value="sme_collections_software">SME Collections Software</SelectItem>
+                            <SelectItem value="midmarket_collections_platform">Mid-market Collections Platform</SelectItem>
+                            <SelectItem value="paas_collections_platform">PaaS Collections Platform</SelectItem>
+                            <SelectItem value="debt_recovery_software">Debt Recovery Software</SelectItem>
+                            <SelectItem value="first_party_collections_software">First-party Collections Software</SelectItem>
+                            <SelectItem value="eu_payment_link_software">EU Payment Link Software</SelectItem>
+                          </SelectGroup>
+                          <SelectGroup>
+                            <SelectLabel>Other</SelectLabel>
+                            <SelectItem value="restaurant">Restaurant</SelectItem>
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
                     </div>
