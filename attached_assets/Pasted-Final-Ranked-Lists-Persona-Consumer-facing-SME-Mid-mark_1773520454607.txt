@@ -1,0 +1,284 @@
+Final Ranked Lists
+Persona
+
+Consumer-facing SME
+
+Mid-market biller
+
+Utility provider
+
+Insurance provider
+
+Subscription business
+
+Recurring revenue business
+
+Debt collection agency
+
+Financial institution
+
+Housing association
+
+Municipality
+
+Telecom provider
+
+Multi-country EU biller
+
+PaaS-ready company
+
+White-label platform seeker
+
+Enterprise with high invoice volume
+
+Membership business
+
+Household services company
+
+Government agency
+
+Healthcare provider
+
+possible: BNPL provider
+
+Seed Type
+
+Invoice reminder software
+
+Payment reminder software
+
+Collections automation platform
+
+Invoice collection software
+
+Accounts receivable automation software
+
+Debt collection software
+
+Collections software
+
+Invoice chasing software
+
+Receivables automation platform
+
+White-label collections software
+
+White-label payment reminder software
+
+Dunning software
+
+Digital collections platform
+
+AR workflow automation software
+
+SME collections software
+
+Mid-market collections platform
+
+PaaS collections platform
+
+Debt recovery software
+
+First-party collections software
+
+EU payment link software
+
+Service Type
+
+Invoice reminder automation
+
+Automated payment reminders
+
+AI-generated communication flows
+
+Email payment reminders
+
+SMS payment reminders
+
+AI voice payment reminders
+
+Video payment reminders
+
+Installment plan setup
+
+White-label self-service portal
+
+EU-wide payment links
+
+Multichannel invoice follow-up
+
+Invoice follow-up workflows
+
+Customer self-service payment resolution
+
+Payment reminder automation
+
+Collections workflow automation
+
+Digital dunning
+
+Click-to-pay reminders
+
+Multilingual payment reminders
+
+Automated debtor journeys
+
+Payment recovery orchestration
+
+Customer Type
+
+Consumer-facing SMEs
+
+Mid-market companies
+
+Utilities
+
+Insurers
+
+Subscription businesses
+
+Recurring billing companies
+
+Debt collection agencies
+
+Telecom companies
+
+Housing associations
+
+Municipalities
+
+Financial services companies
+
+Enterprise billers
+
+B2C service providers
+
+Water suppliers
+
+SaaS businesses with recurring invoicing
+
+Membership businesses
+
+Household billing businesses
+
+Government organizations
+
+Healthcare providers
+
+possible: BNPL providers
+
+Location
+
+Benelux
+
+Netherlands
+
+DACH
+
+Germany
+
+Belgium
+
+Europe
+
+Austria
+
+Switzerland
+
+Luxembourg
+
+EU
+
+Ireland
+
+Romania
+
+Final Ranked Closest Competitor List
+
+Given the Collie positioning, I would rank the market set like this:
+
+Receeve
+
+Symend
+
+QUALCO
+
+Kolleno
+
+HighRadius
+
+CODIX
+
+Tratta
+
+Final 25 Ranked Segment Rows
+
+Consumer-facing SME | invoice reminder software | invoice reminder automation | consumer-facing SMEs | Benelux
+
+Mid-market biller | accounts receivable automation software | AI-generated communication flows | mid-market companies | DACH
+
+Utility provider | payment reminder software | AI voice payment reminders | utilities | Germany
+
+Insurance provider | invoice collection software | installment plan setup | insurers | Benelux
+
+Subscription business | subscription payment reminder software | multichannel invoice follow-up | subscription businesses | DACH
+
+Consumer-facing SME | payment reminder platform | email and SMS reminders | recurring billing companies | Netherlands
+
+Mid-market biller | white-label collections software | self-service payment resolution | mid-market companies | Germany
+
+PaaS-ready company | PaaS collections platform | white-label payment workflows | consumer-facing companies | Europe
+
+Multi-country EU biller | receivables automation platform | EU-wide payment links | consumer-facing companies | Europe
+
+Utility provider | collections automation platform | installment plans and payment links | utilities | DACH
+
+Insurance provider | payment reminder software | AI-generated communication flows | insurers | Netherlands
+
+Subscription business | invoice reminder software | automated debtor journeys | subscription businesses | Benelux
+
+Recurring revenue business | invoice chasing software | white-label self-service portal | recurring billing companies | Europe
+
+Consumer-facing SME | SME collections software | video payment reminders | SMEs | Belgium
+
+Telecom provider | collections automation platform | AI voice and SMS reminders | telecom companies | DACH
+
+Household services company | accounts receivable automation | SMS and voice reminders | consumer-facing SMEs | Germany
+
+Mid-market company | invoice reminder software | white-label self-service portal | mid-market companies | Benelux
+
+Utility provider | utility collections software | multichannel payment reminders | utilities | Netherlands
+
+Insurance provider | white-label payment reminder software | installment plan setup | insurers | DACH
+
+Membership business | payment reminder automation | self-service portal | membership businesses | Europe
+
+Debt collection agency | collections software | multilingual payment reminders | debt collection agencies | Netherlands
+
+Housing association | payment reminder software | customer-friendly collections | housing associations | Netherlands
+
+Municipality | digital collections platform | automated payment reminders | municipalities | Netherlands
+
+Financial institution | first-party collections software | multichannel collections engagement | financial services companies | Europe
+
+Enterprise with high invoice volume | dunning software | collections workflow automation | enterprise billers | Europe
+
+Best final interpretation
+
+The new inputs do not just add a few keywords. They re-rank the whole framework.
+
+The biggest changes are:
+
+Invoice reminder software moves above debt collection software
+
+SME and mid-market move above agency and enterprise-heavy collection use cases
+
+Benelux and DACH become core geography seeds
+
+White-label, PaaS, installment plans, EU payment links, self-service portal become core differentiators
+
+Utilities, insurers, subscription businesses become your highest-priority verticals
+
+So yes: these are added and merged, and the lists above are the final ranked version.
+
+I can also turn this into a clean CSV-style sheet next.
