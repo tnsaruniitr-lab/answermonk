@@ -294,7 +294,7 @@ function ScoreArc({ score, color, max = 10 }: { score: number; color: string; ma
 }
 
 const WINNER_STYLE: Record<Winner, { label: string; bg: string; text: string; border: string }> = {
-  frh:   { label: "First Response", bg: "bg-indigo-50",  text: "text-indigo-700",  border: "border-indigo-200" },
+  frh:   { label: "FRH", bg: "bg-indigo-50",  text: "text-indigo-700",  border: "border-indigo-200" },
   valeo: { label: "Valeo",          bg: "bg-teal-50",    text: "text-teal-700",    border: "border-teal-200"   },
   tie:   { label: "Tie",            bg: "bg-slate-100",  text: "text-slate-500",   border: "border-slate-200"  },
 };
@@ -442,7 +442,7 @@ export default function GeoLandingPageReport() {
           </div>
 
           {FACTOR_ROWS.map((row, i) => (
-            <div key={row.factor} className={i < FACTOR_ROWS.length - 1 ? "border-b border-slate-100" : ""}>
+            <div key={row.factor} className={`print-break-inside-avoid${i < FACTOR_ROWS.length - 1 ? " border-b border-slate-100" : ""}`}>
               {/* Main row */}
               <div className="grid grid-cols-[200px_120px_120px_100px] hover:bg-slate-50/40 transition-colors">
                 <div className="px-4 py-3 border-r border-slate-100 bg-slate-50/40 flex flex-col justify-center gap-1.5">
