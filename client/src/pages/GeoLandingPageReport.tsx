@@ -82,6 +82,91 @@ const COMP_ROWS: CompRow[] = [
   },
 ];
 
+/* ─── AI Search Factor data ──────────────────────────── */
+type FactorRow = {
+  factor: string;
+  why: string;
+  valeo: number;
+  frh: number;
+  winner: Winner;
+  evidence: string;
+};
+
+const FACTOR_ROWS: FactorRow[] = [
+  {
+    factor: "Title / H1 intent alignment",
+    why: "Models classify page purpose from title + H1 + intro alignment",
+    valeo: 3, frh: 8, winner: "frh",
+    evidence: `Valeo: title = "Blood Lab Test At Home in Dubai…" but H1 = "At-Home Healthcare" twice — a direct intent mismatch. FRH: title = "Home Healthcare Services Available 24x7 in UAE & Qatar", H1 = "24x7 Expert Home Healthcare Services with Tailored Solutions" — fully aligned.`,
+  },
+  {
+    factor: "Heading cleanliness",
+    why: "Clean heading hierarchy makes extraction more reliable",
+    valeo: 3, frh: 9, winner: "frh",
+    evidence: `Valeo: H1 appears twice ("At-Home Healthcare"), H2 duplicates also ("Your Health, Reimagined" ×2, "Lab Test at Home in Dubai" ×2, "Comprehensive Healthcare, Right at Home" ×2). FRH: one H1, three H2s, one H3 — clean.`,
+  },
+  {
+    factor: "Page focus",
+    why: "Mixed pages are harder for AI to summarise and rank for one intent",
+    valeo: 2, frh: 8, winner: "frh",
+    evidence: `Valeo: same page contains At-home IV Therapy, At-home Blood Testing, Weight Loss Program, Doctor on Call, Physiotherapy, Supplements, Newborn Care, Peptides — too many top-level intents on one URL. FRH: homepage is a broad brand page but coherent as home healthcare.`,
+  },
+  {
+    factor: "Extractable text depth",
+    why: "More plain text gives AI more retrieval surface",
+    valeo: 9, frh: 5, winner: "valeo",
+    evidence: `Valeo textLength: 10,150 chars. FRH textLength: 2,892 chars. Valeo exposes significantly more textual surface for retrieval-augmented generation.`,
+  },
+  {
+    factor: "Service breadth visible in HTML",
+    why: "More visible service entities can match more query variants",
+    valeo: 10, frh: 8, winner: "valeo",
+    evidence: `Valeo links/categories: Women's Health, Men's Health, DNA Tests, Hormone Tests, Sexual Health, Physiotherapy, IV Therapy, GLP-1 Weight Loss, Doctor on Call, Newborn Care, Peptides. FRH: also broad, but less dense on the homepage.`,
+  },
+  {
+    factor: "Internal link graph",
+    why: "Strong internal linking helps crawlers and models traverse the service graph",
+    valeo: 9, frh: 8, winner: "valeo",
+    evidence: `Valeo: extensive link set across categories, services, consultations, products, and city/service routes. FRH: also strong — doctor-on-call, home-nursing-services, physiotherapy, health-checkup, corporate-wellness — but less extensive overall.`,
+  },
+  {
+    factor: "Schema quality",
+    why: "Good schema strengthens entity confidence and local / service understanding",
+    valeo: 7, frh: 8, winner: "frh",
+    evidence: `Valeo: has Organization, WebPage, LocalBusiness, MedicalBusiness, Breadcrumb — but includes a duplicate Organization schema and geo coordinates of latitude:0, longitude:0. FRH: LocalBusiness includes full street address and real geo coords (25.1093436, 55.183759) — a cleaner trust signal.`,
+  },
+  {
+    factor: "Local trust / entity grounding",
+    why: "Real local business details increase confidence for local healthcare queries",
+    valeo: 5, frh: 8, winner: "frh",
+    evidence: `Valeo: city-specific schema exists, but geo is placeholder 0,0; page leans more catalog than grounded local medical entity. FRH: full Dubai address, phone, 24x7 opening hours, and real geo coordinates present.`,
+  },
+  {
+    factor: "Content discipline",
+    why: "Less noise = easier extraction of key facts",
+    valeo: 3, frh: 8, winner: "frh",
+    evidence: `Valeo: page includes supplements (Valeo Hair+, Shilajit, Creatine, Matcha), consultations, ambassador program, press, app download — all mixed into a city healthcare page. FRH: much less merchandising clutter in headings and visible copy.`,
+  },
+  {
+    factor: "Entity / service extraction ease",
+    why: "Simple DOM makes it easier to infer brand = category + services + location",
+    valeo: 7, frh: 8, winner: "frh",
+    evidence: `Valeo: lots of entities but many are mixed — lab tests, supplements, consultations, programs, affiliate, ambassador. Strong breadth, weaker clarity. FRH: fewer headings but cleaner medical business identity.`,
+  },
+  {
+    factor: "Commercial discoverability breadth",
+    why: "Broad service catalog helps appear across many long-tail prompts",
+    valeo: 9, frh: 7, winner: "valeo",
+    evidence: `Valeo: many long-tail service URLs — comprehensive-std-test, advanced-female-blood-test, gut-health-package, doctor-at-hotel, physiotherapy-at-home, hpv-vaccine-at-home, etc. — providing extensive query coverage.`,
+  },
+  {
+    factor: "AI search readiness overall",
+    why: "Balance of clarity + coverage + trust",
+    valeo: 6, frh: 8, winner: "frh",
+    evidence: `Valeo's problem is not lack of content; it is conflicted signals. Best proof: title says blood test, H1 says at-home healthcare, body sells everything from blood tests to supplements to peptides. That contradiction weakens AI confidence.`,
+  },
+];
+
 /* ─── Priority action data ────────────────────────────── */
 type Priority = "P1" | "P2" | "P3";
 type Impact  = "Very high" | "High" | "Medium-high" | "Medium";
@@ -465,6 +550,88 @@ export default function GeoLandingPageReport() {
               </div>
             );
           })}
+        </div>
+
+        {/* ── Section 4: AI Search Factor Analysis ─────────── */}
+        <div className="print-break-before mb-2">
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">04 — AI Search Factor Analysis</h2>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+          {/* Headers */}
+          <div className="grid grid-cols-[200px_120px_120px_100px] border-b border-slate-100 bg-slate-50">
+            <div className="px-4 py-3 border-r border-slate-100">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Factor</span>
+            </div>
+            <div className="px-4 py-3 border-r border-slate-100" style={{ borderTop: `3px solid ${VALEO_COLOR}` }}>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: VALEO_COLOR }} />
+                <span className="font-semibold text-slate-700 text-xs">Valeo</span>
+              </div>
+            </div>
+            <div className="px-4 py-3 border-r border-slate-100" style={{ borderTop: `3px solid ${FRH_COLOR}` }}>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: FRH_COLOR }} />
+                <span className="font-semibold text-slate-700 text-xs">First Response</span>
+              </div>
+            </div>
+            <div className="px-4 py-3" style={{ borderTop: "3px solid #94a3b8" }}>
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Winner</span>
+            </div>
+          </div>
+
+          {FACTOR_ROWS.map((row, i) => (
+            <div key={row.factor} className={i < FACTOR_ROWS.length - 1 ? "border-b border-slate-100" : ""}>
+              {/* Main row */}
+              <div className="grid grid-cols-[200px_120px_120px_100px] hover:bg-slate-50/40 transition-colors">
+                <div className="px-4 py-3 border-r border-slate-100 bg-slate-50/40 flex flex-col justify-center">
+                  <p className="text-xs font-semibold text-slate-700 leading-snug">{row.factor}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5 leading-snug">{row.why}</p>
+                </div>
+                <div className="px-4 py-3 border-r border-slate-100 flex items-center">
+                  <div className="w-full">
+                    <ScoreBar value={row.valeo} color={VALEO_COLOR} />
+                  </div>
+                </div>
+                <div className="px-4 py-3 border-r border-slate-100 flex items-center">
+                  <div className="w-full">
+                    <ScoreBar value={row.frh} color={FRH_COLOR} />
+                  </div>
+                </div>
+                <div className="px-4 py-3 flex items-center">
+                  <WinnerBadge winner={row.winner} />
+                </div>
+              </div>
+              {/* Evidence sub-row */}
+              <div className="px-4 py-2 bg-slate-50/70 border-t border-slate-50">
+                <p className="text-[10px] text-slate-500 leading-relaxed italic">{row.evidence}</p>
+              </div>
+            </div>
+          ))}
+
+          {/* Overall footer */}
+          <div className="grid grid-cols-[200px_120px_120px_100px] bg-slate-900">
+            <div className="px-4 py-4 border-r border-slate-700 flex items-center">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">AI Search Readiness</span>
+            </div>
+            <div className="px-4 py-4 border-r border-slate-700 flex items-center gap-2">
+              <span className="text-2xl font-black" style={{ color: VALEO_COLOR }}>6</span>
+              <span className="text-slate-500 text-xs">/ 10</span>
+              <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden ml-1">
+                <div className="h-full rounded-full" style={{ width: "60%", backgroundColor: VALEO_COLOR }} />
+              </div>
+            </div>
+            <div className="px-4 py-4 border-r border-slate-700 flex items-center gap-2">
+              <span className="text-2xl font-black" style={{ color: FRH_COLOR }}>8</span>
+              <span className="text-slate-500 text-xs">/ 10</span>
+              <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden ml-1">
+                <div className="h-full rounded-full" style={{ width: "80%", backgroundColor: FRH_COLOR }} />
+              </div>
+            </div>
+            <div className="px-4 py-4 flex items-center">
+              <WinnerBadge winner="frh" />
+            </div>
+          </div>
         </div>
 
         {/* Footer note */}
