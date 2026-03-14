@@ -15,7 +15,12 @@ const SCORES = [
   { area: "Specificity of copy",              valeo: 5.5, frh: 8.0 },
   { area: "Duplication / cleanliness",        valeo: 4.0, frh: 6.5 },
 ];
-const OVERALL = { valeo: 6.3, frh: 8.0 };
+const avg = (vals: number[]) =>
+  Math.round((vals.reduce((s, v) => s + v, 0) / vals.length) * 10) / 10;
+const OVERALL = {
+  valeo: avg(SCORES.map((r) => r.valeo)),
+  frh:   avg(SCORES.map((r) => r.frh)),
+};
 
 /* ─── Comparison type ─────────────────────────────────── */
 type Winner = "frh" | "tie" | "valeo";
@@ -593,29 +598,38 @@ export default function GeoLandingPageReport() {
             </div>
           ))}
 
-          {/* Overall footer */}
-          <div className="grid grid-cols-[200px_120px_120px_100px] bg-slate-900">
-            <div className="px-4 py-4 border-r border-slate-700 flex items-center">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">AI Search Readiness</span>
-            </div>
-            <div className="px-4 py-4 border-r border-slate-700 flex items-center gap-2">
-              <span className="text-2xl font-black" style={{ color: VALEO_COLOR }}>6</span>
-              <span className="text-slate-500 text-xs">/ 10</span>
-              <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden ml-1">
-                <div className="h-full rounded-full" style={{ width: "60%", backgroundColor: VALEO_COLOR }} />
+          {/* Overall footer — computed from factor data */}
+          {(() => {
+            const fAvg = {
+              valeo: avg(FACTOR_ROWS.map((r) => r.valeo)),
+              frh:   avg(FACTOR_ROWS.map((r) => r.frh)),
+            };
+            return (
+              <div className="grid grid-cols-[200px_120px_120px_100px] bg-slate-900">
+                <div className="px-4 py-4 border-r border-slate-700 flex flex-col justify-center">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Factor average</span>
+                  <span className="text-[10px] text-slate-600 mt-0.5">across {FACTOR_ROWS.length} LLM factors</span>
+                </div>
+                <div className="px-4 py-4 border-r border-slate-700 flex items-center gap-2">
+                  <span className="text-2xl font-black" style={{ color: VALEO_COLOR }}>{fAvg.valeo}</span>
+                  <span className="text-slate-500 text-xs">/ 10</span>
+                  <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden ml-1">
+                    <div className="h-full rounded-full" style={{ width: `${fAvg.valeo * 10}%`, backgroundColor: VALEO_COLOR }} />
+                  </div>
+                </div>
+                <div className="px-4 py-4 border-r border-slate-700 flex items-center gap-2">
+                  <span className="text-2xl font-black" style={{ color: FRH_COLOR }}>{fAvg.frh}</span>
+                  <span className="text-slate-500 text-xs">/ 10</span>
+                  <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden ml-1">
+                    <div className="h-full rounded-full" style={{ width: `${fAvg.frh * 10}%`, backgroundColor: FRH_COLOR }} />
+                  </div>
+                </div>
+                <div className="px-4 py-4 flex items-center">
+                  <WinnerBadge winner={fAvg.frh > fAvg.valeo ? "frh" : fAvg.valeo > fAvg.frh ? "valeo" : "tie"} />
+                </div>
               </div>
-            </div>
-            <div className="px-4 py-4 border-r border-slate-700 flex items-center gap-2">
-              <span className="text-2xl font-black" style={{ color: FRH_COLOR }}>8</span>
-              <span className="text-slate-500 text-xs">/ 10</span>
-              <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden ml-1">
-                <div className="h-full rounded-full" style={{ width: "80%", backgroundColor: FRH_COLOR }} />
-              </div>
-            </div>
-            <div className="px-4 py-4 flex items-center">
-              <WinnerBadge winner="frh" />
-            </div>
-          </div>
+            );
+          })()}
         </div>
 
         {/* Footer note */}
