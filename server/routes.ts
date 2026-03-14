@@ -538,6 +538,12 @@ export async function registerRoutes(
           modifiers: INVOICE_MANAGEMENT_MODIFIERS,
           decision_makers: DECISION_MAKERS,
         },
+        credit_management_software: {
+          services: CREDIT_MANAGEMENT_SERVICES,
+          verticals: CREDIT_MANAGEMENT_VERTICALS,
+          modifiers: CREDIT_MANAGEMENT_MODIFIERS,
+          decision_makers: DECISION_MAKERS,
+        },
         restaurant: {
           services: RESTAURANT_OFFERINGS,
           verticals: RESTAURANT_VERTICALS,
