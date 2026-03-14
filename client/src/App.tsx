@@ -18,6 +18,7 @@ import CitationViewer from "@/pages/CitationViewer";
 import AnalyticsDashboard from "@/pages/AnalyticsDashboard";
 import BrandIntelligence from "@/pages/BrandIntelligence";
 import CrawlabilityReport from "@/pages/CrawlabilityReport";
+import GeoLandingPageReport from "@/pages/GeoLandingPageReport";
 import { Loader2 } from "lucide-react";
 
 function AdminRouter() {
@@ -56,6 +57,7 @@ function PublicRouter() {
       <Route path="/analytics/:sessionId" component={AnalyticsDashboard} />
       <Route path="/analytics" component={AnalyticsDashboard} />
       <Route path="/reports/crawlability" component={CrawlabilityReport} />
+      <Route path="/reports/geo-landing-page" component={GeoLandingPageReport} />
       <Route path="/summary/:id" component={SlugSummary} />
       <Route path="/audit/:slug">{(params) => <AuditBySlug params={params} />}</Route>
       <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
@@ -102,6 +104,7 @@ function AuthGate() {
           <Route path="/analytics" component={AnalyticsDashboard} />
           <Route path="/brand-intelligence" component={BrandIntelligence} />
           <Route path="/reports/crawlability" component={CrawlabilityReport} />
+          <Route path="/reports/geo-landing-page" component={GeoLandingPageReport} />
           <Route path="/audit/:slug">{(params) => <AuditBySlug params={params} />}</Route>
           <Route path="/" component={Analyzer} />
           <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
