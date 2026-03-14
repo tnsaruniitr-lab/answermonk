@@ -394,12 +394,13 @@ export const INVOICE_MANAGEMENT_MODIFIERS: string[] = [
 ];
 
 export const CM_PERSONAS = [
-  "consumer_facing_sme", "midmarket_biller", "utility_provider", "insurance_provider",
-  "subscription_business", "recurring_revenue_business", "debt_collection_agency",
-  "financial_institution", "housing_association", "municipality", "telecom_provider",
-  "multicountry_eu_biller", "paas_ready_company", "whitelabel_platform_seeker",
-  "enterprise_high_invoice_volume", "membership_business", "household_services_company",
-  "government_agency", "healthcare_provider", "bnpl_provider",
+  "invoice_reminder_software", "payment_reminder_software", "collections_automation_platform",
+  "invoice_collection_software", "accounts_receivable_automation_software", "debt_collection_software",
+  "collections_software", "invoice_chasing_software", "receivables_automation_platform",
+  "whitelabel_collections_software", "whitelabel_payment_reminder_software", "dunning_software",
+  "digital_collections_platform", "ar_workflow_automation_software", "sme_collections_software",
+  "midmarket_collections_platform", "paas_collections_platform", "debt_recovery_software",
+  "first_party_collections_software", "eu_payment_link_software",
 ] as const;
 
 export const CREDIT_MANAGEMENT_SERVICES: string[] = [
@@ -445,7 +446,6 @@ export const CREDIT_MANAGEMENT_VERTICALS: string[] = [
   "Household billing businesses",
   "Government organizations",
   "Healthcare providers",
-  "BNPL providers",
 ];
 
 export const CREDIT_MANAGEMENT_MODIFIERS: string[] = [
@@ -839,26 +839,26 @@ export const BUDGET_ADJECTIVES: Record<PersonaType, Record<BudgetTier, string[]>
     mid: ["mid-market", "scalable", "professional"],
     premium: ["enterprise", "premium", "full-featured"],
   },
-  consumer_facing_sme: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  midmarket_biller: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  utility_provider: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  insurance_provider: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  subscription_business: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  recurring_revenue_business: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  debt_collection_agency: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  financial_institution: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  housing_association: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  municipality: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  telecom_provider: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  multicountry_eu_biller: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  paas_ready_company: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  whitelabel_platform_seeker: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  enterprise_high_invoice_volume: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  membership_business: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  household_services_company: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  government_agency: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  healthcare_provider: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
-  bnpl_provider: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  invoice_reminder_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  payment_reminder_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  collections_automation_platform: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  invoice_collection_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  accounts_receivable_automation_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  debt_collection_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  collections_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  invoice_chasing_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  receivables_automation_platform: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  whitelabel_collections_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  whitelabel_payment_reminder_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  dunning_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  digital_collections_platform: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  ar_workflow_automation_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  sme_collections_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  midmarket_collections_platform: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  paas_collections_platform: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  debt_recovery_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  first_party_collections_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
+  eu_payment_link_software: { budget: ["affordable", "per-invoice", "no-commitment"], mid: ["scalable", "cost-effective", "flexible"], premium: ["enterprise-grade", "white-label", "full-featured"] },
   restaurant: {
     budget: ["affordable", "budget-friendly", "cheap eats"],
     mid: ["mid-range", "good value", "reasonably priced"],
@@ -1045,26 +1045,26 @@ function getModifierKnownList(personaType: PersonaType): string[] {
     case "expense_management_software": return EXPENSE_MANAGEMENT_MODIFIERS;
     case "accounting_automation": return ACCOUNTING_AUTOMATION_MODIFIERS;
     case "invoice_management": return INVOICE_MANAGEMENT_MODIFIERS;
-    case "consumer_facing_sme":
-    case "midmarket_biller":
-    case "utility_provider":
-    case "insurance_provider":
-    case "subscription_business":
-    case "recurring_revenue_business":
-    case "debt_collection_agency":
-    case "financial_institution":
-    case "housing_association":
-    case "municipality":
-    case "telecom_provider":
-    case "multicountry_eu_biller":
-    case "paas_ready_company":
-    case "whitelabel_platform_seeker":
-    case "enterprise_high_invoice_volume":
-    case "membership_business":
-    case "household_services_company":
-    case "government_agency":
-    case "healthcare_provider":
-    case "bnpl_provider": return CREDIT_MANAGEMENT_MODIFIERS;
+    case "invoice_reminder_software":
+    case "payment_reminder_software":
+    case "collections_automation_platform":
+    case "invoice_collection_software":
+    case "accounts_receivable_automation_software":
+    case "debt_collection_software":
+    case "collections_software":
+    case "invoice_chasing_software":
+    case "receivables_automation_platform":
+    case "whitelabel_collections_software":
+    case "whitelabel_payment_reminder_software":
+    case "dunning_software":
+    case "digital_collections_platform":
+    case "ar_workflow_automation_software":
+    case "sme_collections_software":
+    case "midmarket_collections_platform":
+    case "paas_collections_platform":
+    case "debt_recovery_software":
+    case "first_party_collections_software":
+    case "eu_payment_link_software": return CREDIT_MANAGEMENT_MODIFIERS;
     case "restaurant": return RESTAURANT_MODIFIERS;
     case "construction_management": return CONSTRUCTION_MANAGEMENT_MODIFIERS;
     case "in_home_healthcare":
@@ -1116,26 +1116,26 @@ const SERVICE_VERB_PREFIXES: Record<PersonaType, string[]> = {
   expense_management_software: ["handle", "automate", "manage"],
   accounting_automation: ["automate", "streamline", "manage"],
   invoice_management: ["automate", "handle", "manage"],
-  consumer_facing_sme: ["automate", "reduce", "manage"],
-  midmarket_biller: ["automate", "reduce", "manage"],
-  utility_provider: ["automate", "reduce", "manage"],
-  insurance_provider: ["automate", "reduce", "manage"],
-  subscription_business: ["automate", "reduce", "manage"],
-  recurring_revenue_business: ["automate", "reduce", "manage"],
-  debt_collection_agency: ["automate", "reduce", "manage"],
-  financial_institution: ["automate", "reduce", "manage"],
-  housing_association: ["automate", "reduce", "manage"],
-  municipality: ["automate", "reduce", "manage"],
-  telecom_provider: ["automate", "reduce", "manage"],
-  multicountry_eu_biller: ["automate", "reduce", "manage"],
-  paas_ready_company: ["automate", "reduce", "manage"],
-  whitelabel_platform_seeker: ["automate", "reduce", "manage"],
-  enterprise_high_invoice_volume: ["automate", "reduce", "manage"],
-  membership_business: ["automate", "reduce", "manage"],
-  household_services_company: ["automate", "reduce", "manage"],
-  government_agency: ["automate", "reduce", "manage"],
-  healthcare_provider: ["automate", "reduce", "manage"],
-  bnpl_provider: ["automate", "reduce", "manage"],
+  invoice_reminder_software: ["automate", "reduce", "manage"],
+  payment_reminder_software: ["automate", "reduce", "manage"],
+  collections_automation_platform: ["automate", "reduce", "manage"],
+  invoice_collection_software: ["automate", "reduce", "manage"],
+  accounts_receivable_automation_software: ["automate", "reduce", "manage"],
+  debt_collection_software: ["automate", "reduce", "manage"],
+  collections_software: ["automate", "reduce", "manage"],
+  invoice_chasing_software: ["automate", "reduce", "manage"],
+  receivables_automation_platform: ["automate", "reduce", "manage"],
+  whitelabel_collections_software: ["automate", "reduce", "manage"],
+  whitelabel_payment_reminder_software: ["automate", "reduce", "manage"],
+  dunning_software: ["automate", "reduce", "manage"],
+  digital_collections_platform: ["automate", "reduce", "manage"],
+  ar_workflow_automation_software: ["automate", "reduce", "manage"],
+  sme_collections_software: ["automate", "reduce", "manage"],
+  midmarket_collections_platform: ["automate", "reduce", "manage"],
+  paas_collections_platform: ["automate", "reduce", "manage"],
+  debt_recovery_software: ["automate", "reduce", "manage"],
+  first_party_collections_software: ["automate", "reduce", "manage"],
+  eu_payment_link_software: ["automate", "reduce", "manage"],
   restaurant: ["serve", "offer", "feature"],
   construction_management: ["provide", "manage", "handle"],
   in_home_healthcare: ["provide", "offer", "deliver"],
@@ -1176,26 +1176,26 @@ export const PERSONA_CATEGORY_LABELS: Record<string, string> = {
   expense_management_software: "expense management software or platforms",
   accounting_automation: "accounting automation software or platforms",
   invoice_management: "invoice management software or platforms",
-  consumer_facing_sme: "credit management software, payment reminder platforms, or collections automation solutions",
-  midmarket_biller: "credit management software, payment reminder platforms, or collections automation solutions",
-  utility_provider: "credit management software, payment reminder platforms, or collections automation solutions",
-  insurance_provider: "credit management software, payment reminder platforms, or collections automation solutions",
-  subscription_business: "credit management software, payment reminder platforms, or collections automation solutions",
-  recurring_revenue_business: "credit management software, payment reminder platforms, or collections automation solutions",
-  debt_collection_agency: "credit management software, payment reminder platforms, or collections automation solutions",
-  financial_institution: "credit management software, payment reminder platforms, or collections automation solutions",
-  housing_association: "credit management software, payment reminder platforms, or collections automation solutions",
-  municipality: "credit management software, payment reminder platforms, or collections automation solutions",
-  telecom_provider: "credit management software, payment reminder platforms, or collections automation solutions",
-  multicountry_eu_biller: "credit management software, payment reminder platforms, or collections automation solutions",
-  paas_ready_company: "credit management software, payment reminder platforms, or collections automation solutions",
-  whitelabel_platform_seeker: "credit management software, payment reminder platforms, or collections automation solutions",
-  enterprise_high_invoice_volume: "credit management software, payment reminder platforms, or collections automation solutions",
-  membership_business: "credit management software, payment reminder platforms, or collections automation solutions",
-  household_services_company: "credit management software, payment reminder platforms, or collections automation solutions",
-  government_agency: "credit management software, payment reminder platforms, or collections automation solutions",
-  healthcare_provider: "credit management software, payment reminder platforms, or collections automation solutions",
-  bnpl_provider: "credit management software, payment reminder platforms, or collections automation solutions",
+  invoice_reminder_software: "credit management software, payment reminder platforms, or collections automation solutions",
+  payment_reminder_software: "credit management software, payment reminder platforms, or collections automation solutions",
+  collections_automation_platform: "credit management software, payment reminder platforms, or collections automation solutions",
+  invoice_collection_software: "credit management software, payment reminder platforms, or collections automation solutions",
+  accounts_receivable_automation_software: "credit management software, payment reminder platforms, or collections automation solutions",
+  debt_collection_software: "credit management software, payment reminder platforms, or collections automation solutions",
+  collections_software: "credit management software, payment reminder platforms, or collections automation solutions",
+  invoice_chasing_software: "credit management software, payment reminder platforms, or collections automation solutions",
+  receivables_automation_platform: "credit management software, payment reminder platforms, or collections automation solutions",
+  whitelabel_collections_software: "credit management software, payment reminder platforms, or collections automation solutions",
+  whitelabel_payment_reminder_software: "credit management software, payment reminder platforms, or collections automation solutions",
+  dunning_software: "credit management software, payment reminder platforms, or collections automation solutions",
+  digital_collections_platform: "credit management software, payment reminder platforms, or collections automation solutions",
+  ar_workflow_automation_software: "credit management software, payment reminder platforms, or collections automation solutions",
+  sme_collections_software: "credit management software, payment reminder platforms, or collections automation solutions",
+  midmarket_collections_platform: "credit management software, payment reminder platforms, or collections automation solutions",
+  paas_collections_platform: "credit management software, payment reminder platforms, or collections automation solutions",
+  debt_recovery_software: "credit management software, payment reminder platforms, or collections automation solutions",
+  first_party_collections_software: "credit management software, payment reminder platforms, or collections automation solutions",
+  eu_payment_link_software: "credit management software, payment reminder platforms, or collections automation solutions",
   restaurant: "restaurants, cafes, or dining establishments",
   construction_management: "construction management software or platforms",
   in_home_healthcare: "in-home healthcare providers or home health services",

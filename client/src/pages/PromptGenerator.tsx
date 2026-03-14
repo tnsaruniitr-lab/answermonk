@@ -2452,26 +2452,26 @@ export default function PromptGenerator() {
                             <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
                             <SelectItem value="accounting_automation">Accounting Automation</SelectItem>
                             <SelectItem value="invoice_management">Invoice Management</SelectItem>
-                            <SelectItem value="consumer_facing_sme">Consumer-facing SME</SelectItem>
-                            <SelectItem value="midmarket_biller">Mid-market Biller</SelectItem>
-                            <SelectItem value="utility_provider">Utility Provider</SelectItem>
-                            <SelectItem value="insurance_provider">Insurance Provider</SelectItem>
-                            <SelectItem value="subscription_business">Subscription Business</SelectItem>
-                            <SelectItem value="recurring_revenue_business">Recurring Revenue Business</SelectItem>
-                            <SelectItem value="debt_collection_agency">Debt Collection Agency</SelectItem>
-                            <SelectItem value="financial_institution">Financial Institution</SelectItem>
-                            <SelectItem value="housing_association">Housing Association</SelectItem>
-                            <SelectItem value="municipality">Municipality</SelectItem>
-                            <SelectItem value="telecom_provider">Telecom Provider</SelectItem>
-                            <SelectItem value="multicountry_eu_biller">Multi-country EU Biller</SelectItem>
-                            <SelectItem value="paas_ready_company">PaaS-ready Company</SelectItem>
-                            <SelectItem value="whitelabel_platform_seeker">White-label Platform Seeker</SelectItem>
-                            <SelectItem value="enterprise_high_invoice_volume">Enterprise (High Invoice Volume)</SelectItem>
-                            <SelectItem value="membership_business">Membership Business</SelectItem>
-                            <SelectItem value="household_services_company">Household Services Company</SelectItem>
-                            <SelectItem value="government_agency">Government Agency</SelectItem>
-                            <SelectItem value="healthcare_provider">Healthcare Provider</SelectItem>
-                            <SelectItem value="bnpl_provider">BNPL Provider</SelectItem>
+                            <SelectItem value="invoice_reminder_software">Invoice Reminder Software</SelectItem>
+                            <SelectItem value="payment_reminder_software">Payment Reminder Software</SelectItem>
+                            <SelectItem value="collections_automation_platform">Collections Automation Platform</SelectItem>
+                            <SelectItem value="invoice_collection_software">Invoice Collection Software</SelectItem>
+                            <SelectItem value="accounts_receivable_automation_software">AR Automation Software</SelectItem>
+                            <SelectItem value="debt_collection_software">Debt Collection Software</SelectItem>
+                            <SelectItem value="collections_software">Collections Software</SelectItem>
+                            <SelectItem value="invoice_chasing_software">Invoice Chasing Software</SelectItem>
+                            <SelectItem value="receivables_automation_platform">Receivables Automation Platform</SelectItem>
+                            <SelectItem value="whitelabel_collections_software">White-label Collections Software</SelectItem>
+                            <SelectItem value="whitelabel_payment_reminder_software">White-label Payment Reminder Software</SelectItem>
+                            <SelectItem value="dunning_software">Dunning Software</SelectItem>
+                            <SelectItem value="digital_collections_platform">Digital Collections Platform</SelectItem>
+                            <SelectItem value="ar_workflow_automation_software">AR Workflow Automation Software</SelectItem>
+                            <SelectItem value="sme_collections_software">SME Collections Software</SelectItem>
+                            <SelectItem value="midmarket_collections_platform">Mid-market Collections Platform</SelectItem>
+                            <SelectItem value="paas_collections_platform">PaaS Collections Platform</SelectItem>
+                            <SelectItem value="debt_recovery_software">Debt Recovery Software</SelectItem>
+                            <SelectItem value="first_party_collections_software">First-party Collections Software</SelectItem>
+                            <SelectItem value="eu_payment_link_software">EU Payment Link Software</SelectItem>
                             <SelectItem value="restaurant">Restaurant</SelectItem>
                             <SelectItem value="construction_management">Construction Management Software</SelectItem>
                           </SelectContent>
@@ -2975,7 +2975,7 @@ export default function PromptGenerator() {
                                           persona: v,
                                           customerType: "",
                                           serviceType: "",
-                                          seedType: v === "restaurant" ? "restaurants" : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests", "at_home_nurses", "at_home_care_provider", "care_at_home_services", "doctor_at_home", "home_physiotherapy", "home_iv_therapy", "elderly_care_at_home", "home_health_checkup"].includes(v) ? "__blank__" : ["consumer_facing_sme","midmarket_biller","utility_provider","insurance_provider","subscription_business","recurring_revenue_business","debt_collection_agency","financial_institution","housing_association","municipality","telecom_provider","multicountry_eu_biller","paas_ready_company","whitelabel_platform_seeker","enterprise_high_invoice_volume","membership_business","household_services_company","government_agency","healthcare_provider","bnpl_provider"].includes(v) ? "invoice reminder software" : agencyPersonas.includes(v) ? "agencies" : realEstatePersonas.includes(v) ? "agencies" : "providers",
+                                          seedType: v === "restaurant" ? "restaurants" : ["in_home_healthcare", "at_home_healthcare", "weight_loss_help", "in_home_blood_tests", "at_home_blood_tests", "at_home_nurses", "at_home_care_provider", "care_at_home_services", "doctor_at_home", "home_physiotherapy", "home_iv_therapy", "elderly_care_at_home", "home_health_checkup"].includes(v) ? "__blank__" : ["invoice_reminder_software","payment_reminder_software","collections_automation_platform","invoice_collection_software","accounts_receivable_automation_software","debt_collection_software","collections_software","invoice_chasing_software","receivables_automation_platform","whitelabel_collections_software","whitelabel_payment_reminder_software","dunning_software","digital_collections_platform","ar_workflow_automation_software","sme_collections_software","midmarket_collections_platform","paas_collections_platform","debt_recovery_software","first_party_collections_software","eu_payment_link_software"].includes(v) ? "software" : agencyPersonas.includes(v) ? "agencies" : realEstatePersonas.includes(v) ? "agencies" : "providers",
                                           prompts: null,
                                         });
                                       }}
@@ -3001,26 +3001,26 @@ export default function PromptGenerator() {
                                         <SelectItem value="expense_management_software">Expense Management Software</SelectItem>
                                         <SelectItem value="accounting_automation">Accounting Automation</SelectItem>
                                         <SelectItem value="invoice_management">Invoice Management</SelectItem>
-                                        <SelectItem value="consumer_facing_sme">Consumer-facing SME</SelectItem>
-                                        <SelectItem value="midmarket_biller">Mid-market Biller</SelectItem>
-                                        <SelectItem value="utility_provider">Utility Provider</SelectItem>
-                                        <SelectItem value="insurance_provider">Insurance Provider</SelectItem>
-                                        <SelectItem value="subscription_business">Subscription Business</SelectItem>
-                                        <SelectItem value="recurring_revenue_business">Recurring Revenue Business</SelectItem>
-                                        <SelectItem value="debt_collection_agency">Debt Collection Agency</SelectItem>
-                                        <SelectItem value="financial_institution">Financial Institution</SelectItem>
-                                        <SelectItem value="housing_association">Housing Association</SelectItem>
-                                        <SelectItem value="municipality">Municipality</SelectItem>
-                                        <SelectItem value="telecom_provider">Telecom Provider</SelectItem>
-                                        <SelectItem value="multicountry_eu_biller">Multi-country EU Biller</SelectItem>
-                                        <SelectItem value="paas_ready_company">PaaS-ready Company</SelectItem>
-                                        <SelectItem value="whitelabel_platform_seeker">White-label Platform Seeker</SelectItem>
-                                        <SelectItem value="enterprise_high_invoice_volume">Enterprise (High Invoice Volume)</SelectItem>
-                                        <SelectItem value="membership_business">Membership Business</SelectItem>
-                                        <SelectItem value="household_services_company">Household Services Company</SelectItem>
-                                        <SelectItem value="government_agency">Government Agency</SelectItem>
-                                        <SelectItem value="healthcare_provider">Healthcare Provider</SelectItem>
-                                        <SelectItem value="bnpl_provider">BNPL Provider</SelectItem>
+                                        <SelectItem value="invoice_reminder_software">Invoice Reminder Software</SelectItem>
+                                        <SelectItem value="payment_reminder_software">Payment Reminder Software</SelectItem>
+                                        <SelectItem value="collections_automation_platform">Collections Automation Platform</SelectItem>
+                                        <SelectItem value="invoice_collection_software">Invoice Collection Software</SelectItem>
+                                        <SelectItem value="accounts_receivable_automation_software">AR Automation Software</SelectItem>
+                                        <SelectItem value="debt_collection_software">Debt Collection Software</SelectItem>
+                                        <SelectItem value="collections_software">Collections Software</SelectItem>
+                                        <SelectItem value="invoice_chasing_software">Invoice Chasing Software</SelectItem>
+                                        <SelectItem value="receivables_automation_platform">Receivables Automation Platform</SelectItem>
+                                        <SelectItem value="whitelabel_collections_software">White-label Collections Software</SelectItem>
+                                        <SelectItem value="whitelabel_payment_reminder_software">White-label Payment Reminder Software</SelectItem>
+                                        <SelectItem value="dunning_software">Dunning Software</SelectItem>
+                                        <SelectItem value="digital_collections_platform">Digital Collections Platform</SelectItem>
+                                        <SelectItem value="ar_workflow_automation_software">AR Workflow Automation Software</SelectItem>
+                                        <SelectItem value="sme_collections_software">SME Collections Software</SelectItem>
+                                        <SelectItem value="midmarket_collections_platform">Mid-market Collections Platform</SelectItem>
+                                        <SelectItem value="paas_collections_platform">PaaS Collections Platform</SelectItem>
+                                        <SelectItem value="debt_recovery_software">Debt Recovery Software</SelectItem>
+                                        <SelectItem value="first_party_collections_software">First-party Collections Software</SelectItem>
+                                        <SelectItem value="eu_payment_link_software">EU Payment Link Software</SelectItem>
                                         <SelectItem value="restaurant">Restaurant</SelectItem>
                                         <SelectItem value="construction_management">Construction Management Software</SelectItem>
                                         <SelectItem value="in_home_healthcare">In-Home Healthcare</SelectItem>
@@ -3057,7 +3057,7 @@ export default function PromptGenerator() {
                                             <SelectItem value="dining options">Dining Options</SelectItem>
                                             <SelectItem value="cafes">Cafes</SelectItem>
                                           </>
-                                        ) : ["consumer_facing_sme","midmarket_biller","utility_provider","insurance_provider","subscription_business","recurring_revenue_business","debt_collection_agency","financial_institution","housing_association","municipality","telecom_provider","multicountry_eu_biller","paas_ready_company","whitelabel_platform_seeker","enterprise_high_invoice_volume","membership_business","household_services_company","government_agency","healthcare_provider","bnpl_provider"].includes(seg.persona) ? (
+                                        ) : ["invoice_reminder_software","payment_reminder_software","collections_automation_platform","invoice_collection_software","accounts_receivable_automation_software","debt_collection_software","collections_software","invoice_chasing_software","receivables_automation_platform","whitelabel_collections_software","whitelabel_payment_reminder_software","dunning_software","digital_collections_platform","ar_workflow_automation_software","sme_collections_software","midmarket_collections_platform","paas_collections_platform","debt_recovery_software","first_party_collections_software","eu_payment_link_software"].includes(seg.persona) ? (
                                           <>
                                             <SelectItem value="invoice reminder software">Invoice reminder software</SelectItem>
                                             <SelectItem value="payment reminder software">Payment reminder software</SelectItem>
@@ -3982,26 +3982,26 @@ export default function PromptGenerator() {
                           <SelectItem value="expense_management_software">
                             Expense Management Software
                           </SelectItem>
-                          <SelectItem value="consumer_facing_sme">Consumer-facing SME</SelectItem>
-                          <SelectItem value="midmarket_biller">Mid-market Biller</SelectItem>
-                          <SelectItem value="utility_provider">Utility Provider</SelectItem>
-                          <SelectItem value="insurance_provider">Insurance Provider</SelectItem>
-                          <SelectItem value="subscription_business">Subscription Business</SelectItem>
-                          <SelectItem value="recurring_revenue_business">Recurring Revenue Business</SelectItem>
-                          <SelectItem value="debt_collection_agency">Debt Collection Agency</SelectItem>
-                          <SelectItem value="financial_institution">Financial Institution</SelectItem>
-                          <SelectItem value="housing_association">Housing Association</SelectItem>
-                          <SelectItem value="municipality">Municipality</SelectItem>
-                          <SelectItem value="telecom_provider">Telecom Provider</SelectItem>
-                          <SelectItem value="multicountry_eu_biller">Multi-country EU Biller</SelectItem>
-                          <SelectItem value="paas_ready_company">PaaS-ready Company</SelectItem>
-                          <SelectItem value="whitelabel_platform_seeker">White-label Platform Seeker</SelectItem>
-                          <SelectItem value="enterprise_high_invoice_volume">Enterprise (High Invoice Volume)</SelectItem>
-                          <SelectItem value="membership_business">Membership Business</SelectItem>
-                          <SelectItem value="household_services_company">Household Services Company</SelectItem>
-                          <SelectItem value="government_agency">Government Agency</SelectItem>
-                          <SelectItem value="healthcare_provider">Healthcare Provider</SelectItem>
-                          <SelectItem value="bnpl_provider">BNPL Provider</SelectItem>
+                          <SelectItem value="invoice_reminder_software">Invoice Reminder Software</SelectItem>
+                          <SelectItem value="payment_reminder_software">Payment Reminder Software</SelectItem>
+                          <SelectItem value="collections_automation_platform">Collections Automation Platform</SelectItem>
+                          <SelectItem value="invoice_collection_software">Invoice Collection Software</SelectItem>
+                          <SelectItem value="accounts_receivable_automation_software">AR Automation Software</SelectItem>
+                          <SelectItem value="debt_collection_software">Debt Collection Software</SelectItem>
+                          <SelectItem value="collections_software">Collections Software</SelectItem>
+                          <SelectItem value="invoice_chasing_software">Invoice Chasing Software</SelectItem>
+                          <SelectItem value="receivables_automation_platform">Receivables Automation Platform</SelectItem>
+                          <SelectItem value="whitelabel_collections_software">White-label Collections Software</SelectItem>
+                          <SelectItem value="whitelabel_payment_reminder_software">White-label Payment Reminder Software</SelectItem>
+                          <SelectItem value="dunning_software">Dunning Software</SelectItem>
+                          <SelectItem value="digital_collections_platform">Digital Collections Platform</SelectItem>
+                          <SelectItem value="ar_workflow_automation_software">AR Workflow Automation Software</SelectItem>
+                          <SelectItem value="sme_collections_software">SME Collections Software</SelectItem>
+                          <SelectItem value="midmarket_collections_platform">Mid-market Collections Platform</SelectItem>
+                          <SelectItem value="paas_collections_platform">PaaS Collections Platform</SelectItem>
+                          <SelectItem value="debt_recovery_software">Debt Recovery Software</SelectItem>
+                          <SelectItem value="first_party_collections_software">First-party Collections Software</SelectItem>
+                          <SelectItem value="eu_payment_link_software">EU Payment Link Software</SelectItem>
                           <SelectItem value="restaurant">
                             Restaurant
                           </SelectItem>

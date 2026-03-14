@@ -441,7 +441,7 @@ export async function registerRoutes(
         verticals: CREDIT_MANAGEMENT_VERTICALS,
         modifiers: CREDIT_MANAGEMENT_MODIFIERS,
         decision_makers: DECISION_MAKERS,
-        budget_tiers: Object.keys(BUDGET_ADJECTIVES.consumer_facing_sme),
+        budget_tiers: Object.keys(BUDGET_ADJECTIVES.invoice_reminder_software),
       });
     } else if (persona === "restaurant") {
       res.json({
