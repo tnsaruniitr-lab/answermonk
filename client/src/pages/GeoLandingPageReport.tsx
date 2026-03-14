@@ -335,12 +335,12 @@ export default function GeoLandingPageReport() {
     <div className="min-h-screen bg-slate-50">
       <style>{`
         @media print {
-          * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+          * { print-color-adjust: exact; -webkit-print-color-adjust: exact; overflow-wrap: break-word; word-break: break-word; }
           .no-print { display: none !important; }
           .print-break-inside-avoid { break-inside: avoid; }
           .print-break-before { break-before: page; }
           body { background: white; }
-          @page { size: A4 portrait; margin: 12mm 14mm; }
+          @page { size: A4 portrait; margin: 10mm 12mm; }
         }
       `}</style>
 
@@ -359,15 +359,15 @@ export default function GeoLandingPageReport() {
 
       {/* Header */}
       <div className="bg-slate-900 px-8 py-6">
-        <div className="max-w-5xl mx-auto flex items-end justify-between">
-          <div>
+        <div className="max-w-5xl mx-auto flex items-end justify-between gap-6">
+          <div className="flex-1 min-w-0">
             <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">GEO Audit · Dubai Home Healthcare</p>
             <h1 className="text-white text-2xl font-bold">Landing Page GEO Readiness</h1>
             <p className="text-slate-400 text-sm mt-1">
               Valeo Health vs First Response Healthcare — AI retrievability of the Dubai city landing page
             </p>
           </div>
-          <p className="text-slate-500 text-xs hidden print:block">{today} · Confidential</p>
+          <p className="text-slate-500 text-xs hidden print:block shrink-0">{today} · Confidential</p>
         </div>
       </div>
 
@@ -404,7 +404,7 @@ export default function GeoLandingPageReport() {
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: b.color }} />
                       <span className="font-bold text-slate-800 text-base leading-tight">{b.name}</span>
                     </div>
-                    <p className="text-xs text-slate-400 mb-2">{b.domain}</p>
+                    <p className="text-xs text-slate-400 mb-2 truncate">{b.domain}</p>
                     <p className="text-sm text-slate-600 leading-relaxed">{b.verdict}</p>
                   </div>
                 </div>
@@ -414,7 +414,7 @@ export default function GeoLandingPageReport() {
         })()}
 
         {/* ── Section 1: AI Search Factor Analysis ─────────── */}
-        <div className="print-break-before mb-2">
+        <div className="mb-2">
           <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">01 — AI Search Factor Analysis</h2>
         </div>
 
