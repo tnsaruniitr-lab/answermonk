@@ -18,3 +18,9 @@ id = "P0wpuka_qPv5h4rSrNQG9"
 uri = "file://session_77_citations.csv"
 type = "table"
 title = "Session 77 — Citations Final with Refined Page Types (4,478 rows)"
+
+[[outputs]]
+id = "SlLoRLnOz5jiErV2FWLWR"
+uri = "file://citation_page_mentions_94.csv"
+type = "table"
+title = "Session 94 — CM Citation Page Mentions (4,729 rows)"
