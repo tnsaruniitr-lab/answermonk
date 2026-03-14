@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 const FRH_COLOR = "#4f46e5";
 const VALEO_COLOR = "#0d9488";
 
@@ -90,6 +92,7 @@ type FactorRow = {
   frh: number;
   winner: Winner;
   evidence: string;
+  richEvidence?: ReactNode;
 };
 
 const FACTOR_ROWS: FactorRow[] = [
@@ -98,6 +101,56 @@ const FACTOR_ROWS: FactorRow[] = [
     why: "Models classify page purpose from title + H1 + intro alignment",
     valeo: 3, frh: 8, winner: "frh",
     evidence: `Valeo: title = "Blood Lab Test At Home in Dubai…" but H1 = "At-Home Healthcare" twice — a direct intent mismatch. FRH: title = "Home Healthcare Services Available 24x7 in UAE & Qatar", H1 = "24x7 Expert Home Healthcare Services with Tailored Solutions" — fully aligned.`,
+    richEvidence: (
+      <div className="grid grid-cols-2 gap-3">
+        {/* Valeo column */}
+        <div className="rounded-xl border border-rose-200 bg-rose-50 overflow-hidden">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-rose-100 border-b border-rose-200">
+            <span className="w-2 h-2 rounded-full bg-rose-400" />
+            <span className="text-xs font-bold text-rose-700 uppercase tracking-wider">Valeo</span>
+            <span className="ml-auto text-[10px] font-semibold text-rose-500 bg-rose-200 px-2 py-0.5 rounded-full">❌ Misaligned</span>
+          </div>
+          <div className="px-3 py-2.5 space-y-2">
+            <div>
+              <p className="text-[10px] font-semibold text-rose-400 uppercase tracking-wider mb-0.5">Title tag</p>
+              <p className="text-sm font-bold text-rose-800 leading-snug bg-rose-100 px-2 py-1 rounded-lg border border-rose-200">
+                Blood Lab Test At Home in Dubai — Free Sample Collection
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold text-rose-400 uppercase tracking-wider mb-0.5">H1 (appears twice)</p>
+              <p className="text-sm font-bold text-rose-800 leading-snug bg-rose-100 px-2 py-1 rounded-lg border border-rose-200">
+                At-Home Healthcare
+              </p>
+            </div>
+            <p className="text-[11px] text-rose-600 italic">Title signals blood tests; H1 signals broad healthcare — two different intents on one URL.</p>
+          </div>
+        </div>
+        {/* FRH column */}
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 overflow-hidden">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-100 border-b border-emerald-200">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">First Response</span>
+            <span className="ml-auto text-[10px] font-semibold text-emerald-600 bg-emerald-200 px-2 py-0.5 rounded-full">✓ Aligned</span>
+          </div>
+          <div className="px-3 py-2.5 space-y-2">
+            <div>
+              <p className="text-[10px] font-semibold text-emerald-500 uppercase tracking-wider mb-0.5">Title tag</p>
+              <p className="text-sm font-bold text-emerald-800 leading-snug bg-emerald-100 px-2 py-1 rounded-lg border border-emerald-200">
+                Home Healthcare Services Available 24x7 in UAE & Qatar
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold text-emerald-500 uppercase tracking-wider mb-0.5">H1</p>
+              <p className="text-sm font-bold text-emerald-800 leading-snug bg-emerald-100 px-2 py-1 rounded-lg border border-emerald-200">
+                24x7 Expert Home Healthcare Services with Tailored Solutions
+              </p>
+            </div>
+            <p className="text-[11px] text-emerald-700 italic">Title and H1 both say home healthcare — consistent intent signal for AI classification.</p>
+          </div>
+        </div>
+      </div>
+    ),
   },
   {
     factor: "Heading cleanliness",
@@ -603,8 +656,11 @@ export default function GeoLandingPageReport() {
                 </div>
               </div>
               {/* Evidence sub-row */}
-              <div className="px-4 py-2 bg-slate-50/70 border-t border-slate-50">
-                <p className="text-[10px] text-slate-500 leading-relaxed italic">{row.evidence}</p>
+              <div className={`border-t border-slate-100 ${row.richEvidence ? "px-4 py-3 bg-white" : "px-4 py-2 bg-slate-50/70"}`}>
+                {row.richEvidence
+                  ? row.richEvidence
+                  : <p className="text-xs text-slate-500 leading-relaxed italic">{row.evidence}</p>
+                }
               </div>
             </div>
           ))}
