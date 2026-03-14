@@ -250,73 +250,85 @@ const FACTOR_ROWS: FactorRow[] = [
 
 /* ─── Priority action data ────────────────────────────── */
 type Priority = "P1" | "P2" | "P3";
-type Impact  = "Very high" | "High" | "Medium-high" | "Medium";
-type Effort  = "Low" | "Medium" | "High";
 
 type ActionRow = {
   priority: Priority;
   action: string;
   why: string;
-  impact: Impact;
-  effort: Effort;
+  exactIssue: string;
+  specificFix: string;
 };
 
 const ACTIONS: ActionRow[] = [
   {
     priority: "P1",
-    action: "Choose one page job for /en-ae/dubai",
-    why: "Right now the page mixes blood tests, general at-home healthcare, longevity, supplements, and consults. That weakens clarity for both users and AI engines.",
-    impact: "Very high",
-    effort: "Medium",
+    action: "Align title with actual page role",
+    why: "Highest-impact fix. Title is one of the strongest extraction signals. If title says 'blood test' but page is actually a broader healthcare hub, models get mixed signals.",
+    exactIssue: `Current title/meta are blood-test-specific: "Blood Lab Test At Home in Dubai…" while schema and body expose broader healthcare, weight loss, IV drips, doctor on call.`,
+    specificFix: `Change title to: "At-Home Healthcare in Dubai — Blood Tests, IV Therapy, Doctor on Call & More | Valeo Health"`,
   },
   {
     priority: "P1",
-    action: "Fix title / H1 / intro alignment",
-    why: `Title is blood-test-focused, H1 is "At-Home Healthcare," intro is "Built for prevention, optimisation, & longevity." These are related but not the same intent.`,
-    impact: "Very high",
-    effort: "Low",
+    action: "Rewrite hero intro to state all 3 pillars plainly",
+    why: "The first visible block is what many extractors and models latch onto fastest. Abstract brand language is the weakest possible opening for AI extractability.",
+    exactIssue: `Current visible hero/H1 is weaker and more abstract: "Built for prevention, optimisation, & longevity" — while stronger service breadth exists elsewhere on the page.`,
+    specificFix: `Make the first 2–3 lines factual: category + core services + location + key differentiator. E.g. "At-home healthcare in Dubai — blood tests, IV drips, doctor on call, and newborn care delivered to your door, 7 days a week."`,
   },
   {
     priority: "P1",
-    action: "Add one local proof block near the top",
-    why: "Put Dubai service area, DHA-licensed professionals, core services, turnaround, booking modes, and support number together. Right now these signals are scattered.",
-    impact: "High",
-    effort: "Low",
+    action: "Keep one primary H1, then use pillar H2s",
+    why: "This helps the page preserve breadth without becoming semantically muddy. A clean heading hierarchy lets AI models enumerate what the page covers.",
+    exactIssue: "Page currently expresses multiple intents but not in a clear hierarchy. Blood tests dominate metadata while broader categories are lower in content. H1 appears twice in the DOM.",
+    specificFix: `Use: H1 = "At-Home Healthcare in Dubai", then one H2 per service pillar — Blood Tests, IV Drips, Doctor on Call, Weight Loss. One H2 per pillar, no repeats.`,
   },
   {
     priority: "P1",
-    action: "Remove duplicated hero / repeated sections",
-    why: `"At-Home Healthcare," "Built for prevention...," "Your Personalized Health Journey," and "Your Health, Reimagined" are repeated. That hurts hierarchy.`,
-    impact: "High",
-    effort: "Low",
+    action: `Add a top "What we offer in Dubai" block`,
+    why: "Strong for extractibility and retrieval. Converts scattered services into a clean semantic list AI can enumerate in one pass.",
+    exactIssue: "Valeo already contains blood tests, IV drips, newborn care, doctor consultations, supplements, and weight management — but they are spread across cards, links, and embedded component output.",
+    specificFix: "Add a short visible service summary block near the top using a simple unordered list or clear service grid. Plain HTML, not JS-rendered.",
   },
   {
     priority: "P2",
-    action: "Separate hub content from commerce / catalog content",
-    why: "Supplements, product cards, doctor consult SKUs, and programs make the city landing page feel like a storefront, confusing AI intent mapping.",
-    impact: "High",
-    effort: "Medium",
+    action: "Add a visible trust / proof strip near top",
+    why: "Helps models attach reliable qualifiers to the brand (licensed, location, hours), not just services.",
+    exactIssue: "Schema already exposes phone, email, Dubai locality, UAE, opening hours, and languages spoken — but this is under-leveraged in visible top-of-page copy.",
+    specificFix: "Surface those schema facts in plain HTML text: DHA-licensed team, Dubai service area, 7-day availability, booking modes. One strip, near the top, always visible.",
   },
   {
     priority: "P2",
-    action: "Standardize child service pages",
-    why: "Use one template: city + service in title, clean H1, one-line summary, local proof, FAQ, CTA. The parent page suggests inconsistency deeper in the site.",
-    impact: "Medium-high",
-    effort: "Medium",
+    action: "Make weight loss a first-class pillar, not a buried link",
+    why: "If weight loss (GLP-1 program) is strategically important, it should not appear as just one item in a long service sentence.",
+    exactIssue: "Weight loss and GLP-1 program are present in body content but not reflected in title, H1, or top page structure.",
+    specificFix: "Give it a dedicated H2 section above the fold, or elevate it into the service summary block with a one-line description.",
+  },
+  {
+    priority: "P2",
+    action: "Make blood tests one pillar, not the whole identity of the page",
+    why: "This lets Valeo rank and extract for blood tests without collapsing the entire page into a single-intent landing page.",
+    exactIssue: "Blood tests currently dominate title and metadata too much versus the broader healthcare proposition.",
+    specificFix: "Keep a strong blood-test section and internal links, but reposition it as one of several pillars — not the defining title of the page.",
+  },
+  {
+    priority: "P2",
+    action: `Add a "Why choose Valeo in Dubai" section`,
+    why: "Improves trust extraction and brand memory for AI models making recommendation decisions.",
+    exactIssue: `Valeo has trust language like "trusted by thousands" and "licensed team" but it is scattered and unstructured.`,
+    specificFix: "Add 4–6 concise proof bullets: DHA-licensed team, home sample collection, turnaround time, booking options, city coverage, years operating.",
   },
   {
     priority: "P3",
-    action: "Replace vague brand language with specific retrieval text",
-    why: `"Smart Health Insights" and "Science-Backed Journeys" are weak compared with concrete phrases like turnaround, DHA-licensed team, city coverage, service types.`,
-    impact: "Medium",
-    effort: "Low",
+    action: "Make visible copy mirror schema",
+    why: "Good cleanup fix. Helps consistency across machine-readable and human-readable layers — LLMs use both.",
+    exactIssue: `Schema says "Healthcare services at your doorstep in Dubai… lab tests, health packages, and medical services at home." Visible top copy should say essentially the same.`,
+    specificFix: "Reuse schema facts in body copy. If schema says doorstep delivery in Dubai, the first paragraph should say the same thing.",
   },
   {
     priority: "P3",
-    action: "Tighten press / social-proof section",
-    why: "Keep one proof section, not repeated blurbs. Repetition lowers trust density and reduces the signal-to-noise ratio AI models extract.",
-    impact: "Medium",
-    effort: "Low",
+    action: "Reduce JS / config noise around key messages",
+    why: "Helps text-to-noise ratio for crawlers and extractors, but lower priority than messaging alignment.",
+    exactIssue: "A lot of useful content is embedded in Next.js app output and script tags rather than simple editorial HTML.",
+    specificFix: "Ensure hero, service summary, trust strip, and pillar headings are plain HTML — server-rendered, not JS-injected — so they are immediately available to any crawler or model.",
   },
 ];
 
@@ -359,18 +371,6 @@ const PRIORITY_STYLE: Record<Priority, { bg: string; text: string; border: strin
   P3: { bg: "bg-amber-400",  text: "text-amber-900",     border: "" },
 };
 
-const IMPACT_STYLE: Record<Impact, string> = {
-  "Very high":   "bg-rose-50 text-rose-700 border-rose-200",
-  "High":        "bg-orange-50 text-orange-700 border-orange-200",
-  "Medium-high": "bg-amber-50 text-amber-700 border-amber-200",
-  "Medium":      "bg-slate-100 text-slate-600 border-slate-200",
-};
-
-const EFFORT_STYLE: Record<Effort, string> = {
-  "Low":    "bg-emerald-50 text-emerald-700 border-emerald-200",
-  "Medium": "bg-amber-50 text-amber-700 border-amber-200",
-  "High":   "bg-rose-50 text-rose-700 border-rose-200",
-};
 
 function ScoreBar({ value, max = 10, color }: { value: number; max?: number; color: string }) {
   return (
@@ -582,7 +582,7 @@ export default function GeoLandingPageReport() {
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
           {/* Headers */}
-          <div className="grid grid-cols-[48px_1fr_2fr_100px_80px] border-b border-slate-100 bg-slate-50">
+          <div className="grid grid-cols-[52px_1fr_2fr_2fr] border-b border-slate-100 bg-slate-50">
             <div className="px-3 py-3 border-r border-slate-100">
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">#</span>
             </div>
@@ -590,43 +590,38 @@ export default function GeoLandingPageReport() {
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Action</span>
             </div>
             <div className="px-4 py-3 border-r border-slate-100">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Why it matters</span>
-            </div>
-            <div className="px-4 py-3 border-r border-slate-100">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Impact</span>
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Why it matters for LLM visibility</span>
             </div>
             <div className="px-4 py-3">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Effort</span>
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Exact issue in current HTML</span>
             </div>
           </div>
 
           {ACTIONS.map((row, i) => {
             const ps = PRIORITY_STYLE[row.priority];
             return (
-              <div
-                key={i}
-                className={`grid grid-cols-[48px_1fr_2fr_100px_80px] hover:bg-slate-50/60 transition-colors ${i < ACTIONS.length - 1 ? "border-b border-slate-50" : ""}`}
-              >
-                <div className="px-3 py-4 border-r border-slate-100 flex items-start justify-center pt-3.5">
-                  <span className={`inline-flex items-center justify-center w-8 h-6 rounded-md text-xs font-bold ${ps.bg} ${ps.text}`}>
-                    {row.priority}
-                  </span>
+              <div key={i} className={i < ACTIONS.length - 1 ? "border-b border-slate-100" : ""}>
+                {/* Main row */}
+                <div className="grid grid-cols-[52px_1fr_2fr_2fr] hover:bg-slate-50/40 transition-colors">
+                  <div className="px-3 py-4 border-r border-slate-100 flex items-start justify-center pt-3.5">
+                    <span className={`inline-flex items-center justify-center w-8 h-6 rounded-md text-xs font-bold ${ps.bg} ${ps.text}`}>
+                      {row.priority}
+                    </span>
+                  </div>
+                  <div className="px-4 py-4 border-r border-slate-100 flex items-start">
+                    <p className="text-xs font-semibold text-slate-700 leading-snug">{row.action}</p>
+                  </div>
+                  <div className="px-4 py-4 border-r border-slate-100">
+                    <p className="text-xs text-slate-500 leading-relaxed">{row.why}</p>
+                  </div>
+                  <div className="px-4 py-4">
+                    <p className="text-xs text-slate-500 leading-relaxed italic">{row.exactIssue}</p>
+                  </div>
                 </div>
-                <div className="px-4 py-4 border-r border-slate-100 flex items-start">
-                  <p className="text-xs font-semibold text-slate-700 leading-snug">{row.action}</p>
-                </div>
-                <div className="px-4 py-4 border-r border-slate-100">
-                  <p className="text-xs text-slate-500 leading-relaxed">{row.why}</p>
-                </div>
-                <div className="px-4 py-4 border-r border-slate-100 flex items-start">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${IMPACT_STYLE[row.impact]}`}>
-                    {row.impact}
-                  </span>
-                </div>
-                <div className="px-4 py-4 flex items-start">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${EFFORT_STYLE[row.effort]}`}>
-                    {row.effort}
-                  </span>
+                {/* Specific fix sub-row */}
+                <div className="border-t border-slate-50 px-4 py-2.5 bg-emerald-50/60 flex items-start gap-2">
+                  <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider shrink-0 mt-0.5">Fix →</span>
+                  <p className="text-xs text-emerald-800 leading-relaxed font-medium">{row.specificFix}</p>
                 </div>
               </div>
             );
