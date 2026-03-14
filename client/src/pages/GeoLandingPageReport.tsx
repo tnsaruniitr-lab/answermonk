@@ -25,7 +25,7 @@ const FACTOR_ROWS: FactorRow[] = [
     factor: "Title / meta clarity",
     why: "Models classify page purpose from title + meta description first",
     valeo: 6, frh: 9, winner: "frh",
-    evidence: `FRH title + description clearly say "Home Healthcare Services Available 24x7 in UAE & Qatar" and "expert medical care at your doorstep". Valeo title/meta are blood-test-focused — "Blood Lab Test At Home in Dubai" — misaligned with the homepage's broader scope.`,
+    evidence: `FRH title + description clearly say "Home Healthcare Services Available 24x7 in UAE & Qatar" and "expert medical care at your doorstep". Valeo title/meta are blood-test-focused - "Blood Lab Test At Home in Dubai" - misaligned with the homepage's broader scope.`,
     richEvidence: (
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl border border-rose-200 bg-rose-50 overflow-hidden">
@@ -38,13 +38,13 @@ const FACTOR_ROWS: FactorRow[] = [
             <div>
               <p className="text-[10px] font-semibold text-rose-400 uppercase tracking-wider mb-0.5">Title tag</p>
               <p className="text-sm font-bold text-rose-800 leading-snug bg-rose-100 px-2 py-1 rounded-lg border border-rose-200">
-                Blood Lab Test At Home in Dubai — Free Sample Collection
+                Blood Lab Test At Home in Dubai - Free Sample Collection
               </p>
             </div>
             <div>
               <p className="text-[10px] font-semibold text-rose-400 uppercase tracking-wider mb-0.5">Meta description</p>
               <p className="text-sm font-semibold text-rose-700 leading-snug bg-rose-100 px-2 py-1 rounded-lg border border-rose-200">
-                Blood-test-focused — does not reflect the full at-home healthcare scope
+                Blood-test-focused - does not reflect the full at-home healthcare scope
               </p>
             </div>
             <p className="text-[11px] text-rose-600 italic">Title pushes blood tests while the page sells healthcare + wellness + supplements + programs.</p>
@@ -69,7 +69,7 @@ const FACTOR_ROWS: FactorRow[] = [
                 "expert medical care at your doorstep"
               </p>
             </div>
-            <p className="text-[11px] text-emerald-700 italic">Title and description both signal home healthcare — one clear intent for AI to classify.</p>
+            <p className="text-[11px] text-emerald-700 italic">Title and description both signal home healthcare - one clear intent for AI to classify.</p>
           </div>
         </div>
       </div>
@@ -79,7 +79,7 @@ const FACTOR_ROWS: FactorRow[] = [
     factor: "H1 clarity",
     why: "H1 is the strongest on-page signal for page topic classification",
     valeo: 6, frh: 8.5, winner: "frh",
-    evidence: `FRH uses a specific service-led H1: "24x7 Expert Home Healthcare Services with Tailored Solutions." Valeo H1 is broader and vaguer: "At-Home Healthcare" — appears twice in the DOM.`,
+    evidence: `FRH uses a specific service-led H1: "24x7 Expert Home Healthcare Services with Tailored Solutions." Valeo H1 is broader and vaguer: "At-Home Healthcare" - appears twice in the DOM.`,
     richEvidence: (
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl border border-rose-200 bg-rose-50 overflow-hidden">
@@ -92,7 +92,7 @@ const FACTOR_ROWS: FactorRow[] = [
             <p className="text-lg font-black text-rose-800 leading-snug px-2 py-2 bg-rose-100 rounded-lg border border-rose-200">
               At-Home Healthcare
             </p>
-            <p className="text-[11px] text-rose-500 italic mt-2">Generic — AI cannot infer services, location, or differentiation from this alone.</p>
+            <p className="text-[11px] text-rose-500 italic mt-2">Generic - AI cannot infer services, location, or differentiation from this alone.</p>
           </div>
         </div>
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 overflow-hidden">
@@ -105,7 +105,7 @@ const FACTOR_ROWS: FactorRow[] = [
             <p className="text-lg font-black text-emerald-800 leading-snug px-2 py-2 bg-emerald-100 rounded-lg border border-emerald-200">
               24x7 Expert Home Healthcare Services with Tailored Solutions
             </p>
-            <p className="text-[11px] text-emerald-700 italic mt-2">Contains 24x7, Expert, Home Healthcare, Services — four strong retrieval signals in one heading.</p>
+            <p className="text-[11px] text-emerald-700 italic mt-2">Contains 24x7, Expert, Home Healthcare, Services - four strong retrieval signals in one heading.</p>
           </div>
         </div>
       </div>
@@ -115,43 +115,43 @@ const FACTOR_ROWS: FactorRow[] = [
     factor: "Intro / first-screen grounding",
     why: "Top-of-page copy is weighted heavily by LLMs for page summarisation",
     valeo: 5.5, frh: 8, winner: "frh",
-    evidence: `FRH top messaging is direct: home healthcare + 24x7 + doorstep care — immediately extractable. Valeo's top subtitle is "Built for prevention, optimisation, & longevity" — brand language that is weaker for AI extraction of what the page actually offers.`,
+    evidence: `FRH top messaging is direct: home healthcare + 24x7 + doorstep care - immediately extractable. Valeo's top subtitle is "Built for prevention, optimisation, & longevity" - brand language that is weaker for AI extraction of what the page actually offers.`,
   },
   {
     factor: "Intent consistency",
     why: "Split intent across title, H1, and body confuses LLM classification",
     valeo: 5, frh: 8.5, winner: "frh",
-    evidence: `FRH: title, meta, H1, and body all point to home healthcare — one consistent intent throughout. Valeo: title/meta push blood tests, H1 says At-Home Healthcare, body sells blood tests + supplements + peptides + weight loss. That three-way split hurts LLM certainty about what Valeo is.`,
+    evidence: `FRH: title, meta, H1, and body all point to home healthcare - one consistent intent throughout. Valeo: title/meta push blood tests, H1 says At-Home Healthcare, body sells blood tests + supplements + peptides + weight loss. That three-way split hurts LLM certainty about what Valeo is.`,
   },
   {
     factor: "Plain-text extractibility",
     why: "Raw crawlable text gives AI retrieval surface; quality matters more than volume",
     valeo: 7, frh: 8, winner: "frh",
-    evidence: `Both brands have crawlable text in HTML. FRH has clearer native sections — Associates & Insurance Partners, Testimonials, Blogs — that parse cleanly. Valeo has more raw text volume but more of it is embedded in noisy component and script output, reducing reliable extraction.`,
+    evidence: `Both brands have crawlable text in HTML. FRH has clearer native sections - Associates & Insurance Partners, Testimonials, Blogs - that parse cleanly. Valeo has more raw text volume but more of it is embedded in noisy component and script output, reducing reliable extraction.`,
   },
   {
     factor: "Semantic structure",
     why: "Clear HTML sections help models identify content type and hierarchy",
     valeo: 6.5, frh: 8, winner: "frh",
-    evidence: `FRH exposes well-defined sections: "Our Associates & Insurance Partners", "Testimonials", "Blogs" — each maps cleanly to a content type. Valeo has sectioned cards and H2s, but raw HTML is more app-like and cluttered with React component noise.`,
+    evidence: `FRH exposes well-defined sections: "Our Associates & Insurance Partners", "Testimonials", "Blogs" - each maps cleanly to a content type. Valeo has sectioned cards and H2s, but raw HTML is more app-like and cluttered with React component noise.`,
   },
   {
     factor: "Schema / structured data",
     why: "Rich schema strengthens entity confidence and local / service understanding",
     valeo: 8.5, frh: 8, winner: "valeo",
-    evidence: `FRH has strong WebPage, BreadcrumbList, DiagnosticLab, LocalBusiness, MedicalBusiness schema. Valeo also has strong Organization, MedicalBusiness, BreadcrumbList, contact/language/area served, and tighter service-level schema — slightly richer at the org and service level.`,
+    evidence: `FRH has strong WebPage, BreadcrumbList, DiagnosticLab, LocalBusiness, MedicalBusiness schema. Valeo also has strong Organization, MedicalBusiness, BreadcrumbList, contact/language/area served, and tighter service-level schema - slightly richer at the org and service level.`,
   },
   {
     factor: "Brand identity extraction",
     why: "Richer org-level data gives AI models more confidence in entity resolution",
     valeo: 8.5, frh: 8, winner: "valeo",
-    evidence: `FRH exposes brand, phone, address, geo, and socials in schema. Valeo exposes org, parent org, phone, email, languages spoken, and GCC geographic coverage — slightly richer at the organisation identity level.`,
+    evidence: `FRH exposes brand, phone, address, geo, and socials in schema. Valeo exposes org, parent org, phone, email, languages spoken, and GCC geographic coverage - slightly richer at the organisation identity level.`,
   },
   {
     factor: "Service breadth visibility",
     why: "Services visible near the top of page match more query variants for AI",
     valeo: 7.5, frh: 8.5, winner: "frh",
-    evidence: `FRH homepage includes multiple broad proof sections with strong home-health positioning up front. Valeo exposes many services in internal links — blood tests, IV drips, newborn care, supplements, doctor on call, doctor at hotel, weight loss — but much of this is lower on the page rather than top-led.`,
+    evidence: `FRH homepage includes multiple broad proof sections with strong home-health positioning up front. Valeo exposes many services in internal links - blood tests, IV drips, newborn care, supplements, doctor on call, doctor at hotel, weight loss - but much of this is lower on the page rather than top-led.`,
   },
   {
     factor: "Local / geo clarity",
@@ -163,7 +163,7 @@ const FACTOR_ROWS: FactorRow[] = [
     factor: "Trust signals in HTML",
     why: "Visible proof (hours, address, accreditations) increases AI confidence in recommendations",
     valeo: 7, frh: 8.5, winner: "frh",
-    evidence: `FRH shows 24/7 opening hours, full physical address, geo coordinates, testimonials, and a partner/insurance section — all in visible, parseable HTML. Valeo has licensed-team wording and trusted-care language, but weaker visible top-of-page proof blocks.`,
+    evidence: `FRH shows 24/7 opening hours, full physical address, geo coordinates, testimonials, and a partner/insurance section - all in visible, parseable HTML. Valeo has licensed-team wording and trusted-care language, but weaker visible top-of-page proof blocks.`,
   },
   {
     factor: "Fresh supporting content",
@@ -181,13 +181,13 @@ const FACTOR_ROWS: FactorRow[] = [
     factor: "Internal-link structure",
     why: "Service-led internal linking helps models map the site and attribute service depth to the brand",
     valeo: 7.5, frh: 8, winner: "frh",
-    evidence: `FRH internal links are consistently service-led, with strong child-page navigation across medical services. Valeo internal links are also strong but skew toward product/program cards and commerce blocks — which can blur the healthcare service model for AI crawlers.`,
+    evidence: `FRH internal links are consistently service-led, with strong child-page navigation across medical services. Valeo internal links are also strong but skew toward product/program cards and commerce blocks - which can blur the healthcare service model for AI crawlers.`,
   },
   {
     factor: "Duplication / content cleanliness",
     why: "Repeated sections and competing page identities dilute the signal extracted per crawl",
     valeo: 4, frh: 6.5, winner: "frh",
-    evidence: `Valeo has significant content duplication: H1 appears twice, the hero intro is repeated, journey sections are repeated, and press mentions appear multiple times — creating competing page identities. FRH is also repetitive in places, but repetition centres on trust and location blocks, not conflicting intents.`,
+    evidence: `Valeo has significant content duplication: H1 appears twice, the hero intro is repeated, journey sections are repeated, and press mentions appear multiple times - creating competing page identities. FRH is also repetitive in places, but repetition centres on trust and location blocks, not conflicting intents.`,
   },
 ];
 
@@ -208,34 +208,34 @@ const ACTIONS: ActionRow[] = [
     action: "Align title with actual page role",
     why: "Highest-impact fix. Title is one of the strongest extraction signals. If title says 'blood test' but page is actually a broader healthcare hub, models get mixed signals.",
     exactIssue: `Current title/meta are blood-test-specific: "Blood Lab Test At Home in Dubai…" while schema and body expose broader healthcare, weight loss, IV drips, doctor on call.`,
-    specificFix: `Change title to: "At-Home Healthcare in Dubai — Blood Tests, IV Therapy, Doctor on Call & More | Valeo Health"`,
+    specificFix: `Change title to: "At-Home Healthcare in Dubai - Blood Tests, IV Therapy, Doctor on Call & More | Valeo Health"`,
   },
   {
     priority: "P1",
     action: "Rewrite hero intro to state all 3 pillars plainly",
     why: "The first visible block is what many extractors and models latch onto fastest. Abstract brand language is the weakest possible opening for AI extractability.",
-    exactIssue: `Current visible hero/H1 is weaker and more abstract: "Built for prevention, optimisation, & longevity" — while stronger service breadth exists elsewhere on the page.`,
-    specificFix: `Make the first 2–3 lines factual: category + core services + location + key differentiator. E.g. "At-home healthcare in Dubai — blood tests, IV drips, doctor on call, and newborn care delivered to your door, 7 days a week."`,
+    exactIssue: `Current visible hero/H1 is weaker and more abstract: "Built for prevention, optimisation, & longevity" - while stronger service breadth exists elsewhere on the page.`,
+    specificFix: `Make the first 2–3 lines factual: category + core services + location + key differentiator. E.g. "At-home healthcare in Dubai - blood tests, IV drips, doctor on call, and newborn care delivered to your door, 7 days a week."`,
   },
   {
     priority: "P1",
     action: "Keep one primary H1, then use pillar H2s",
     why: "This helps the page preserve breadth without becoming semantically muddy. A clean heading hierarchy lets AI models enumerate what the page covers.",
     exactIssue: "Page currently expresses multiple intents but not in a clear hierarchy. Blood tests dominate metadata while broader categories are lower in content. H1 appears twice in the DOM.",
-    specificFix: `Use: H1 = "At-Home Healthcare in Dubai", then one H2 per service pillar — Blood Tests, IV Drips, Doctor on Call, Weight Loss. One H2 per pillar, no repeats.`,
+    specificFix: `Use: H1 = "At-Home Healthcare in Dubai", then one H2 per service pillar - Blood Tests, IV Drips, Doctor on Call, Weight Loss. One H2 per pillar, no repeats.`,
   },
   {
     priority: "P1",
     action: `Add a top "What we offer in Dubai" block`,
     why: "Strong for extractibility and retrieval. Converts scattered services into a clean semantic list AI can enumerate in one pass.",
-    exactIssue: "Valeo already contains blood tests, IV drips, newborn care, doctor consultations, supplements, and weight management — but they are spread across cards, links, and embedded component output.",
+    exactIssue: "Valeo already contains blood tests, IV drips, newborn care, doctor consultations, supplements, and weight management - but they are spread across cards, links, and embedded component output.",
     specificFix: "Add a short visible service summary block near the top using a simple unordered list or clear service grid. Plain HTML, not JS-rendered.",
   },
   {
     priority: "P2",
     action: "Add a visible trust / proof strip near top",
     why: "Helps models attach reliable qualifiers to the brand (licensed, location, hours), not just services.",
-    exactIssue: "Schema already exposes phone, email, Dubai locality, UAE, opening hours, and languages spoken — but this is under-leveraged in visible top-of-page copy.",
+    exactIssue: "Schema already exposes phone, email, Dubai locality, UAE, opening hours, and languages spoken - but this is under-leveraged in visible top-of-page copy.",
     specificFix: "Surface those schema facts in plain HTML text: DHA-licensed team, Dubai service area, 7-day availability, booking modes. One strip, near the top, always visible.",
   },
   {
@@ -250,7 +250,7 @@ const ACTIONS: ActionRow[] = [
     action: "Make blood tests one pillar, not the whole identity of the page",
     why: "This lets Valeo rank and extract for blood tests without collapsing the entire page into a single-intent landing page.",
     exactIssue: "Blood tests currently dominate title and metadata too much versus the broader healthcare proposition.",
-    specificFix: "Keep a strong blood-test section and internal links, but reposition it as one of several pillars — not the defining title of the page.",
+    specificFix: "Keep a strong blood-test section and internal links, but reposition it as one of several pillars - not the defining title of the page.",
   },
   {
     priority: "P2",
@@ -262,7 +262,7 @@ const ACTIONS: ActionRow[] = [
   {
     priority: "P3",
     action: "Make visible copy mirror schema",
-    why: "Good cleanup fix. Helps consistency across machine-readable and human-readable layers — LLMs use both.",
+    why: "Good cleanup fix. Helps consistency across machine-readable and human-readable layers - LLMs use both.",
     exactIssue: `Schema says "Healthcare services at your doorstep in Dubai… lab tests, health packages, and medical services at home." Visible top copy should say essentially the same.`,
     specificFix: "Reuse schema facts in body copy. If schema says doorstep delivery in Dubai, the first paragraph should say the same thing.",
   },
@@ -271,7 +271,7 @@ const ACTIONS: ActionRow[] = [
     action: "Reduce JS / config noise around key messages",
     why: "Helps text-to-noise ratio for crawlers and extractors, but lower priority than messaging alignment.",
     exactIssue: "A lot of useful content is embedded in Next.js app output and script tags rather than simple editorial HTML.",
-    specificFix: "Ensure hero, service summary, trust strip, and pillar headings are plain HTML — server-rendered, not JS-injected — so they are immediately available to any crawler or model.",
+    specificFix: "Ensure hero, service summary, trust strip, and pillar headings are plain HTML - server-rendered, not JS-injected - so they are immediately available to any crawler or model.",
   },
 ];
 
@@ -364,7 +364,7 @@ export default function GeoLandingPageReport() {
             <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">GEO Audit · Dubai Home Healthcare</p>
             <h1 className="text-white text-2xl font-bold">Landing Page GEO Readiness</h1>
             <p className="text-slate-400 text-sm mt-1">
-              Valeo Health vs First Response Healthcare — AI retrievability of the Dubai city landing page
+              Valeo Health vs First Response Healthcare - AI retrievability of the Dubai city landing page
             </p>
           </div>
           <p className="text-slate-500 text-xs hidden print:block shrink-0">{today} · Confidential</p>
@@ -415,7 +415,7 @@ export default function GeoLandingPageReport() {
 
         {/* ── Section 1: AI Search Factor Analysis ─────────── */}
         <div className="mb-2">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">01 — AI Search Factor Analysis</h2>
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">01 - AI Search Factor Analysis</h2>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
@@ -445,9 +445,9 @@ export default function GeoLandingPageReport() {
             <div key={row.factor} className={i < FACTOR_ROWS.length - 1 ? "border-b border-slate-100" : ""}>
               {/* Main row */}
               <div className="grid grid-cols-[200px_120px_120px_100px] hover:bg-slate-50/40 transition-colors">
-                <div className="px-4 py-3 border-r border-slate-100 bg-slate-50/40 flex flex-col justify-center">
+                <div className="px-4 py-3 border-r border-slate-100 bg-slate-50/40 flex flex-col justify-center gap-1.5">
                   <p className="text-xs font-semibold text-slate-700 leading-snug">{row.factor}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5 leading-snug">{row.why}</p>
+                  <p className="text-[10px] font-semibold text-slate-700 leading-snug bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">{row.why}</p>
                 </div>
                 <div className="px-4 py-3 border-r border-slate-100 flex items-center">
                   <div className="w-full">
@@ -464,16 +464,16 @@ export default function GeoLandingPageReport() {
                 </div>
               </div>
               {/* Evidence sub-row */}
-              <div className={`border-t border-slate-100 ${row.richEvidence ? "px-4 py-3 bg-white" : "px-4 py-2 bg-slate-50/70"}`}>
+              <div className={`border-t border-slate-200 ${row.richEvidence ? "px-4 py-3 bg-slate-50" : "px-4 py-2.5 bg-slate-50"}`}>
                 {row.richEvidence
                   ? row.richEvidence
-                  : <p className="text-xs text-slate-500 leading-relaxed italic">{row.evidence}</p>
+                  : <p className="text-xs text-slate-700 leading-relaxed font-medium">{row.evidence}</p>
                 }
               </div>
             </div>
           ))}
 
-          {/* Overall footer — computed from factor data */}
+          {/* Overall footer - computed from factor data */}
           {(() => {
             const fAvg = {
               valeo: avg(FACTOR_ROWS.map((r) => r.valeo)),
@@ -509,7 +509,7 @@ export default function GeoLandingPageReport() {
 
         {/* ── Section 2: Priority Actions ──────────────────── */}
         <div className="print-break-before mb-2">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">02 — Priority Actions for Valeo</h2>
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">02 - Priority Actions for Valeo</h2>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
