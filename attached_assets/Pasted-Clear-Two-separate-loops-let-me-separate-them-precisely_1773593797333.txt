@@ -1,0 +1,71 @@
+Clear. Two separate loops — let me separate them precisely:
+
+Loop 1 — already done: Classification completes → result delivered to Telegram. Nothing to change here.
+
+Loop 2 — what you're asking about: Classification completes → this app pushes service_type (and whatever fields you choose) to the other app. This is a push from this app, triggered at the moment the run finishes.
+
+What the other app needs to build — one endpoint:
+
+POST /api/incoming/classification
+Content-Type: application/json
+{
+  "url": "https://feelvaleo.com/en-ae/dubai",
+  "service_type": "Physiotherapy",
+  "city": "Dubai",
+  "company": "Feelvaleo"
+}
+Just receives and stores it. No auth needed to start — you can add that later.
+
+What this app needs to implement:
+
+A webhook_url field on the classifier agent (stored per-agent in the DB)
+After every successful run, fire POST <webhook_url> with the fields you select
+Configurable from the UI (you paste the other app's URL into the agent settings)
+Let me check the current schema quickly before building:
+
+No webhook_url column yet. Let me add it across schema, storage, engine, and UI all at once:
+
+Now I have everything. Let me make all four changes in parallel — schema, engine, UI, and DB migration:
+
+Now I have the full picture. Let me do all four changes — schema, DB column, engine webhook fire, and UI field — in parallel:
+
+Now update the insert schema, then add the DB column, update the engine, and add the UI field — all in parallel:
+
+Now I'll add the DB column, update the engine, and update the UI simultaneously:
+
+Now add webhookUrl to the submit payload and add the UI input field:
+
+Now add the input field in the dialog UI:
+
+Let me check the server logs to confirm clean startup:
+
+Clean startup. Everything is in. Here's the complete picture:
+
+What was built on this side:
+
+webhook_url field added to the classifier agent (DB column + schema + UI)
+After every successful run (post-Telegram delivery), this app fires a POST to that URL with a 10-second timeout — it logs the HTTP status but never blocks or fails the run if the webhook is down
+You paste the other app's URL directly into the agent's Edit dialog under "Webhook URL"
+What to tell the other developer — one endpoint to build:
+
+POST /api/incoming/classification
+Content-Type: application/json
+{
+  "url": "https://feelvaleo.com/en-ae/dubai",
+  "run_id": 17,
+  "agent_slug": "comp-classifier",
+  "result": {
+    "company": "Feelvaleo",
+    "city": "Dubai",
+    "service_type": "Physiotherapy",
+    ...full classifier result...
+  }
+}
+They receive it, store or process it, return any 2xx status. No auth needed initially — you can add a shared secret header later if needed. The full result object is in there so they can pick service_type, city, or anything else without a second call.
+
+The flow end-to-end:
+
+Telegram → OpenClaw → POST /classify on this app
+This app classifies → sends to Telegram
+This app fires webhook → other app receives service_type + full result
+Done — no polling, no second call from OpenClaw needed
