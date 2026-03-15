@@ -67,6 +67,12 @@ function PublicRouter() {
       <Route path="/reports/geo-landing-page" component={GeoLandingPageReport} />
       <Route path="/reports/collectmaxx" component={CollectmaxxReport} />
       <Route path="/summary/:id" component={SlugSummary} />
+      <Route path="/incoming-leads">
+        <Login onSuccess={() => window.location.reload()} />
+      </Route>
+      <Route path="/leads">
+        <Login onSuccess={() => window.location.reload()} />
+      </Route>
       <Route path="/audit/:slug">{(params) => <AuditBySlug params={params} />}</Route>
       <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
       <Route>
