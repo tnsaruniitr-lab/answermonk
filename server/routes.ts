@@ -2035,15 +2035,25 @@ export async function registerRoutes(
       const body = req.body || {};
       const result = body.result || {};
 
-      const url = body.url || result.url || null;
-      const resolvedName = body.business_name || body.businessName || result.company || result.business_name || result.businessName || null;
-      const rawServices = body.services || result.services || result.service_type || null;
+      const url = body.url || result.url || result.company_summary?.website || null;
+      const resolvedName =
+        body.business_name || body.businessName ||
+        result.company || result.business_name || result.businessName ||
+        result.company_summary?.company_name || null;
+      const rawServices =
+        body.services ||
+        result.services ||
+        result.service_type ||
+        (result.best_shortlist_for_prompt_seeds?.service_type) ||
+        null;
       const resolvedServices = Array.isArray(rawServices)
-        ? rawServices
+        ? rawServices.map((s: any) => (typeof s === "object" && s.category ? s.category : String(s)))
         : typeof rawServices === "string"
         ? [rawServices]
         : null;
-      const city = body.city || result.city || null;
+      const city =
+        body.city || result.city ||
+        result.company_summary?.geography || null;
 
       const lead = await storage.createIncomingLead({
         url,
