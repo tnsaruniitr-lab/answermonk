@@ -111,6 +111,7 @@ function AuthGate() {
           <Route path="/brand-intelligence" component={BrandIntelligence} />
           <Route path="/reports/crawlability" component={CrawlabilityReport} />
           <Route path="/reports/geo-landing-page" component={GeoLandingPageReport} />
+          <Route path="/reports/collectmaxx" component={CollectmaxxReport} />
           <Route path="/audit/:slug">{(params) => <AuditBySlug params={params} />}</Route>
           <Route path="/" component={Analyzer} />
           <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
