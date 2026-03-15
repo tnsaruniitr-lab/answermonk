@@ -31,6 +31,7 @@ function AdminRouter() {
       <Route path="/v2/:id" component={V2SessionDetail} />
       <Route path="/summary/:id" component={SummaryReport} />
       <Route path="/teaser/:id" component={ProspectTeaser} />
+      <Route path="/reports/collectmaxx" component={CollectmaxxReport} />
       <Route path="/leads" component={Leads} />
       <Route component={NotFound} />
     </Switch>
@@ -49,6 +50,10 @@ function AuditBySlug({ params }: { params: { slug: string } }) {
   return <SummaryReport auditSlug={params.slug} />;
 }
 
+function CollectmaxxReport() {
+  return <SummaryReport auditSlug="94" />;
+}
+
 function PublicRouter() {
   return (
     <Switch>
@@ -58,6 +63,7 @@ function PublicRouter() {
       <Route path="/analytics" component={AnalyticsDashboard} />
       <Route path="/reports/crawlability" component={CrawlabilityReport} />
       <Route path="/reports/geo-landing-page" component={GeoLandingPageReport} />
+      <Route path="/reports/collectmaxx" component={CollectmaxxReport} />
       <Route path="/summary/:id" component={SlugSummary} />
       <Route path="/audit/:slug">{(params) => <AuditBySlug params={params} />}</Route>
       <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
