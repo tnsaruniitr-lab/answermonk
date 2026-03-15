@@ -107,6 +107,7 @@ function AuthGate() {
           <Route path="/summary/:id" component={SummaryReport} />
           <Route path="/teaser/:id" component={ProspectTeaser} />
           <Route path="/leads" component={Leads} />
+          <Route path="/incoming-leads" component={IncomingLeads} />
           <Route path="/citations/:sessionId">{(params) => <CitationViewer sessionId={parseInt(params.sessionId)} />}</Route>
           <Route path="/analytics/:sessionId">{(params) => <AnalyticsDashboard />}</Route>
           <Route path="/analytics" component={AnalyticsDashboard} />
