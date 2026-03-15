@@ -2032,19 +2032,25 @@ export async function registerRoutes(
 
   app.post("/api/webhooks/incoming", async (req, res) => {
     try {
-      const { url, business_name, businessName, services, city, ...rest } = req.body || {};
-      const resolvedName = business_name || businessName || null;
-      const resolvedServices = Array.isArray(services)
-        ? services
-        : typeof services === "string"
-        ? [services]
+      const body = req.body || {};
+      const result = body.result || {};
+
+      const url = body.url || result.url || null;
+      const resolvedName = body.business_name || body.businessName || result.company || result.business_name || result.businessName || null;
+      const rawServices = body.services || result.services || result.service_type || null;
+      const resolvedServices = Array.isArray(rawServices)
+        ? rawServices
+        : typeof rawServices === "string"
+        ? [rawServices]
         : null;
+      const city = body.city || result.city || null;
+
       const lead = await storage.createIncomingLead({
-        url: url || null,
+        url,
         businessName: resolvedName,
         services: resolvedServices,
-        city: city || null,
-        rawPayload: req.body,
+        city,
+        rawPayload: body,
         status: "pending",
       });
       res.json({ success: true, id: lead.id });
