@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Globe, MapPin, Briefcase, CheckCircle, Clock } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, Globe, MapPin, Briefcase, CheckCircle, Clock, FlaskConical, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { IncomingLead } from "@shared/schema";
 
@@ -14,6 +17,13 @@ function statusColor(status: string) {
 
 export default function IncomingLeads() {
   const { toast } = useToast();
+  const [showTest, setShowTest] = useState(false);
+  const [testForm, setTestForm] = useState({
+    url: "",
+    business_name: "",
+    services: "",
+    city: "",
+  });
 
   const { data: leads = [], isLoading } = useQuery<IncomingLead[]>({
     queryKey: ["/api/incoming-leads"],
@@ -35,6 +45,35 @@ export default function IncomingLeads() {
     },
   });
 
+  const sendTest = useMutation({
+    mutationFn: async () => {
+      const servicesArray = testForm.services
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const res = await fetch("/api/webhooks/incoming", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: testForm.url || undefined,
+          business_name: testForm.business_name || undefined,
+          services: servicesArray.length ? servicesArray : undefined,
+          city: testForm.city || undefined,
+        }),
+      });
+      if (!res.ok) throw new Error("Webhook failed");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/incoming-leads"] });
+      toast({ title: `Test received — Lead #${data.id} created`, description: "Check the list below to confirm the data came through correctly." });
+      setTestForm({ url: "", business_name: "", services: "", city: "" });
+    },
+    onError: () => {
+      toast({ title: "Test failed", description: "Webhook endpoint returned an error.", variant: "destructive" });
+    },
+  });
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div>
@@ -47,6 +86,74 @@ export default function IncomingLeads() {
         </div>
       </div>
 
+      <Card className="border-dashed">
+        <CardHeader className="pb-2 cursor-pointer" onClick={() => setShowTest(!showTest)}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <FlaskConical className="h-4 w-4" />
+              Test the webhook
+            </div>
+            {showTest ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          </div>
+        </CardHeader>
+        {showTest && (
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Fill in sample data and send it — if it appears in the list below, the webhook is working correctly.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label htmlFor="test-url">Business URL</Label>
+                <Input
+                  id="test-url"
+                  data-testid="input-test-url"
+                  placeholder="https://feelvaleo.com/en-ae/dubai"
+                  value={testForm.url}
+                  onChange={(e) => setTestForm((f) => ({ ...f, url: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="test-name">Business Name</Label>
+                <Input
+                  id="test-name"
+                  data-testid="input-test-name"
+                  placeholder="Feelvaleo"
+                  value={testForm.business_name}
+                  onChange={(e) => setTestForm((f) => ({ ...f, business_name: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="test-services">Services <span className="text-muted-foreground">(comma-separated)</span></Label>
+                <Input
+                  id="test-services"
+                  data-testid="input-test-services"
+                  placeholder="Physiotherapy, Pilates, Massage"
+                  value={testForm.services}
+                  onChange={(e) => setTestForm((f) => ({ ...f, services: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="test-city">City</Label>
+                <Input
+                  id="test-city"
+                  data-testid="input-test-city"
+                  placeholder="Dubai"
+                  value={testForm.city}
+                  onChange={(e) => setTestForm((f) => ({ ...f, city: e.target.value }))}
+                />
+              </div>
+            </div>
+            <Button
+              data-testid="button-send-test"
+              onClick={() => sendTest.mutate()}
+              disabled={sendTest.isPending}
+            >
+              {sendTest.isPending ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Sending...</> : "Send Test Payload"}
+            </Button>
+          </CardContent>
+        )}
+      </Card>
+
       {isLoading ? (
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -55,7 +162,7 @@ export default function IncomingLeads() {
       ) : leads.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
-            No incoming leads yet. The other app will POST here when a classification completes.
+            No incoming leads yet. Use the test panel above or wait for the classifier app to send data.
           </CardContent>
         </Card>
       ) : (
