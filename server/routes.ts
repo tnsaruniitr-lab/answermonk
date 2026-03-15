@@ -2030,6 +2030,22 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/share/summary/static/collectmaxx", async (req, res) => {
+    try {
+      const path = require("path");
+      const fs = require("fs");
+      const filePath = path.join(__dirname, "../server/static-reports/collectmaxx.json");
+      if (!fs.existsSync(filePath)) {
+        res.status(404).json({ message: "Report not found" });
+        return;
+      }
+      const report = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      res.json({ report, cached: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to load report" });
+    }
+  });
+
   app.get("/api/share/summary/by-slug/:slug", async (req, res) => {
     try {
       const slug = req.params.slug;
@@ -2039,6 +2055,17 @@ export async function registerRoutes(
       }
       const session = await storage.getMultiSegmentSessionBySlug(slug);
       if (!session) {
+        const path = require("path");
+        const fs = require("fs");
+        const staticMap: Record<string, string> = { "collectmaxx-reminders": "collectmaxx" };
+        if (staticMap[slug]) {
+          const filePath = path.join(__dirname, `../server/static-reports/${staticMap[slug]}.json`);
+          if (fs.existsSync(filePath)) {
+            const report = JSON.parse(fs.readFileSync(filePath, "utf8"));
+            res.json({ report, cached: true });
+            return;
+          }
+        }
         res.status(404).json({ message: "Session not found" });
         return;
       }
