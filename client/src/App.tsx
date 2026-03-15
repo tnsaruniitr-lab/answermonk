@@ -51,7 +51,7 @@ function AuditBySlug({ params }: { params: { slug: string } }) {
 }
 
 function CollectmaxxReport() {
-  return <SummaryReport auditSlug="94" />;
+  return <SummaryReport auditSlug="collectmaxx-reminders" />;
 }
 
 function PublicRouter() {
