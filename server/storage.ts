@@ -11,6 +11,9 @@ import {
   teaserLeads,
   summaryLeads,
   citationPageMentions,
+  incomingLeads,
+  type InsertIncomingLead,
+  type IncomingLead,
   type InsertAnalysisResult,
   type AnalysisResult,
   type InsertScoringJob,
@@ -72,6 +75,9 @@ export interface IStorage {
   listTeaserLeads(): Promise<TeaserLead[]>;
   createSummaryLead(lead: InsertSummaryLead): Promise<SummaryLead>;
   listSummaryLeads(): Promise<SummaryLead[]>;
+  createIncomingLead(lead: InsertIncomingLead): Promise<IncomingLead>;
+  listIncomingLeads(): Promise<IncomingLead[]>;
+  updateIncomingLeadStatus(id: number, status: string): Promise<void>;
   saveCitationMentions(sessionId: number, mentions: InsertCitationPageMention[]): Promise<void>;
   getCitationMentions(sessionId: number): Promise<CitationPageMention[]>;
 }
@@ -389,6 +395,28 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(summaryLeads)
       .orderBy(desc(summaryLeads.createdAt));
+  }
+
+  async createIncomingLead(lead: InsertIncomingLead): Promise<IncomingLead> {
+    const [result] = await db
+      .insert(incomingLeads)
+      .values(lead)
+      .returning();
+    return result;
+  }
+
+  async listIncomingLeads(): Promise<IncomingLead[]> {
+    return db
+      .select()
+      .from(incomingLeads)
+      .orderBy(desc(incomingLeads.receivedAt));
+  }
+
+  async updateIncomingLeadStatus(id: number, status: string): Promise<void> {
+    await db
+      .update(incomingLeads)
+      .set({ status })
+      .where(eq(incomingLeads.id, id));
   }
 
   async saveCitationMentions(sessionId: number, mentions: InsertCitationPageMention[]): Promise<void> {

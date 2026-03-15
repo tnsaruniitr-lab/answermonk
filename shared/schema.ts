@@ -245,6 +245,21 @@ export const AggregateResponseSchema = z.object({
 });
 export type AggregateResponse = z.infer<typeof AggregateResponseSchema>;
 
+export const incomingLeads = pgTable("incoming_leads", {
+  id: serial("id").primaryKey(),
+  url: text("url"),
+  businessName: text("business_name"),
+  services: text("services").array(),
+  city: text("city"),
+  rawPayload: jsonb("raw_payload"),
+  status: text("status").notNull().default("pending"),
+  receivedAt: timestamp("received_at").defaultNow(),
+});
+
+export const insertIncomingLeadSchema = createInsertSchema(incomingLeads).omit({ id: true, receivedAt: true });
+export type IncomingLead = typeof incomingLeads.$inferSelect;
+export type InsertIncomingLead = z.infer<typeof insertIncomingLeadSchema>;
+
 export const EvalResponseSchema = z.object({
   engine: EngineEnum,
   query: z.string(),

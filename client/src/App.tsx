@@ -13,6 +13,7 @@ import V2SessionDetail from "@/pages/V2SessionDetail";
 import SummaryReport from "@/pages/SummaryReport";
 import ProspectTeaser from "@/pages/ProspectTeaser";
 import Leads from "@/pages/Leads";
+import IncomingLeads from "@/pages/IncomingLeads";
 import Login from "@/pages/Login";
 import CitationViewer from "@/pages/CitationViewer";
 import AnalyticsDashboard from "@/pages/AnalyticsDashboard";
@@ -33,6 +34,7 @@ function AdminRouter() {
       <Route path="/teaser/:id" component={ProspectTeaser} />
       <Route path="/reports/collectmaxx" component={CollectmaxxReport} />
       <Route path="/leads" component={Leads} />
+      <Route path="/incoming-leads" component={IncomingLeads} />
       <Route component={NotFound} />
     </Switch>
   );

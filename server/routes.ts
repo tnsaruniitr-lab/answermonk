@@ -2030,6 +2030,52 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/webhooks/incoming", async (req, res) => {
+    try {
+      const { url, business_name, businessName, services, city, ...rest } = req.body || {};
+      const resolvedName = business_name || businessName || null;
+      const resolvedServices = Array.isArray(services)
+        ? services
+        : typeof services === "string"
+        ? [services]
+        : null;
+      const lead = await storage.createIncomingLead({
+        url: url || null,
+        businessName: resolvedName,
+        services: resolvedServices,
+        city: city || null,
+        rawPayload: req.body,
+        status: "pending",
+      });
+      res.json({ success: true, id: lead.id });
+    } catch (err) {
+      console.error("Incoming webhook error:", err);
+      res.status(500).json({ message: "Failed to store incoming lead" });
+    }
+  });
+
+  app.get("/api/incoming-leads", async (_req, res) => {
+    try {
+      const leads = await storage.listIncomingLeads();
+      res.json(leads);
+    } catch (err) {
+      console.error("Incoming leads list error:", err);
+      res.status(500).json({ message: "Failed to load incoming leads" });
+    }
+  });
+
+  app.patch("/api/incoming-leads/:id/status", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const { status } = req.body;
+      await storage.updateIncomingLeadStatus(id, status);
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Incoming lead status update error:", err);
+      res.status(500).json({ message: "Failed to update status" });
+    }
+  });
+
   app.get("/api/share/summary/static/collectmaxx", async (req, res) => {
     try {
       const path = require("path");
