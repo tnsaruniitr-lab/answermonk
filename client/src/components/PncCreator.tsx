@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
-import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { deduplicateStoredCompetitors } from "@/lib/competitor-merge";
+import type { MultiSegmentSession } from "@shared/schema";
 import { SegmentCitationAnalyzer } from "@/components/SegmentCitationAnalyzer";
 import { Section1, Section2, CompetitorPlaybookSection, Section3, AppendixSection } from "@/components/ReportViewer";
 import { useToast } from "@/hooks/use-toast";
@@ -751,6 +753,7 @@ function PncCompetitorLens({ segments, brandName, brandDomain, location }: {
 }
 
 export default function PncCreator() {
+  const { toast } = useToast();
   const [url, setUrl] = useState("");
   const [tab, setTab] = useState<"v1" | "v2">("v1");
   const [err, setErr] = useState("");
@@ -784,12 +787,14 @@ export default function PncCreator() {
   const [pncEngines, setPncEngines] = useState<Set<string>>(new Set(["chatgpt", "gemini", "claude"]));
   const [pncSegments, setPncSegments] = useState<PncAnalysisSegment[]>([]);
   const [pncAnalysisErr, setPncAnalysisErr] = useState("");
+  const [pncV2SessionId, setPncV2SessionId] = useState<number | null>(null);
 
   const [v1BrandName, setV1BrandName] = useState("");
   const [v1BrandDomain, setV1BrandDomain] = useState("");
   const [v1Engines, setV1Engines] = useState<Set<string>>(new Set(["chatgpt", "gemini", "claude"]));
   const [v1AnalysisSegment, setV1AnalysisSegment] = useState<PncAnalysisSegment | null>(null);
   const [v1AnalysisErr, setV1AnalysisErr] = useState("");
+  const [pncV1SessionId, setPncV1SessionId] = useState<number | null>(null);
 
   const [v2CacheTs, setV2CacheTs] = useState<number | null>(null);
   const [v1CacheTs, setV1CacheTs] = useState<number | null>(null);
@@ -961,6 +966,123 @@ export default function PncCreator() {
     }
   };
 
+  const { data: allSessions } = useQuery<MultiSegmentSession[]>({
+    queryKey: ["/api/multisegment/sessions"],
+  });
+  const pncSessions = (allSessions || []).filter(
+    (s) => s.sessionType === "pnc_v2" || s.sessionType === "pnc_v1"
+  ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const saveV2SessionToDB = async (segments: PncAnalysisSegment[], brandName: string, brandDomain: string, engines: Set<string>, currentSessionId: number | null): Promise<number | null> => {
+    try {
+      const segmentsPayload = segments.map((s) => ({
+        id: s.id,
+        type: s.type,
+        label: s.label,
+        persona: "pnc",
+        seedType: s.type === "service" ? "providers" : "customers",
+        serviceType: s.type === "service" ? s.label : "",
+        customerType: s.type === "customer" ? s.label : "",
+        prompts: s.prompts,
+        scoringResult: s.scoringResult,
+        selected: s.selected,
+      }));
+      if (currentSessionId) {
+        await apiRequest("PATCH", `/api/multisegment/sessions/${currentSessionId}/segments`, { segments: segmentsPayload });
+        queryClient.invalidateQueries({ queryKey: ["/api/multisegment/sessions"] });
+        return currentSessionId;
+      } else {
+        const res = await apiRequest("POST", "/api/multisegment/sessions", {
+          brandName: brandName || "PNC Analysis",
+          brandDomain: brandDomain || null,
+          promptsPerSegment: 3,
+          segments: segmentsPayload,
+          sessionType: "pnc_v2",
+        });
+        const created = await res.json();
+        queryClient.invalidateQueries({ queryKey: ["/api/multisegment/sessions"] });
+        return created.id;
+      }
+    } catch {
+      return currentSessionId;
+    }
+  };
+
+  const saveV1SessionToDB = async (segment: PncAnalysisSegment, brandName: string, brandDomain: string, currentSessionId: number | null): Promise<number | null> => {
+    try {
+      const segmentsPayload = [{
+        id: segment.id,
+        type: segment.type,
+        label: segment.label,
+        persona: "pnc",
+        seedType: "providers",
+        serviceType: "",
+        customerType: "",
+        prompts: segment.prompts,
+        scoringResult: segment.scoringResult,
+        selected: true,
+      }];
+      if (currentSessionId) {
+        await apiRequest("PATCH", `/api/multisegment/sessions/${currentSessionId}/segments`, { segments: segmentsPayload });
+        queryClient.invalidateQueries({ queryKey: ["/api/multisegment/sessions"] });
+        return currentSessionId;
+      } else {
+        const res = await apiRequest("POST", "/api/multisegment/sessions", {
+          brandName: brandName || "PNC Block Builder",
+          brandDomain: brandDomain || null,
+          promptsPerSegment: 3,
+          segments: segmentsPayload,
+          sessionType: "pnc_v1",
+        });
+        const created = await res.json();
+        queryClient.invalidateQueries({ queryKey: ["/api/multisegment/sessions"] });
+        return created.id;
+      }
+    } catch {
+      return currentSessionId;
+    }
+  };
+
+  const loadPncSession = (session: MultiSegmentSession) => {
+    const rawSegs = Array.isArray(session.segments) ? session.segments as any[] : [];
+    if (session.sessionType === "pnc_v1") {
+      const seg = rawSegs[0];
+      if (!seg) return;
+      setTab("v1");
+      setV1BrandName(session.brandName);
+      setV1BrandDomain(session.brandDomain || "");
+      setUrl(session.brandDomain || "");
+      const restoredSeg: PncAnalysisSegment = {
+        id: seg.id || "v1_all",
+        type: seg.type || "service",
+        label: seg.label || "Block Builder",
+        prompts: seg.prompts || [],
+        selected: true,
+        isScoring: false,
+        scoringResult: seg.scoringResult || null,
+      };
+      setV1AnalysisSegment(restoredSeg);
+      setV1Loaded(true);
+      setPncV1SessionId(session.id);
+    } else {
+      setTab("v2");
+      setPncBrandName(session.brandName);
+      setPncBrandDomain(session.brandDomain || "");
+      setUrl(session.brandDomain || "");
+      const segs: PncAnalysisSegment[] = rawSegs.map((s: any) => ({
+        id: s.id || `seg-${Math.random().toString(36).slice(2, 8)}`,
+        type: (s.type as "service" | "customer") || "service",
+        label: s.label || "",
+        prompts: s.prompts || [],
+        selected: s.selected !== false,
+        isScoring: false,
+        scoringResult: s.scoringResult || null,
+      }));
+      setPncSegments(segs);
+      setPncV2SessionId(session.id);
+    }
+  };
+
   const runPncSegment = async (segId: string) => {
     const seg = pncSegments.find((s) => s.id === segId);
     if (!seg) return;
@@ -988,6 +1110,9 @@ export default function PncCreator() {
         const domain = pncBrandDomain.trim();
         savePncV2(domain, updated, pncBrandName, domain, pncEngines);
         setV2CacheTs(Date.now());
+        saveV2SessionToDB(updated, pncBrandName, domain, pncEngines, pncV2SessionId).then((newId) => {
+          if (newId && newId !== pncV2SessionId) setPncV2SessionId(newId);
+        });
         return updated;
       });
       if (data.cost?.total_cost_usd) {
@@ -1039,6 +1164,9 @@ export default function PncCreator() {
       const domain = v1BrandDomain.trim();
       savePncV1(domain, completedSeg, v1BrandName, domain, v1Engines);
       setV1CacheTs(Date.now());
+      saveV1SessionToDB(completedSeg, v1BrandName, domain, pncV1SessionId).then((newId) => {
+        if (newId && newId !== pncV1SessionId) setPncV1SessionId(newId);
+      });
       if (data.cost?.total_cost_usd) {
         setCosts((prev) => [...prev, {
           label: "Analysis: Block Builder",
@@ -1367,6 +1495,44 @@ export default function PncCreator() {
 
   return (
     <div className="space-y-4 pb-16">
+
+      {/* Session history dropdown */}
+      {pncSessions.length > 0 && (
+        <div className="flex items-center gap-2">
+          <Select
+            onValueChange={async (v) => {
+              try {
+                const res = await apiRequest("GET", `/api/multisegment/sessions/${v}`);
+                const fullSession = await res.json();
+                loadPncSession(fullSession);
+              } catch {
+                toast({ title: "Failed to load session", description: "Could not fetch session data.", variant: "destructive" });
+              }
+            }}
+          >
+            <SelectTrigger className="bg-secondary/50 h-9 text-xs" data-testid="select-pnc-session">
+              <SelectValue placeholder="Load a previous PNC run…" />
+            </SelectTrigger>
+            <SelectContent>
+              {pncSessions.map((s) => {
+                const segCount = Array.isArray(s.segments) ? (s.segments as any[]).length : 0;
+                const tab = s.sessionType === "pnc_v1" ? "Block Builder" : "Auto Groups";
+                const dateStr = new Date(s.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+                return (
+                  <SelectItem key={s.id} value={String(s.id)} data-testid={`pnc-session-option-${s.id}`}>
+                    {s.brandName} — {tab} — {segCount} seg{segCount !== 1 ? "s" : ""} — {dateStr}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+          {(pncV2SessionId || pncV1SessionId) && (
+            <span className="text-[10px] text-muted-foreground/50 whitespace-nowrap flex items-center gap-1">
+              <FileText className="w-3 h-3" /> session #{pncV2SessionId || pncV1SessionId} — auto-saves
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Shared URL row */}
       <div className="flex gap-2">
@@ -1709,54 +1875,57 @@ export default function PncCreator() {
                 </div>
               )}
 
-              {/* Analysis panel */}
-              {renderAnalysisPanel(
-                pncBrandName, setPncBrandName,
-                pncBrandDomain, setPncBrandDomain,
-                pncEngines, setPncEngines,
-                pncSegments, setPncSegments,
-                () => {},
-                runAllSelectedPnc,
-                pncAnalysisErr,
-                "Run GEO Analysis",
-                v2CacheTs,
-                applyV2Cache,
-              )}
-
-              {/* Citation analysis — one combined report for all scored segments */}
-              {pncSegments.some((s) => s.scoringResult) && (
-                <SegmentCitationAnalyzer
-                  brandName={pncBrandName}
-                  segments={pncSegments.filter((s) => s.scoringResult).map((s) => ({
-                    id: s.id,
-                    persona: "pnc",
-                    seedType: s.type === "service" ? "providers" : "customers",
-                    customerType: s.type === "customer" ? s.label : "",
-                    location: v2LocCity || v2LocCountry || "",
-                    scoringResult: s.scoringResult ? {
-                      score: s.scoringResult.score,
-                      raw_runs: (s.scoringResult.raw_runs || []).map((r: any) => ({
-                        prompt: r.prompt_text || r.prompt_id || "",
-                        engine: r.engine,
-                        response: r.raw_text || "",
-                        brands_found: (r.candidates || []).map((c: any) => typeof c === "string" ? c : c.name_raw || c.name || "").filter(Boolean),
-                        rank: r.brand_rank ?? null,
-                        citations: r.citations || [],
-                        cluster: r.cluster,
-                      })),
-                    } : undefined,
-                  }))}
-                />
-              )}
-
-              {/* Competitor Lens — full impact summaries per competitor */}
-              <PncCompetitorLens
-                segments={pncSegments}
-                brandName={pncBrandName}
-                brandDomain={pncBrandDomain}
-                location={v2LocCity || v2LocCountry || ""}
-              />
             </div>
+          )}
+
+          {/* Analysis panel — shows for newly-generated OR loaded-from-DB sessions */}
+          {pncSegments.length > 0 && renderAnalysisPanel(
+            pncBrandName, setPncBrandName,
+            pncBrandDomain, setPncBrandDomain,
+            pncEngines, setPncEngines,
+            pncSegments, setPncSegments,
+            () => {},
+            runAllSelectedPnc,
+            pncAnalysisErr,
+            "Run GEO Analysis",
+            v2CacheTs,
+            applyV2Cache,
+          )}
+
+          {/* Citation analysis — one combined report for all scored segments */}
+          {pncSegments.some((s) => s.scoringResult) && (
+            <SegmentCitationAnalyzer
+              brandName={pncBrandName}
+              segments={pncSegments.filter((s) => s.scoringResult).map((s) => ({
+                id: s.id,
+                persona: "pnc",
+                seedType: s.type === "service" ? "providers" : "customers",
+                customerType: s.type === "customer" ? s.label : "",
+                location: v2LocCity || v2LocCountry || "",
+                scoringResult: s.scoringResult ? {
+                  score: s.scoringResult.score,
+                  raw_runs: (s.scoringResult.raw_runs || []).map((r: any) => ({
+                    prompt: r.prompt_text || r.prompt_id || "",
+                    engine: r.engine,
+                    response: r.raw_text || "",
+                    brands_found: (r.candidates || []).map((c: any) => typeof c === "string" ? c : c.name_raw || c.name || "").filter(Boolean),
+                    rank: r.brand_rank ?? null,
+                    citations: r.citations || [],
+                    cluster: r.cluster,
+                  })),
+                } : undefined,
+              }))}
+            />
+          )}
+
+          {/* Competitor Lens — full impact summaries per competitor */}
+          {pncSegments.length > 0 && (
+            <PncCompetitorLens
+              segments={pncSegments}
+              brandName={pncBrandName}
+              brandDomain={pncBrandDomain}
+              location={v2LocCity || v2LocCountry || ""}
+            />
           )}
         </div>
       )}
