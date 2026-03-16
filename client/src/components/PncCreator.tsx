@@ -97,6 +97,31 @@ function buildPromptId(prefix: string, i: number) {
   return `pnc_${prefix}_${i}`;
 }
 
+type PncV2Cache = { segments: PncAnalysisSegment[]; brandName: string; brandDomain: string; engines: string[]; timestamp: number };
+type PncV1Cache = { segment: PncAnalysisSegment; brandName: string; brandDomain: string; engines: string[]; timestamp: number };
+
+function pncCacheKey(mode: "v1" | "v2", domain: string) { return `pnc_${mode}_${domain}`; }
+function savePncV2(domain: string, segments: PncAnalysisSegment[], brandName: string, brandDomain: string, engines: Set<string>) {
+  if (!domain) return;
+  try { localStorage.setItem(pncCacheKey("v2", domain), JSON.stringify({ segments, brandName, brandDomain, engines: Array.from(engines), timestamp: Date.now() })); } catch {}
+}
+function loadPncV2(domain: string): PncV2Cache | null {
+  if (!domain) return null;
+  try { const r = localStorage.getItem(pncCacheKey("v2", domain)); return r ? JSON.parse(r) : null; } catch { return null; }
+}
+function savePncV1(domain: string, segment: PncAnalysisSegment, brandName: string, brandDomain: string, engines: Set<string>) {
+  if (!domain) return;
+  try { localStorage.setItem(pncCacheKey("v1", domain), JSON.stringify({ segment, brandName, brandDomain, engines: Array.from(engines), timestamp: Date.now() })); } catch {}
+}
+function loadPncV1(domain: string): PncV1Cache | null {
+  if (!domain) return null;
+  try { const r = localStorage.getItem(pncCacheKey("v1", domain)); return r ? JSON.parse(r) : null; } catch { return null; }
+}
+function fmtCacheTs(ts: number) {
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " " + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+}
+
 
 function SegmentScoreCard({ seg, brandName }: { seg: PncAnalysisSegment; brandName: string }) {
   const score = seg.scoringResult?.score;
@@ -214,6 +239,9 @@ export default function PncCreator() {
   const [v1AnalysisSegment, setV1AnalysisSegment] = useState<PncAnalysisSegment | null>(null);
   const [v1AnalysisErr, setV1AnalysisErr] = useState("");
 
+  const [v2CacheTs, setV2CacheTs] = useState<number | null>(null);
+  const [v1CacheTs, setV1CacheTs] = useState<number | null>(null);
+
   useEffect(() => {
     if (!v2Result) return;
     const serviceSegs: PncAnalysisSegment[] = v2Result.by_service.map((g, i) => ({
@@ -245,6 +273,18 @@ export default function PncCreator() {
       setPncBrandDomain(extractDomain(url));
     }
   }, [url]);
+
+  useEffect(() => {
+    const domain = pncBrandDomain.trim();
+    const cached = loadPncV2(domain);
+    setV2CacheTs(cached ? cached.timestamp : null);
+  }, [pncBrandDomain]);
+
+  useEffect(() => {
+    const domain = v1BrandDomain.trim();
+    const cached = loadPncV1(domain);
+    setV1CacheTs(cached ? cached.timestamp : null);
+  }, [v1BrandDomain]);
 
   function getLoc(mode: string, city: string, country: string) {
     if (mode === "global") return "globally";
@@ -391,7 +431,13 @@ export default function PncCreator() {
         },
       });
       const data = await res.json() as ScoringResponse;
-      setPncSegments((prev) => prev.map((s) => s.id === segId ? { ...s, isScoring: false, scoringResult: data } : s));
+      setPncSegments((prev) => {
+        const updated = prev.map((s) => s.id === segId ? { ...s, isScoring: false, scoringResult: data } : s);
+        const domain = pncBrandDomain.trim();
+        savePncV2(domain, updated, pncBrandName, domain, pncEngines);
+        setV2CacheTs(Date.now());
+        return updated;
+      });
       if (data.cost?.total_cost_usd) {
         setCosts((prev) => [...prev, {
           label: `Analysis: ${seg.label}`,
@@ -436,7 +482,11 @@ export default function PncCreator() {
         },
       });
       const data = await res.json() as ScoringResponse;
-      setV1AnalysisSegment({ ...seg, isScoring: false, scoringResult: data });
+      const completedSeg = { ...seg, isScoring: false, scoringResult: data };
+      setV1AnalysisSegment(completedSeg);
+      const domain = v1BrandDomain.trim();
+      savePncV1(domain, completedSeg, v1BrandName, domain, v1Engines);
+      setV1CacheTs(Date.now());
       if (data.cost?.total_cost_usd) {
         setCosts((prev) => [...prev, {
           label: "Analysis: Block Builder",
@@ -456,6 +506,24 @@ export default function PncCreator() {
     for (const seg of selected) {
       await runPncSegment(seg.id);
     }
+  };
+
+  const applyV2Cache = () => {
+    const domain = pncBrandDomain.trim();
+    const cached = loadPncV2(domain);
+    if (!cached) return;
+    setPncSegments(cached.segments.map((s) => ({ ...s, isScoring: false })));
+    setPncBrandName(cached.brandName);
+    setPncEngines(new Set(cached.engines));
+  };
+
+  const applyV1Cache = () => {
+    const domain = v1BrandDomain.trim();
+    const cached = loadPncV1(domain);
+    if (!cached) return;
+    setV1AnalysisSegment({ ...cached.segment, isScoring: false });
+    setV1BrandName(cached.brandName);
+    setV1Engines(new Set(cached.engines));
   };
 
   const toggleEngine = (engines: Set<string>, setEngines: (e: Set<string>) => void, engine: string) => {
@@ -610,7 +678,9 @@ export default function PncCreator() {
     onRun: () => void,
     onRunAll: () => void,
     analysisErr: string,
-    title: string
+    title: string,
+    cacheTs: number | null,
+    onLoadCache: () => void,
   ) => {
     const anyScoring = segments.some((s) => s.isScoring);
     const selected = segments.filter((s) => s.selected);
@@ -621,8 +691,21 @@ export default function PncCreator() {
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-lime-400 flex-shrink-0" />
           <span className="text-xs font-semibold tracking-wide">{title}</span>
-          {scored.length > 0 && (
+          {cacheTs && scored.length === 0 && !anyScoring && (
+            <button
+              type="button"
+              onClick={onLoadCache}
+              className="ml-auto flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 border border-lime-400/30 text-lime-400 rounded-lg hover:bg-lime-400/10 transition-colors"
+              data-testid="button-pnc-load-cache"
+            >
+              ↺ Load results from {fmtCacheTs(cacheTs)}
+            </button>
+          )}
+          {scored.length > 0 && !cacheTs && (
             <span className="ml-auto text-[10px] font-mono text-muted-foreground/50">{scored.length} segment{scored.length !== 1 ? "s" : ""} scored</span>
+          )}
+          {scored.length > 0 && cacheTs && (
+            <span className="ml-auto text-[10px] font-mono text-muted-foreground/50">{scored.length} scored · saved {fmtCacheTs(cacheTs)}</span>
           )}
         </div>
 
@@ -875,7 +958,19 @@ export default function PncCreator() {
                     <div className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-lime-400 flex-shrink-0" />
                       <span className="text-xs font-semibold tracking-wide">Run GEO Analysis</span>
-                      <span className="text-[10px] text-muted-foreground/40 font-mono">same pipeline as Quick V2</span>
+                      {v1CacheTs && !v1AnalysisSegment?.scoringResult && !v1AnalysisSegment?.isScoring && (
+                        <button
+                          type="button"
+                          onClick={applyV1Cache}
+                          className="ml-auto flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 border border-lime-400/30 text-lime-400 rounded-lg hover:bg-lime-400/10 transition-colors"
+                          data-testid="button-pnc-v1-load-cache"
+                        >
+                          ↺ Load results from {fmtCacheTs(v1CacheTs)}
+                        </button>
+                      )}
+                      {v1AnalysisSegment?.scoringResult && v1CacheTs && (
+                        <span className="ml-auto text-[10px] font-mono text-muted-foreground/50">saved {fmtCacheTs(v1CacheTs)}</span>
+                      )}
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
@@ -1035,7 +1130,9 @@ export default function PncCreator() {
                 () => {},
                 runAllSelectedPnc,
                 pncAnalysisErr,
-                "Run GEO Analysis"
+                "Run GEO Analysis",
+                v2CacheTs,
+                applyV2Cache,
               )}
             </div>
           )}
