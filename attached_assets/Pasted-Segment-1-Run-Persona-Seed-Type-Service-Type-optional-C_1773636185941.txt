@@ -1,0 +1,105 @@
+Segment 1
+Run
+
+Persona
+Seed Type
+Service Type (optional)
+Customer Type
+
+
+Any customer type
+Location (city or country)
+Dubai, United Arab Emirates
+Result Count (find top N)
+10
+3 prompts generated
+1
+Find, list and rank top 10 At-Home Blood Testing service specializing in At-Home Blood Testing based in Dubai, United Arab Emirates.
+2
+Find, list and rank best 10 At-Home Blood Testing service specializing in At-Home Blood Testing based in Dubai, United Arab Emirates.
+3
+Find, list and rank most used 10 At-Home Blood Testing service specializing in At-Home Blood Testing based in Dubai, United Arab Emirates.
+
+Segment 2
+Run
+
+Persona
+Seed Type
+Service Type (optional)
+Customer Type
+
+
+Any customer type
+Location (city or country)
+Dubai, United Arab Emirates
+Result Count (find top N)
+10
+3 prompts generated
+1
+Find, list and rank top 10 DNA Testing service specializing in DNA Testing based in Dubai, United Arab Emirates.
+2
+Find, list and rank best 10 DNA Testing service specializing in DNA Testing based in Dubai, United Arab Emirates.
+3
+Find, list and rank most used 10 DNA Testing service specializing in DNA Testing based in Dubai, United Arab Emirates.
+
+Segment 3
+Run
+
+Persona
+Seed Type
+Service Type (optional)
+Customer Type
+
+
+Any customer type
+Location (city or country)
+Dubai, United Arab Emirates
+Result Count (find top N)
+10
+3 prompts generated
+1
+Find, list and rank top 10 Health Coaching service specializing in Health Coaching based in Dubai, United Arab Emirates.
+2
+Find, list and rank best 10 Health Coaching service specializing in Health Coaching based in Dubai, United Arab Emirates.
+3
+Find, list and rank most used 10 Health Coaching service specializing in Health Coaching based in Dubai, United Arab Emirates.
+
+Segment 4
+Run
+
+Persona
+Seed Type
+Service Type (optional)
+Customer Type
+
+
+Any customer type
+Location (city or country)
+Dubai, United Arab Emirates
+Result Count (find top N)
+10
+3 prompts generated
+1
+Find, list and rank top 10 Supplement Plans service specializing in Supplement Plans based in Dubai, United Arab Emirates.
+2
+Find, list and rank best 10 Supplement Plans service specializing in Supplement Plans based in Dubai, United Arab Emirates.
+3
+Find, list and rank most used 10 Supplement Plans service specializing in Supplement Plans based in Dubai, United Arab Emirates.
+
+Segment 5
+Run
+
+Persona
+Seed Type
+Service Type (optional)
+Customer Type
+
+
+Any customer type
+Location (city or country)
+Dubai, United Arab Emirates
+Result Count (find top N)
+10
+3 prompts generated
+1
+Find, list and rank top 10 Health Tracking service specializing in Health Tracking based in Dubai, United Arab Emirates.
