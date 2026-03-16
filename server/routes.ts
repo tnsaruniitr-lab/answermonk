@@ -1774,6 +1774,93 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/multi-segment-sessions/:id/citation-sources", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) { res.status(400).json({ message: "Invalid session ID" }); return; }
+
+      const { db } = await import("./db");
+      const { sql: drizzleSql } = await import("drizzle-orm");
+
+      const rows = await db.execute(drizzleSql`
+        SELECT
+          domain,
+          domain_category,
+          SUM(appearances) as total_appearances,
+          MAX(in_chatgpt) as in_chatgpt,
+          MAX(in_gemini) as in_gemini,
+          MAX(in_claude) as in_claude,
+          MAX(segment_count) as segment_count,
+          MAX(fetch_status) as fetch_status,
+          MAX(resolved_url) as resolved_url
+        FROM (
+          SELECT
+            domain,
+            domain_category,
+            COUNT(*) as appearances,
+            MAX(CASE WHEN 'chatgpt' = ANY(engines) THEN 1 ELSE 0 END) as in_chatgpt,
+            MAX(CASE WHEN 'gemini' = ANY(engines) THEN 1 ELSE 0 END) as in_gemini,
+            MAX(CASE WHEN 'claude' = ANY(engines) THEN 1 ELSE 0 END) as in_claude,
+            COALESCE(MAX(array_length(segment_indices, 1)), 1) as segment_count,
+            MAX(fetch_status) as fetch_status,
+            MAX(resolved_url) as resolved_url
+          FROM citation_page_mentions
+          WHERE session_id = ${id}
+            AND domain_category IS NOT NULL
+            AND domain_category != 'ai_platform'
+            AND domain IS NOT NULL AND domain != ''
+          GROUP BY domain, domain_category, source_type
+        ) sub
+        GROUP BY domain, domain_category
+        ORDER BY total_appearances DESC
+      `);
+
+      const CATEGORY_LABELS: Record<string, string> = {
+        healthcare_provider: "Healthcare Providers",
+        hospital_clinic: "Hospitals & Clinics",
+        healthcare_directory: "Healthcare Directories",
+        government: "Government & Regulatory",
+        general_web: "General Web",
+        review_platform: "Review Platforms",
+        social_media: "Social Media",
+        news_media: "News & Media",
+        ecommerce: "E-commerce",
+        comparison: "Comparison Pages",
+      };
+
+      const grouped: Record<string, any[]> = {};
+      for (const row of rows.rows) {
+        const cat = String(row.domain_category || "general_web");
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push({
+          domain: row.domain,
+          appearances: Number(row.total_appearances),
+          inChatgpt: Number(row.in_chatgpt) === 1,
+          inGemini: Number(row.in_gemini) === 1,
+          inClaude: Number(row.in_claude) === 1,
+          segmentCount: Number(row.segment_count),
+          fetchStatus: row.fetch_status,
+          resolvedUrl: row.resolved_url,
+        });
+      }
+
+      const categories = Object.entries(grouped)
+        .map(([key, domains]) => ({
+          key,
+          label: CATEGORY_LABELS[key] || key.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
+          domains: domains.sort((a, b) => b.appearances - a.appearances),
+          totalDomains: domains.length,
+          totalAppearances: domains.reduce((s, d) => s + d.appearances, 0),
+        }))
+        .sort((a, b) => b.totalAppearances - a.totalAppearances);
+
+      res.json({ categories });
+    } catch (err) {
+      console.error("[citation-sources] Error:", err);
+      res.status(500).json({ message: String(err) });
+    }
+  });
+
   app.get("/api/multi-segment-sessions/:id/report", async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);

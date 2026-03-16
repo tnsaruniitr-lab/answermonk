@@ -25,6 +25,8 @@ import {
   DollarSign,
   Code,
   Sparkles,
+  Globe,
+  MapPin,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest } from "@/lib/queryClient";
@@ -266,6 +268,8 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
   const [siCost, setSiCost] = useState<{ tokens: number; costUsd: number; cached: boolean } | null>(null);
   const [showSiPrompt, setShowSiPrompt] = useState(false);
   const [siPromptText, setSiPromptText] = useState<string>("");
+  const [citationSources, setCitationSources] = useState<any[] | null>(null);
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
 
   const segmentsWithScores = segments.filter(s => s.scoringResult);
   const cacheId = sessionId || groupKey;
@@ -300,6 +304,20 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
         setSiResult(r.result);
         setSiPromptText(r.promptText || "");
         setSiCost({ tokens: r.promptTokens + r.completionTokens, costUsd: r.costUsd, cached: true });
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [sessionId]);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    let cancelled = false;
+    fetch(`/api/multi-segment-sessions/${sessionId}/citation-sources`)
+      .then(r => r.json())
+      .then(data => {
+        if (cancelled || !data.categories) return;
+        setCitationSources(data.categories);
+        setExpandedCats(new Set(data.categories.slice(0, 2).map((c: any) => c.key)));
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -786,6 +804,92 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
                     </CollapsibleContent>
                   </Collapsible>
                 )}
+              </div>
+            )}
+
+            {/* Section 3: Citation Sources — always shown once available, no AI cost */}
+            {citationSources && citationSources.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-violet-200/60 dark:border-violet-800/40">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Globe className="w-3.5 h-3.5 text-blue-500" />
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Citation Sources</span>
+                  <Badge className="text-[10px] px-1.5 bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300 border-0">
+                    {citationSources.reduce((s: number, c: any) => s + c.totalDomains, 0)} unique domains
+                  </Badge>
+                </div>
+
+                {/* Category filter pills */}
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {citationSources.map((cat: any) => {
+                    const colors: Record<string, string> = {
+                      healthcare_provider: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
+                      hospital_clinic: "bg-teal-100 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300",
+                      healthcare_directory: "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300",
+                      government: "bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300",
+                      general_web: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
+                      review_platform: "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-300",
+                      social_media: "bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300",
+                      news_media: "bg-pink-100 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300",
+                      comparison: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300",
+                      ecommerce: "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300",
+                    };
+                    const cls = colors[cat.key] || "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300";
+                    return (
+                      <button
+                        key={cat.key}
+                        onClick={() => setExpandedCats(prev => {
+                          const next = new Set(prev);
+                          next.has(cat.key) ? next.delete(cat.key) : next.add(cat.key);
+                          return next;
+                        })}
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium border-0 cursor-pointer transition-opacity ${cls} ${expandedCats.has(cat.key) ? "opacity-100 ring-1 ring-current ring-inset" : "opacity-50 hover:opacity-75"}`}
+                      >
+                        {cat.label} · {cat.totalDomains}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Expanded category domain lists */}
+                <div className="space-y-2">
+                  {citationSources.filter((c: any) => expandedCats.has(c.key)).map((cat: any) => (
+                    <div key={cat.key} className="bg-white dark:bg-slate-900/60 rounded-lg border border-border/50">
+                      <div className="px-3 py-2 border-b border-border/40 flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-foreground">{cat.label}</span>
+                        <span className="text-[10px] text-muted-foreground">{cat.totalAppearances} appearances · {cat.totalDomains} domains</span>
+                      </div>
+                      <div className="divide-y divide-border/30">
+                        {cat.domains.map((d: any, di: number) => (
+                          <div key={di} className="flex items-center justify-between px-3 py-2 gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-[11px] text-muted-foreground w-4 shrink-0 text-right">{di + 1}</span>
+                              <a
+                                href={`https://${d.domain}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 dark:text-blue-400 hover:underline truncate font-medium"
+                              >
+                                {d.domain}
+                              </a>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {d.inChatgpt && (
+                                <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 px-1.5 py-0 rounded-full font-medium">GPT</span>
+                              )}
+                              {d.inGemini && (
+                                <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 px-1.5 py-0 rounded-full font-medium">Gem</span>
+                              )}
+                              {d.inClaude && (
+                                <span className="text-[10px] bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400 px-1.5 py-0 rounded-full font-medium">Cla</span>
+                              )}
+                              <span className="text-[11px] text-muted-foreground font-medium">{d.appearances}×</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
