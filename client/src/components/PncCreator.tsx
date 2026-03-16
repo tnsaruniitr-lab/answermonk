@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { deduplicateStoredCompetitors } from "@/lib/competitor-merge";
-import InsightsPanel from "@/components/InsightsPanel";
+import { SegmentCitationAnalyzer } from "@/components/SegmentCitationAnalyzer";
+import { Section1, Section2, CompetitorPlaybookSection, Section3, AppendixSection } from "@/components/ReportViewer";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Users, ChevronDown, ChevronRight, Loader2, Search, TrendingUp, FileText, Zap, Eye, BarChart3 } from "lucide-react";
 
 const DEFAULT_QUALIFIERS = [
   "most trusted","most reliable","most affordable","highest rated",
@@ -125,9 +133,8 @@ function fmtCacheTs(ts: number) {
 }
 
 
-function SegmentScoreCard({ seg, brandName, brandDomain }: { seg: PncAnalysisSegment; brandName: string; brandDomain?: string }) {
+function SegmentScoreCard({ seg, brandName }: { seg: PncAnalysisSegment; brandName: string }) {
   const [showSources, setShowSources] = useState(false);
-  const [showInsights, setShowInsights] = useState(false);
 
   const scoringResult = seg.scoringResult;
   const score = scoringResult?.score;
@@ -153,8 +160,6 @@ function SegmentScoreCard({ seg, brandName, brandDomain }: { seg: PncAnalysisSeg
       }
     }
   }
-
-  const jobId = scoringResult?.job_id;
 
   return (
     <div className="mt-3 space-y-3 border-t border-border/40 pt-3">
@@ -249,32 +254,499 @@ function SegmentScoreCard({ seg, brandName, brandDomain }: { seg: PncAnalysisSeg
         </div>
       )}
 
-      {/* Impact Summary (InsightsPanel) */}
-      {jobId && (
-        <div>
-          <button
-            type="button"
-            onClick={() => setShowInsights((v) => !v)}
-            className="w-full flex items-center gap-2 text-[11px] font-mono text-lime-400/70 hover:text-lime-400 transition-colors py-1"
-            data-testid="button-pnc-insights-toggle"
-          >
-            <span className={`transition-transform ${showInsights ? "rotate-90" : ""}`}>▶</span>
-            <span>Impact Summary & AI Analysis</span>
-          </button>
-          {showInsights && (
-            <div className="mt-2">
-              <InsightsPanel jobId={jobId} brandName={brandName} brandDomain={brandDomain} />
-            </div>
-          )}
-        </div>
-      )}
-
       {scoringResult?.cost?.total_cost_usd > 0 && (
         <div className="text-[10px] font-mono text-muted-foreground/40">
           Cost: ${scoringResult.cost.total_cost_usd.toFixed(4)}
         </div>
       )}
     </div>
+  );
+}
+
+function PncCompetitorLens({ segments, brandName, brandDomain, location }: {
+  segments: PncAnalysisSegment[];
+  brandName: string;
+  brandDomain: string;
+  location: string;
+}) {
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [compList, setCompList] = useState<{ name: string; appearances: number; segments: string[] }[]>([]);
+  const [selected, setSelected] = useState("");
+  const [customName, setCustomName] = useState("");
+  const [result, setResult] = useState<any>(null);
+  const [reportData, setReportData] = useState<any>(null);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [batchSelected, setBatchSelected] = useState<Set<string>>(new Set());
+  const [batchRunning, setBatchRunning] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<{ index: number; total: number; name: string; status: string } | null>(null);
+  const [batchResults, setBatchResults] = useState<Array<{ name: string; slug: string; sessionId: number; success: boolean; error?: string }> | null>(null);
+
+  const buildSegmentRunsMap = () => {
+    const map: Record<string, any[]> = {};
+    segments.forEach((seg) => {
+      if (seg.scoringResult?.raw_runs?.length) {
+        const label = `${seg.label}${location ? ` · ${location}` : ""}`;
+        map[label] = seg.scoringResult.raw_runs;
+      }
+    });
+    return map;
+  };
+
+  const getSegmentsPayload = () =>
+    segments
+      .filter((s) => s.scoringResult?.raw_runs?.length)
+      .map((s) => ({
+        persona: "pnc",
+        seedType: s.type === "service" ? "providers" : "customers",
+        serviceType: s.type === "service" ? s.label : undefined,
+        customerType: s.type === "customer" ? s.label : "",
+        location,
+        prompts: s.prompts,
+        scoringResult: s.scoringResult,
+      }));
+
+  const loadCompetitorList = async () => {
+    const segMap = buildSegmentRunsMap();
+    if (!Object.keys(segMap).length) return;
+    try {
+      const res = await apiRequest("POST", "/api/competitor-lens/list", { segments: segMap });
+      setCompList(await res.json());
+    } catch {
+      toast({ title: "Failed to load competitors", variant: "destructive" });
+    }
+  };
+
+  const runCompetitorLens = async (name: string) => {
+    const segMap = buildSegmentRunsMap();
+    if (!Object.keys(segMap).length) return;
+    setLoading(true);
+    setResult(null);
+    setReportData(null);
+    setReportOpen(false);
+    try {
+      const res = await apiRequest("POST", "/api/competitor-lens/analyse", {
+        competitorName: name,
+        segments: segMap,
+        brandName,
+      });
+      setResult(await res.json());
+    } catch {
+      toast({ title: "Competitor analysis failed", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateReport = async () => {
+    setReportLoading(true);
+    try {
+      const res = await apiRequest("POST", "/api/competitor-lens/report", {
+        competitorName: selected,
+        sessionId: 0,
+        segments: getSegmentsPayload(),
+        brandName,
+        brandDomain: brandDomain || undefined,
+      });
+      const data = await res.json();
+      setReportData(data.report);
+      setReportOpen(true);
+    } catch {
+      toast({ title: "Report generation failed", variant: "destructive" });
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  const runBatchReports = async () => {
+    if (!batchSelected.size) return;
+    setBatchRunning(true);
+    setBatchProgress(null);
+    setBatchResults(null);
+    try {
+      const res = await fetch("/api/competitor-lens/batch-reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          competitors: Array.from(batchSelected),
+          sessionId: 0,
+          segments: getSegmentsPayload(),
+          brandName,
+          brandDomain: brandDomain || undefined,
+        }),
+      });
+      if (!res.ok) throw new Error("Batch generation failed");
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error("No reader");
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const event = JSON.parse(line.slice(6));
+              if (event.type === "progress") {
+                setBatchProgress({ index: event.index, total: event.total, name: event.name, status: event.status });
+              } else if (event.type === "complete") {
+                setBatchResults(event.results);
+              }
+            } catch {}
+          }
+        }
+      }
+    } catch {
+      toast({ title: "Batch generation failed", variant: "destructive" });
+    } finally {
+      setBatchRunning(false);
+    }
+  };
+
+  const avgBrandRate = segments.filter((s) => s.scoringResult).length > 0
+    ? segments.reduce((s, seg) => s + (seg.scoringResult?.score?.appearance_rate || 0), 0) / Math.max(segments.filter((s) => s.scoringResult).length, 1)
+    : 0;
+
+  if (!segments.some((s) => s.scoringResult)) return null;
+
+  return (
+    <Card className="p-4 space-y-4 mt-4" data-testid="pnc-competitor-lens-section">
+      <button
+        className="flex items-center gap-2 w-full text-left"
+        onClick={() => {
+          const wasOpen = open;
+          setOpen(!wasOpen);
+          if (!wasOpen && !compList.length) loadCompetitorList();
+        }}
+        data-testid="toggle-pnc-competitor-lens"
+      >
+        <Users className="w-4 h-4 text-muted-foreground" />
+        <span className="text-sm font-medium">Competitor Lens</span>
+        <span className="text-[10px] text-muted-foreground ml-1">View any competitor's full analysis — no extra API cost</span>
+        {open ? <ChevronDown className="w-4 h-4 ml-auto text-muted-foreground" /> : <ChevronRight className="w-4 h-4 ml-auto text-muted-foreground" />}
+      </button>
+
+      {open && (
+        <div className="space-y-4 pt-2">
+          {/* Competitor selector */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <Select
+              value={compList.some((c) => c.name === selected) ? selected : ""}
+              onValueChange={(v) => { setSelected(v); setCustomName(""); runCompetitorLens(v); }}
+            >
+              <SelectTrigger className="w-64 bg-secondary/50" data-testid="select-pnc-competitor">
+                <SelectValue placeholder="Select a competitor..." />
+              </SelectTrigger>
+              <SelectContent>
+                {compList.map((c) => (
+                  <SelectItem key={c.name} value={c.name}>
+                    {c.name} ({c.appearances} mentions, {c.segments.length} seg{c.segments.length !== 1 ? "s" : ""})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-xs text-muted-foreground">or</span>
+            <div className="flex items-center gap-2">
+              <Input
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                placeholder="Type any business name..."
+                className="w-56 h-9 bg-secondary/50 text-sm"
+                data-testid="input-pnc-custom-competitor"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && customName.trim()) {
+                    setSelected(customName.trim());
+                    runCompetitorLens(customName.trim());
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={!customName.trim() || loading}
+                onClick={() => { const n = customName.trim(); setSelected(n); runCompetitorLens(n); }}
+                data-testid="button-pnc-check-custom-competitor"
+                className="h-9 text-xs"
+              >
+                <Search className="w-3 h-3 mr-1" />
+                Check
+              </Button>
+            </div>
+          </div>
+          {loading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+
+          {/* Batch generate */}
+          {compList.length > 0 && (
+            <div className="border rounded-lg p-4 space-y-3 bg-secondary/20">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-primary" />
+                  Batch Generate Impact Summaries
+                </h4>
+                <button
+                  type="button"
+                  className="text-xs text-primary hover:underline"
+                  onClick={() => setBatchSelected(batchSelected.size === compList.length ? new Set() : new Set(compList.map((c) => c.name)))}
+                >
+                  {batchSelected.size === compList.length ? "Deselect All" : "Select All"}
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                {compList.map((c) => (
+                  <label key={c.name} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-secondary/50 cursor-pointer text-sm">
+                    <input
+                      type="checkbox"
+                      checked={batchSelected.has(c.name)}
+                      onChange={() => {
+                        const next = new Set(batchSelected);
+                        next.has(c.name) ? next.delete(c.name) : next.add(c.name);
+                        setBatchSelected(next);
+                      }}
+                      disabled={batchRunning}
+                      className="rounded border-gray-300"
+                    />
+                    <span className="font-medium">{c.name}</span>
+                    <span className="text-xs text-muted-foreground">({c.appearances} mentions, {c.segments.length} seg{c.segments.length !== 1 ? "s" : ""})</span>
+                  </label>
+                ))}
+              </div>
+              {batchProgress && batchRunning && (
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    <span>Generating {batchProgress.index + 1}/{batchProgress.total}: <strong>{batchProgress.name}</strong>...</span>
+                  </div>
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${((batchProgress.index + (batchProgress.status === "done" || batchProgress.status === "exists" ? 1 : 0.5)) / batchProgress.total) * 100}%` }} />
+                  </div>
+                </div>
+              )}
+              {batchResults && !batchRunning && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">{batchResults.filter((r) => r.success).length}/{batchResults.length} reports generated</p>
+                  <div className="space-y-1">
+                    {batchResults.filter((r) => r.success).map((r) => (
+                      <div key={r.name} className="flex items-center justify-between text-sm px-2 py-1.5 bg-green-50 dark:bg-green-950 rounded border border-green-200 dark:border-green-900">
+                        <span className="font-medium">{r.name}</span>
+                        <span className="text-xs text-green-600 dark:text-green-400">Done</span>
+                      </div>
+                    ))}
+                    {batchResults.filter((r) => !r.success).map((r) => (
+                      <div key={r.name} className="flex items-center justify-between text-sm px-2 py-1.5 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-900">
+                        <span className="font-medium text-red-700 dark:text-red-400">{r.name}</span>
+                        <span className="text-xs text-red-500">Failed</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <Button
+                onClick={runBatchReports}
+                disabled={!batchSelected.size || batchRunning}
+                className="w-full"
+                data-testid="button-pnc-batch-generate"
+              >
+                {batchRunning ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating Reports...</>
+                ) : (
+                  <><Zap className="w-4 h-4 mr-2" />Generate {batchSelected.size} Impact Summar{batchSelected.size === 1 ? "y" : "ies"}</>
+                )}
+              </Button>
+            </div>
+          )}
+
+          {/* Competitor result */}
+          {result && !loading && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold">{result.competitorName}</h3>
+                <Badge variant="secondary" className="text-[10px]">
+                  {result.overall.appearance_rate === 0 ? "Not Found" : "Competitor Analysis"}
+                </Badge>
+              </div>
+
+              {result.overall.appearance_rate === 0 && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-destructive">
+                    <Eye className="w-4 h-4" />
+                    <span className="text-sm font-semibold">Zero AI Visibility</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    AI engines do not currently recommend <strong>{result.competitorName}</strong> for any of the {Object.keys(result.perSegment).length} segment{Object.keys(result.perSegment).length !== 1 ? "s" : ""} tested.
+                  </p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-secondary/50 rounded-md p-2.5 text-center">
+                  <div className="text-lg font-bold">{Math.round(result.overall.appearance_rate * 100)}%</div>
+                  <div className="text-[10px] text-muted-foreground">Appearance</div>
+                </div>
+                <div className="bg-secondary/50 rounded-md p-2.5 text-center">
+                  <div className="text-lg font-bold">{Math.round(result.overall.primary_rate * 100)}%</div>
+                  <div className="text-[10px] text-muted-foreground">Top 3</div>
+                </div>
+                <div className="bg-secondary/50 rounded-md p-2.5 text-center">
+                  <div className="text-lg font-bold">{result.overall.avg_rank !== null ? `#${result.overall.avg_rank}` : "—"}</div>
+                  <div className="text-[10px] text-muted-foreground">Avg Rank</div>
+                </div>
+              </div>
+
+              {Object.keys(result.overall.engine_breakdown || {}).length > 0 && (
+                <div>
+                  <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <BarChart3 className="w-3 h-3" />By Engine
+                  </h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    {Object.entries(result.overall.engine_breakdown).map(([engine, data]: [string, any]) => (
+                      <div key={engine} className="bg-secondary/30 rounded-md p-2 text-center">
+                        <div className="text-[10px] text-muted-foreground capitalize mb-1">{engine}</div>
+                        <div className="text-sm font-semibold">{Math.round(data.appearance_rate * 100)}%</div>
+                        <div className="text-[10px] text-muted-foreground">Top 3: {Math.round(data.primary_rate * 100)}%</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Per-segment comparison */}
+              {Object.keys(result.perSegment).length > 0 && (
+                <div>
+                  <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <BarChart3 className="w-3 h-3" />You vs {result.competitorName}
+                  </h4>
+                  <div className="border rounded-md overflow-hidden text-xs">
+                    <div className="grid grid-cols-[1fr_100px_100px] px-3 py-2 bg-secondary/30 text-[10px] font-medium text-muted-foreground">
+                      <span>Segment</span>
+                      <span className="text-center">You</span>
+                      <span className="text-center">{result.competitorName}</span>
+                    </div>
+                    {Object.entries(result.perSegment).map(([label, segData]: [string, any]) => {
+                      const brandSeg = segments.find((s) => s.label === label.split(" · ")[0]);
+                      const myRate = brandSeg?.scoringResult?.score?.appearance_rate ?? null;
+                      const theirRate = segData.appearance_rate ?? 0;
+                      const iWin = myRate !== null && myRate > theirRate;
+                      const theyWin = theirRate > (myRate ?? 0);
+                      return (
+                        <div key={label} className="grid grid-cols-[1fr_100px_100px] px-3 py-2 border-t items-center">
+                          <span className="truncate">{label}</span>
+                          <span className={`text-center font-medium ${iWin ? "text-green-600 dark:text-green-400" : ""}`}>
+                            {myRate !== null ? `${Math.round(myRate * 100)}%` : "—"}
+                          </span>
+                          <span className={`text-center font-medium ${theyWin ? "text-green-600 dark:text-green-400" : ""}`}>
+                            {theirRate === 0 ? <span className="text-muted-foreground/60">~0%</span> : `${Math.round(theirRate * 100)}%`}
+                          </span>
+                        </div>
+                      );
+                    })}
+                    <div className="grid grid-cols-[1fr_100px_100px] px-3 py-2 border-t bg-secondary/20 text-xs font-semibold items-center">
+                      <span>Overall</span>
+                      <span className={`text-center ${avgBrandRate > result.overall.appearance_rate ? "text-green-600 dark:text-green-400" : ""}`}>
+                        {Math.round(avgBrandRate * 100)}%
+                      </span>
+                      <span className={`text-center ${result.overall.appearance_rate > avgBrandRate ? "text-green-600 dark:text-green-400" : ""}`}>
+                        {Math.round(result.overall.appearance_rate * 100)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {result.strongestClusters?.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <TrendingUp className="w-3 h-3" />Strongest Prompt Types
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {result.strongestClusters.filter((c: any) => c.rate > 0).slice(0, 6).map((c: any) => (
+                      <Badge key={c.cluster} variant="secondary" className="text-[10px]">
+                        {c.cluster}: {Math.round(c.rate * 100)}% ({c.appearances})
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {result.verbatimQuotes?.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <FileText className="w-3 h-3" />What AI Engines Say About {result.competitorName}
+                  </h4>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {result.verbatimQuotes.map((q: any, i: number) => (
+                      <div key={i} className="bg-secondary/30 rounded-md p-2 text-xs">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Badge variant="outline" className="text-[9px] py-0">
+                            {q.engine === "chatgpt" ? "ChatGPT" : q.engine === "claude" ? "Claude" : "Gemini"}
+                          </Badge>
+                        </div>
+                        <p className="text-muted-foreground italic">"{q.sentence}"</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Generate full report */}
+              <div className="pt-3 border-t mt-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => { if (reportData) setReportOpen(!reportOpen); else generateReport(); }}
+                  disabled={reportLoading}
+                  data-testid="button-pnc-competitor-full-report"
+                  className="w-full"
+                >
+                  {reportLoading ? (
+                    <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Generating Report...</>
+                  ) : reportData ? (
+                    <><FileText className="w-3.5 h-3.5 mr-1.5" />{reportOpen ? "Hide Full Report" : "Show Full Report"}</>
+                  ) : (
+                    <><FileText className="w-3.5 h-3.5 mr-1.5" />Generate Full Report for {result.competitorName}</>
+                  )}
+                </Button>
+              </div>
+
+              {reportOpen && reportData && (
+                <div className="mt-4 space-y-4" data-testid="pnc-competitor-full-report">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-primary" />
+                      Full GEO Report — {reportData.meta?.brandName}
+                    </h3>
+                    <Badge variant="secondary" className="text-[10px]">
+                      {reportData.meta?.segmentCount} segments · {reportData.meta?.totalRuns} runs
+                    </Badge>
+                  </div>
+                  {reportData.meta?.zeroVisibility && (
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 space-y-2">
+                      <div className="flex items-center gap-2 text-destructive">
+                        <Eye className="w-4 h-4" />
+                        <span className="text-sm font-semibold">0% AI Visibility</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        When potential customers ask AI about these services, <strong>{reportData.meta.brandName}</strong> doesn't come up.
+                      </p>
+                    </div>
+                  )}
+                  {reportData.section1 && <Section1 data={reportData.section1} />}
+                  {reportData.section2 && <Section2 data={reportData.section2} brandName={reportData.meta?.brandName || selected} />}
+                  {reportData.competitorPlaybook && <CompetitorPlaybookSection data={reportData.competitorPlaybook} brandName={reportData.meta?.brandName || selected} />}
+                  {reportData.section3 && <Section3 data={reportData.section3} />}
+                  {reportData.appendix && <AppendixSection data={reportData.appendix} />}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </Card>
   );
 }
 
@@ -864,7 +1336,7 @@ export default function PncCreator() {
                   )}
 
                   {seg.scoringResult && !seg.isScoring && (
-                    <SegmentScoreCard seg={seg} brandName={brandName} brandDomain={brandDomain} />
+                    <SegmentScoreCard seg={seg} brandName={brandName} />
                   )}
                 </div>
               ))}
@@ -1089,7 +1561,7 @@ export default function PncCreator() {
                     )}
 
                     {v1AnalysisSegment?.scoringResult && !v1AnalysisSegment.isScoring && (
-                      <SegmentScoreCard seg={v1AnalysisSegment} brandName={v1BrandName} brandDomain={v1BrandDomain} />
+                      <SegmentScoreCard seg={v1AnalysisSegment} brandName={v1BrandName} />
                     )}
 
                     <button
@@ -1103,6 +1575,42 @@ export default function PncCreator() {
                     </button>
                   </div>
                 </div>
+              )}
+
+              {/* Citation analysis — combined report for all scored V1 prompts */}
+              {v1AnalysisSegment?.scoringResult && !v1AnalysisSegment.isScoring && (
+                <SegmentCitationAnalyzer
+                  brandName={v1BrandName}
+                  segments={[{
+                    id: v1AnalysisSegment.id,
+                    persona: "pnc",
+                    seedType: "providers",
+                    customerType: "",
+                    location: locCity || locCountry || "",
+                    scoringResult: v1AnalysisSegment.scoringResult ? {
+                      score: v1AnalysisSegment.scoringResult.score,
+                      raw_runs: (v1AnalysisSegment.scoringResult.raw_runs || []).map((r: any) => ({
+                        prompt: r.prompt_text || r.prompt_id || "",
+                        engine: r.engine,
+                        response: r.raw_text || "",
+                        brands_found: (r.candidates || []).map((c: any) => typeof c === "string" ? c : c.name_raw || c.name || "").filter(Boolean),
+                        rank: r.brand_rank ?? null,
+                        citations: r.citations || [],
+                        cluster: r.cluster,
+                      })),
+                    } : undefined,
+                  }]}
+                />
+              )}
+
+              {/* Competitor Lens for V1 */}
+              {v1AnalysisSegment && (
+                <PncCompetitorLens
+                  segments={v1AnalysisSegment ? [v1AnalysisSegment] : []}
+                  brandName={v1BrandName}
+                  brandDomain={v1BrandDomain}
+                  location={locCity || locCountry || ""}
+                />
               )}
             </div>
           )}
@@ -1214,6 +1722,40 @@ export default function PncCreator() {
                 v2CacheTs,
                 applyV2Cache,
               )}
+
+              {/* Citation analysis — one combined report for all scored segments */}
+              {pncSegments.some((s) => s.scoringResult) && (
+                <SegmentCitationAnalyzer
+                  brandName={pncBrandName}
+                  segments={pncSegments.filter((s) => s.scoringResult).map((s) => ({
+                    id: s.id,
+                    persona: "pnc",
+                    seedType: s.type === "service" ? "providers" : "customers",
+                    customerType: s.type === "customer" ? s.label : "",
+                    location: v2LocCity || v2LocCountry || "",
+                    scoringResult: s.scoringResult ? {
+                      score: s.scoringResult.score,
+                      raw_runs: (s.scoringResult.raw_runs || []).map((r: any) => ({
+                        prompt: r.prompt_text || r.prompt_id || "",
+                        engine: r.engine,
+                        response: r.raw_text || "",
+                        brands_found: (r.candidates || []).map((c: any) => typeof c === "string" ? c : c.name_raw || c.name || "").filter(Boolean),
+                        rank: r.brand_rank ?? null,
+                        citations: r.citations || [],
+                        cluster: r.cluster,
+                      })),
+                    } : undefined,
+                  }))}
+                />
+              )}
+
+              {/* Competitor Lens — full impact summaries per competitor */}
+              <PncCompetitorLens
+                segments={pncSegments}
+                brandName={pncBrandName}
+                brandDomain={pncBrandDomain}
+                location={v2LocCity || v2LocCountry || ""}
+              />
             </div>
           )}
         </div>
