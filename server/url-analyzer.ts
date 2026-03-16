@@ -44,6 +44,7 @@ async function fetchPageHtml(url: string, redirectDepth = 0): Promise<string> {
       return;
     }
     const client = parsedUrl.protocol === "https:" ? https : http;
+    let intentionallyAborted = false;
     const req = client.get(
       url,
       {
@@ -69,14 +70,19 @@ async function fetchPageHtml(url: string, redirectDepth = 0): Promise<string> {
         res.setEncoding("utf8");
         res.on("data", (chunk) => {
           raw += chunk;
-          if (raw.length > 150000) req.destroy();
+          if (raw.length > 150000) {
+            intentionallyAborted = true;
+            req.destroy();
+            resolve(raw);
+          }
         });
-        res.on("end", () => resolve(raw));
-        res.on("error", reject);
+        res.on("end", () => { if (!intentionallyAborted) resolve(raw); });
+        res.on("error", (err) => { if (!intentionallyAborted) reject(err); });
       }
     );
-    req.on("error", reject);
+    req.on("error", (err) => { if (!intentionallyAborted) reject(err); });
     req.on("timeout", () => {
+      intentionallyAborted = true;
       req.destroy();
       reject(new Error("Request timed out after 10 seconds"));
     });
