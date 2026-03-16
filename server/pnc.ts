@@ -141,7 +141,7 @@ export async function pncClassifyGenerate(services: string[], customers: string[
   const sysP = `Search prompt strategist. Generate prompts using ONLY confirmed services and customers.
 Return ONLY raw valid JSON:
 {"business_name":"","by_service":[{"service":"","prompts":[{"verb":"Find","text":""},{"verb":"List","text":""},{"verb":"Rank","text":""}]}],"by_customer":[{"customer":"","prompts":[{"verb":"Find","text":""},{"verb":"List","text":""},{"verb":"Rank","text":""}]}]}
-Rules: 4-5 prompts per service, 3-4 per customer. Verbs: Find/List/Rank evenly. Qualifiers: most trusted/reliable/affordable/highest rated/most experienced/best reviewed — vary, no repeats in group. Location: "${loc}". Natural language. ONLY use listed services and customers.`;
+Rules: 8 prompts per service, 8 per customer. Verbs: Find/List/Rank cycling evenly (e.g. Find/List/Rank/Find/List/Rank/Find/List). Qualifiers: most trusted/reliable/affordable/highest rated/most experienced/best reviewed/most recommended/top rated — vary, no repeats in group. Location: "${loc}". Natural language. ONLY use listed services and customers.`;
 
   const userMsg = `Services confirmed: ${JSON.stringify(services)}\nCustomer types confirmed: ${JSON.stringify(customers)}\nLocation: "${loc}"\nURL: ${url}\nGenerate grouped prompts.`;
 
@@ -191,8 +191,7 @@ Return ONLY raw valid JSON — no markdown, no backticks:
 Rules:
 - Identify every service from the website
 - Identify 4-6 distinct customer types who use this business
-- Generate 4-6 prompts per service group, 3-4 prompts per customer group
-- Verbs ONLY: Find, List, Rank — vary evenly
+- Generate 8 prompts per service group, 8 prompts per customer group. Verbs: Find/List/Rank cycling evenly (e.g. Find/List/Rank/Find/List/Rank/Find/List). Only these three verbs.
 - Qualifiers: most trusted, most reliable, most affordable, highest rated, most experienced, best reviewed, most recommended — vary, no repeats within a group
 - Location string for all prompts: "${loc}"
 - Make every prompt feel natural — like a real person typing to an AI assistant
