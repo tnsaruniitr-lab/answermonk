@@ -1783,7 +1783,8 @@ export async function registerRoutes(
       const { db } = await import("./db");
       const { sql: drizzleSql } = await import("drizzle-orm");
 
-      const rows = await db.execute(drizzleSql`
+      // Query 1: direct citations (non-ai_platform rows, all engines)
+      const directRows = await db.execute(drizzleSql`
         SELECT
           domain,
           domain_category,
@@ -1791,9 +1792,7 @@ export async function registerRoutes(
           MAX(in_chatgpt) as in_chatgpt,
           MAX(in_gemini) as in_gemini,
           MAX(in_claude) as in_claude,
-          MAX(segment_count) as segment_count,
-          MAX(fetch_status) as fetch_status,
-          MAX(resolved_url) as resolved_url
+          MAX(segment_count) as segment_count
         FROM (
           SELECT
             domain,
@@ -1802,9 +1801,7 @@ export async function registerRoutes(
             MAX(CASE WHEN 'chatgpt' = ANY(engines) THEN 1 ELSE 0 END) as in_chatgpt,
             MAX(CASE WHEN 'gemini' = ANY(engines) THEN 1 ELSE 0 END) as in_gemini,
             MAX(CASE WHEN 'claude' = ANY(engines) THEN 1 ELSE 0 END) as in_claude,
-            COALESCE(MAX(array_length(segment_indices, 1)), 1) as segment_count,
-            MAX(fetch_status) as fetch_status,
-            MAX(resolved_url) as resolved_url
+            COALESCE(MAX(array_length(segment_indices, 1)), 1) as segment_count
           FROM citation_page_mentions
           WHERE session_id = ${id}
             AND domain_category IS NOT NULL
@@ -1813,8 +1810,86 @@ export async function registerRoutes(
           GROUP BY domain, domain_category, source_type
         ) sub
         GROUP BY domain, domain_category
-        ORDER BY total_appearances DESC
       `);
+
+      // Query 2: Gemini grounding redirects — extract real domain from resolved_url
+      const geminiRows = await db.execute(drizzleSql`
+        SELECT
+          LOWER(REGEXP_REPLACE(
+            REGEXP_REPLACE(resolved_url, '^https?://(www\\.)?', ''),
+            '[/?#:].*$', ''
+          )) as resolved_domain,
+          COUNT(*) as appearances
+        FROM citation_page_mentions
+        WHERE session_id = ${id}
+          AND domain_category = 'ai_platform'
+          AND resolved_url IS NOT NULL AND resolved_url != ''
+          AND resolved_url NOT LIKE '%vertexaisearch%'
+          AND resolved_url NOT LIKE '%googleapis%'
+          AND resolved_url NOT LIKE '%google.com%'
+        GROUP BY resolved_domain
+        HAVING LENGTH(LOWER(REGEXP_REPLACE(
+          REGEXP_REPLACE(resolved_url, '^https?://(www\\.)?', ''),
+          '[/?#:].*$', ''
+        ))) > 3
+        ORDER BY appearances DESC
+      `);
+
+      // Infer category from domain name heuristics
+      function inferCategory(domain: string): string {
+        const d = domain.toLowerCase();
+        if (d.includes(".gov.") || d.startsWith("gov.") || d.includes("mohap") || d.includes("dha.gov") || d.includes("haad")) return "government";
+        if (d === "reddit.com" || d === "facebook.com" || d === "instagram.com" || d === "linkedin.com" || d === "twitter.com" || d === "x.com" || d === "youtube.com" || d === "tiktok.com" || d.endsWith(".reddit.com") || d.endsWith(".facebook.com") || d.endsWith(".instagram.com") || d.endsWith(".linkedin.com") || d.endsWith(".youtube.com")) return "social_media";
+        if (d.includes("trustpilot") || d.includes("yelp.com") || d.includes("google.com/maps") || d.includes("tripadvisor") || d.includes("rannkly") || d.includes("birdeye")) return "review_platform";
+        if (d.includes("gulfnews") || d.includes("khaleejtimes") || d.includes("arabianbusiness") || d.includes("thenational") || d.includes("zawya") || d.includes("economictimes") || d.includes("ladyleadmag") || d.includes("timeoutdubai")) return "news_media";
+        if (d.includes("healthfinder") || d.includes("doctorlist") || d.includes("nearme") || d.includes("clinicin") || d.includes("okadoc") || d.includes("zocdoc") || d.includes("bookimed") || d.includes("gooddoctor") || d.includes("fresha.com")) return "healthcare_directory";
+        if (d.includes("asterclinic") || d.includes("aster.") || d.includes("mediclinic") || d.includes("american.hospital") || d.includes("cloverleafclinic") || d.includes("sidrahc") || d.includes("feelvaleo")) return "hospital_clinic";
+        if (d.endsWith(".ae") || d.includes("health") || d.includes("care") || d.includes("clinic") || d.includes("medical") || d.includes("nurse") || d.includes("doctor") || d.includes("pharma")) return "healthcare_provider";
+        return "general_web";
+      }
+
+      // Build a map from the direct rows
+      const domainMap = new Map<string, {
+        domain: string; category: string; appearances: number;
+        inChatgpt: boolean; inGemini: boolean; inClaude: boolean; segmentCount: number;
+      }>();
+
+      for (const row of directRows.rows) {
+        const key = String(row.domain).toLowerCase();
+        domainMap.set(key, {
+          domain: String(row.domain),
+          category: String(row.domain_category || "general_web"),
+          appearances: Number(row.total_appearances),
+          inChatgpt: Number(row.in_chatgpt) === 1,
+          inGemini: Number(row.in_gemini) === 1,
+          inClaude: Number(row.in_claude) === 1,
+          segmentCount: Number(row.segment_count),
+        });
+      }
+
+      // Merge Gemini resolved domains
+      for (const row of geminiRows.rows) {
+        const resolvedDomain = String(row.resolved_domain || "").trim();
+        if (!resolvedDomain || resolvedDomain.length < 4) continue;
+        const geminiAppearances = Number(row.appearances);
+        const existing = domainMap.get(resolvedDomain);
+        if (existing) {
+          // Domain already in direct results — add Gemini appearances and mark inGemini
+          existing.appearances += geminiAppearances;
+          existing.inGemini = true;
+        } else {
+          // New domain only seen via Gemini redirects
+          domainMap.set(resolvedDomain, {
+            domain: resolvedDomain,
+            category: inferCategory(resolvedDomain),
+            appearances: geminiAppearances,
+            inChatgpt: false,
+            inGemini: true,
+            inClaude: false,
+            segmentCount: 1,
+          });
+        }
+      }
 
       const CATEGORY_LABELS: Record<string, string> = {
         healthcare_provider: "Healthcare Providers",
@@ -1830,25 +1905,23 @@ export async function registerRoutes(
       };
 
       const grouped: Record<string, any[]> = {};
-      for (const row of rows.rows) {
-        const cat = String(row.domain_category || "general_web");
+      for (const entry of domainMap.values()) {
+        const cat = entry.category;
         if (!grouped[cat]) grouped[cat] = [];
         grouped[cat].push({
-          domain: row.domain,
-          appearances: Number(row.total_appearances),
-          inChatgpt: Number(row.in_chatgpt) === 1,
-          inGemini: Number(row.in_gemini) === 1,
-          inClaude: Number(row.in_claude) === 1,
-          segmentCount: Number(row.segment_count),
-          fetchStatus: row.fetch_status,
-          resolvedUrl: row.resolved_url,
+          domain: entry.domain,
+          appearances: entry.appearances,
+          inChatgpt: entry.inChatgpt,
+          inGemini: entry.inGemini,
+          inClaude: entry.inClaude,
+          segmentCount: entry.segmentCount,
         });
       }
 
       const categories = Object.entries(grouped)
         .map(([key, domains]) => ({
           key,
-          label: CATEGORY_LABELS[key] || key.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
+          label: CATEGORY_LABELS[key] || key.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
           domains: domains.sort((a, b) => b.appearances - a.appearances),
           totalDomains: domains.length,
           totalAppearances: domains.reduce((s, d) => s + d.appearances, 0),
