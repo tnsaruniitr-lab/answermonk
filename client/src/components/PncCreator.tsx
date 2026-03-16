@@ -1482,13 +1482,17 @@ export default function PncCreator() {
     </div>
   );
 
-  const renderPromptRow = (p: Prompt, i: number) => (
-    <div key={i} className="flex items-start gap-2.5 bg-card border border-border rounded-xl px-3.5 py-2.5 hover:border-muted-foreground/50 transition-colors">
-      <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded mt-0.5 flex-shrink-0 ${verbClass(p.verb)}`}>{p.verb} {i + 1}</span>
-      <span className="flex-1 text-[13px] font-mono leading-relaxed">{p.text.replace(/^(Find|List|Rank)\s+/i, "")}</span>
-      <button type="button" className="text-[10px] px-2 py-0.5 border border-border rounded text-muted-foreground hover:border-lime-400 hover:text-lime-400 transition-colors flex-shrink-0 mt-0.5" onClick={(e) => cpText(p.text, e.currentTarget, "Copy")}>Copy</button>
-    </div>
-  );
+  const renderPromptRow = (p: Prompt, i: number) => {
+    const cleanText = p.text.replace(/^(Find|List|Rank)\s+/i, "");
+    const fullText = `Find, List and Rank 10 ${cleanText}`;
+    return (
+      <div key={i} className="flex items-start gap-2.5 bg-card border border-border rounded-xl px-3.5 py-2.5 hover:border-muted-foreground/50 transition-colors">
+        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded mt-0.5 flex-shrink-0 bg-lime-400/10 text-lime-400 whitespace-nowrap">Find, List and Rank 10</span>
+        <span className="flex-1 text-[13px] font-mono leading-relaxed">{cleanText}</span>
+        <button type="button" className="text-[10px] px-2 py-0.5 border border-border rounded text-muted-foreground hover:border-lime-400 hover:text-lime-400 transition-colors flex-shrink-0 mt-0.5" onClick={(e) => cpText(fullText, e.currentTarget, "Copy")}>Copy</button>
+      </div>
+    );
+  };
 
   const renderEngineToggles = (engines: Set<string>, setEngines: (e: Set<string>) => void) => (
     <div className="flex gap-2 flex-wrap">
