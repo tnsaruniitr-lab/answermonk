@@ -248,7 +248,7 @@ function extractServiceFromPromptTeaser(seg: SegmentData): string {
 
 function buildSegmentLabel(seg: SegmentData): string {
   const parts: string[] = [];
-  if (seg.persona) {
+  if (seg.persona && !seg.persona.startsWith("pnc")) {
     const persona = seg.persona.replace(/_/g, " ");
     parts.push(persona.charAt(0).toUpperCase() + persona.slice(1));
   }

@@ -97,7 +97,7 @@ async function exportPDF(report: any) {
 
   const segRows = report.section1.perSegment.map((s: any, i: number) => [
     `#${i + 1}`,
-    s.persona.replace(/_/g, " "),
+    s.persona?.startsWith("pnc") ? (s.customerType || "") : s.persona.replace(/_/g, " "),
     s.location || "—",
     `${Math.round(s.appearanceRate * 100)}%`,
     `${Math.round(s.primaryRate * 100)}%`,
@@ -761,7 +761,8 @@ export function Section1({ data }: { data: any }) {
                   <div key={i} className="flex items-center justify-between px-3 py-2" data-testid={`row-segment-visibility-${i}`}>
                     <div className="text-xs min-w-0 truncate flex-1">
                       <span className="text-muted-foreground mr-1.5">#{i + 1}</span>
-                      {seg.persona.replace(/_/g, " ")}
+                      {!seg.persona?.startsWith("pnc") && seg.persona.replace(/_/g, " ")}
+                      {seg.customerType && <span className="mr-1">{seg.customerType}</span>}
                       {seg.location && <span className="text-muted-foreground ml-1">({seg.location})</span>}
                     </div>
                     <div className="flex items-center gap-3 text-[11px] shrink-0">

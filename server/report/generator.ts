@@ -378,6 +378,17 @@ function buildEntityCategory(personaLabel: string, seedLabel: string): string {
 }
 
 function buildSegmentLabel(seg: { persona: string; seedType: string; customerType: string; serviceType?: string; prompts?: any[] | null; scoringResult?: any }): string {
+  if (seg.persona === "pnc" || seg.persona?.startsWith("pnc_")) {
+    const parts: string[] = [];
+    const svc = seg.serviceType || extractServiceFromPrompt(seg);
+    if (svc) parts.push(svc);
+    if (seg.customerType) parts.push(`for ${seg.customerType}`);
+    if (parts.length === 0) {
+      const promptContext = extractContextFromPrompt(seg.prompts);
+      if (promptContext) parts.push(promptContext);
+    }
+    return parts.filter(Boolean).join(" ") || "Segment";
+  }
   const pLabel = seg.persona ? (PERSONA_LABELS[seg.persona] || seg.persona.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())) : "";
   const sLabel = seg.seedType && seg.seedType !== "__blank__"
     ? seg.seedType.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())
