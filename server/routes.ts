@@ -1928,7 +1928,53 @@ export async function registerRoutes(
         }))
         .sort((a, b) => b.totalAppearances - a.totalAppearances);
 
-      res.json({ categories });
+      // Authority sources: third-party validators, not competitor brands
+      const COMPETITOR_CATS = new Set(["healthcare_provider", "hospital_clinic"]);
+      const CATEGORY_WEIGHT: Record<string, number> = {
+        government: 1.8,
+        news_media: 1.5,
+        review_platform: 1.4,
+        healthcare_directory: 1.3,
+        social_media: 1.2,
+        general_web: 1.0,
+        ecommerce: 1.0,
+        comparison: 1.1,
+      };
+      const CATEGORY_WHY: Record<string, string> = {
+        government: "Government & regulatory credentialing source",
+        news_media: "Authoritative media coverage",
+        review_platform: "Third-party trust & reviews aggregator",
+        healthcare_directory: "Healthcare-specific listing & directory",
+        social_media: "Public community discussion & social proof",
+        general_web: "Third-party general reference",
+        ecommerce: "Marketplace or booking platform",
+        comparison: "Comparison / ranking platform",
+      };
+
+      const authoritySources = Array.from(domainMap.values())
+        .filter(e => !COMPETITOR_CATS.has(e.category))
+        .map(e => {
+          const engineCount = (e.inChatgpt ? 1 : 0) + (e.inGemini ? 1 : 0) + (e.inClaude ? 1 : 0);
+          const crossEngineMultiplier = engineCount === 3 ? 2.0 : engineCount === 2 ? 1.5 : 1.0;
+          const catWeight = CATEGORY_WEIGHT[e.category] ?? 1.0;
+          const authorityScore = Math.round(e.appearances * crossEngineMultiplier * catWeight);
+          return {
+            domain: e.domain,
+            category: e.category,
+            categoryLabel: CATEGORY_LABELS[e.category] || e.category,
+            why: CATEGORY_WHY[e.category] || "Third-party reference",
+            appearances: e.appearances,
+            inChatgpt: e.inChatgpt,
+            inGemini: e.inGemini,
+            inClaude: e.inClaude,
+            engineCount,
+            authorityScore,
+          };
+        })
+        .sort((a, b) => b.authorityScore - a.authorityScore)
+        .slice(0, 25);
+
+      res.json({ categories, authoritySources });
     } catch (err) {
       console.error("[citation-sources] Error:", err);
       res.status(500).json({ message: String(err) });
