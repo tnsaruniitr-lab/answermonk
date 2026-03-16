@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { deduplicateStoredCompetitors } from "@/lib/competitor-merge";
+import InsightsPanel from "@/components/InsightsPanel";
 
 const DEFAULT_QUALIFIERS = [
   "most trusted","most reliable","most affordable","highest rated",
@@ -33,6 +34,7 @@ type GEOScore = {
   competitors: Array<{ name: string; share: number; appearances?: number }>;
 };
 type ScoringResponse = {
+  job_id?: number;
   score: GEOScore;
   raw_runs?: any[];
   cost?: any;
@@ -123,9 +125,14 @@ function fmtCacheTs(ts: number) {
 }
 
 
-function SegmentScoreCard({ seg, brandName }: { seg: PncAnalysisSegment; brandName: string }) {
-  const score = seg.scoringResult?.score;
+function SegmentScoreCard({ seg, brandName, brandDomain }: { seg: PncAnalysisSegment; brandName: string; brandDomain?: string }) {
+  const [showSources, setShowSources] = useState(false);
+  const [showInsights, setShowInsights] = useState(false);
+
+  const scoringResult = seg.scoringResult;
+  const score = scoringResult?.score;
   if (!score) return null;
+
   const dedupedComps = deduplicateStoredCompetitors(
     (score.competitors || []).map((c) => ({ name: c.name, share: c.share, appearances: c.appearances ?? 0 }))
   );
@@ -134,8 +141,24 @@ function SegmentScoreCard({ seg, brandName }: { seg: PncAnalysisSegment; brandNa
     ...dedupedComps.map((c) => ({ name: c.name, share: c.share, isBrand: false as const })),
   ].sort((a, b) => b.share - a.share);
 
+  // Deduplicate citations from all raw_runs
+  const seenUrls = new Set<string>();
+  const citations: Array<{ url: string; title?: string; engine: string }> = [];
+  for (const run of (scoringResult?.raw_runs || [])) {
+    for (const c of (run.citations || [])) {
+      const url = typeof c === "string" ? c : c.url;
+      if (url && !seenUrls.has(url)) {
+        seenUrls.add(url);
+        citations.push({ url, title: typeof c === "object" ? c.title : undefined, engine: run.engine });
+      }
+    }
+  }
+
+  const jobId = scoringResult?.job_id;
+
   return (
     <div className="mt-3 space-y-3 border-t border-border/40 pt-3">
+      {/* Score tiles */}
       <div className="grid grid-cols-3 gap-2">
         <div className="bg-muted/30 rounded-md p-2.5 text-center">
           <div className="text-base font-bold tabular-nums">{Math.round(score.appearance_rate * 100)}%</div>
@@ -151,6 +174,7 @@ function SegmentScoreCard({ seg, brandName }: { seg: PncAnalysisSegment; brandNa
         </div>
       </div>
 
+      {/* Engine breakdown */}
       {Object.keys(score.engine_breakdown).length > 0 && (
         <div className="grid grid-cols-3 gap-2">
           {Object.entries(score.engine_breakdown).map(([engine, data]) => {
@@ -172,6 +196,7 @@ function SegmentScoreCard({ seg, brandName }: { seg: PncAnalysisSegment; brandNa
         </div>
       )}
 
+      {/* Competitor rankings */}
       {allEntries.length > 0 && (
         <div>
           <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest mb-1.5">Rankings</div>
@@ -189,9 +214,64 @@ function SegmentScoreCard({ seg, brandName }: { seg: PncAnalysisSegment; brandNa
         </div>
       )}
 
-      {seg.scoringResult?.cost?.total_cost_usd > 0 && (
+      {/* Sources / Citations */}
+      {citations.length > 0 && (
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowSources((v) => !v)}
+            className="w-full flex items-center gap-2 text-[11px] font-mono text-muted-foreground hover:text-foreground transition-colors py-1"
+          >
+            <span className={`transition-transform ${showSources ? "rotate-90" : ""}`}>▶</span>
+            <span>{citations.length} source{citations.length !== 1 ? "s" : ""} cited</span>
+          </button>
+          {showSources && (
+            <div className="mt-2 border border-border/40 rounded-md overflow-hidden divide-y divide-border/30 max-h-56 overflow-y-auto">
+              {citations.map((c) => (
+                <a
+                  key={c.url}
+                  href={c.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-2 px-3 py-2 hover:bg-muted/20 transition-colors group"
+                >
+                  <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded mt-0.5 flex-shrink-0 ${ENGINE_COLORS[c.engine] || "border-border text-muted-foreground border"}`}>
+                    {ENGINE_LABELS[c.engine] || c.engine}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    {c.title && <div className="text-[11px] text-foreground truncate">{c.title}</div>}
+                    <div className="text-[10px] text-muted-foreground/60 truncate group-hover:text-muted-foreground transition-colors">{c.url}</div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Impact Summary (InsightsPanel) */}
+      {jobId && (
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowInsights((v) => !v)}
+            className="w-full flex items-center gap-2 text-[11px] font-mono text-lime-400/70 hover:text-lime-400 transition-colors py-1"
+            data-testid="button-pnc-insights-toggle"
+          >
+            <span className={`transition-transform ${showInsights ? "rotate-90" : ""}`}>▶</span>
+            <span>Impact Summary & AI Analysis</span>
+          </button>
+          {showInsights && (
+            <div className="mt-2">
+              <InsightsPanel jobId={jobId} brandName={brandName} brandDomain={brandDomain} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {scoringResult?.cost?.total_cost_usd > 0 && (
         <div className="text-[10px] font-mono text-muted-foreground/40">
-          Cost: ${seg.scoringResult.cost.total_cost_usd.toFixed(4)}
+          Cost: ${scoringResult.cost.total_cost_usd.toFixed(4)}
         </div>
       )}
     </div>
@@ -784,7 +864,7 @@ export default function PncCreator() {
                   )}
 
                   {seg.scoringResult && !seg.isScoring && (
-                    <SegmentScoreCard seg={seg} brandName={brandName} />
+                    <SegmentScoreCard seg={seg} brandName={brandName} brandDomain={brandDomain} />
                   )}
                 </div>
               ))}
@@ -1009,7 +1089,7 @@ export default function PncCreator() {
                     )}
 
                     {v1AnalysisSegment?.scoringResult && !v1AnalysisSegment.isScoring && (
-                      <SegmentScoreCard seg={v1AnalysisSegment} brandName={v1BrandName} />
+                      <SegmentScoreCard seg={v1AnalysisSegment} brandName={v1BrandName} brandDomain={v1BrandDomain} />
                     )}
 
                     <button
