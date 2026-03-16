@@ -32,8 +32,8 @@ function extractDomain(url: string | null): string {
 function buildSegments(services: string[], city: string | null) {
   return services.map((s) => ({
     persona: s,
-    seedType: "service",
-    serviceType: s,
+    seedType: "__blank__",
+    serviceType: "",
     customerType: "",
     customerTypeEnabled: false,
     location: city || "",
