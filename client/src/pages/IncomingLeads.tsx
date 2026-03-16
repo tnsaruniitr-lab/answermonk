@@ -211,7 +211,7 @@ export default function IncomingLeads() {
                           ? <><CheckCircle className="h-3 w-3 mr-1" />Processed</>
                           : <><Clock className="h-3 w-3 mr-1" />Pending</>}
                       </Badge>
-                      {lead.status === "pending" && hasServices && (
+                      {hasServices && (
                         <Button
                           size="sm"
                           variant={isConfirming ? "default" : "outline"}
