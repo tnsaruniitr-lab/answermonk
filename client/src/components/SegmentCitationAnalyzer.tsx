@@ -323,12 +323,12 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
     return () => { cancelled = true; };
   }, [sessionId]);
 
-  const runSignalIntelligence = async () => {
+  const runSignalIntelligence = async (force = false) => {
     if (!sessionId) return;
     setSiLoading(true);
     setSiError(null);
     try {
-      const res = await apiRequest("POST", `/api/multi-segment-sessions/${sessionId}/signal-intelligence`, {});
+      const res = await apiRequest("POST", `/api/multi-segment-sessions/${sessionId}/signal-intelligence`, { force });
       const data = await res.json();
       if (data.message && !data.result) throw new Error(data.message);
       setSiResult(data.result);
@@ -652,7 +652,7 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={runSignalIntelligence}
+                  onClick={() => runSignalIntelligence(true)}
                   className="h-7 text-xs text-muted-foreground"
                   data-testid="button-rerun-signal-intelligence"
                 >
@@ -690,33 +690,64 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
                       <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Signal Rankings</span>
                     </div>
                     <div className="space-y-2">
-                      {siResult.signal_rankings.map((s: any, i: number) => (
-                        <div key={i} className="bg-white dark:bg-slate-900/60 rounded-lg border border-border/50 p-3">
-                          <div className="flex items-start gap-2.5">
-                            <div className={`text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${i === 0 ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400" : i === 1 ? "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" : i === 2 ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400" : "bg-muted text-muted-foreground"}`}>
-                              {s.rank}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm font-semibold text-foreground">{s.signal}</div>
-                              <div className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{s.why_it_matters}</div>
-                              {s.demonstrated_by?.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-1.5">
-                                  {s.demonstrated_by.map((b: string, bi: number) => (
-                                    <Badge key={bi} variant="outline" className="text-[10px] px-1.5 py-0 border-violet-200 text-violet-700 dark:border-violet-700 dark:text-violet-300">
-                                      {b}
-                                    </Badge>
-                                  ))}
+                      {siResult.signal_rankings.map((s: any, i: number) => {
+                        const rankColors = [
+                          "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400",
+                          "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300",
+                          "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+                          "bg-muted text-muted-foreground",
+                          "bg-muted text-muted-foreground",
+                          "bg-muted text-muted-foreground",
+                          "bg-muted text-muted-foreground",
+                          "bg-muted text-muted-foreground",
+                        ];
+                        const confidenceStyle: Record<string, string> = {
+                          high: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400",
+                          medium: "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-400",
+                          low: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
+                        };
+                        const confCls = confidenceStyle[s.confidence] || confidenceStyle.medium;
+                        return (
+                          <div key={i} className="bg-white dark:bg-slate-900/60 rounded-lg border border-border/50 p-3">
+                            <div className="flex items-start gap-2.5">
+                              <div className={`text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${rankColors[i] || rankColors[3]}`}>
+                                {s.rank}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-sm font-semibold text-foreground">{s.signal_name || s.signal}</span>
+                                  {s.signal_key && (
+                                    <span className="text-[10px] font-mono text-muted-foreground/60">{s.signal_key}</span>
+                                  )}
+                                  {s.confidence && (
+                                    <span className={`text-[10px] px-1.5 py-0 rounded-full font-medium ${confCls}`}>{s.confidence}</span>
+                                  )}
                                 </div>
-                              )}
-                              {s.example && (
-                                <div className="text-[11px] text-muted-foreground mt-1.5 italic border-l-2 border-violet-200 dark:border-violet-700 pl-2">
-                                  {s.example}
-                                </div>
-                              )}
+                                <div className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{s.why_it_matters}</div>
+                                {s.evidence_pattern && (
+                                  <div className="text-[11px] text-foreground/70 mt-1 leading-relaxed">
+                                    <span className="font-medium text-muted-foreground">Pattern: </span>{s.evidence_pattern}
+                                  </div>
+                                )}
+                                {s.demonstrated_by?.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-1.5">
+                                    {s.demonstrated_by.map((b: string, bi: number) => (
+                                      <Badge key={bi} variant="outline" className="text-[10px] px-1.5 py-0 border-violet-200 text-violet-700 dark:border-violet-700 dark:text-violet-300">
+                                        {b}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )}
+                                {s.example && (
+                                  <div className="text-[11px] text-muted-foreground mt-1.5 italic border-l-2 border-violet-200 dark:border-violet-700 pl-2">
+                                    {s.example}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -733,20 +764,35 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
                         <Collapsible key={i}>
                           <CollapsibleTrigger className="w-full">
                             <div className="bg-white dark:bg-slate-900/60 rounded-lg border border-border/50 p-3 flex items-center justify-between hover:bg-muted/30 transition-colors text-left w-full">
-                              <div className="flex items-center gap-2.5">
+                              <div className="flex items-center gap-2.5 min-w-0">
                                 <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-[10px] font-bold text-emerald-700 dark:text-emerald-400 shrink-0">
                                   {i + 1}
                                 </div>
-                                <div>
+                                <div className="min-w-0">
                                   <div className="text-sm font-semibold text-foreground">{b.brand}</div>
-                                  <div className="text-[11px] text-muted-foreground">{b.appearance_rate} visibility · {b.segments_present} segments</div>
+                                  <div className="text-[11px] text-muted-foreground">
+                                    {b.appearance_rate} visibility · {b.segments_present} segments
+                                    {b.cross_engine_presence && <span className="ml-1.5 text-violet-500 dark:text-violet-400">· {b.cross_engine_presence}</span>}
+                                  </div>
                                 </div>
                               </div>
-                              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                             </div>
                           </CollapsibleTrigger>
                           <CollapsibleContent>
                             <div className="bg-white dark:bg-slate-900/60 rounded-b-lg border border-t-0 border-border/50 px-3 pb-3 pt-2 space-y-2">
+                              {b.strongest_signals?.length > 0 && (
+                                <div>
+                                  <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Strongest Signals</div>
+                                  <div className="flex flex-wrap gap-1">
+                                    {b.strongest_signals.map((sig: string, si: number) => (
+                                      <span key={si} className="text-[10px] font-mono bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400 px-1.5 py-0.5 rounded">
+                                        {sig}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                               {b.what_works?.length > 0 && (
                                 <div>
                                   <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">What Works</div>

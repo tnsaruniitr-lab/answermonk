@@ -1766,7 +1766,8 @@ export async function registerRoutes(
     try {
       const id = parseInt(req.params.id, 10);
       if (isNaN(id)) { res.status(400).json({ message: "Invalid session ID" }); return; }
-      const result = await runSignalIntelligence(id);
+      const force = req.body?.force === true || req.query.force === "true";
+      const result = await runSignalIntelligence(id, force);
       res.json(result);
     } catch (err) {
       console.error("[signal-intelligence] Error:", err);
