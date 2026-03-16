@@ -1,6 +1,4 @@
 import OpenAI from "openai";
-import * as https from "https";
-import * as http from "http";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -33,60 +31,38 @@ export function entityTypeToSeedType(entityType: string): string {
   return ENTITY_TYPE_SEED_MAP[entityType?.toLowerCase()] || "providers";
 }
 
-async function fetchPageHtml(url: string, redirectDepth = 0): Promise<string> {
-  if (redirectDepth > 3) throw new Error("Too many redirects");
-  return new Promise((resolve, reject) => {
-    let parsedUrl: URL;
-    try {
-      parsedUrl = new URL(url);
-    } catch {
-      reject(new Error("Invalid URL"));
-      return;
-    }
-    const client = parsedUrl.protocol === "https:" ? https : http;
-    let intentionallyAborted = false;
-    const req = client.get(
-      url,
-      {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; BrandSenseBot/1.0)",
-          Accept: "text/html,application/xhtml+xml",
-          "Accept-Language": "en-US,en;q=0.9",
-        },
-        timeout: 10000,
+async function fetchPageHtml(url: string): Promise<string> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "identity",
+        "Cache-Control": "no-cache",
       },
-      (res) => {
-        const location = res.headers.location;
-        if (res.statusCode && [301, 302, 303, 307, 308].includes(res.statusCode) && location) {
-          const nextUrl = location.startsWith("http") ? location : `${parsedUrl.protocol}//${parsedUrl.host}${location}`;
-          resolve(fetchPageHtml(nextUrl, redirectDepth + 1));
-          return;
-        }
-        if (res.statusCode && res.statusCode >= 400) {
-          reject(new Error(`HTTP ${res.statusCode}`));
-          return;
-        }
-        let raw = "";
-        res.setEncoding("utf8");
-        res.on("data", (chunk) => {
-          raw += chunk;
-          if (raw.length > 150000) {
-            intentionallyAborted = true;
-            req.destroy();
-            resolve(raw);
-          }
-        });
-        res.on("end", () => { if (!intentionallyAborted) resolve(raw); });
-        res.on("error", (err) => { if (!intentionallyAborted) reject(err); });
-      }
-    );
-    req.on("error", (err) => { if (!intentionallyAborted) reject(err); });
-    req.on("timeout", () => {
-      intentionallyAborted = true;
-      req.destroy();
-      reject(new Error("Request timed out after 10 seconds"));
+      redirect: "follow",
     });
-  });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const contentType = res.headers.get("content-type") || "";
+    if (!contentType.includes("text/html") && !contentType.includes("text/plain") && !contentType.includes("application/xhtml")) {
+      throw new Error(`Page returned non-HTML content (${contentType})`);
+    }
+
+    const text = await res.text();
+    return text.slice(0, 150000);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function extractSignalsFromHtml(html: string): string {
