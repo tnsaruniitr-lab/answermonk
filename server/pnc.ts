@@ -54,7 +54,7 @@ Rules:
 
   const response = await (anthropic.messages.create as any)({
     model: "claude-sonnet-4-5",
-    max_tokens: 2000,
+    max_tokens: 6000,
     system,
     messages: [{ role: "user", content: `Extract blocks from: ${url}` }],
     tools: [{ type: "web_search_20250305", name: "web_search" }],
@@ -126,7 +126,7 @@ Rules for scope: physical+1 city=city, multi-city=country; SaaS: regional TLD/VA
 
   const response = await (anthropic.messages.create as any)({
     model: "claude-sonnet-4-5",
-    max_tokens: 2000,
+    max_tokens: 8000,
     system,
     messages: [{ role: "user", content: `Extract blocks from: ${url}` }],
     tools: [{ type: "web_search_20250305", name: "web_search" }],
@@ -147,7 +147,7 @@ Rules: 8 prompts per service, 8 per customer. Verbs: Find/List/Rank cycling even
 
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-5",
-    max_tokens: 4000,
+    max_tokens: 8000,
     system: sysP,
     messages: [{ role: "user", content: userMsg }],
   });
@@ -200,7 +200,7 @@ Rules:
 
   const response = await (anthropic.messages.create as any)({
     model: "claude-sonnet-4-5",
-    max_tokens: 4000,
+    max_tokens: 8000,
     system: sysP,
     messages: [{ role: "user", content: `Analyze this website and generate grouped prompts: ${url}` }],
     tools: [{ type: "web_search_20250305", name: "web_search" }],
