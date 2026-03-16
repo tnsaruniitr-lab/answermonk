@@ -1350,6 +1350,15 @@ export default function PncCreator() {
     setPncSegments(cached.segments.map((s) => ({ ...s, isScoring: false })));
     setPncBrandName(cached.brandName);
     setPncEngines(new Set(cached.engines));
+    if (!pncV2SessionId) {
+      const match = pncSessions.find(
+        (s) => s.sessionType === "pnc_v2" && (
+          s.brandDomain === domain ||
+          s.brandName?.toLowerCase() === cached.brandName?.toLowerCase()
+        )
+      );
+      if (match) setPncV2SessionId(match.id);
+    }
   };
 
   const applyV1Cache = () => {
@@ -1359,6 +1368,15 @@ export default function PncCreator() {
     setV1AnalysisSegment({ ...cached.segment, isScoring: false });
     setV1BrandName(cached.brandName);
     setV1Engines(new Set(cached.engines));
+    if (!pncV1SessionId) {
+      const match = pncSessions.find(
+        (s) => s.sessionType === "pnc_v1" && (
+          s.brandDomain === domain ||
+          s.brandName?.toLowerCase() === cached.brandName?.toLowerCase()
+        )
+      );
+      if (match) setPncV1SessionId(match.id);
+    }
   };
 
   const toggleEngine = (engines: Set<string>, setEngines: (e: Set<string>) => void, engine: string) => {
@@ -1936,7 +1954,7 @@ export default function PncCreator() {
                   brandName={v1BrandName}
                   brandDomain={v1BrandDomain}
                   location={locCity || locCountry || ""}
-                  sessionId={pncV1SessionId || 0}
+                  sessionId={pncV1SessionId}
                 />
               )}
             </div>
@@ -2086,7 +2104,7 @@ export default function PncCreator() {
               brandName={pncBrandName}
               brandDomain={pncBrandDomain}
               location={v2LocCity || v2LocCountry || ""}
-              sessionId={pncV2SessionId || 0}
+              sessionId={pncV2SessionId}
             />
           )}
         </div>
@@ -2400,7 +2418,7 @@ export default function PncCreator() {
                   brandName={v3BrandName}
                   brandDomain={v3BrandDomain}
                   location={v3LocCity || v3LocCountry || v3LocRegion || ""}
-                  sessionId={v3SessionId || 0}
+                  sessionId={v3SessionId}
                 />
               )}
             </div>
