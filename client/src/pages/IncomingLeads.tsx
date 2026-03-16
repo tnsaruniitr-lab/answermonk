@@ -277,7 +277,7 @@ export default function IncomingLeads() {
                           {segments.map((seg, i) => (
                             <div key={i} className="flex items-center gap-2 text-xs bg-background rounded px-2 py-1.5 border">
                               <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
-                              <span className="font-medium">{seg.serviceType}</span>
+                              <span className="font-medium">{seg.persona}</span>
                               {seg.location && <span className="text-muted-foreground">· {seg.location}</span>}
                             </div>
                           ))}
