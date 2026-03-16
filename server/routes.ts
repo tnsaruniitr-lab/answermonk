@@ -31,7 +31,7 @@ import { runBrandIntelligence } from "./brand-intelligence/runner";
 import { resolveGroundingUrls } from "./report/grounding-resolver";
 import { desc, eq as eqDrizzle } from "drizzle-orm";
 import { analyzeUrl } from "./url-analyzer";
-import { pncExtract, pncV1Generate, pncV2Generate } from "./pnc";
+import { pncExtract, pncV1Generate, pncV2Generate, pncClassify, pncClassifyGenerate } from "./pnc";
 
 /** ------------------------
  * Scoring helpers (From user provided logic)
@@ -2835,6 +2835,35 @@ export async function registerRoutes(
     } catch (err: any) {
       if (err instanceof z.ZodError) res.status(400).json({ message: "Please enter a valid URL" });
       else { console.error("[pnc/extract]", err.message); res.status(422).json({ message: err.message || "Extraction failed" }); }
+    }
+  });
+
+  app.post("/api/pnc/classify", async (req, res) => {
+    try {
+      const schema = z.object({ url: z.string().url() });
+      const { url } = schema.parse(req.body);
+      const { result, cost } = await pncClassify(url);
+      res.json({ ...result, _cost: cost });
+    } catch (err: any) {
+      if (err instanceof z.ZodError) res.status(400).json({ message: "Please enter a valid URL" });
+      else { console.error("[pnc/classify]", err.message); res.status(422).json({ message: err.message || "Classification failed" }); }
+    }
+  });
+
+  app.post("/api/pnc/classify-generate", async (req, res) => {
+    try {
+      const schema = z.object({
+        services: z.array(z.string()),
+        customers: z.array(z.string()),
+        loc: z.string(),
+        url: z.string(),
+      });
+      const { services, customers, loc, url } = schema.parse(req.body);
+      const { result, cost } = await pncClassifyGenerate(services, customers, loc, url);
+      res.json({ ...result, _cost: cost });
+    } catch (err: any) {
+      if (err instanceof z.ZodError) res.status(400).json({ message: "Invalid request" });
+      else { console.error("[pnc/classify-generate]", err.message); res.status(422).json({ message: err.message || "Generation failed" }); }
     }
   });
 

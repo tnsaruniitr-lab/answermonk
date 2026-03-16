@@ -800,6 +800,34 @@ export default function PncCreator() {
   const [v2CacheTs, setV2CacheTs] = useState<number | null>(null);
   const [v1CacheTs, setV1CacheTs] = useState<number | null>(null);
 
+  type V3Chip = { label: string; rank: number; why: string; on: boolean };
+  type V3Competitor = { name: string; location: string; known_for: string };
+  const [v3Step, setV3Step] = useState<"classify" | "confirm" | "prompts">("classify");
+  const [v3Loading, setV3Loading] = useState(false);
+  const [v3Generating, setV3Generating] = useState(false);
+  const [v3Err, setV3Err] = useState("");
+  const [v3BizCard, setV3BizCard] = useState<{ name: string; category: string; description: string; model: string } | null>(null);
+  const [v3Services, setV3Services] = useState<V3Chip[]>([]);
+  const [v3Customers, setV3Customers] = useState<V3Chip[]>([]);
+  const [v3Scope, setV3Scope] = useState<"city" | "country" | "region" | "global">("city");
+  const [v3ScopeConf, setV3ScopeConf] = useState<"high" | "medium" | "low">("medium");
+  const [v3ScopeReason, setV3ScopeReason] = useState("");
+  const [v3ScopeSignals, setV3ScopeSignals] = useState<string[]>([]);
+  const [v3LocCity, setV3LocCity] = useState("");
+  const [v3LocCountry, setV3LocCountry] = useState("");
+  const [v3LocRegion, setV3LocRegion] = useState("");
+  const [v3Competitors, setV3Competitors] = useState<V3Competitor[]>([]);
+  const [v3Result, setV3Result] = useState<V2Result | null>(null);
+  const [v3Segments, setV3Segments] = useState<PncAnalysisSegment[]>([]);
+  const [v3BrandName, setV3BrandName] = useState("");
+  const [v3BrandDomain, setV3BrandDomain] = useState("");
+  const [v3Engines, setV3Engines] = useState<Set<string>>(new Set(["chatgpt", "gemini", "claude"]));
+  const [v3SessionId, setV3SessionId] = useState<number | null>(null);
+  const [v3AnalysisErr, setV3AnalysisErr] = useState("");
+  const [v3SvcAdd, setV3SvcAdd] = useState("");
+  const [v3CustAdd, setV3CustAdd] = useState("");
+  const [v3PanelView, setV3PanelView] = useState<"service" | "customer">("service");
+
   useEffect(() => {
     if (!v2Result) return;
     const serviceSegs: PncAnalysisSegment[] = v2Result.by_service.map((g, i) => ({
@@ -1182,6 +1210,132 @@ export default function PncCreator() {
     }
   };
 
+  const v3GetLoc = () => {
+    if (v3Scope === "global") return "globally";
+    if (v3Scope === "city") return v3LocCity ? `in ${v3LocCity}` : "in [city]";
+    if (v3Scope === "country") return v3LocCountry ? `in ${v3LocCountry}` : "in [country]";
+    return v3LocRegion ? `in the ${v3LocRegion}` : "in [region]";
+  };
+
+  const parseV3Ranked = (arr: any[]): { label: string; rank: number; why: string; on: boolean }[] => {
+    if (!arr?.length) return [];
+    const items = arr.map((v) =>
+      typeof v === "string" ? { label: v, rank: 99, why: "", on: true } : { label: v.label || v, rank: v.rank || 99, why: v.why || "", on: true }
+    );
+    items.sort((a, b) => a.rank - b.rank);
+    items.forEach((item, i) => { item.on = i < 5; });
+    return items;
+  };
+
+  const handleV3Classify = async () => {
+    const u = url.trim();
+    if (!u) { setV3Err("Enter a URL first."); return; }
+    const target = /^https?:\/\//i.test(u) ? u : `https://${u}`;
+    setV3Err(""); setV3Loading(true); setV3Step("classify");
+    setV3BizCard(null); setV3Services([]); setV3Customers([]); setV3Competitors([]);
+    setV3Result(null); setV3Segments([]); setV3SessionId(null);
+    try {
+      const res = await fetch("/api/pnc/classify", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: target }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Classification failed");
+      if (data._cost) setCosts((prev) => [...prev, { label: "Guided: Classify", input_tokens: 0, output_tokens: 0, cost_usd: data._cost.cost_usd }]);
+      setV3BizCard({ name: data.business_name || "", category: data.business_category || "", description: data.business_description || "", model: data.business_model || "" });
+      setV3Services(parseV3Ranked(data.service_types || []));
+      setV3Customers(parseV3Ranked(data.customer_types || []));
+      setV3Scope(data.scope || "city");
+      setV3ScopeConf(data.scope_confidence || "medium");
+      setV3ScopeReason(data.scope_reason || "");
+      setV3ScopeSignals(data.scope_signals || []);
+      setV3LocCity(data.city || ""); setV3LocCountry(data.country || ""); setV3LocRegion(data.region || "");
+      setV3Competitors(data.competitors || []);
+      setV3BrandName(data.business_name || "");
+      setV3BrandDomain(extractDomain(target));
+      setV3Step("confirm");
+    } catch (e: any) {
+      setV3Err("Error: " + (e.message || "Something went wrong."));
+    } finally {
+      setV3Loading(false);
+    }
+  };
+
+  const handleV3Generate = async () => {
+    const enabledSvcs = v3Services.filter((s) => s.on).map((s) => s.label);
+    const enabledCusts = v3Customers.filter((c) => c.on).map((c) => c.label);
+    if (!enabledSvcs.length && !enabledCusts.length) { setV3Err("Enable at least one service or customer type."); return; }
+    setV3Err(""); setV3Generating(true);
+    try {
+      const loc = v3GetLoc();
+      const res = await fetch("/api/pnc/classify-generate", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ services: enabledSvcs, customers: enabledCusts, loc, url: url.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Generation failed");
+      if (data._cost) setCosts((prev) => [...prev, { label: "Guided: Generate", input_tokens: 0, output_tokens: 0, cost_usd: data._cost.cost_usd }]);
+      setV3Result(data);
+      const loc2 = v3GetLoc();
+      const serviceSegs: PncAnalysisSegment[] = (data.by_service || []).map((g: any, i: number) => ({
+        id: `v3svc_${i}`, type: "service" as const, label: g.service,
+        prompts: g.prompts.map((p: any, pi: number) => ({ id: buildPromptId(`v3svc${i}`, pi), text: p.text })),
+        selected: true, isScoring: false, scoringResult: null,
+      }));
+      const custSegs: PncAnalysisSegment[] = (data.by_customer || []).map((g: any, i: number) => ({
+        id: `v3cust_${i}`, type: "customer" as const, label: g.customer,
+        prompts: g.prompts.map((p: any, pi: number) => ({ id: buildPromptId(`v3cust${i}`, pi), text: p.text })),
+        selected: true, isScoring: false, scoringResult: null,
+      }));
+      setV3Segments([...serviceSegs, ...custSegs]);
+      setV3Step("prompts");
+    } catch (e: any) {
+      setV3Err("Error: " + (e.message || "Generation failed."));
+    } finally {
+      setV3Generating(false);
+    }
+  };
+
+  const runV3Segment = async (segId: string) => {
+    const seg = v3Segments.find((s) => s.id === segId);
+    if (!seg) return;
+    setV3Segments((prev) => prev.map((s) => s.id === segId ? { ...s, isScoring: true, scoringResult: null } : s));
+    setV3AnalysisErr("");
+    try {
+      const res = await apiRequest("POST", "/api/scoring/run", {
+        prompts: seg.prompts, brand_name: v3BrandName.trim(),
+        brand_domain: v3BrandDomain.trim() || undefined,
+        mode: "full", source: "pnc", engines: Array.from(v3Engines),
+        profile: {
+          persona: "pnc", seedType: seg.type === "service" ? "providers" : "customers",
+          services: seg.type === "service" ? [seg.label] : [],
+          verticals: seg.type === "customer" ? [seg.label] : [],
+          geo: v3LocCity || v3LocCountry || null,
+        },
+      });
+      const data = await res.json() as ScoringResponse;
+      setV3Segments((prev) => {
+        const updated = prev.map((s) => s.id === segId ? { ...s, isScoring: false, scoringResult: data } : s);
+        saveV2SessionToDB(updated, v3BrandName, v3BrandDomain, v3Engines, v3SessionId).then((newId) => {
+          if (newId && newId !== v3SessionId) setV3SessionId(newId);
+        });
+        return updated;
+      });
+      if (data.cost?.total_cost_usd) {
+        setCosts((prev) => [...prev, { label: `Guided: ${seg.label}`, input_tokens: 0, output_tokens: 0, cost_usd: data.cost.total_cost_usd }]);
+      }
+    } catch (e: any) {
+      setV3Segments((prev) => prev.map((s) => s.id === segId ? { ...s, isScoring: false } : s));
+      setV3AnalysisErr("Error: " + (e.message || "Scoring failed."));
+    }
+  };
+
+  const runAllV3 = async () => {
+    for (const seg of v3Segments.filter((s) => s.selected)) {
+      await runV3Segment(seg.id);
+    }
+  };
+
   const runAllSelectedPnc = async () => {
     const selected = pncSegments.filter((s) => s.selected);
     for (const seg of selected) {
@@ -1356,7 +1510,7 @@ export default function PncCreator() {
     brandDomain: string, setBrandDomain: (v: string) => void,
     engines: Set<string>, setEngines: (e: Set<string>) => void,
     segments: PncAnalysisSegment[], setSegments: (segs: PncAnalysisSegment[]) => void,
-    onRun: () => void,
+    onRunSegment: (segId: string) => void,
     onRunAll: () => void,
     analysisErr: string,
     title: string,
@@ -1445,7 +1599,7 @@ export default function PncCreator() {
                     <button
                       type="button"
                       className="text-[10px] px-2.5 py-1 border border-border rounded-lg text-muted-foreground hover:border-lime-400 hover:text-lime-400 transition-colors flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
-                      onClick={() => runPncSegment(seg.id)}
+                      onClick={() => onRunSegment(seg.id)}
                       disabled={anyScoring || !brandName.trim()}
                     >
                       {seg.isScoring ? (
@@ -1549,11 +1703,11 @@ export default function PncCreator() {
         <button
           type="button"
           className="h-11 px-5 bg-lime-400 hover:bg-lime-300 active:scale-[.98] text-black text-xs font-semibold rounded-xl transition-all disabled:bg-lime-900 disabled:text-lime-700 disabled:cursor-not-allowed whitespace-nowrap"
-          onClick={handleExtractClick}
-          disabled={v1Loading || v2Loading}
+          onClick={tab === "v3" ? handleV3Classify : handleExtractClick}
+          disabled={v1Loading || v2Loading || v3Loading}
           data-testid="button-pnc-extract"
         >
-          {tab === "v1" ? "Extract blocks \u2197" : "Analyze \u2197"}
+          {tab === "v1" ? "Extract blocks \u2197" : tab === "v3" ? "Classify \u2197" : "Analyze \u2197"}
         </button>
       </div>
       <p className="text-[11px] text-muted-foreground/50">Works with any service business, agency, clinic, SaaS or local company</p>
@@ -1566,6 +1720,7 @@ export default function PncCreator() {
         {[
           { key: "v1", label: "Block Builder", desc: "Extract \u2192 curate chips \u2192 generate" },
           { key: "v2", label: "Auto Groups", desc: "URL \u2192 prompts grouped by service & customer" },
+          { key: "v3", label: "Guided", desc: "Classify \u2192 confirm categories \u2192 generate" },
         ].map((t) => (
           <button
             key={t.key}
@@ -1886,7 +2041,7 @@ export default function PncCreator() {
             pncBrandDomain, setPncBrandDomain,
             pncEngines, setPncEngines,
             pncSegments, setPncSegments,
-            () => {},
+            runPncSegment,
             runAllSelectedPnc,
             pncAnalysisErr,
             "Run GEO Analysis",
@@ -1929,6 +2084,322 @@ export default function PncCreator() {
               location={v2LocCity || v2LocCountry || ""}
               sessionId={pncV2SessionId || 0}
             />
+          )}
+        </div>
+      )}
+
+      {/* ══ TAB 3 — GUIDED (V3) ══ */}
+      {tab === "v3" && (
+        <div className="space-y-4">
+          {v3Err && <div className="bg-red-950 border border-red-900 rounded-md px-3 py-2 text-[12px] text-red-400">{v3Err}</div>}
+
+          {/* Step indicator */}
+          {(v3Step !== "classify" || v3Loading) && (
+            <div className="flex items-center gap-2">
+              {(["classify", "confirm", "prompts"] as const).map((s, i) => {
+                const labels = ["Classify", "Confirm", "Prompts"];
+                const idx = ["classify", "confirm", "prompts"].indexOf(v3Step);
+                const done = i < idx;
+                const active = i === idx;
+                return (
+                  <div key={s} className="flex items-center gap-2">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-mono font-semibold border transition-all ${done ? "bg-lime-400 border-lime-400 text-black" : active ? "border-lime-400 text-lime-400" : "border-border text-muted-foreground/40"}`}>{i + 1}</div>
+                    <span className={`text-[10px] font-mono transition-all ${done ? "text-muted-foreground" : active ? "text-foreground" : "text-muted-foreground/30"}`}>{labels[i]}</span>
+                    {i < 2 && <div className={`flex-1 h-px w-6 transition-all ${done ? "bg-lime-400" : "bg-border"}`} />}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* STEP 1 — Classify loading or idle */}
+          {v3Step === "classify" && (
+            v3Loading ? (
+              <div className="text-center py-16">
+                <div className="w-8 h-8 border-2 border-border border-t-lime-400 rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-[11px] text-muted-foreground font-mono">Classifying website…</p>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground/40 text-[12px]">
+                Enter a URL above and click <strong className="text-muted-foreground/60">Classify ↗</strong> to begin
+              </div>
+            )
+          )}
+
+          {/* STEP 2 — Confirm */}
+          {v3Step === "confirm" && !v3Loading && (
+            <div className="space-y-4">
+              {/* Business card */}
+              {v3BizCard && (
+                <div className="bg-card border border-border rounded-xl p-4 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-lime-400 to-blue-400" />
+                  <div className="text-[9px] font-mono font-semibold tracking-widest uppercase text-lime-400 mb-1">{v3BizCard.category}</div>
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <div className="text-sm font-semibold">{v3BizCard.name}</div>
+                    {v3BizCard.model && <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-blue-950 text-blue-400 flex-shrink-0">{v3BizCard.model}</span>}
+                  </div>
+                  {v3BizCard.description && <p className="text-[11px] text-muted-foreground">{v3BizCard.description}</p>}
+                </div>
+              )}
+
+              {/* Services + Customers chips */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Services */}
+                <div className="bg-card border border-border rounded-xl p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-4 h-4 rounded-full bg-teal-950 text-teal-400 flex items-center justify-center text-[8px] font-mono font-semibold">S</span>
+                    <span className="text-[11px] font-semibold">Services</span>
+                    <span className="text-[9px] text-muted-foreground/40 font-mono ml-auto">click to exclude</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {v3Services.map((s, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        title={s.why || undefined}
+                        onClick={() => setV3Services((prev) => prev.map((x, xi) => xi === i ? { ...x, on: !x.on } : x))}
+                        className={`inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full border transition-all cursor-pointer ${s.on ? "bg-teal-400 border-transparent text-teal-950 font-medium" : "border-border text-muted-foreground/40 bg-secondary/30"}`}
+                        data-testid={`v3-svc-chip-${i}`}
+                      >
+                        {s.rank < 99 && <span className="text-[8px] opacity-60">#{s.rank}</span>}
+                        {s.label}
+                        <span className="text-[8px] opacity-60">×</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-1.5">
+                    <input
+                      className="flex-1 bg-secondary/50 border border-border rounded-md px-2 h-6 text-[10px] text-foreground placeholder:text-muted-foreground/30 outline-none focus:border-lime-400"
+                      placeholder="Add service…"
+                      value={v3SvcAdd}
+                      onChange={(e) => setV3SvcAdd(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter" && v3SvcAdd.trim()) { setV3Services((p) => [...p, { label: v3SvcAdd.trim(), rank: 99, why: "", on: true }]); setV3SvcAdd(""); } }}
+                    />
+                    <button type="button" onClick={() => { if (v3SvcAdd.trim()) { setV3Services((p) => [...p, { label: v3SvcAdd.trim(), rank: 99, why: "", on: true }]); setV3SvcAdd(""); } }} className="h-6 px-2 bg-secondary/50 border border-border rounded-md text-[10px] text-muted-foreground hover:text-foreground">+</button>
+                  </div>
+                </div>
+
+                {/* Customer types */}
+                <div className="bg-card border border-border rounded-xl p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-4 h-4 rounded-full bg-pink-950 text-pink-400 flex items-center justify-center text-[8px] font-mono font-semibold">C</span>
+                    <span className="text-[11px] font-semibold">Customer types</span>
+                    <span className="text-[9px] text-muted-foreground/40 font-mono ml-auto">click to exclude</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {v3Customers.map((c, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        title={c.why || undefined}
+                        onClick={() => setV3Customers((prev) => prev.map((x, xi) => xi === i ? { ...x, on: !x.on } : x))}
+                        className={`inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full border transition-all cursor-pointer ${c.on ? "bg-pink-400 border-transparent text-pink-950 font-medium" : "border-border text-muted-foreground/40 bg-secondary/30"}`}
+                        data-testid={`v3-cust-chip-${i}`}
+                      >
+                        {c.rank < 99 && <span className="text-[8px] opacity-60">#{c.rank}</span>}
+                        {c.label}
+                        <span className="text-[8px] opacity-60">×</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-1.5">
+                    <input
+                      className="flex-1 bg-secondary/50 border border-border rounded-md px-2 h-6 text-[10px] text-foreground placeholder:text-muted-foreground/30 outline-none focus:border-lime-400"
+                      placeholder="Add customer type…"
+                      value={v3CustAdd}
+                      onChange={(e) => setV3CustAdd(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter" && v3CustAdd.trim()) { setV3Customers((p) => [...p, { label: v3CustAdd.trim(), rank: 99, why: "", on: true }]); setV3CustAdd(""); } }}
+                    />
+                    <button type="button" onClick={() => { if (v3CustAdd.trim()) { setV3Customers((p) => [...p, { label: v3CustAdd.trim(), rank: 99, why: "", on: true }]); setV3CustAdd(""); } }} className="h-6 px-2 bg-secondary/50 border border-border rounded-md text-[10px] text-muted-foreground hover:text-foreground">+</button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Scope block */}
+              <div className="bg-card border border-border rounded-xl p-4 relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-teal-400 to-lime-400" />
+                <div className="flex items-center justify-between flex-wrap gap-2 mb-1">
+                  <span className="text-[11px] font-semibold">Search scope</span>
+                  <span className={`text-[9px] font-mono px-2 py-0.5 rounded ${v3ScopeConf === "high" ? "bg-lime-950 text-lime-400" : v3ScopeConf === "low" ? "bg-red-950 text-red-400" : "bg-amber-950 text-amber-400"}`}>{v3ScopeConf} confidence</span>
+                </div>
+                {v3ScopeReason && <p className="text-[10px] text-muted-foreground mb-2">{v3ScopeReason}</p>}
+                {v3ScopeSignals.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {v3ScopeSignals.map((sig, i) => (
+                      <span key={i} className="text-[10px] px-2 py-0.5 rounded bg-secondary text-muted-foreground border border-border before:content-['✓_'] before:text-teal-400">{sig}</span>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-1.5 flex-wrap mb-3">
+                  {(["city", "country", "region", "global"] as const).map((s) => (
+                    <button key={s} type="button" onClick={() => setV3Scope(s)}
+                      className={`text-[11px] px-3 py-1 rounded-full border transition-all ${v3Scope === s ? "bg-lime-950 border-lime-400 text-lime-400" : "border-border text-muted-foreground hover:border-muted-foreground"}`}
+                    >{s.charAt(0).toUpperCase() + s.slice(1)}</button>
+                  ))}
+                </div>
+                {v3Scope !== "global" && (
+                  <div className="flex gap-3 flex-wrap">
+                    {v3Scope === "city" && (
+                      <div><div className="text-[9px] font-mono text-muted-foreground/50 mb-1">CITY</div>
+                        <input className="bg-secondary/50 border border-border rounded-md px-2 h-7 text-[10px] text-foreground outline-none focus:border-lime-400 w-28" placeholder="e.g. Dubai" value={v3LocCity} onChange={(e) => setV3LocCity(e.target.value)} /></div>
+                    )}
+                    {v3Scope === "country" && (
+                      <div><div className="text-[9px] font-mono text-muted-foreground/50 mb-1">COUNTRY</div>
+                        <input className="bg-secondary/50 border border-border rounded-md px-2 h-7 text-[10px] text-foreground outline-none focus:border-lime-400 w-28" placeholder="e.g. UAE" value={v3LocCountry} onChange={(e) => setV3LocCountry(e.target.value)} /></div>
+                    )}
+                    {v3Scope === "region" && (
+                      <div><div className="text-[9px] font-mono text-muted-foreground/50 mb-1">REGION</div>
+                        <input className="bg-secondary/50 border border-border rounded-md px-2 h-7 text-[10px] text-foreground outline-none focus:border-lime-400 w-28" placeholder="e.g. GCC" value={v3LocRegion} onChange={(e) => setV3LocRegion(e.target.value)} /></div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Competitors (display only) */}
+              {v3Competitors.length > 0 && (
+                <div>
+                  <div className="text-[9px] font-mono font-semibold tracking-widest uppercase text-muted-foreground/40 mb-2">Top competitors detected</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {v3Competitors.map((c, i) => (
+                      <div key={i} className="bg-card border border-border rounded-lg p-2.5">
+                        <div className="text-[11px] font-medium mb-0.5">{c.name}</div>
+                        <div className="text-[9px] font-mono text-muted-foreground/50 mb-1">{c.location}</div>
+                        <div className="text-[10px] text-muted-foreground">{c.known_for}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Action bar */}
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <span className="text-[10px] font-mono text-muted-foreground">
+                  {v3Services.filter((s) => s.on).length} service{v3Services.filter((s) => s.on).length !== 1 ? "s" : ""} · {v3Customers.filter((c) => c.on).length} customer type{v3Customers.filter((c) => c.on).length !== 1 ? "s" : ""} selected
+                </span>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setV3Step("classify")} className="text-[11px] px-4 py-2 border border-border rounded-xl text-muted-foreground hover:text-foreground transition-colors">← Re-classify</button>
+                  <button
+                    type="button"
+                    onClick={handleV3Generate}
+                    disabled={v3Generating}
+                    className="h-9 px-5 bg-lime-400 hover:bg-lime-300 active:scale-[.98] text-black text-xs font-semibold rounded-xl transition-all disabled:bg-lime-900 disabled:text-lime-700 disabled:cursor-not-allowed"
+                    data-testid="button-v3-generate"
+                  >
+                    {v3Generating ? "Writing prompts…" : "Generate prompts ↗"}
+                  </button>
+                </div>
+              </div>
+              {v3Generating && (
+                <div className="text-center py-6">
+                  <div className="w-6 h-6 border-2 border-border border-t-lime-400 rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-[10px] text-muted-foreground font-mono">Writing prompts…</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* STEP 3 — Prompts + full post-pipeline */}
+          {v3Step === "prompts" && v3Result && (
+            <div className="space-y-4">
+              {/* Prompt output header */}
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  {v3Result.business_name} · {[...v3Result.by_service, ...v3Result.by_customer].flatMap((g: any) => g.prompts || []).length} prompts · {v3Result.by_service.length} services · {v3Result.by_customer.length} customer types
+                </span>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setV3Step("confirm")} className="text-[11px] px-3 py-1 border border-border rounded-full text-muted-foreground hover:text-foreground transition-colors">← Edit</button>
+                </div>
+              </div>
+
+              {/* View switcher */}
+              <div className="flex gap-1.5 mb-4">
+                <button type="button"
+                  onClick={() => setV3PanelView("service")}
+                  className={`text-[11px] px-3 py-1 rounded-full border transition-all ${v3PanelView === "service" ? "bg-lime-950 border-lime-400 text-lime-400" : "border-border text-muted-foreground hover:border-muted-foreground"}`}
+                >By service</button>
+                <button type="button"
+                  onClick={() => setV3PanelView("customer")}
+                  className={`text-[11px] px-3 py-1 rounded-full border transition-all ${v3PanelView === "customer" ? "bg-lime-950 border-lime-400 text-lime-400" : "border-border text-muted-foreground hover:border-muted-foreground"}`}
+                >By customer</button>
+              </div>
+
+              {/* Service groups */}
+              {v3PanelView === "service" && v3Result.by_service.map((g, gi) => (
+                <div key={gi} className="mb-5">
+                  <div className="flex items-center gap-2 mb-2 text-[11px] font-semibold tracking-widest uppercase font-mono text-muted-foreground">
+                    <span className="w-1.5 h-1.5 rounded-full bg-teal-400 flex-shrink-0" />{g.service}
+                    <span className="flex-1 h-px bg-border ml-1" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    {g.prompts.map((p, pi) => renderPromptRow(p, pi))}
+                  </div>
+                </div>
+              ))}
+
+              {/* Customer groups */}
+              {v3PanelView === "customer" && v3Result.by_customer.map((g, gi) => (
+                <div key={gi} className="mb-5">
+                  <div className="flex items-center gap-2 mb-2 text-[11px] font-semibold tracking-widest uppercase font-mono text-muted-foreground">
+                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 flex-shrink-0" />{g.customer}
+                    <span className="flex-1 h-px bg-border ml-1" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    {g.prompts.map((p, pi) => renderPromptRow(p, pi))}
+                  </div>
+                </div>
+              ))}
+
+              {/* GEO Analysis panel — same as V2 */}
+              {renderAnalysisPanel(
+                v3BrandName, setV3BrandName,
+                v3BrandDomain, setV3BrandDomain,
+                v3Engines, setV3Engines,
+                v3Segments, setV3Segments,
+                runV3Segment,
+                runAllV3,
+                v3AnalysisErr,
+                "Run GEO Analysis",
+                null,
+                () => {},
+              )}
+
+              {/* Citation analysis */}
+              {v3Segments.some((s) => s.scoringResult) && (
+                <SegmentCitationAnalyzer
+                  brandName={v3BrandName}
+                  segments={v3Segments.filter((s) => s.scoringResult).map((s) => ({
+                    id: s.id,
+                    persona: "pnc",
+                    seedType: s.type === "service" ? "providers" : "customers",
+                    customerType: s.type === "customer" ? s.label : "",
+                    location: v3LocCity || v3LocCountry || v3LocRegion || "",
+                    scoringResult: s.scoringResult ? {
+                      score: s.scoringResult.score,
+                      raw_runs: (s.scoringResult.raw_runs || []).map((r: any) => ({
+                        prompt: r.prompt_text || r.prompt_id || "",
+                        engine: r.engine,
+                        response: r.raw_text || "",
+                        brands_found: (r.candidates || []).map((c: any) => typeof c === "string" ? c : c.name_raw || c.name || "").filter(Boolean),
+                        rank: r.brand_rank ?? null,
+                        citations: r.citations || [],
+                        cluster: r.cluster,
+                      })),
+                    } : undefined,
+                  }))}
+                />
+              )}
+
+              {/* Competitor Lens */}
+              {v3Segments.length > 0 && (
+                <PncCompetitorLens
+                  segments={v3Segments}
+                  brandName={v3BrandName}
+                  brandDomain={v3BrandDomain}
+                  location={v3LocCity || v3LocCountry || v3LocRegion || ""}
+                  sessionId={v3SessionId || 0}
+                />
+              )}
+            </div>
           )}
         </div>
       )}

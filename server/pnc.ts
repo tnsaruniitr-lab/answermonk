@@ -104,6 +104,59 @@ Generate 25-30 curated prompts.`;
   return { result: extractJSON(tb.text, "["), cost: calcCost(response.usage) };
 }
 
+export async function pncClassify(url: string) {
+  const system = `You are a business analyst. Analyze the website and extract structured info.
+Return ONLY raw valid JSON — no markdown, no backticks:
+{"business_name":"name","business_category":"Short category","business_description":"One sentence","business_model":"B2B|B2C|Both","service_types":[{"label":"service","rank":1,"why":"reason"}],"customer_types":[{"label":"customer","rank":1,"why":"reason"}],"city":"city or empty","country":"country or empty","region":"GCC|MENA|Europe etc or empty","scope":"city|country|region|global","scope_confidence":"high|medium|low","scope_reason":"one sentence","scope_signals":["s1","s2"],"competitors":[{"name":"Company","location":"region","known_for":"differentiator"}]}
+
+Rules for service_types:
+1. If business_category contains words like service/care/therapy/healthcare/wellness/solutions/platform, include the business_category itself as rank 1 in service_types — it IS a searchable service term.
+2. Then list every individual service found in search results, ranked by homepage prominence.
+3. For healthcare businesses: explicitly check for and include any of these if mentioned ANYWHERE in search results, directory listings, or review snippets: nurse at home, nursing at home, doctor at home, blood test at home, IV drip therapy, physiotherapy at home, caregiver services, health monitoring, medication delivery.
+4. For SaaS/software businesses: check pricing pages, feature lists, and directory entries for individual product modules or service tiers.
+5. Never skip a service just because it is not in the meta description — search multiple result snippets.
+
+Rules for customer_types: ALL segments ranked by who the site primarily addresses.
+Rules for competitors:
+1. ALWAYS scope your competitor search to the detected region. Search for "[business category] competitors [region]".
+2. Prioritise regional and local sources over global directories.
+3. Prefer locally headquartered or regionally dominant companies over global SaaS giants unless the business itself is global.
+4. Up to 12 NAMED competing businesses or products.
+Rules for scope: physical+1 city=city, multi-city=country; SaaS: regional TLD/VAT=region, no signals=global.`;
+
+  const response = await (anthropic.messages.create as any)({
+    model: "claude-sonnet-4-5",
+    max_tokens: 2000,
+    system,
+    messages: [{ role: "user", content: `Extract blocks from: ${url}` }],
+    tools: [{ type: "web_search_20250305", name: "web_search" }],
+  });
+
+  const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
+  if (!tb) throw new Error("No response from Claude");
+  return { result: extractJSON(tb.text, "{"), cost: calcCost(response.usage) };
+}
+
+export async function pncClassifyGenerate(services: string[], customers: string[], loc: string, url: string) {
+  const sysP = `Search prompt strategist. Generate prompts using ONLY confirmed services and customers.
+Return ONLY raw valid JSON:
+{"business_name":"","by_service":[{"service":"","prompts":[{"verb":"Find","text":""},{"verb":"List","text":""},{"verb":"Rank","text":""}]}],"by_customer":[{"customer":"","prompts":[{"verb":"Find","text":""},{"verb":"List","text":""},{"verb":"Rank","text":""}]}]}
+Rules: 4-5 prompts per service, 3-4 per customer. Verbs: Find/List/Rank evenly. Qualifiers: most trusted/reliable/affordable/highest rated/most experienced/best reviewed — vary, no repeats in group. Location: "${loc}". Natural language. ONLY use listed services and customers.`;
+
+  const userMsg = `Services confirmed: ${JSON.stringify(services)}\nCustomer types confirmed: ${JSON.stringify(customers)}\nLocation: "${loc}"\nURL: ${url}\nGenerate grouped prompts.`;
+
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 4000,
+    system: sysP,
+    messages: [{ role: "user", content: userMsg }],
+  });
+
+  const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
+  if (!tb) throw new Error("No response from Claude");
+  return { result: extractJSON(tb.text, "{"), cost: calcCost(response.usage) };
+}
+
 export async function pncV2Generate(url: string, loc: string) {
   const sysP = `You are a search prompt strategist for AI search visibility (Perplexity, ChatGPT, Google AI Overviews).
 
