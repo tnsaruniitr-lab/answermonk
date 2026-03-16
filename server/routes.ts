@@ -2830,8 +2830,8 @@ export async function registerRoutes(
     try {
       const schema = z.object({ url: z.string().url() });
       const { url } = schema.parse(req.body);
-      const result = await pncExtract(url);
-      res.json(result);
+      const { result, cost } = await pncExtract(url);
+      res.json({ ...result, _cost: cost });
     } catch (err: any) {
       if (err instanceof z.ZodError) res.status(400).json({ message: "Please enter a valid URL" });
       else { console.error("[pnc/extract]", err.message); res.status(422).json({ message: err.message || "Extraction failed" }); }
@@ -2846,8 +2846,8 @@ export async function registerRoutes(
         inclCust: z.boolean(), loc: z.string(),
       });
       const { b1, b2, b3, b4, inclCust, loc } = schema.parse(req.body);
-      const result = await pncV1Generate(b1, b2, b3, b4, inclCust, loc);
-      res.json(result);
+      const { result, cost } = await pncV1Generate(b1, b2, b3, b4, inclCust, loc);
+      res.json({ prompts: result, _cost: cost });
     } catch (err: any) {
       if (err instanceof z.ZodError) res.status(400).json({ message: "Invalid request" });
       else { console.error("[pnc/v1-generate]", err.message); res.status(422).json({ message: err.message || "Generation failed" }); }
@@ -2858,8 +2858,8 @@ export async function registerRoutes(
     try {
       const schema = z.object({ url: z.string().url(), loc: z.string() });
       const { url, loc } = schema.parse(req.body);
-      const result = await pncV2Generate(url, loc);
-      res.json(result);
+      const { result, cost } = await pncV2Generate(url, loc);
+      res.json({ ...result, _cost: cost });
     } catch (err: any) {
       if (err instanceof z.ZodError) res.status(400).json({ message: "Please enter a valid URL" });
       else { console.error("[pnc/v2-generate]", err.message); res.status(422).json({ message: err.message || "Generation failed" }); }

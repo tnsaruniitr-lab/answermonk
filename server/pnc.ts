@@ -5,6 +5,20 @@ const anthropic = new Anthropic({
   baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
 });
 
+const INPUT_COST_PER_TOKEN = 3 / 1_000_000;
+const OUTPUT_COST_PER_TOKEN = 15 / 1_000_000;
+
+function calcCost(usage: { input_tokens: number; output_tokens: number }) {
+  return {
+    input_tokens: usage.input_tokens,
+    output_tokens: usage.output_tokens,
+    cost_usd: +(
+      usage.input_tokens * INPUT_COST_PER_TOKEN +
+      usage.output_tokens * OUTPUT_COST_PER_TOKEN
+    ).toFixed(6),
+  };
+}
+
 function extractJSON(text: string, startChar: string): any {
   const open = startChar === "{" ? "{" : "[";
   const close = startChar === "{" ? "}" : "]";
@@ -48,7 +62,7 @@ Rules:
 
   const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
   if (!tb) throw new Error("No response from Claude");
-  return extractJSON(tb.text, "{");
+  return { result: extractJSON(tb.text, "{"), cost: calcCost(response.usage) };
 }
 
 export async function pncV1Generate(
@@ -87,7 +101,7 @@ Generate 25-30 curated prompts.`;
 
   const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
   if (!tb) throw new Error("No response from Claude");
-  return extractJSON(tb.text, "[");
+  return { result: extractJSON(tb.text, "["), cost: calcCost(response.usage) };
 }
 
 export async function pncV2Generate(url: string, loc: string) {
@@ -142,5 +156,5 @@ Rules:
 
   const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
   if (!tb) throw new Error("No response from Claude");
-  return extractJSON(tb.text, "{");
+  return { result: extractJSON(tb.text, "{"), cost: calcCost(response.usage) };
 }

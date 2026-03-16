@@ -17,6 +17,12 @@ type V2Result = {
   by_service: V2ServiceGroup[];
   by_customer: V2CustomerGroup[];
 };
+type CostEntry = {
+  label: string;
+  input_tokens: number;
+  output_tokens: number;
+  cost_usd: number;
+};
 
 const makeDefaultBlocks = (): Blocks => ({
   1: [], 2: [], 3: [],
@@ -74,6 +80,8 @@ export default function PncCreator() {
   const [v2Result, setV2Result] = useState<V2Result | null>(null);
   const [v2View, setV2View] = useState<"service" | "customer">("service");
 
+  const [costs, setCosts] = useState<CostEntry[]>([]);
+
   function getLoc(mode: string, city: string, country: string) {
     if (mode === "global") return "globally";
     if (mode === "city") return city ? `in ${city}` : "in [city]";
@@ -129,6 +137,7 @@ export default function PncCreator() {
       setLocCountry(data.country || "");
       setV2LocCity(data.city || "");
       setV2LocCountry(data.country || "");
+      if (data._cost) setCosts((prev) => [...prev, { label: "Extract blocks (web search)", ...data._cost }]);
       setV1Loading(false);
       setV1Loaded(true);
     } catch (e: any) {
@@ -157,8 +166,9 @@ export default function PncCreator() {
       });
       clearInterval(iv);
       if (!res.ok) { const e = await res.json(); throw new Error(e.message || "API error"); }
-      const prompts = await res.json();
-      setV1Prompts(prompts);
+      const data = await res.json();
+      setV1Prompts(data.prompts || []);
+      if (data._cost) setCosts((prev) => [...prev, { label: "Generate prompts (Block Builder)", ...data._cost }]);
       setV1Generating(false);
     } catch (e: any) {
       clearInterval(iv);
@@ -185,6 +195,7 @@ export default function PncCreator() {
       clearInterval(iv);
       if (!res.ok) { const e = await res.json(); throw new Error(e.message || "API error " + res.status); }
       const data = await res.json();
+      if (data._cost) setCosts((prev) => [...prev, { label: "Auto Groups (web search)", ...data._cost }]);
       setV2Loading(false);
       setV2Result(data);
     } catch (e: any) {
@@ -557,6 +568,43 @@ export default function PncCreator() {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ══ COST TRACKER ══ */}
+      {costs.length > 0 && (
+        <div className="mt-6 border-t border-border pt-4">
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+            <span className="text-[10px] font-mono font-semibold tracking-widest uppercase text-muted-foreground/50">Session cost — claude-sonnet-4-5</span>
+            <button
+              type="button"
+              className="text-[10px] px-2.5 py-0.5 border border-border rounded-full text-muted-foreground/40 hover:border-red-900 hover:text-red-400 transition-colors"
+              onClick={() => setCosts([])}
+            >
+              Clear
+            </button>
+          </div>
+          <div className="space-y-1.5">
+            {costs.map((c, i) => (
+              <div key={i} className="flex items-center gap-3 text-[11px] font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 flex-shrink-0" />
+                <span className="flex-1 text-muted-foreground truncate">{c.label}</span>
+                <span className="text-muted-foreground/50 tabular-nums">{c.input_tokens.toLocaleString()} in</span>
+                <span className="text-muted-foreground/50 tabular-nums">{c.output_tokens.toLocaleString()} out</span>
+                <span className="text-foreground/70 tabular-nums w-20 text-right">${c.cost_usd.toFixed(4)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+            <span className="text-[11px] font-mono text-muted-foreground/50">
+              {costs.reduce((a, c) => a + c.input_tokens, 0).toLocaleString()} in ·{" "}
+              {costs.reduce((a, c) => a + c.output_tokens, 0).toLocaleString()} out ·{" "}
+              {costs.length} {costs.length === 1 ? "call" : "calls"}
+            </span>
+            <span className="text-[13px] font-mono font-semibold text-foreground tabular-nums">
+              ${costs.reduce((a, c) => a + c.cost_usd, 0).toFixed(4)} total
+            </span>
+          </div>
         </div>
       )}
     </div>
