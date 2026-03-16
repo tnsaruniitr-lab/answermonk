@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link, useLocation } from "wouter";
 import { getBrandConfig } from "@/lib/brand-config";
@@ -26,6 +26,7 @@ import {
   Mail,
   Send,
   CheckCircle2,
+  Activity,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -280,6 +281,23 @@ function VisibilityScorecard({ section1, section2, meta }: { section1: any; sect
   const overall = section1.overall;
   const grade = scoreGrade(overall.appearanceRate);
 
+  const [siSignals, setSiSignals] = useState<any[] | null>(null);
+  useEffect(() => {
+    if (!meta?.sessionId) return;
+    fetch(`/api/multi-segment-sessions/${meta.sessionId}/signal-intelligence`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        const raw = data?.result;
+        const signals =
+          raw?.signal_rankings ||
+          raw?.result?.signal_rankings ||
+          raw?.signals ||
+          raw?.result?.signals;
+        if (Array.isArray(signals) && signals.length > 0) setSiSignals(signals);
+      })
+      .catch(() => {});
+  }, [meta?.sessionId]);
+
   const engines = ["chatgpt", "gemini", "claude"];
   const engineLabels: Record<string, string> = { chatgpt: "ChatGPT", gemini: "Gemini", claude: "Claude" };
   const engineColors: Record<string, string> = {
@@ -415,6 +433,55 @@ function VisibilityScorecard({ section1, section2, meta }: { section1: any; sect
                   ))}
                 </tbody>
               </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {siSignals && siSignals.length > 0 && (
+        <Card className="mt-6" data-testid="card-signal-indicators">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center">
+                <Activity className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+              </div>
+              <div>
+                <CardTitle className="text-base leading-tight">What are the top signals which matter in your industry for high AI search ranking?</CardTitle>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {siSignals.map((sig: any, i: number) => {
+                const conf = sig.confidence || "medium";
+                const confColors: Record<string, { bar: string; badge: string; text: string }> = {
+                  high: { bar: "bg-emerald-500", badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400", text: "High" },
+                  medium: { bar: "bg-amber-400", badge: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400", text: "Medium" },
+                  low: { bar: "bg-slate-300", badge: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400", text: "Low" },
+                };
+                const colors = confColors[conf] || confColors.medium;
+                const barWidth = conf === "high" ? 100 : conf === "medium" ? 62 : 30;
+                return (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/40 border border-border/50">
+                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-violet-100 dark:bg-violet-900/40 text-[11px] font-bold text-violet-700 dark:text-violet-300 shrink-0 mt-0.5">
+                      {i + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="text-sm font-semibold text-foreground">{sig.signal_name || sig.signal}</span>
+                        <span className={`text-[10px] px-1.5 py-0 rounded-full font-medium ${colors.badge}`}>{colors.text}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed mb-2">{sig.why_it_matters || sig.evidence_pattern}</p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden max-w-[120px]">
+                          <div className={`h-full rounded-full ${colors.bar} transition-all`} style={{ width: `${barWidth}%` }} />
+                        </div>
+                        <span className="text-[10px] text-muted-foreground">{colors.text} confidence</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
