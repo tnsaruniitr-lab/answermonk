@@ -20,6 +20,11 @@ import {
   Lightbulb,
   AlertTriangle,
   CheckCircle2,
+  Brain,
+  Zap,
+  DollarSign,
+  Code,
+  Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest } from "@/lib/queryClient";
@@ -255,6 +260,13 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
   const [crawlResult, setCrawlResult] = useState<{ crawled: number; failed: number } | null>(null);
   const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const [siResult, setSiResult] = useState<any | null>(null);
+  const [siLoading, setSiLoading] = useState(false);
+  const [siError, setSiError] = useState<string | null>(null);
+  const [siCost, setSiCost] = useState<{ tokens: number; costUsd: number; cached: boolean } | null>(null);
+  const [showSiPrompt, setShowSiPrompt] = useState(false);
+  const [siPromptText, setSiPromptText] = useState<string>("");
+
   const segmentsWithScores = segments.filter(s => s.scoringResult);
   const cacheId = sessionId || groupKey;
 
@@ -276,6 +288,40 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
       .finally(() => { if (!cancelled) setLoadingPersisted(false); });
     return () => { cancelled = true; };
   }, [cacheId]);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    let cancelled = false;
+    fetch(`/api/multi-segment-sessions/${sessionId}/signal-intelligence`)
+      .then(r => r.json())
+      .then(data => {
+        if (cancelled || !data.result) return;
+        const r = data.result;
+        setSiResult(r.result);
+        setSiPromptText(r.promptText || "");
+        setSiCost({ tokens: r.promptTokens + r.completionTokens, costUsd: r.costUsd, cached: true });
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [sessionId]);
+
+  const runSignalIntelligence = async () => {
+    if (!sessionId) return;
+    setSiLoading(true);
+    setSiError(null);
+    try {
+      const res = await apiRequest("POST", `/api/multi-segment-sessions/${sessionId}/signal-intelligence`, {});
+      const data = await res.json();
+      if (data.message && !data.result) throw new Error(data.message);
+      setSiResult(data.result);
+      setSiPromptText(data.promptText || "");
+      setSiCost({ tokens: data.promptTokens + data.completionTokens, costUsd: data.costUsd, cached: data.cached });
+    } catch (err) {
+      setSiError(String(err));
+    } finally {
+      setSiLoading(false);
+    }
+  };
 
   const unknownCount = useRef(0);
   const startProgressPolling = (key: string) => {
@@ -552,6 +598,197 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
               ))}
             </div>
           )}
+        </Card>
+      )}
+
+      {/* Signal Intelligence Panel */}
+      {report && sessionId && (
+        <Card className="border-violet-200 dark:border-violet-800/50 bg-violet-50/40 dark:bg-violet-950/20">
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Brain className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                <span className="text-sm font-semibold text-violet-900 dark:text-violet-200">Signal Intelligence</span>
+                {siCost && (
+                  <Badge className={`text-[10px] px-1.5 ${siCost.cached ? "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" : "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300"}`}>
+                    {siCost.cached ? "cached" : `$${siCost.costUsd.toFixed(4)}`}
+                  </Badge>
+                )}
+              </div>
+              {!siResult && !siLoading && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-muted-foreground">~$0.03 est.</span>
+                  <Button
+                    size="sm"
+                    onClick={runSignalIntelligence}
+                    disabled={!sessionId}
+                    className="h-7 text-xs bg-violet-600 hover:bg-violet-700 text-white"
+                    data-testid="button-run-signal-intelligence"
+                  >
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    Run Analysis
+                  </Button>
+                </div>
+              )}
+              {siResult && !siLoading && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={runSignalIntelligence}
+                  className="h-7 text-xs text-muted-foreground"
+                  data-testid="button-rerun-signal-intelligence"
+                >
+                  Re-run
+                </Button>
+              )}
+            </div>
+
+            {!siResult && !siLoading && (
+              <p className="text-xs text-muted-foreground">
+                Analyses scraped citation data to rank the top signals AI engines weight in this market, and shows what top competitors do that earns them citations.
+              </p>
+            )}
+
+            {siLoading && (
+              <div className="flex items-center gap-2 py-3 text-sm text-violet-700 dark:text-violet-300">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Analysing citation data with GPT-4o...
+              </div>
+            )}
+
+            {siError && (
+              <div className="text-xs text-destructive flex items-center gap-1.5 mt-1">
+                <AlertTriangle className="w-3.5 h-3.5" /> {siError}
+              </div>
+            )}
+
+            {siResult && (
+              <div className="space-y-4 mt-1">
+                {/* Section 1: Signal Rankings */}
+                {siResult.signal_rankings?.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Zap className="w-3.5 h-3.5 text-amber-500" />
+                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Signal Rankings</span>
+                    </div>
+                    <div className="space-y-2">
+                      {siResult.signal_rankings.map((s: any, i: number) => (
+                        <div key={i} className="bg-white dark:bg-slate-900/60 rounded-lg border border-border/50 p-3">
+                          <div className="flex items-start gap-2.5">
+                            <div className={`text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${i === 0 ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400" : i === 1 ? "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" : i === 2 ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400" : "bg-muted text-muted-foreground"}`}>
+                              {s.rank}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-semibold text-foreground">{s.signal}</div>
+                              <div className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{s.why_it_matters}</div>
+                              {s.demonstrated_by?.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {s.demonstrated_by.map((b: string, bi: number) => (
+                                    <Badge key={bi} variant="outline" className="text-[10px] px-1.5 py-0 border-violet-200 text-violet-700 dark:border-violet-700 dark:text-violet-300">
+                                      {b}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                              {s.example && (
+                                <div className="text-[11px] text-muted-foreground mt-1.5 italic border-l-2 border-violet-200 dark:border-violet-700 pl-2">
+                                  {s.example}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Section 2: Brand Playbook */}
+                {siResult.brand_playbook?.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Trophy className="w-3.5 h-3.5 text-emerald-500" />
+                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Brand Playbook</span>
+                    </div>
+                    <div className="space-y-2">
+                      {siResult.brand_playbook.map((b: any, i: number) => (
+                        <Collapsible key={i}>
+                          <CollapsibleTrigger className="w-full">
+                            <div className="bg-white dark:bg-slate-900/60 rounded-lg border border-border/50 p-3 flex items-center justify-between hover:bg-muted/30 transition-colors text-left w-full">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-[10px] font-bold text-emerald-700 dark:text-emerald-400 shrink-0">
+                                  {i + 1}
+                                </div>
+                                <div>
+                                  <div className="text-sm font-semibold text-foreground">{b.brand}</div>
+                                  <div className="text-[11px] text-muted-foreground">{b.appearance_rate} visibility · {b.segments_present} segments</div>
+                                </div>
+                              </div>
+                              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                            </div>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <div className="bg-white dark:bg-slate-900/60 rounded-b-lg border border-t-0 border-border/50 px-3 pb-3 pt-2 space-y-2">
+                              {b.what_works?.length > 0 && (
+                                <div>
+                                  <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">What Works</div>
+                                  <ul className="space-y-1">
+                                    {b.what_works.map((w: string, wi: number) => (
+                                      <li key={wi} className="text-xs text-foreground flex items-start gap-1.5">
+                                        <CheckCircle2 className="w-3 h-3 text-emerald-500 mt-0.5 shrink-0" />
+                                        {w}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {b.examples?.length > 0 && (
+                                <div>
+                                  <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Examples</div>
+                                  <ul className="space-y-1">
+                                    {b.examples.map((e: string, ei: number) => (
+                                      <li key={ei} className="text-[11px] text-muted-foreground italic border-l-2 border-emerald-200 dark:border-emerald-800 pl-2">
+                                        {e}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* View Prompt */}
+                {siPromptText && (
+                  <Collapsible open={showSiPrompt} onOpenChange={setShowSiPrompt}>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-6 text-[11px] text-muted-foreground px-2 gap-1">
+                        <Code className="w-3 h-3" />
+                        {showSiPrompt ? "Hide Prompt" : "View Prompt"}
+                        <ChevronDown className={`w-3 h-3 transition-transform ${showSiPrompt ? "rotate-180" : ""}`} />
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="mt-2 bg-slate-950 rounded-md p-3 overflow-x-auto">
+                        <pre className="text-[10px] text-slate-300 whitespace-pre-wrap leading-relaxed font-mono">{siPromptText}</pre>
+                      </div>
+                      {siCost && (
+                        <div className="flex items-center gap-3 mt-1.5 text-[10px] text-muted-foreground">
+                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />${siCost.costUsd.toFixed(4)}</span>
+                          <span>{siCost.tokens.toLocaleString()} tokens</span>
+                          {siCost.cached && <span className="text-slate-400">cached result</span>}
+                        </div>
+                      )}
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
+              </div>
+            )}
+          </div>
         </Card>
       )}
 

@@ -1,5 +1,5 @@
 
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, index, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -140,6 +140,19 @@ export const citationPageMentions = pgTable("citation_page_mentions", {
 export const insertCitationPageMentionSchema = createInsertSchema(citationPageMentions).omit({ id: true, createdAt: true });
 export type CitationPageMention = typeof citationPageMentions.$inferSelect;
 export type InsertCitationPageMention = z.infer<typeof insertCitationPageMentionSchema>;
+
+export const citationSignalIntelligence = pgTable("citation_signal_intelligence", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").notNull(),
+  result: jsonb("result").notNull(),
+  promptTokens: integer("prompt_tokens").notNull().default(0),
+  completionTokens: integer("completion_tokens").notNull().default(0),
+  costUsd: real("cost_usd").notNull().default(0),
+  promptText: text("prompt_text"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type CitationSignalIntelligence = typeof citationSignalIntelligence.$inferSelect;
 
 export const brandIntelligenceJobs = pgTable("brand_intelligence_jobs", {
   id: serial("id").primaryKey(),

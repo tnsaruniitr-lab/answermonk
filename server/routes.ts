@@ -24,6 +24,7 @@ import { insertSavedProfileSchema, insertMultiSegmentSessionSchema, insertSavedV
 import { analyzePanelWebsite } from "./panel/generator";
 import { runInsightsAnalysis, type InsightsInput } from "./insights";
 import { runSegmentAnalysis } from "./segment-analysis";
+import { runSignalIntelligence, getSignalIntelligence } from "./signal-intelligence";
 import { generateReport } from "./report/generator";
 import { generateTeaserData } from "./report/teaser-generator";
 import { brandIntelligenceJobs } from "@shared/schema";
@@ -1747,6 +1748,29 @@ export async function registerRoutes(
       res.json({ report: session.citationReport || null });
     } catch (err) {
       res.status(500).json({ message: "Failed to load citation report", error: String(err) });
+    }
+  });
+
+  app.get("/api/multi-segment-sessions/:id/signal-intelligence", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) { res.status(400).json({ message: "Invalid session ID" }); return; }
+      const result = await getSignalIntelligence(id);
+      res.json({ result: result || null });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to load signal intelligence", error: String(err) });
+    }
+  });
+
+  app.post("/api/multi-segment-sessions/:id/signal-intelligence", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) { res.status(400).json({ message: "Invalid session ID" }); return; }
+      const result = await runSignalIntelligence(id);
+      res.json(result);
+    } catch (err) {
+      console.error("[signal-intelligence] Error:", err);
+      res.status(500).json({ message: String(err) });
     }
   });
 
