@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PNC Creator — Guided</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d0d0f;--surface:#16161a;--surface2:#1e1e24;--border:#2a2a32;--border2:#3c3c48;--text:#f0efe8;--muted:#888796;--faint:#555566;--accent:#c8f06b;--accent-bg:#1a2210;--accent-text:#0d0d0f;--blue:#6ec6f5;--blue-bg:#0e1e2a;--teal:#6bf0d4;--teal-bg:#0e2a24;--amber:#f5c96e;--amber-bg:#281f0c;--pink:#f06ba0;--pink-bg:#2a1020;--coral:#f0956b;--coral-bg:#2a1a0e;--r:10px;--rs:6px}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;font-size:13px}
+.page{padding:1.25rem 1rem 4rem}
+.eyebrow{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-family:monospace;margin-bottom:5px}
+h1{font-size:1.3rem;line-height:1.1;margin-bottom:4px;color:var(--text)}
+h1 em{color:var(--accent);font-style:italic}
+.sub{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:1rem}
+.url-row{display:flex;gap:6px;margin-bottom:.4rem}
+.url-in{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:0 12px;height:40px;font-size:12px;color:var(--text);outline:none}
+.url-in:focus{border-color:var(--accent)}
+.url-in::placeholder{color:var(--faint)}
+.hint{font-size:10px;color:var(--faint);margin-bottom:1rem}
+.err{background:#1e1010;border:1px solid #4a2020;border-radius:var(--rs);padding:8px 12px;font-size:11px;color:#f06b6b;display:none;margin-bottom:.75rem}
+.btn-primary{height:40px;padding:0 16px;background:var(--accent);border:none;border-radius:var(--r);font-size:11px;font-weight:600;color:var(--accent-text);cursor:pointer;white-space:nowrap}
+.btn-primary:disabled{background:#2e3d18;color:#4a5e28;cursor:not-allowed}
+.btn-gen{height:36px;padding:0 18px;background:var(--accent);border:none;border-radius:var(--r);font-size:11px;font-weight:600;color:var(--accent-text);cursor:pointer}
+.btn-gen:disabled{background:#2e3d18;color:#4a5e28;cursor:not-allowed}
+.btn-back{font-size:11px;padding:6px 14px;border:1px solid var(--border);border-radius:var(--r);background:transparent;color:var(--muted);cursor:pointer}
+.loader{display:none;text-align:center;padding:3rem 0}
+.gen-loader{display:none;text-align:center;padding:1.5rem 0}
+.spin{width:28px;height:28px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-msg{font-size:10px;color:var(--muted);font-family:monospace}
+.step-indicator{display:flex;align-items:center;margin-bottom:1.25rem}
+.step-node{display:flex;align-items:center;gap:6px}
+.step-circle{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;font-family:monospace;border:1px solid var(--border);color:var(--faint);background:transparent;flex-shrink:0;transition:all .2s}
+.step-circle.done{background:var(--accent);border-color:var(--accent);color:#0d0d0f}
+.step-circle.active{border-color:var(--accent);color:var(--accent)}
+.step-label{font-size:10px;color:var(--faint);font-family:monospace;transition:color .2s}
+.step-label.active{color:var(--text)}.step-label.done{color:var(--muted)}
+.step-line{flex:1;height:1px;background:var(--border);margin:0 8px;min-width:16px;transition:background .2s}
+.step-line.done{background:var(--accent)}
+.v3-step{display:none}.v3-step.active{display:block}
+.biz-card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:.9rem 1rem;margin-bottom:.75rem;display:none;position:relative;overflow:hidden}
+.biz-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--blue))}
+.biz-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px}
+.biz-cat{font-size:10px;font-weight:500;color:var(--accent);font-family:monospace;margin-bottom:3px}
+.biz-model{font-size:9px;font-family:monospace;padding:2px 7px;border-radius:4px;background:var(--blue-bg);color:var(--blue);display:inline-block;margin-bottom:4px}
+.biz-desc{font-size:11px;color:var(--muted);line-height:1.5}
+.confirm-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem}
+.cblock{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:.9rem 1rem}
+.cblock-head{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.cblock-icon{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;font-family:monospace;flex-shrink:0}
+.ci-svc{background:var(--teal-bg);color:var(--teal)}.ci-cust{background:var(--pink-bg);color:var(--pink)}
+.cblock-title{font-size:11px;font-weight:600;color:var(--text)}
+.cblock-hint{font-size:9px;color:var(--faint);font-family:monospace;margin-left:auto}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:3px 8px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);cursor:pointer;user-select:none;transition:all .12s}
+.chip.on{color:#0d0d0f}
+.chip.svc.on{background:var(--teal);border-color:transparent;color:#04342c}
+.chip.cust.on{background:var(--pink);border-color:transparent;color:#4b1528}
+.chip-x{font-size:8px;opacity:.7;margin-left:1px}
+.add-row{display:flex;gap:5px;margin-top:3px}
+.add-in{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:0 8px;height:24px;font-size:10px;color:var(--text);outline:none}
+.add-btn{height:24px;padding:0 8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);font-size:10px;color:var(--muted);cursor:pointer}
+.scope-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:.9rem 1rem;margin-bottom:.75rem;position:relative;overflow:hidden}
+.scope-block::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--teal),var(--accent))}
+.scope-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.scope-title{font-size:11px;font-weight:600;color:var(--text)}
+.scope-conf{font-size:9px;font-family:monospace;padding:2px 7px;border-radius:4px}
+.conf-high{background:var(--accent-bg);color:var(--accent)}.conf-medium{background:var(--amber-bg);color:var(--amber)}.conf-low{background:#1e1010;color:#f06b6b}
+.scope-reason{font-size:10px;color:var(--muted);line-height:1.5;margin-bottom:6px}
+.scope-signals{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.scope-signal{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.scope-signal::before{content:'✓ ';color:var(--teal)}
+.loc-pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.loc-pill{font-size:11px;padding:4px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);cursor:pointer;transition:all .12s}
+.loc-pill.on{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+.loc-inputs{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.loc-label{font-size:9px;color:var(--faint);margin-bottom:3px;font-family:monospace}
+.loc-in{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:0 8px;height:26px;font-size:10px;color:var(--text);outline:none;width:110px}
+.action-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:.75rem}
+.sel-count{font-size:10px;color:var(--muted);font-family:monospace}
+.out-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
+.out-meta{font-family:monospace;font-size:10px;color:var(--muted)}
+.copy-all-btn{font-size:10px;padding:4px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);cursor:pointer}
+.view-bar{display:flex;gap:5px;margin-bottom:1rem}
+.view-btn{font-size:11px;padding:4px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);cursor:pointer}
+.view-btn.on{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+.group-panel{display:none}.group-panel.on{display:block}
+.group-section{margin-bottom:1.25rem}
+.group-label{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-family:monospace;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.group-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.group-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.dot-svc{background:var(--teal)}.dot-cust{background:var(--pink)}
+.group-prompts{display:flex;flex-direction:column;gap:4px}
+.p-row{display:flex;align-items:flex-start;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px}
+.p-verb{font-size:9px;font-family:monospace;padding:2px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+.v-find{background:var(--blue-bg);color:var(--blue)}.v-list{background:var(--teal-bg);color:var(--teal)}.v-rank{background:var(--amber-bg);color:var(--amber)}
+.p-text{flex:1;font-size:11px;color:var(--text);font-family:monospace;line-height:1.4}
+.p-copy{font-size:9px;padding:2px 7px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--muted);cursor:pointer;flex-shrink:0}
+
+/* competitors */
+.comp-block{margin-bottom:.75rem;display:none}
+.comp-block-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.comp-block-num{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;font-family:monospace;background:#1e1a2a;color:#a08bf0;flex-shrink:0}
+.comp-block-title{font-size:11px;font-weight:600;color:var(--text)}
+.comp-note{font-size:9px;color:var(--faint);margin-left:auto;font-family:monospace}
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px}
+.comp-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px}
+.comp-name{font-size:11px;font-weight:500;color:var(--text);margin-bottom:2px}
+.comp-loc{font-size:9px;font-family:monospace;color:var(--muted);margin-bottom:4px}
+.comp-known{font-size:10px;color:var(--muted);line-height:1.4}
+.comp-known-lbl{font-size:9px;font-family:monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--faint);display:block;margin-bottom:1px}
+
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="eyebrow">PNC Creator — Guided</div>
+  <h1>Build <em>AI search prompts</em><br/>from any website</h1>
+  <p class="sub">Classify → confirm → generate</p>
+  <div class="url-row">
+    <input class="url-in" id="urlIn" placeholder="https://yourbusiness.com" autocomplete="off"/>
+    <button class="btn-primary" id="classifyBtn" onclick="classify()">Classify ↗</button>
+  </div>
+  <p class="hint">Works with any service business, agency, clinic, SaaS or local company</p>
+  <div class="err" id="errEl"></div>
+
+  <div class="step-indicator">
+    <div class="step-node"><div class="step-circle active" id="circ1">1</div><span class="step-label active" id="lbl1">Classify</span></div>
+    <div class="step-line" id="line1"></div>
+    <div class="step-node"><div class="step-circle" id="circ2">2</div><span class="step-label" id="lbl2">Confirm</span></div>
+    <div class="step-line" id="line2"></div>
+    <div class="step-node"><div class="step-circle" id="circ3">3</div><span class="step-label" id="lbl3">Prompts</span></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="v3-step active" id="step1">
+    <div class="loader" id="loader1"><div class="spin"></div><div class="loader-msg" id="loaderMsg">Reading website…</div></div>
+    <div id="idleMsg" style="text-align:center;padding:2.5rem 0;color:var(--faint);font-size:12px">Enter a URL above and click <strong style="color:var(--muted)">Classify ↗</strong> to begin</div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="v3-step" id="step2">
+    <div class="biz-card" id="bizCard">
+      <div class="biz-cat" id="bizCat"></div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px">
+        <div class="biz-name" id="bizName"></div>
+        <span class="biz-model" id="bizModel"></span>
+      </div>
+      <div class="biz-desc" id="bizDesc"></div>
+    </div>
+    <div class="confirm-grid">
+      <div class="cblock">
+        <div class="cblock-head"><span class="cblock-icon ci-svc">S</span><span class="cblock-title">Services</span><span class="cblock-hint">click to exclude</span></div>
+        <div class="chips" id="svcChips"></div>
+        <div class="add-row"><input class="add-in" id="svcAdd" placeholder="Add service…"/><button class="add-btn" onclick="addItem('svc')">+</button></div>
+      </div>
+      <div class="cblock">
+        <div class="cblock-head"><span class="cblock-icon ci-cust">C</span><span class="cblock-title">Customer types</span><span class="cblock-hint">click to exclude</span></div>
+        <div class="chips" id="custChips"></div>
+        <div class="add-row"><input class="add-in" id="custAdd" placeholder="Add customer…"/><button class="add-btn" onclick="addItem('cust')">+</button></div>
+      </div>
+    </div>
+    <div class="scope-block">
+      <div class="scope-head"><span class="scope-title">Search scope</span><span class="scope-conf" id="scopeConf"></span></div>
+      <p class="scope-reason" id="scopeReason"></p>
+      <div class="scope-signals" id="scopeSignals"></div>
+      <div class="loc-pills">
+        <button class="loc-pill" id="lp-city" onclick="setScope('city',this)">City</button>
+        <button class="loc-pill" id="lp-country" onclick="setScope('country',this)">Country</button>
+        <button class="loc-pill" id="lp-region" onclick="setScope('region',this)">Region</button>
+        <button class="loc-pill" id="lp-global" onclick="setScope('global',this)">Global</button>
+      </div>
+      <div class="loc-inputs" id="locInputs">
+        <div id="cityWrap"><div class="loc-label">CITY</div><input class="loc-in" id="locCity" placeholder="e.g. Dubai"/></div>
+        <div id="countryWrap"><div class="loc-label">COUNTRY</div><input class="loc-in" id="locCountry" placeholder="e.g. UAE"/></div>
+        <div id="regionWrap" style="display:none"><div class="loc-label">REGION</div><input class="loc-in" id="locRegion" placeholder="e.g. GCC"/></div>
+      </div>
+    </div>
+    <!-- competitors display -->
+    <div class="comp-block" id="compBlock">
+      <div class="comp-block-head">
+        <span class="comp-block-num">C</span>
+        <span class="comp-block-title">Top competitors</span>
+        <span class="comp-note">display only</span>
+      </div>
+      <div class="comp-grid" id="compGrid"></div>
+    </div>
+    <div class="action-bar">
+      <span class="sel-count" id="selCount"></span>
+      <div style="display:flex;gap:6px">
+        <button class="btn-back" onclick="goStep(1)">← Re-classify</button>
+        <button class="btn-gen" id="genBtn" onclick="generate()">Generate prompts ↗</button>
+      </div>
+    </div>
+    <div class="gen-loader" id="genLoader"><div class="spin"></div><div class="loader-msg" id="genMsg">Writing prompts…</div></div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="v3-step" id="step3">
+    <div id="outPanel">
+      <div class="out-header">
+        <span class="out-meta" id="outMeta"></span>
+        <div style="display:flex;gap:6px">
+          <button class="btn-back" onclick="goStep(2)">← Edit</button>
+          <button class="copy-all-btn" id="copyAllBtn">Copy all</button>
+        </div>
+      </div>
+      <div class="view-bar">
+        <button class="view-btn on" onclick="switchView('service',this)">By service</button>
+        <button class="view-btn" onclick="switchView('customer',this)">By customer</button>
+      </div>
+      <div class="group-panel on" id="panelSvc"></div>
+      <div class="group-panel" id="panelCust"></div>
+    </div>
+  </div>
+</div>
+<script>
+const state={scope:'city',services:[],customers:[],competitors:[],city:'',country:'',region:'',lastUrl:''};
+const EXTSYS=`You are a business analyst. Analyze the website and extract structured info.
+Return ONLY raw valid JSON — no markdown, no backticks:
+{"business_name":"name","business_category":"Short category","business_description":"One sentence","business_model":"B2B|B2C|Both","service_types":[{"label":"service","rank":1,"why":"reason"}],"customer_types":[{"label":"customer","rank":1,"why":"reason"}],"city":"city or empty","country":"country or empty","region":"GCC|MENA|Europe etc or empty","scope":"city|country|region|global","scope_confidence":"high|medium|low","scope_reason":"one sentence","scope_signals":["s1","s2"],"competitors":[{"name":"Company","location":"region","known_for":"differentiator"}]}
+
+Rules for service_types:
+1. If business_category contains words like service/care/therapy/healthcare/wellness/solutions/platform, include the business_category itself as rank 1 in service_types — it IS a searchable service term.
+2. Then list every individual service found in search results, ranked by homepage prominence.
+3. For healthcare businesses: explicitly check for and include any of these if mentioned ANYWHERE in search results, directory listings, or review snippets — do not rely only on homepage text: nurse at home, nursing at home, doctor at home, blood test at home, IV drip therapy, physiotherapy at home, caregiver services, health monitoring, medication delivery. These often appear in secondary pages and review text but are real services.
+4. For SaaS/software businesses: check pricing pages, feature lists, and directory entries for individual product modules or service tiers.
+5. Never skip a service just because it is not in the meta description — search multiple result snippets.
+
+Rules for customer_types: ALL segments ranked by who the site primarily addresses.
+Rules for competitors:
+1. ALWAYS scope your competitor search to the detected region. Search for "[business category] competitors [region]" — e.g. "debt collection software competitors Europe" or "home healthcare competitors Dubai". Never search without a region unless scope is global.
+2. Prioritise regional and local sources over global directories: for Europe check EU tech press, Crunchbase Europe, country-specific directories; for GCC/MENA check regional business directories and Arabic tech press; for South Asia check Justdial, IndiaMART, YourStory. Global directories like Capterra and G2 are US-skewed — only use them as a last resort or to cross-check names.
+3. Prefer locally headquartered or regionally dominant companies over global SaaS giants unless the business itself is global.
+4. Up to 12 NAMED competing businesses or products. If directories appear in results, extract the NAMED PRODUCTS listed within — not the directory itself.
+Rules for scope: physical+1 city=city, multi-city=country; SaaS: AED/SAR/regional TLD/Arabic/VAT=region, no signals=global.`;
+
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+function show(id){document.getElementById(id).style.display='block';}
+function hide(id){document.getElementById(id).style.display='none';}
+function showErr(m){const el=document.getElementById('errEl');el.textContent=m;el.style.display='block';}
+function cp(btn,txt,reset){navigator.clipboard.writeText(txt).then(()=>{const o=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=reset||o,1600);});}
+
+function extractJSON(text){
+  let clean=text.trim().replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/i,'').trim();
+  const start=clean.indexOf('{');
+  if(start===-1)throw new Error('No JSON found. Raw: '+text.slice(0,150));
+  let depth=0,inStr=false,esc2=false;
+  for(let i=start;i<clean.length;i++){
+    const ch=clean[i];
+    if(esc2){esc2=false;continue;}
+    if(ch==='\\'&&inStr){esc2=true;continue;}
+    if(ch==='"'){inStr=!inStr;continue;}
+    if(inStr)continue;
+    if(ch==='{')depth++;
+    else if(ch==='}'){depth--;if(depth===0){try{return JSON.parse(clean.slice(start,i+1));}catch(e){try{return JSON.parse(clean);}catch(e2){throw new Error('Parse failed: '+e.message);}}}}
+  }
+  try{return JSON.parse(clean);}catch(e){throw new Error('Malformed JSON');}
+}
+
+function extractJSONArr(text){
+  let clean=text.trim().replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/i,'').trim();
+  const start=clean.indexOf('{');
+  if(start===-1)throw new Error('No JSON found');
+  return extractJSON(text);
+}
+
+function goStep(n){
+  document.querySelectorAll('.v3-step').forEach((el,i)=>el.classList.toggle('active',i+1===n));
+  [1,2,3].forEach(i=>{
+    const c=document.getElementById('circ'+i);
+    const l=document.getElementById('lbl'+i);
+    const ln=document.getElementById('line'+i);
+    if(i<n){c.className='step-circle done';l.className='step-label done';if(ln)ln.className='step-line done';}
+    else if(i===n){c.className='step-circle active';l.className='step-label active';}
+    else{c.className='step-circle';l.className='step-label';if(ln)ln.className='step-line';}
+  });
+  if(n===2)updateCount();
+}
+
+function parseRanked(arr){
+  if(!arr||!arr.length)return[];
+  const items=arr.map(v=>typeof v==='string'?{label:v,rank:99,why:'',on:true}:{label:v.label||v,rank:v.rank||99,why:v.why||'',on:true});
+  items.sort((a,b)=>a.rank-b.rank);
+  items.forEach((item,i)=>{item.on=i<5;});
+  return items;
+}
+
+async function classify(){
+  const url=document.getElementById('urlIn').value.trim();
+  if(!url){showErr('Enter a URL first.');return;}
+  if(!url.startsWith('http')){showErr('URL must start with https://');return;}
+  // full reset on every new run
+  state.services=[];state.customers=[];state.competitors=[];
+  state.city='';state.country='';state.region='';state.lastUrl='';
+  document.getElementById('bizCard').style.display='none';
+  document.getElementById('compBlock').style.display='none';
+  document.getElementById('svcChips').innerHTML='';
+  document.getElementById('custChips').innerHTML='';
+  document.getElementById('compGrid').innerHTML='';
+  document.getElementById('scopeSignals').innerHTML='';
+  document.getElementById('scopeReason').textContent='';
+  document.getElementById('locCity').value='';
+  document.getElementById('locCountry').value='';
+  document.getElementById('locRegion').value='';
+  goStep(1);
+  hide('errEl');hide('idleMsg');show('loader1');
+  document.getElementById('classifyBtn').disabled=true;
+  const steps=['Reading website…','Identifying services…','Detecting customers…','Analysing scope…'];
+  let si=0;const msgEl=document.getElementById('loaderMsg');
+  const iv=setInterval(()=>{si=(si+1)%steps.length;msgEl.textContent=steps[si];},2000);
+  try{
+    const _r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2000,system:EXTSYS,
+        messages:[{role:'user',content:`Extract blocks from: ${url}`}],
+        tools:[{type:'web_search_20250305',name:'web_search'}]})
+    });
+    clearInterval(iv);
+    if(!_r.ok){const e=await _r.json();throw new Error(e.error?.message||'API error '+_r.status);}
+    const data=await _r.json();
+    const tb=data.content.filter(b=>b.type==='text').pop();
+    if(!tb)throw new Error('No response');
+    const p=extractJSON(tb.text);
+    state.lastUrl=url;
+    state.services=parseRanked(p.service_types);
+    state.customers=parseRanked(p.customer_types);
+    state.city=p.city||'';state.country=p.country||'';state.region=p.region||'';
+    // populate biz card
+    const bc=document.getElementById('bizCard');
+    document.getElementById('bizCat').textContent=p.business_category||'';
+    document.getElementById('bizName').textContent=p.business_name||'';
+    document.getElementById('bizModel').textContent=p.business_model||'';
+    document.getElementById('bizDesc').textContent=p.business_description||'';
+    if(p.business_name||p.business_category)bc.style.display='block';
+    // scope card
+    const sc=p.scope||'city';
+    const cc={high:'conf-high',medium:'conf-medium',low:'conf-low'};
+    document.getElementById('scopeConf').textContent=(p.scope_confidence||'medium')+' confidence';
+    document.getElementById('scopeConf').className='scope-conf '+(cc[p.scope_confidence]||'conf-medium');
+    document.getElementById('scopeReason').textContent=p.scope_reason||'';
+    document.getElementById('scopeSignals').innerHTML=(p.scope_signals||[]).map(s=>`<span class="scope-signal">${esc(s)}</span>`).join('');
+    document.getElementById('locCity').value=p.city||'';
+    document.getElementById('locCountry').value=p.country||'';
+    document.getElementById('locRegion').value=p.region||'';
+    setScope(sc,document.getElementById('lp-'+sc));
+    state.competitors=p.competitors||[];
+    renderChips();
+    renderCompetitors();
+    hide('loader1');
+    document.getElementById('classifyBtn').disabled=false;
+    goStep(2);
+  }catch(e){
+    clearInterval(iv);hide('loader1');show('idleMsg');
+    document.getElementById('classifyBtn').disabled=false;
+    showErr('Error: '+(e.message||'Something went wrong.'));
+  }
+}
+
+function renderCompetitors(){
+  const block=document.getElementById('compBlock');
+  const grid=document.getElementById('compGrid');
+  if(!state.competitors||!state.competitors.length){block.style.display='none';return;}
+  block.style.display='block';
+  grid.innerHTML=state.competitors.map(c=>`
+    <div class="comp-card">
+      <div class="comp-name">${esc(c.name||'')}</div>
+      <div class="comp-loc">${esc(c.location||'')}</div>
+      <div class="comp-known"><span class="comp-known-lbl">Known for</span>${esc(c.known_for||'')}</div>
+    </div>`).join('');
+}
+
+function renderChips(){
+  const buildChip=(c,i,type)=>{
+    const rb=c.rank&&c.rank<99?`<span style="font-size:8px;opacity:.55;margin-right:2px">#${c.rank}</span>`:'';
+    const dm=!c.on?' style="opacity:.45"':'';
+    const tt=c.why?` title="${c.why.replace(/"/g,"'")}"` :'';
+    return`<span class="chip ${type}${c.on?' on':''}"`+dm+tt+` onclick="toggle('${type}',${i})">${rb}${esc(c.label)}<span class="chip-x">×</span></span>`;
+  };
+  document.getElementById('svcChips').innerHTML=state.services.map((c,i)=>buildChip(c,i,'svc')).join('');
+  document.getElementById('custChips').innerHTML=state.customers.map((c,i)=>buildChip(c,i,'cust')).join('');
+  updateCount();
+}
+
+function toggle(type,i){
+  if(type==='svc')state.services[i].on=!state.services[i].on;
+  else state.customers[i].on=!state.customers[i].on;
+  renderChips();
+}
+
+function addItem(type){
+  const inp=document.getElementById(type==='svc'?'svcAdd':'custAdd');
+  const val=inp.value.trim();if(!val)return;
+  if(type==='svc')state.services.push({label:val,rank:99,why:'',on:true});
+  else state.customers.push({label:val,rank:99,why:'',on:true});
+  inp.value='';renderChips();
+}
+
+function updateCount(){
+  const s=state.services.filter(c=>c.on).length;
+  const c=state.customers.filter(c=>c.on).length;
+  document.getElementById('selCount').textContent=`${s} service${s!==1?'s':''} · ${c} customer type${c!==1?'s':''} selected`;
+}
+
+function setScope(mode,btn){
+  state.scope=mode;
+  ['city','country','region','global'].forEach(m=>{const el=document.getElementById('lp-'+m);if(el)el.classList.remove('on');});
+  if(btn)btn.classList.add('on');
+  document.getElementById('locInputs').style.display=mode==='global'?'none':'flex';
+  document.getElementById('cityWrap').style.display=mode==='city'?'':'none';
+  document.getElementById('countryWrap').style.display=mode==='country'?'':'none';
+  document.getElementById('regionWrap').style.display=mode==='region'?'':'none';
+}
+
+function getLoc(){
+  if(state.scope==='global')return'globally';
+  if(state.scope==='city'){const v=document.getElementById('locCity').value.trim();return v?'in '+v:'in [city]';}
+  if(state.scope==='country'){const v=document.getElementById('locCountry').value.trim();return v?'in '+v:'in [country]';}
+  if(state.scope==='region'){const v=document.getElementById('locRegion').value.trim();return v?'in the '+v:'in [region]';}
+  return'';
+}
+
+async function generate(){
+  const svcs=state.services.filter(c=>c.on).map(c=>c.label);
+  const custs=state.customers.filter(c=>c.on).map(c=>c.label);
+  const loc=getLoc();
+  hide('errEl');show('genLoader');
+  document.getElementById('genBtn').disabled=true;
+  const steps=['Curating combinations…','Writing service prompts…','Writing customer prompts…'];
+  let si=0;const msgEl=document.getElementById('genMsg');
+  const iv=setInterval(()=>{si=(si+1)%steps.length;msgEl.textContent=steps[si];},1800);
+  const sysP=`Search prompt strategist. Generate prompts using ONLY confirmed services and customers.
+Return ONLY raw valid JSON:
+{"business_name":"","by_service":[{"service":"","prompts":[{"verb":"Find","text":""},{"verb":"List","text":""},{"verb":"Rank","text":""}]}],"by_customer":[{"customer":"","prompts":[{"verb":"Find","text":""},{"verb":"List","text":""},{"verb":"Rank","text":""}]}]}
+Rules: 4-5 prompts per service, 3-4 per customer. Verbs: Find/List/Rank evenly. Qualifiers: most trusted/reliable/affordable/highest rated/most experienced/best reviewed — vary, no repeats in group. Location: "${loc}". Natural language. ONLY use listed services and customers.`;
+  const userMsg=`Services confirmed: ${JSON.stringify(svcs)}\nCustomer types confirmed: ${JSON.stringify(custs)}\nLocation: "${loc}"\nURL: ${document.getElementById('urlIn').value.trim()}\nGenerate grouped prompts.`;
+  try{
+    const _r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:4000,system:sysP,messages:[{role:'user',content:userMsg}]})
+    });
+    clearInterval(iv);
+    if(!_r.ok){const e=await _r.json();throw new Error(e.error?.message||'API error');}
+    const data=await _r.json();
+    const tb=data.content.filter(b=>b.type==='text').pop();
+    if(!tb)throw new Error('No response');
+    const parsed=extractJSON(tb.text);
+    hide('genLoader');document.getElementById('genBtn').disabled=false;
+    renderOutput(parsed);
+  }catch(e){
+    clearInterval(iv);hide('genLoader');
+    document.getElementById('genBtn').disabled=false;
+    showErr('Error: '+(e.message||'Try again.'));
+  }
+}
+
+function renderOutput(d){
+  const allP=[];
+  document.getElementById('panelSvc').innerHTML=(d.by_service||[]).map(g=>{
+    const rows=g.prompts.map(p=>{
+      allP.push(p.text);
+      const vc=p.verb==='Find'?'v-find':p.verb==='List'?'v-list':'v-rank';
+      return`<div class="p-row"><span class="p-verb ${vc}">${esc(p.verb)}</span><span class="p-text">${esc(p.text.replace(/^(Find|List|Rank)\s+/i,''))}</span><button class="p-copy" onclick="cp(this,${JSON.stringify(p.text)},'Copy')">Copy</button></div>`;
+    }).join('');
+    return`<div class="group-section"><div class="group-label"><span class="group-dot dot-svc"></span>${esc(g.service)}</div><div class="group-prompts">${rows}</div></div>`;
+  }).join('');
+  document.getElementById('panelCust').innerHTML=(d.by_customer||[]).map(g=>{
+    const rows=g.prompts.map(p=>{
+      const vc=p.verb==='Find'?'v-find':p.verb==='List'?'v-list':'v-rank';
+      return`<div class="p-row"><span class="p-verb ${vc}">${esc(p.verb)}</span><span class="p-text">${esc(p.text.replace(/^(Find|List|Rank)\s+/i,''))}</span><button class="p-copy" onclick="cp(this,${JSON.stringify(p.text)},'Copy')">Copy</button></div>`;
+    }).join('');
+    return`<div class="group-section"><div class="group-label"><span class="group-dot dot-cust"></span>${esc(g.customer)}</div><div class="group-prompts">${rows}</div></div>`;
+  }).join('');
+  document.getElementById('outMeta').textContent=`${d.business_name||''} · ${allP.length} prompts · ${(d.by_service||[]).length} services · ${(d.by_customer||[]).length} customer types`;
+  document.getElementById('copyAllBtn').onclick=()=>cp(document.getElementById('copyAllBtn'),allP.join('\n'),'Copy all');
+  goStep(3);
+}
+
+function switchView(view,btn){
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('panelSvc').classList.toggle('on',view==='service');
+  document.getElementById('panelCust').classList.toggle('on',view==='customer');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('urlIn').addEventListener('keydown',e=>{if(e.key==='Enter')classify();});
+  document.getElementById('svcAdd').addEventListener('keydown',e=>{if(e.key==='Enter')addItem('svc');});
+  document.getElementById('custAdd').addEventListener('keydown',e=>{if(e.key==='Enter')addItem('cust');});
+});
+</script>
+</body>
+</html>
