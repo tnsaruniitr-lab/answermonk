@@ -1,0 +1,445 @@
+Quick V2 — Valeo Health
+7 segments
+3 prompts per segment x 3 engines · Mar 16, 2026 at 7:43 PM
+
+
+#1Pnc Providers (At-Home Healthcare Services)
+4%
+vis
+·
+#3
+rank
+33th
+4%
+Appearance
+4%
+Top 3
+#3
+Avg Rank
+By Engine
+Claude
+0%
+Top 3
+0%
+Gemini
+0%
+Top 3
+0%
+ChatGPT
+13%
+Top 3
+13%
+Rankings
+1
+Medcare At Home
+29%
+2
+Aster at Home
+25%
+3
+First Response
+21%
+4
+Care24
+21%
+5
+Emirates Home Nursing
+21%
+6
+Aster DM Healthcare
+21%
+7
+Best Doc Health Care
+21%
+8
+Sukoon
+21%
+9
+Call Doctor
+17%
+10
+Bayti Home Healthcare
+17%
+Sources (155)
+Raw Responses (24)
+
+#2Pnc Providers (Blood Test at Home)
+4%
+vis
+·
+#6
+rank
+29th
+4%
+Appearance
+0%
+Top 3
+#6
+Avg Rank
+By Engine
+Claude
+0%
+Top 3
+0%
+Gemini
+13%
+Top 3
+0%
+ChatGPT
+0%
+Top 3
+0%
+Rankings
+1
+Aster
+54%
+2
+Genex
+50%
+3
+Medcare
+33%
+4
+HealthHub
+29%
+5
+Vesta Care
+25%
+6
+NADZ Healthcare
+25%
+7
+Lana Life Care
+25%
+8
+Al Tadawi Medical Center
+25%
+9
+Sidra Healthcare
+21%
+10
+JPR Home Health Care
+21%
+Sources (124)
+Raw Responses (24)
+
+#3Pnc Providers (Doctor at Home)
+0%
+vis
+·
+#—
+rank
+75th
+0%
+Appearance
+0%
+Top 3
+—
+Avg Rank
+By Engine
+Claude
+0%
+Top 3
+0%
+Gemini
+0%
+Top 3
+0%
+ChatGPT
+0%
+Top 3
+0%
+Rankings
+1
+Call Doctor
+50%
+2
+Medcare
+38%
+3
+Grace Housecall
+33%
+4
+Care24
+29%
+5
+Vesta Care
+29%
+6
+Aster
+25%
+7
+Aster Clinic
+25%
+8
+EMAHS
+17%
+9
+Nightingale Health Services
+17%
+10
+Best Doc Health Care
+17%
+Sources (129)
+Raw Responses (24)
+
+#4Pnc Providers (IV Drip Therapy)
+13%
+vis
+·
+#3.7
+rank
+15th
+13%
+Appearance
+9%
+Top 3
+#3.7
+Avg Rank
+By Engine
+Claude
+0%
+Top 3
+0%
+Gemini
+43%
+Top 3
+29%
+ChatGPT
+0%
+Top 3
+0%
+Rankings
+1
+NADIV
+26%
+2
+Medilife Polyclinic
+26%
+3
+The Elixir Clinic
+26%
+4
+Sims Home Healthcare
+22%
+5
+DNA Health
+22%
+6
+IV Wellness Lounge
+22%
+7
+Revival Clinic
+22%
+8
+CosmeSurge
+22%
+9
+Biolite Aesthetic Clinic
+22%
+10
+Valiant Clinic & Hospital
+22%
+Sources (160)
+Raw Responses (24)
+
+#5Pnc Providers (Lab Tests at Home)
+9%
+vis
+·
+#5
+rank
+20th
+9%
+Appearance
+4%
+Top 3
+#5
+Avg Rank
+By Engine
+Claude
+0%
+Top 3
+0%
+Gemini
+25%
+Top 3
+13%
+ChatGPT
+0%
+Top 3
+0%
+Rankings
+1
+Genex
+57%
+2
+Aster
+43%
+3
+Vesta Care
+35%
+4
+Sidra Healthcare
+35%
+5
+NADZ Healthcare
+30%
+6
+DarDoc
+26%
+7
+Care24
+26%
+8
+Mediclinic
+26%
+9
+HealthHub
+26%
+10
+Alpha Medical Laboratory
+26%
+Sources (128)
+Raw Responses (24)
+
+#6Pnc Providers (Nurse at Home)
+4%
+vis
+·
+#5
+rank
+35th
+4%
+Appearance
+0%
+Top 3
+#5
+Avg Rank
+By Engine
+Claude
+0%
+Top 3
+0%
+Gemini
+13%
+Top 3
+0%
+ChatGPT
+0%
+Top 3
+0%
+Rankings
+1
+Loyal Care
+25%
+2
+Nightingale Health Services
+21%
+3
+Emirates Home Nursing
+21%
+4
+MyDoctor Healthcare
+21%
+5
+NADZ Healthcare
+21%
+6
+Pflege Home Healthcare
+21%
+7
+Vesta Care
+21%
+8
+Trusted Doctors
+21%
+9
+Care n Cure
+21%
+10
+Medcare At Home
+21%
+Sources (126)
+Raw Responses (24)
+
+#7Pnc Customers for Elderly and their caregivers
+4%
+vis
+·
+#7
+rank
+39th
+4%
+Appearance
+0%
+Top 3
+#7
+Avg Rank
+By Engine
+Claude
+0%
+Top 3
+0%
+Gemini
+13%
+Top 3
+0%
+ChatGPT
+0%
+Top 3
+0%
+Rankings
+1
+Care24
+38%
+2
+Yad Al Amal Home Healthcare Center
+38%
+3
+Vesta Care
+29%
+4
+Loyal Care
+21%
+5
+JPR Home Healthcare
+17%
+6
+Home Care Dubai
+17%
+7
+Medcare at Home
+17%
+8
+Nightingales Home Health Care
+17%
+9
+First Response Healthcare
+13%
+10
+The Royal Doctor Home Healthcare
+13%
+Sources (152)
+Raw Responses (24)
+Segment Citation Analyzer
+Understand why brands rank differently across segments by analyzing citation sources, context consistency, and comparison presence.
+
+Analyze 7 Segments
+Impact Summary
+Prospect Teaser
+
+GEO Report — Valeo Health
+cached
+Regenerate
+Expand
+Export PDF
+Export JSON
+7
+Segments
+168
+Total Runs
+5%
+Appearance Rate
+#4.7
+Avg Rank
