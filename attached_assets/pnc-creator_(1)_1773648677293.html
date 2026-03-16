@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PNC Creator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d0f;--surface:#16161a;--surface2:#1e1e24;--surface3:#232329;
+  --border:#2a2a32;--border2:#3c3c48;--border3:#4a4a58;
+  --text:#f0efe8;--muted:#888796;--faint:#555566;
+  --accent:#c8f06b;--accent-dim:#9ab84e;--accent-bg:#1a2210;--accent-text:#0d0d0f;
+  --blue:#6ec6f5;--blue-bg:#0e1e2a;
+  --teal:#6bf0d4;--teal-bg:#0e2a24;
+  --amber:#f5c96e;--amber-bg:#281f0c;
+  --pink:#f06ba0;--pink-bg:#2a1020;
+  --coral:#f0956b;--coral-bg:#2a1a0e;
+  --r:10px;--rs:6px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;font-size:14px}
+.page{max-width:980px;margin:0 auto;padding:2.5rem 1.5rem 6rem}
+
+/* ── header ── */
+.eyebrow{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);font-family:'DM Mono',monospace;margin-bottom:10px}
+h1{font-family:'DM Serif Display',serif;font-size:clamp(1.7rem,3vw,2.4rem);line-height:1.1;margin-bottom:6px}
+h1 em{color:var(--accent);font-style:italic}
+.sub{font-size:13px;color:var(--muted);line-height:1.6;max-width:520px;margin-bottom:1.5rem}
+
+/* ── shared url bar ── */
+.url-row{display:flex;gap:8px;margin-bottom:0.5rem}
+.url-in{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:0 14px;height:46px;font-size:13px;font-family:'Outfit',sans-serif;color:var(--text);outline:none;transition:border-color .15s}
+.url-in:focus{border-color:var(--accent)}
+.url-in::placeholder{color:var(--faint)}
+.hint{font-size:11px;color:var(--faint);margin-bottom:1.5rem}
+.err{background:#1e1010;border:1px solid #4a2020;border-radius:var(--rs);padding:9px 13px;font-size:12px;color:#f06b6b;display:none;margin-bottom:1rem}
+
+/* ── tab bar ── */
+.tab-bar{display:flex;gap:0;margin-bottom:1.75rem;border-bottom:1px solid var(--border)}
+.tab-btn{font-size:12px;font-weight:500;padding:10px 20px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;margin-bottom:-1px}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.on{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-desc{font-size:10px;color:var(--faint);font-family:'DM Mono',monospace;display:block;margin-top:1px}
+
+/* ── buttons ── */
+.btn-primary{height:46px;padding:0 20px;background:var(--accent);border:none;border-radius:var(--r);font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:var(--accent-text);cursor:pointer;white-space:nowrap;transition:background .15s,transform .1s}
+.btn-primary:hover{background:#d8ff7e}
+.btn-primary:active{transform:scale(.98)}
+.btn-primary:disabled{background:#2e3d18;color:#4a5e28;cursor:not-allowed;transform:none}
+.btn-gen{height:40px;padding:0 22px;background:var(--accent);border:none;border-radius:var(--r);font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:var(--accent-text);cursor:pointer;transition:background .15s,transform .1s}
+.btn-gen:hover{background:#d8ff7e}
+.btn-gen:active{transform:scale(.98)}
+.btn-gen:disabled{background:#2e3d18;color:#4a5e28;cursor:not-allowed;transform:none}
+
+/* ── loaders ── */
+.loader{display:none;text-align:center;padding:4rem 0}
+.gen-loader{display:none;text-align:center;padding:2rem 0}
+.spin{width:32px;height:32px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-msg{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
+
+/* ══════════════════════════════════
+   V1 — BLOCK BUILDER styles
+══════════════════════════════════ */
+#tab-v1{display:block}
+#workspace{display:none}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+@media(max-width:640px){.two-col{grid-template-columns:1fr}}
+.block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem 1.2rem}
+.block-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.block-num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;font-family:'DM Mono',monospace;flex-shrink:0}
+.n1{background:var(--blue-bg);color:var(--blue)}
+.n2{background:var(--teal-bg);color:var(--teal)}
+.n3{background:var(--pink-bg);color:var(--pink)}
+.n4{background:var(--amber-bg);color:var(--amber)}
+.block-title{font-size:12px;font-weight:600;color:var(--text);letter-spacing:0.02em}
+.sel-btn{margin-left:auto;font-size:10px;padding:2px 9px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--faint);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .12s;white-space:nowrap}
+.sel-btn:hover{border-color:var(--border2);color:var(--muted)}
+.block-sub{font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);cursor:pointer;transition:all .12s;user-select:none}
+.chip:hover{border-color:var(--border3);color:var(--text)}
+.chip.on{border-color:transparent;color:#0d0d0f}
+.chip .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.c1.on{background:var(--blue);color:#042c53}
+.c2.on{background:var(--teal);color:#04342c}
+.c3.on{background:var(--pink);color:#4b1528}
+.c4.on{background:var(--amber);color:#412402}
+.chip-dot-1{background:var(--blue)}
+.chip-dot-2{background:var(--teal)}
+.chip-dot-3{background:var(--pink)}
+.chip-dot-4{background:var(--amber)}
+.add-row{display:flex;gap:6px;margin-top:4px}
+.add-in{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:0 10px;height:30px;font-size:11px;font-family:'Outfit',sans-serif;color:var(--text);outline:none}
+.add-in:focus{border-color:var(--border2)}
+.add-in::placeholder{color:var(--faint)}
+.add-btn{height:30px;padding:0 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);font-size:11px;color:var(--muted);cursor:pointer;transition:all .12s;white-space:nowrap}
+.add-btn:hover{border-color:var(--border2);color:var(--text)}
+.toggle-row{display:flex;align-items:center;gap:10px;margin-top:8px}
+.toggle-label{font-size:11px;color:var(--muted)}
+.toggle{position:relative;width:34px;height:18px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;transition:background .15s}
+.toggle input:checked~.toggle-track{background:var(--accent);border-color:var(--accent)}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--muted);transition:transform .15s,background .15s}
+.toggle input:checked~.toggle-thumb{transform:translateX(16px);background:#0d0d0f}
+.loc-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem 1.2rem;margin-bottom:1rem}
+.loc-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+.loc-pills{display:flex;gap:6px}
+.loc-pill{font-size:12px;padding:5px 14px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .12s}
+.loc-pill:hover{border-color:var(--border2);color:var(--text)}
+.loc-pill.on{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+.loc-edit-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.loc-in{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:0 10px;height:30px;font-size:11px;font-family:'Outfit',sans-serif;color:var(--text);outline:none;width:140px}
+.loc-in:focus{border-color:var(--border2)}
+.loc-in::placeholder{color:var(--faint)}
+.gen-bar{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:1rem 1.2rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.gen-summary{font-size:12px;color:var(--muted);line-height:1.6}
+.gen-summary strong{color:var(--text);font-weight:500}
+#prompts-out{display:none}
+.out-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1rem}
+.out-meta{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}
+.copy-all-btn{font-size:11px;padding:5px 14px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .12s}
+.copy-all-btn:hover{border-color:var(--accent-dim);color:var(--accent)}
+.prompt-list{display:flex;flex-direction:column;gap:6px}
+.p-row{display:flex;align-items:flex-start;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;transition:border-color .12s}
+.p-row:hover{border-color:var(--border2)}
+.p-verb{font-size:10px;font-family:'DM Mono',monospace;padding:2px 7px;border-radius:4px;white-space:nowrap;margin-top:1px;flex-shrink:0}
+.v-find{background:var(--blue-bg);color:var(--blue)}
+.v-list{background:var(--teal-bg);color:var(--teal)}
+.v-rank{background:var(--amber-bg);color:var(--amber)}
+.p-text{flex:1;font-size:13px;color:var(--text);font-family:'DM Mono',monospace;line-height:1.5}
+.p-copy{font-size:10px;padding:2px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .12s;flex-shrink:0;margin-top:1px}
+.p-copy:hover{border-color:var(--accent);color:var(--accent)}
+.p-copy.done{color:var(--accent);border-color:var(--accent)}
+.comp-block{margin-bottom:1rem}
+.comp-note{font-size:10px;color:var(--faint);margin-left:auto;font-family:'DM Mono',monospace}
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.comp-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px}
+.comp-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.comp-loc{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:6px}
+.comp-known{font-size:11px;color:var(--muted);line-height:1.5}
+.comp-known span{color:var(--faint);font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:2px}
+
+/* ══════════════════════════════════
+   V2 — AUTO GROUPS styles
+══════════════════════════════════ */
+#tab-v2{display:none}
+.v2-loc-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.5rem}
+.v2-loc-bar .loc-pills{display:flex;gap:6px}
+.v2-loc-inputs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.v2-gen-btn-row{display:flex;justify-content:flex-end;margin-bottom:1.5rem}
+#v2-out{display:none}
+.v2-view-bar{display:flex;gap:6px;margin-bottom:1.25rem}
+.v2-view-btn{font-size:12px;padding:5px 16px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .12s}
+.v2-view-btn:hover{border-color:var(--border2);color:var(--text)}
+.v2-view-btn.on{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+.v2-out-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.25rem}
+.v2-out-meta{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}
+.group-panel{display:none}
+.group-panel.on{display:block}
+.group-section{margin-bottom:1.5rem}
+.group-label{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.group-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.group-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-svc{background:var(--teal)}
+.dot-cust{background:var(--pink)}
+.group-prompts{display:flex;flex-direction:column;gap:5px}
+.v2-copy-all-btn{font-size:11px;padding:5px 14px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .12s}
+.v2-copy-all-btn:hover{border-color:var(--accent-dim);color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- shared header -->
+  <div class="eyebrow">PNC Creator</div>
+  <h1>Build your <em>AI search prompts</em><br/>from any website</h1>
+  <p class="sub">Paste a URL and choose your approach below.</p>
+
+  <div class="url-row">
+    <input class="url-in" id="urlIn" placeholder="https://yourbusiness.com" autocomplete="off"/>
+    <button class="btn-primary" id="extractBtn" onclick="v1Extract()">Extract blocks ↗</button>
+  </div>
+  <p class="hint">Works with any service business, agency, clinic, SaaS or local company</p>
+  <div class="err" id="errEl"></div>
+
+  <!-- tab bar -->
+  <div class="tab-bar">
+    <button class="tab-btn on" id="tabBtn1" onclick="switchTab(1)">
+      Block Builder
+      <span class="tab-desc">Extract → curate chips → generate</span>
+    </button>
+    <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)">
+      Auto Groups
+      <span class="tab-desc">URL → prompts grouped by service &amp; customer</span>
+    </button>
+  </div>
+
+  <!-- ══ TAB 1 — BLOCK BUILDER ══ -->
+  <div id="tab-v1">
+    <div class="loader" id="v1-loader">
+      <div class="spin"></div>
+      <div class="loader-msg" id="v1-loader-msg">Fetching website…</div>
+    </div>
+
+    <div id="workspace">
+      <!-- Block 1 + 2 -->
+      <div class="two-col">
+        <div class="block">
+          <div class="block-head"><span class="block-num n1">1</span><span class="block-title">Business type variants</span><button class="sel-btn" id="selBtn1" onclick="toggleAll(1)">Deselect all</button></div>
+          <p class="block-sub">Different ways to describe what this business is.</p>
+          <div class="chips" id="chips1"></div>
+          <div class="add-row"><input class="add-in" id="add1" placeholder="Add variant…"/><button class="add-btn" onclick="addChip(1)">+ Add</button></div>
+        </div>
+        <div class="block">
+          <div class="block-head"><span class="block-num n2">2</span><span class="block-title">Service type variants</span><button class="sel-btn" id="selBtn2" onclick="toggleAll(2)">Deselect all</button></div>
+          <p class="block-sub">Each service offered.</p>
+          <div class="chips" id="chips2"></div>
+          <div class="add-row"><input class="add-in" id="add2" placeholder="Add service…"/><button class="add-btn" onclick="addChip(2)">+ Add</button></div>
+        </div>
+      </div>
+      <!-- Block 3 + 4 -->
+      <div class="two-col">
+        <div class="block">
+          <div class="block-head"><span class="block-num n3">3</span><span class="block-title">Customer type variants</span><button class="sel-btn" id="selBtn3" onclick="toggleAll(3)">Deselect all</button></div>
+          <p class="block-sub">Who searches for this.</p>
+          <div class="chips" id="chips3"></div>
+          <div class="add-row"><input class="add-in" id="add3" placeholder="Add customer type…"/><button class="add-btn" onclick="addChip(3)">+ Add</button></div>
+          <div class="toggle-row">
+            <label class="toggle"><input type="checkbox" id="custToggle" onchange="updateSummary()"/><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+            <span class="toggle-label">Include customer type in prompts</span>
+          </div>
+        </div>
+        <div class="block">
+          <div class="block-head"><span class="block-num n4">4</span><span class="block-title">Qualifiers</span><button class="sel-btn" id="selBtn4" onclick="toggleAll(4)">Deselect all</button></div>
+          <p class="block-sub">What makes this business stand out.</p>
+          <div class="chips" id="chips4"></div>
+          <div class="add-row"><input class="add-in" id="add4" placeholder="Add qualifier…"/><button class="add-btn" onclick="addChip(4)">+ Add</button></div>
+        </div>
+      </div>
+
+      <!-- Competitors -->
+      <div class="block comp-block" id="compBlock" style="display:none;margin-bottom:1rem">
+        <div class="block-head">
+          <span class="block-num" style="background:#1e1a2a;color:#a08bf0">5</span>
+          <span class="block-title">Top competitors</span>
+          <span class="comp-note">display only — not used in prompts yet</span>
+        </div>
+        <div id="compList"></div>
+      </div>
+
+      <!-- Location -->
+      <div class="loc-block">
+        <div class="loc-head">
+          <div>
+            <div class="block-head" style="margin-bottom:4px"><span class="block-num" style="background:var(--coral-bg);color:var(--coral)">Z</span><span class="block-title">Location</span></div>
+            <p class="block-sub" style="margin-bottom:0">Toggle scope — prompts update automatically</p>
+          </div>
+          <div class="loc-pills">
+            <button class="loc-pill on" onclick="v1SetLoc('city',this)">City</button>
+            <button class="loc-pill" onclick="v1SetLoc('country',this)">Country</button>
+            <button class="loc-pill" onclick="v1SetLoc('global',this)">Global</button>
+          </div>
+        </div>
+        <div class="loc-edit-row" id="locEditRow">
+          <div>
+            <div style="font-size:10px;color:var(--faint);margin-bottom:4px;font-family:'DM Mono',monospace">CITY</div>
+            <input class="loc-in" id="locCity" placeholder="e.g. Dubai" oninput="updateSummary()"/>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--faint);margin-bottom:4px;font-family:'DM Mono',monospace">COUNTRY</div>
+            <input class="loc-in" id="locCountry" placeholder="e.g. UAE" oninput="updateSummary()"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate bar -->
+      <div class="gen-bar">
+        <div class="gen-summary" id="genSummary">Loading summary…</div>
+        <button class="btn-gen" id="genBtn" onclick="v1Generate()">Generate prompts ↗</button>
+      </div>
+
+      <div class="gen-loader" id="genLoaderEl">
+        <div class="spin"></div>
+        <div class="loader-msg" id="genLoaderMsg">Curating best combinations…</div>
+      </div>
+
+      <div id="prompts-out">
+        <div class="out-header">
+          <span class="out-meta" id="outMeta"></span>
+          <button class="copy-all-btn" id="copyAllBtn">Copy all prompts</button>
+        </div>
+        <div class="prompt-list" id="promptList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB 2 — AUTO GROUPS ══ -->
+  <div id="tab-v2">
+
+    <!-- location control -->
+    <div class="loc-block">
+      <div class="loc-head">
+        <div>
+          <div class="block-head" style="margin-bottom:4px"><span class="block-num" style="background:var(--coral-bg);color:var(--coral)">Z</span><span class="block-title">Location scope</span></div>
+          <p class="block-sub" style="margin-bottom:0">Applies to all generated prompts</p>
+        </div>
+        <div class="loc-pills">
+          <button class="loc-pill on" id="v2locBtn-city" onclick="v2SetLoc('city',this)">City</button>
+          <button class="loc-pill" id="v2locBtn-country" onclick="v2SetLoc('country',this)">Country</button>
+          <button class="loc-pill" id="v2locBtn-global" onclick="v2SetLoc('global',this)">Global</button>
+        </div>
+      </div>
+      <div class="loc-edit-row" id="v2locEditRow">
+        <div>
+          <div style="font-size:10px;color:var(--faint);margin-bottom:4px;font-family:'DM Mono',monospace">CITY</div>
+          <input class="loc-in" id="v2locCity" placeholder="e.g. Dubai"/>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--faint);margin-bottom:4px;font-family:'DM Mono',monospace">COUNTRY</div>
+          <input class="loc-in" id="v2locCountry" placeholder="e.g. UAE"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="v2-gen-btn-row">
+      <button class="btn-gen" id="v2GenBtn" onclick="v2Generate()">Generate grouped prompts ↗</button>
+    </div>
+
+    <div class="loader" id="v2-loader">
+      <div class="spin"></div>
+      <div class="loader-msg" id="v2-loader-msg">Reading website…</div>
+    </div>
+
+    <div id="v2-out">
+      <div class="v2-out-header">
+        <span class="v2-out-meta" id="v2-meta"></span>
+        <button class="v2-copy-all-btn" id="v2CopyAllBtn">Copy all</button>
+      </div>
+      <!-- view switcher -->
+      <div class="v2-view-bar">
+        <button class="v2-view-btn on" onclick="v2SwitchView('service',this)">By service type</button>
+        <button class="v2-view-btn" onclick="v2SwitchView('customer',this)">By customer type</button>
+      </div>
+      <!-- service panel -->
+      <div class="group-panel on" id="v2-panel-service"></div>
+      <!-- customer panel -->
+      <div class="group-panel" id="v2-panel-customer"></div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ══════════════════════════════════════
+//  SHARED
+// ══════════════════════════════════════
+function switchTab(n){
+  document.getElementById('tab-v1').style.display = n===1?'block':'none';
+  document.getElementById('tab-v2').style.display = n===2?'block':'none';
+  document.getElementById('tabBtn1').classList.toggle('on', n===1);
+  document.getElementById('tabBtn2').classList.toggle('on', n===2);
+  // sync URL button label
+  document.getElementById('extractBtn').textContent = n===1 ? 'Extract blocks ↗' : 'Analyze ↗';
+  document.getElementById('extractBtn').onclick = n===1 ? v1Extract : v2Analyze;
+  hide('errEl');
+}
+
+function extractJSON(text, startChar){
+  const open=startChar==='{'?'{':'[', close=startChar==='{'?'}':']';
+  const start=text.indexOf(open);
+  if(start===-1)throw new Error('No JSON found in response');
+  let depth=0;
+  for(let i=start;i<text.length;i++){
+    if(text[i]===open)depth++;
+    else if(text[i]===close){depth--;if(depth===0)return JSON.parse(text.slice(start,i+1));}
+  }
+  throw new Error('Malformed JSON in response');
+}
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+function show(id){document.getElementById(id).style.display='block';}
+function hide(id){document.getElementById(id).style.display='none';}
+function showErr(m){const el=document.getElementById('errEl');el.textContent=m;el.style.display='block';}
+function cpText(btn, txt, reset){
+  navigator.clipboard.writeText(txt).then(()=>{
+    const o=btn.textContent; btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent=reset||o, 1600);
+  });
+}
+
+// ══════════════════════════════════════
+//  V1 — BLOCK BUILDER
+// ══════════════════════════════════════
+const DEFAULT_QUALIFIERS = ['most trusted','most reliable','most affordable','highest rated','most experienced','best reviewed','most recommended','top rated'];
+const v1state = { blocks:{1:[],2:[],3:[],4:[]}, competitors:[], locMode:'city', prompts:[] };
+
+async function v1Extract(){
+  const url=document.getElementById('urlIn').value.trim();
+  if(!url){showErr('Please enter a URL first.');return;}
+  if(!url.startsWith('http')){showErr('URL must start with https://');return;}
+  hide('errEl'); hide('workspace'); show('v1-loader');
+  document.getElementById('extractBtn').disabled=true;
+  const steps=['Fetching website…','Reading services…','Identifying customer types…','Building blocks…'];
+  let si=0; const msgEl=document.getElementById('v1-loader-msg');
+  const iv=setInterval(()=>{si=(si+1)%steps.length;msgEl.textContent=steps[si];},2000);
+  try{
+    const _r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-5',max_tokens:2000,
+        system:`You are a business analyst. Analyze the given website and extract structured information for a prompt generator.
+Return ONLY raw valid JSON — no markdown, no backticks, no commentary:
+{
+  "business_type_variants":["variant 1","variant 2","variant 3"],
+  "service_types":["service 1","service 2","service 3"],
+  "customer_types":["customer type 1","customer type 2","customer type 3"],
+  "competitors":[{"name":"Name","location":"city or national","known_for":"what they do"}],
+  "city":"primary city","country":"country"
+}
+Rules:
+- business_type_variants: 3-5 natural ways to describe the business category
+- service_types: every distinct service offered, short and clean
+- customer_types: 4-6 specific customer segments
+- competitors: up to 12 real competing businesses — search broadly, include direct competitors, aggregators, adjacent providers
+- city and country from website; empty string if not found`,
+        messages:[{role:'user',content:`Extract blocks from: ${url}`}],
+        tools:[{type:'web_search_20250305',name:'web_search'}]
+      })
+    });
+    clearInterval(iv);
+    if(!_r.ok){const e=await _r.json();throw new Error(e.error?.message||'API error '+_r.status);}
+    const data=await _r.json();
+    const tb=data.content.filter(b=>b.type==='text').pop();
+    if(!tb)throw new Error('No response');
+    const parsed=extractJSON(tb.text,'{');
+    v1state.blocks[1]=parsed.business_type_variants.map(v=>({label:v,on:true}));
+    v1state.blocks[2]=parsed.service_types.map(v=>({label:v,on:true}));
+    v1state.blocks[3]=parsed.customer_types.map(v=>({label:v,on:true}));
+    v1state.blocks[4]=DEFAULT_QUALIFIERS.map(v=>({label:v,on:true}));
+    v1state.competitors=parsed.competitors||[];
+    document.getElementById('locCity').value=parsed.city||'';
+    document.getElementById('locCountry').value=parsed.country||'';
+    // sync to v2
+    document.getElementById('v2locCity').value=parsed.city||'';
+    document.getElementById('v2locCountry').value=parsed.country||'';
+    hide('v1-loader');
+    document.getElementById('extractBtn').disabled=false;
+    renderAllChips(); renderCompetitors(); updateSummary();
+    show('workspace');
+  }catch(e){
+    clearInterval(iv); hide('v1-loader');
+    document.getElementById('extractBtn').disabled=false;
+    showErr('Error: '+(e.message||'Something went wrong.'));
+  }
+}
+
+function renderAllChips(){[1,2,3,4].forEach(renderChips);}
+function renderChips(n){
+  document.getElementById('chips'+n).innerHTML=v1state.blocks[n].map((c,i)=>`
+    <span class="chip c${n}${c.on?' on':''}" onclick="toggleChip(${n},${i})">
+      <span class="dot chip-dot-${n}"></span>${esc(c.label)}
+    </span>`).join('');
+}
+function toggleAll(n){
+  const allOn=v1state.blocks[n].every(c=>c.on);
+  v1state.blocks[n].forEach(c=>c.on=!allOn);
+  document.getElementById('selBtn'+n).textContent=allOn?'Select all':'Deselect all';
+  renderChips(n); updateSummary();
+}
+function toggleChip(n,i){
+  v1state.blocks[n][i].on=!v1state.blocks[n][i].on;
+  const anyOn=v1state.blocks[n].some(c=>c.on);
+  document.getElementById('selBtn'+n).textContent=anyOn?'Deselect all':'Select all';
+  renderChips(n); updateSummary();
+}
+function addChip(n){
+  const inp=document.getElementById('add'+n);
+  const val=inp.value.trim(); if(!val)return;
+  v1state.blocks[n].push({label:val,on:true}); inp.value='';
+  renderChips(n); updateSummary();
+  if(v1state.prompts.length)v1Generate();
+}
+function renderCompetitors(){
+  const block=document.getElementById('compBlock');
+  const list=document.getElementById('compList');
+  if(!v1state.competitors||!v1state.competitors.length){block.style.display='none';return;}
+  block.style.display='block';
+  list.innerHTML='<div class="comp-grid">'+v1state.competitors.map(c=>`
+    <div class="comp-card">
+      <div class="comp-name">${esc(c.name||'')}</div>
+      <div class="comp-loc">${esc(c.location||'')}</div>
+      <div class="comp-known"><span>Known for</span>${esc(c.known_for||'')}</div>
+    </div>`).join('')+'</div>';
+}
+function v1SetLoc(mode,btn){
+  v1state.locMode=mode;
+  document.querySelectorAll('#tab-v1 .loc-pill').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('locEditRow').style.display=mode==='global'?'none':'flex';
+  updateSummary();
+  if(v1state.prompts.length)v1Generate();
+}
+function v1GetLoc(){
+  if(v1state.locMode==='global')return'globally';
+  if(v1state.locMode==='city'){const v=document.getElementById('locCity').value.trim();return v?'in '+v:'in [city]';}
+  const v=document.getElementById('locCountry').value.trim();return v?'in '+v:'in [country]';
+}
+function updateSummary(){
+  const b1=v1state.blocks[1].filter(c=>c.on).length;
+  const b2=v1state.blocks[2].filter(c=>c.on).length;
+  const b3=v1state.blocks[3].filter(c=>c.on).length;
+  const b4=v1state.blocks[4].filter(c=>c.on).length;
+  const cust=document.getElementById('custToggle').checked;
+  const loc=v1GetLoc();
+  document.getElementById('genSummary').innerHTML=
+    `<strong>${b1}</strong> business · <strong>${b2}</strong> services · <strong>${b3}</strong> customers ${cust?'<span style="color:var(--accent)">(on)</span>':'<span style="color:var(--faint)">(off)</span>'} · <strong>${b4}</strong> qualifiers · <strong>${loc}</strong>`;
+}
+async function v1Generate(){
+  const b1=v1state.blocks[1].filter(c=>c.on).map(c=>c.label);
+  const b2=v1state.blocks[2].filter(c=>c.on).map(c=>c.label);
+  const b3=v1state.blocks[3].filter(c=>c.on).map(c=>c.label);
+  const b4=v1state.blocks[4].filter(c=>c.on).map(c=>c.label);
+  const inclCust=document.getElementById('custToggle').checked;
+  const loc=v1GetLoc();
+  hide('errEl'); hide('prompts-out'); show('genLoaderEl');
+  document.getElementById('genBtn').disabled=true;
+  const steps=['Curating best combinations…','Applying qualifiers…','Writing prompts…'];
+  let si=0; const msgEl=document.getElementById('genLoaderMsg');
+  const iv=setInterval(()=>{si=(si+1)%steps.length;msgEl.textContent=steps[si];},1800);
+  const sysP=`You are a search prompt strategist specialising in AI search visibility (Perplexity, ChatGPT, Google AI Overviews). Generate a curated set of 25-30 high-quality search prompts.
+Each prompt follows one of these structures:
+1. [Verb] 10 [qualifier] [business type] for [service] ${loc}
+2. [Verb] 10 [qualifier] [service] ${loc}
+${inclCust?'3. [Verb] 10 [qualifier] [business type] for [service] for [customer type] '+loc:''}
+Verbs ONLY: Find, List, Rank. Rules:
+- Curate BEST combinations — not all permutations
+- Vary structure 1 and 2 roughly equally${inclCust?', structure 3 for ~30%':''}
+- Vary verbs evenly. Vary qualifiers — max 3 repeats each
+- Natural language, like a real person typing to an AI
+- Return ONLY raw JSON array: [{"verb":"Find","text":"Find 10 most trusted..."},...]`;
+  const userMsg=`Business type variants: ${JSON.stringify(b1)}
+Service types: ${JSON.stringify(b2)}
+${inclCust?'Customer types: '+JSON.stringify(b3):'(no customer types)'}
+Qualifiers: ${JSON.stringify(b4)}
+Location: "${loc}"
+Generate 25-30 curated prompts.`;
+  try{
+    const _r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:3000,system:sysP,messages:[{role:'user',content:userMsg}]})
+    });
+    clearInterval(iv);
+    if(!_r.ok){const e=await _r.json();throw new Error(e.error?.message||'API error');}
+    const data=await _r.json();
+    const tb=data.content.filter(b=>b.type==='text').pop();
+    if(!tb)throw new Error('No response');
+    const prompts=extractJSON(tb.text,'[');
+    v1state.prompts=prompts;
+    hide('genLoaderEl'); document.getElementById('genBtn').disabled=false;
+    document.getElementById('outMeta').textContent=`${prompts.length} prompts generated`;
+    document.getElementById('promptList').innerHTML=prompts.map(p=>{
+      const vc=p.verb==='Find'?'v-find':p.verb==='List'?'v-list':'v-rank';
+      return`<div class="p-row"><span class="p-verb ${vc}">${esc(p.verb)}</span><span class="p-text">${esc(p.text.replace(/^(Find|List|Rank)\s+/i,''))}</span><button class="p-copy" onclick="cpText(this,${JSON.stringify(p.text)},'Copy')">Copy</button></div>`;
+    }).join('');
+    document.getElementById('copyAllBtn').onclick=()=>cpText(document.getElementById('copyAllBtn'),prompts.map(p=>p.text).join('\n'),'Copy all prompts');
+    show('prompts-out');
+  }catch(e){
+    clearInterval(iv); hide('genLoaderEl');
+    document.getElementById('genBtn').disabled=false;
+    showErr('Error: '+(e.message||'Please try again.'));
+  }
+}
+
+// ══════════════════════════════════════
+//  V2 — AUTO GROUPS
+// ══════════════════════════════════════
+const v2state={locMode:'city', allPrompts:[]};
+
+function v2SetLoc(mode,btn){
+  v2state.locMode=mode;
+  document.querySelectorAll('#tab-v2 .loc-pill').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('v2locEditRow').style.display=mode==='global'?'none':'flex';
+}
+function v2GetLoc(){
+  if(v2state.locMode==='global')return'globally';
+  if(v2state.locMode==='city'){const v=document.getElementById('v2locCity').value.trim();return v?'in '+v:'in [city]';}
+  const v=document.getElementById('v2locCountry').value.trim();return v?'in '+v:'in [country]';
+}
+function v2Analyze(){ v2Generate(); }
+
+async function v2Generate(){
+  const url=document.getElementById('urlIn').value.trim();
+  if(!url){showErr('Please enter a URL first.');return;}
+  if(!url.startsWith('http')){showErr('URL must start with https://');return;}
+  const loc=v2GetLoc();
+  hide('errEl'); hide('v2-out'); show('v2-loader');
+  document.getElementById('v2GenBtn').disabled=true;
+  const steps=['Reading website…','Identifying services & customers…','Writing grouped prompts…','Grouping by service & customer…'];
+  let si=0; const msgEl=document.getElementById('v2-loader-msg');
+  const iv=setInterval(()=>{si=(si+1)%steps.length;msgEl.textContent=steps[si];},2200);
+  const sysP=`You are a search prompt strategist for AI search visibility (Perplexity, ChatGPT, Google AI Overviews).
+
+Analyze the business website, identify all services and customer types, then generate search prompts grouped by both.
+
+Return ONLY raw valid JSON — no markdown, no backticks:
+{
+  "business_name": "string",
+  "total_prompts": 0,
+  "by_service": [
+    {
+      "service": "service name",
+      "prompts": [
+        {"verb":"Find","text":"Find 10 most trusted X in Y"},
+        {"verb":"List","text":"List 10 most reliable X in Y"},
+        {"verb":"Rank","text":"Rank 10 most affordable X in Y"}
+      ]
+    }
+  ],
+  "by_customer": [
+    {
+      "customer": "customer type name",
+      "prompts": [
+        {"verb":"Find","text":"Find 10 most trusted X for [customer] in Y"},
+        {"verb":"List","text":"..."},
+        {"verb":"Rank","text":"..."}
+      ]
+    }
+  ]
+}
+
+Rules:
+- Identify every service from the website
+- Identify 4-6 distinct customer types who use this business
+- Generate 4-6 prompts per service group, 3-4 prompts per customer group
+- Verbs ONLY: Find, List, Rank — vary evenly
+- Qualifiers: most trusted, most reliable, most affordable, highest rated, most experienced, best reviewed, most recommended — vary, no repeats within a group
+- Location string for all prompts: "${loc}"
+- Make every prompt feel natural — like a real person typing to an AI assistant
+- Do not repeat the same prompt across groups
+- Set total_prompts to the actual count of all prompts generated`;
+
+  try{
+    const _r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-5',max_tokens:4000,
+        system:sysP,
+        messages:[{role:'user',content:`Analyze this website and generate grouped prompts: ${url}`}],
+        tools:[{type:'web_search_20250305',name:'web_search'}]
+      })
+    });
+    clearInterval(iv);
+    if(!_r.ok){const e=await _r.json();throw new Error(e.error?.message||'API error '+_r.status);}
+    const data=await _r.json();
+    const tb=data.content.filter(b=>b.type==='text').pop();
+    if(!tb)throw new Error('No response');
+    const parsed=extractJSON(tb.text,'{');
+    hide('v2-loader');
+    document.getElementById('v2GenBtn').disabled=false;
+    v2Render(parsed);
+  }catch(e){
+    clearInterval(iv); hide('v2-loader');
+    document.getElementById('v2GenBtn').disabled=false;
+    showErr('Error: '+(e.message||'Something went wrong.'));
+  }
+}
+
+function v2Render(d){
+  const allP=[];
+  // service panel
+  document.getElementById('v2-panel-service').innerHTML=(d.by_service||[]).map(g=>{
+    const rows=g.prompts.map(p=>{
+      allP.push(p.text);
+      const vc=p.verb==='Find'?'v-find':p.verb==='List'?'v-list':'v-rank';
+      return`<div class="p-row"><span class="p-verb ${vc}">${esc(p.verb)}</span><span class="p-text">${esc(p.text.replace(/^(Find|List|Rank)\s+/i,''))}</span><button class="p-copy" onclick="cpText(this,${JSON.stringify(p.text)},'Copy')">Copy</button></div>`;
+    }).join('');
+    return`<div class="group-section">
+      <div class="group-label"><span class="group-dot dot-svc"></span>${esc(g.service)}</div>
+      <div class="group-prompts">${rows}</div>
+    </div>`;
+  }).join('');
+
+  // customer panel
+  document.getElementById('v2-panel-customer').innerHTML=(d.by_customer||[]).map(g=>{
+    const rows=g.prompts.map(p=>{
+      const vc=p.verb==='Find'?'v-find':p.verb==='List'?'v-list':'v-rank';
+      return`<div class="p-row"><span class="p-verb ${vc}">${esc(p.verb)}</span><span class="p-text">${esc(p.text.replace(/^(Find|List|Rank)\s+/i,''))}</span><button class="p-copy" onclick="cpText(this,${JSON.stringify(p.text)},'Copy')">Copy</button></div>`;
+    }).join('');
+    return`<div class="group-section">
+      <div class="group-label"><span class="group-dot dot-cust"></span>${esc(g.customer)}</div>
+      <div class="group-prompts">${rows}</div>
+    </div>`;
+  }).join('');
+
+  v2state.allPrompts=allP;
+  document.getElementById('v2-meta').textContent=`${d.business_name||'Business'} · ${allP.length} prompts across ${(d.by_service||[]).length} services & ${(d.by_customer||[]).length} customer types`;
+  document.getElementById('v2CopyAllBtn').onclick=()=>cpText(document.getElementById('v2CopyAllBtn'),allP.join('\n'),'Copy all');
+  show('v2-out');
+}
+
+function v2SwitchView(view, btn){
+  document.querySelectorAll('.v2-view-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.group-panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById('v2-panel-'+view).classList.add('on');
+}
+
+// ══ Init ══
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('urlIn').addEventListener('keydown',e=>{if(e.key==='Enter')v1Extract();});
+  ['add1','add2','add3','add4'].forEach((id,i)=>{
+    document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')addChip(i+1);});
+  });
+  document.getElementById('locCity').addEventListener('change',()=>{if(v1state.prompts.length)v1Generate();});
+  document.getElementById('locCountry').addEventListener('change',()=>{if(v1state.prompts.length)v1Generate();});
+});
+</script>
+</body>
+</html>
