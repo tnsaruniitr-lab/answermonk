@@ -1,0 +1,146 @@
+import Anthropic from "@anthropic-ai/sdk";
+
+const anthropic = new Anthropic({
+  apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY,
+  baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
+});
+
+function extractJSON(text: string, startChar: string): any {
+  const open = startChar === "{" ? "{" : "[";
+  const close = startChar === "{" ? "}" : "]";
+  const start = text.indexOf(open);
+  if (start === -1) throw new Error("No JSON found in response");
+  let depth = 0;
+  for (let i = start; i < text.length; i++) {
+    if (text[i] === open) depth++;
+    else if (text[i] === close) {
+      depth--;
+      if (depth === 0) return JSON.parse(text.slice(start, i + 1));
+    }
+  }
+  throw new Error("Malformed JSON in response");
+}
+
+export async function pncExtract(url: string) {
+  const system = `You are a business analyst. Analyze the given website and extract structured information for a prompt generator.
+Return ONLY raw valid JSON — no markdown, no backticks, no commentary:
+{
+  "business_type_variants":["variant 1","variant 2","variant 3"],
+  "service_types":["service 1","service 2","service 3"],
+  "customer_types":["customer type 1","customer type 2","customer type 3"],
+  "competitors":[{"name":"Name","location":"city or national","known_for":"what they do"}],
+  "city":"primary city","country":"country"
+}
+Rules:
+- business_type_variants: 3-5 natural ways to describe the business category
+- service_types: every distinct service offered, short and clean
+- customer_types: 4-6 specific customer segments
+- competitors: up to 12 real competing businesses — search broadly, include direct competitors, aggregators, adjacent providers
+- city and country from website; empty string if not found`;
+
+  const response = await (anthropic.messages.create as any)({
+    model: "claude-sonnet-4-5",
+    max_tokens: 2000,
+    system,
+    messages: [{ role: "user", content: `Extract blocks from: ${url}` }],
+    tools: [{ type: "web_search_20250305", name: "web_search" }],
+  });
+
+  const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
+  if (!tb) throw new Error("No response from Claude");
+  return extractJSON(tb.text, "{");
+}
+
+export async function pncV1Generate(
+  b1: string[],
+  b2: string[],
+  b3: string[],
+  b4: string[],
+  inclCust: boolean,
+  loc: string
+) {
+  const sysP = `You are a search prompt strategist specialising in AI search visibility (Perplexity, ChatGPT, Google AI Overviews). Generate a curated set of 25-30 high-quality search prompts.
+Each prompt follows one of these structures:
+1. [Verb] 10 [qualifier] [business type] for [service] ${loc}
+2. [Verb] 10 [qualifier] [service] ${loc}
+${inclCust ? `3. [Verb] 10 [qualifier] [business type] for [service] for [customer type] ${loc}` : ""}
+Verbs ONLY: Find, List, Rank. Rules:
+- Curate BEST combinations — not all permutations
+- Vary structure 1 and 2 roughly equally${inclCust ? ", structure 3 for ~30%" : ""}
+- Vary verbs evenly. Vary qualifiers — max 3 repeats each
+- Natural language, like a real person typing to an AI
+- Return ONLY raw JSON array: [{"verb":"Find","text":"Find 10 most trusted..."},...]`;
+
+  const userMsg = `Business type variants: ${JSON.stringify(b1)}
+Service types: ${JSON.stringify(b2)}
+${inclCust ? `Customer types: ${JSON.stringify(b3)}` : "(no customer types)"}
+Qualifiers: ${JSON.stringify(b4)}
+Location: "${loc}"
+Generate 25-30 curated prompts.`;
+
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 3000,
+    system: sysP,
+    messages: [{ role: "user", content: userMsg }],
+  });
+
+  const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
+  if (!tb) throw new Error("No response from Claude");
+  return extractJSON(tb.text, "[");
+}
+
+export async function pncV2Generate(url: string, loc: string) {
+  const sysP = `You are a search prompt strategist for AI search visibility (Perplexity, ChatGPT, Google AI Overviews).
+
+Analyze the business website, identify all services and customer types, then generate search prompts grouped by both.
+
+Return ONLY raw valid JSON — no markdown, no backticks:
+{
+  "business_name": "string",
+  "total_prompts": 0,
+  "by_service": [
+    {
+      "service": "service name",
+      "prompts": [
+        {"verb":"Find","text":"Find 10 most trusted X in Y"},
+        {"verb":"List","text":"List 10 most reliable X in Y"},
+        {"verb":"Rank","text":"Rank 10 most affordable X in Y"}
+      ]
+    }
+  ],
+  "by_customer": [
+    {
+      "customer": "customer type name",
+      "prompts": [
+        {"verb":"Find","text":"Find 10 most trusted X for [customer] in Y"},
+        {"verb":"List","text":"..."},
+        {"verb":"Rank","text":"..."}
+      ]
+    }
+  ]
+}
+
+Rules:
+- Identify every service from the website
+- Identify 4-6 distinct customer types who use this business
+- Generate 4-6 prompts per service group, 3-4 prompts per customer group
+- Verbs ONLY: Find, List, Rank — vary evenly
+- Qualifiers: most trusted, most reliable, most affordable, highest rated, most experienced, best reviewed, most recommended — vary, no repeats within a group
+- Location string for all prompts: "${loc}"
+- Make every prompt feel natural — like a real person typing to an AI assistant
+- Do not repeat the same prompt across groups
+- Set total_prompts to the actual count of all prompts generated`;
+
+  const response = await (anthropic.messages.create as any)({
+    model: "claude-sonnet-4-5",
+    max_tokens: 4000,
+    system: sysP,
+    messages: [{ role: "user", content: `Analyze this website and generate grouped prompts: ${url}` }],
+    tools: [{ type: "web_search_20250305", name: "web_search" }],
+  });
+
+  const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
+  if (!tb) throw new Error("No response from Claude");
+  return extractJSON(tb.text, "{");
+}

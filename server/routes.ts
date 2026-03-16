@@ -31,6 +31,7 @@ import { runBrandIntelligence } from "./brand-intelligence/runner";
 import { resolveGroundingUrls } from "./report/grounding-resolver";
 import { desc, eq as eqDrizzle } from "drizzle-orm";
 import { analyzeUrl } from "./url-analyzer";
+import { pncExtract, pncV1Generate, pncV2Generate } from "./pnc";
 
 /** ------------------------
  * Scoring helpers (From user provided logic)
@@ -2822,6 +2823,46 @@ export async function registerRoutes(
       res.json(data);
     } catch (err) {
       res.status(500).json({ message: "Failed to load geo metrics detail", error: String(err) });
+    }
+  });
+
+  app.post("/api/pnc/extract", async (req, res) => {
+    try {
+      const schema = z.object({ url: z.string().url() });
+      const { url } = schema.parse(req.body);
+      const result = await pncExtract(url);
+      res.json(result);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) res.status(400).json({ message: "Please enter a valid URL" });
+      else { console.error("[pnc/extract]", err.message); res.status(422).json({ message: err.message || "Extraction failed" }); }
+    }
+  });
+
+  app.post("/api/pnc/v1-generate", async (req, res) => {
+    try {
+      const schema = z.object({
+        b1: z.array(z.string()), b2: z.array(z.string()),
+        b3: z.array(z.string()), b4: z.array(z.string()),
+        inclCust: z.boolean(), loc: z.string(),
+      });
+      const { b1, b2, b3, b4, inclCust, loc } = schema.parse(req.body);
+      const result = await pncV1Generate(b1, b2, b3, b4, inclCust, loc);
+      res.json(result);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) res.status(400).json({ message: "Invalid request" });
+      else { console.error("[pnc/v1-generate]", err.message); res.status(422).json({ message: err.message || "Generation failed" }); }
+    }
+  });
+
+  app.post("/api/pnc/v2-generate", async (req, res) => {
+    try {
+      const schema = z.object({ url: z.string().url(), loc: z.string() });
+      const { url, loc } = schema.parse(req.body);
+      const result = await pncV2Generate(url, loc);
+      res.json(result);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) res.status(400).json({ message: "Please enter a valid URL" });
+      else { console.error("[pnc/v2-generate]", err.message); res.status(422).json({ message: err.message || "Generation failed" }); }
     }
   });
 

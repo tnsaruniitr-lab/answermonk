@@ -64,6 +64,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link, useLocation } from "wouter";
 import { SegmentCitationAnalyzer } from "@/components/SegmentCitationAnalyzer";
 import { Section1, Section2, CompetitorPlaybookSection, Section3, AppendixSection } from "@/components/ReportViewer";
+import PncCreator from "@/components/PncCreator";
 
 interface Prompt {
   id: string;
@@ -1221,7 +1222,7 @@ interface PanelAnalysisResult {
   }>;
 }
 
-type GeneratorMode = "simple" | "advanced" | "quick" | "quickv2" | "panel";
+type GeneratorMode = "simple" | "advanced" | "quick" | "quickv2" | "panel" | "pnc";
 
 export default function PromptGenerator() {
   const [, navigate] = useLocation();
@@ -2127,8 +2128,8 @@ export default function PromptGenerator() {
     });
   };
 
-  const showForm = mode === "panel" || mode === "quick" || mode === "quickv2" || (!result && !isGenerating && !isScoring && !scoringResult);
-  const showPrompts = mode !== "panel" && mode !== "quick" && mode !== "quickv2" && result && !isGenerating && !isScoring && !scoringResult;
+  const showForm = mode === "panel" || mode === "quick" || mode === "quickv2" || mode === "pnc" || (!result && !isGenerating && !isScoring && !scoringResult);
+  const showPrompts = mode !== "panel" && mode !== "quick" && mode !== "quickv2" && mode !== "pnc" && result && !isGenerating && !isScoring && !scoringResult;
   const showScoring = isScoring;
   const showResults = scoringResult && !isScoring;
 
@@ -2177,6 +2178,7 @@ export default function PromptGenerator() {
                       { key: "quick" as GeneratorMode, label: "Quick", desc: "10 ranked prompts", icon: Target },
                       { key: "quickv2" as GeneratorMode, label: "Quick V2", desc: "Multi-segment analysis", icon: BarChart3 },
                       { key: "panel" as GeneratorMode, label: "Panel", desc: "Website recall test", icon: Shield },
+                      { key: "pnc" as GeneratorMode, label: "PNC Creator", desc: "Block builder & auto groups", icon: Link2 },
                     ]).map((m) => (
                       <button
                         key={m.key}
@@ -3674,6 +3676,8 @@ export default function PromptGenerator() {
                     </div>
                   </div>
                 )}
+
+                {mode === "pnc" && <PncCreator />}
 
                 {mode === "quickv2" && v2Segments.some((s) => s.scoringResult?.cost) && !v2IsAnalysing && (() => {
                   const totalCost = v2Segments.reduce((sum, s) => sum + (s.scoringResult?.cost?.total_cost_usd || 0), 0);
