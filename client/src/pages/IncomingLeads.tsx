@@ -91,6 +91,7 @@ export default function IncomingLeads() {
       return res.json();
     },
     onSuccess: (data, lead) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/multisegment/sessions"] });
       markProcessed.mutate(lead.id);
       navigate(`/v2/${data.id}`);
     },
