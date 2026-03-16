@@ -37,11 +37,21 @@ type ScoringResponse = {
   raw_runs?: any[];
   cost?: any;
 };
+type ScoringPrompt = {
+  id: string;
+  text: string;
+  cluster: string;
+  shape: string;
+  slots_used: Record<string, string>;
+  tags: string[];
+  modifier_included: boolean;
+  geo_included: boolean;
+};
 type PncAnalysisSegment = {
   id: string;
   type: "service" | "customer";
   label: string;
-  prompts: Array<{ id: string; text: string; cluster: string }>;
+  prompts: ScoringPrompt[];
   selected: boolean;
   isScoring: boolean;
   scoringResult: ScoringResponse | null;
@@ -94,6 +104,19 @@ function extractDomain(rawUrl: string): string {
 
 function buildPromptId(prefix: string, i: number) {
   return `pnc_${prefix}_${i}`;
+}
+
+function toScoringPrompt(p: Prompt, prefix: string, i: number): ScoringPrompt {
+  return {
+    id: buildPromptId(prefix, i),
+    text: p.text,
+    cluster: "direct",
+    shape: "find_best",
+    slots_used: {},
+    tags: [],
+    modifier_included: false,
+    geo_included: false,
+  };
 }
 
 function SegmentScoreCard({ seg, brandName }: { seg: PncAnalysisSegment; brandName: string }) {
@@ -218,7 +241,7 @@ export default function PncCreator() {
       id: `svc_${i}`,
       type: "service",
       label: g.service,
-      prompts: g.prompts.map((p, pi) => ({ id: buildPromptId(`svc${i}`, pi), text: p.text, cluster: "direct" })),
+      prompts: g.prompts.map((p, pi) => toScoringPrompt(p, `svc${i}`, pi)),
       selected: true,
       isScoring: false,
       scoringResult: null,
@@ -227,7 +250,7 @@ export default function PncCreator() {
       id: `cust_${i}`,
       type: "customer",
       label: g.customer,
-      prompts: g.prompts.map((p, pi) => ({ id: buildPromptId(`cust${i}`, pi), text: p.text, cluster: "direct" })),
+      prompts: g.prompts.map((p, pi) => toScoringPrompt(p, `cust${i}`, pi)),
       selected: false,
       isScoring: false,
       scoringResult: null,
@@ -410,7 +433,7 @@ export default function PncCreator() {
       id: "v1_all",
       type: "service",
       label: "Block Builder",
-      prompts: v1Prompts.map((p, i) => ({ id: buildPromptId("v1", i), text: p.text, cluster: "direct" })),
+      prompts: v1Prompts.map((p, i) => toScoringPrompt(p, "v1", i)),
       selected: true,
       isScoring: true,
       scoringResult: null,
