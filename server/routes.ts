@@ -30,6 +30,7 @@ import { brandIntelligenceJobs } from "@shared/schema";
 import { runBrandIntelligence } from "./brand-intelligence/runner";
 import { resolveGroundingUrls } from "./report/grounding-resolver";
 import { desc, eq as eqDrizzle } from "drizzle-orm";
+import { analyzeUrl } from "./url-analyzer";
 
 /** ------------------------
  * Scoring helpers (From user provided logic)
@@ -2821,6 +2822,22 @@ export async function registerRoutes(
       res.json(data);
     } catch (err) {
       res.status(500).json({ message: "Failed to load geo metrics detail", error: String(err) });
+    }
+  });
+
+  app.post("/api/analyze-url", async (req, res) => {
+    try {
+      const schema = z.object({ url: z.string().url() });
+      const { url } = schema.parse(req.body);
+      const result = await analyzeUrl(url);
+      res.json(result);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: "Please enter a valid URL including https://" });
+      } else {
+        console.error("[analyze-url]", err.message);
+        res.status(422).json({ message: err.message || "Failed to analyze URL" });
+      }
     }
   });
 

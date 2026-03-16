@@ -55,6 +55,9 @@ import {
   Users,
   ArrowRight,
   Minus,
+  Link2,
+  Building2,
+  ChevronUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -1301,6 +1304,20 @@ export default function PromptGenerator() {
   const [v2PromptsPerSegment, setV2PromptsPerSegment] = useState(3);
   const [v2IsAnalysing, setV2IsAnalysing] = useState(false);
   const [v2LoadedSessionId, setV2LoadedSessionId] = useState<number | null>(null);
+  const [urlMode, setUrlMode] = useState(false);
+  const [urlInput, setUrlInput] = useState("");
+  const [urlAnalyzing, setUrlAnalyzing] = useState(false);
+  const [urlAnalysisResult, setUrlAnalysisResult] = useState<null | {
+    business_name: string;
+    brand_domain: string;
+    entity_type: string;
+    seed_type: string;
+    services: string[];
+    customer_types: string[];
+    primary_location: string;
+    locations: string[];
+  }>(null);
+  const [urlAnalysisError, setUrlAnalysisError] = useState<string | null>(null);
 
   const [compLensOpen, setCompLensOpen] = useState(false);
   const [compLensLoading, setCompLensLoading] = useState(false);
@@ -1670,6 +1687,56 @@ export default function PromptGenerator() {
       selected: true,
     }));
     setV2Segments(segs);
+  };
+
+  const handleAnalyzeUrl = async () => {
+    let targetUrl = urlInput.trim();
+    if (!targetUrl) return;
+    if (!/^https?:\/\//i.test(targetUrl)) targetUrl = `https://${targetUrl}`;
+    setUrlAnalyzing(true);
+    setUrlAnalysisError(null);
+    setUrlAnalysisResult(null);
+    try {
+      const res = await fetch("/api/analyze-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: targetUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Analysis failed");
+      setUrlAnalysisResult(data);
+    } catch (err: any) {
+      setUrlAnalysisError(err.message || "Could not analyze the URL");
+    } finally {
+      setUrlAnalyzing(false);
+    }
+  };
+
+  const applyUrlAnalysisToSegments = () => {
+    if (!urlAnalysisResult) return;
+    const { business_name, brand_domain, seed_type, services, customer_types, primary_location } = urlAnalysisResult;
+    setBrandName(business_name);
+    setBrandDomain(brand_domain);
+    const newSegs = services.length > 0
+      ? services.map((svc) => ({
+          id: `seg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          persona: svc,
+          seedType: seed_type,
+          serviceType: "",
+          customerType: customer_types[0] || "",
+          customerTypeEnabled: false,
+          location: primary_location,
+          resultCount: 10,
+          prompts: null,
+          scoringResult: null,
+          isScoring: false,
+          selected: true,
+        }))
+      : [makeSegment()];
+    setV2Segments(newSegs);
+    setUrlMode(false);
+    setUrlAnalysisResult(null);
+    setUrlInput("");
   };
 
   const loadProfile = (profile: SavedProfile) => {
@@ -2711,6 +2778,132 @@ export default function PromptGenerator() {
 
                 {mode === "quickv2" && (
                   <div className="space-y-6 pb-16">
+
+                    {/* URL Segment Creator */}
+                    <div className="border border-dashed rounded-lg overflow-hidden">
+                      <button
+                        type="button"
+                        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-left hover:bg-muted/40 transition-colors"
+                        onClick={() => {
+                          setUrlMode(!urlMode);
+                          setUrlAnalysisResult(null);
+                          setUrlAnalysisError(null);
+                        }}
+                        data-testid="button-toggle-url-mode"
+                      >
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <Link2 className="w-4 h-4" />
+                          Auto-create segments from a website URL
+                        </span>
+                        {urlMode ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                      </button>
+
+                      {urlMode && (
+                        <div className="px-4 pb-4 pt-1 space-y-4 border-t bg-muted/20">
+                          <div className="flex gap-2 pt-2">
+                            <Input
+                              placeholder="https://example.com"
+                              value={urlInput}
+                              onChange={(e) => setUrlInput(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === "Enter") handleAnalyzeUrl(); }}
+                              disabled={urlAnalyzing}
+                              className="flex-1 text-sm"
+                              data-testid="input-analyze-url"
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={handleAnalyzeUrl}
+                              disabled={urlAnalyzing || !urlInput.trim()}
+                              data-testid="button-analyze-url"
+                            >
+                              {urlAnalyzing ? (
+                                <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Analyzing…</>
+                              ) : (
+                                <><Search className="w-3.5 h-3.5 mr-1.5" />Analyze</>
+                              )}
+                            </Button>
+                          </div>
+
+                          {urlAnalysisError && (
+                            <p className="text-xs text-destructive flex items-start gap-1.5">
+                              <X className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                              {urlAnalysisError}
+                            </p>
+                          )}
+
+                          {urlAnalysisResult && (
+                            <div className="space-y-3">
+                              <div className="rounded-md bg-background border p-3 space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <Building2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                  <span className="font-semibold text-sm">{urlAnalysisResult.business_name}</span>
+                                  <span className="text-xs text-muted-foreground ml-auto">{urlAnalysisResult.brand_domain}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-1.5 text-xs">
+                                  <Badge variant="secondary" className="text-[10px]">{urlAnalysisResult.entity_type}</Badge>
+                                  <Badge variant="outline" className="text-[10px]">seed: {urlAnalysisResult.seed_type}</Badge>
+                                  {urlAnalysisResult.primary_location && (
+                                    <Badge variant="outline" className="text-[10px]">
+                                      <MapPin className="w-2.5 h-2.5 mr-1" />{urlAnalysisResult.primary_location}
+                                    </Badge>
+                                  )}
+                                </div>
+
+                                {urlAnalysisResult.services.length > 0 && (
+                                  <div>
+                                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                                      Services → segments ({urlAnalysisResult.services.length})
+                                    </p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {urlAnalysisResult.services.map((svc, i) => (
+                                        <Badge key={i} variant="secondary" className="text-[10px] font-normal">{svc}</Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {urlAnalysisResult.customer_types.length > 0 && (
+                                  <div>
+                                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                                      Customer types
+                                    </p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {urlAnalysisResult.customer_types.map((ct, i) => (
+                                        <Badge key={i} variant="outline" className="text-[10px] font-normal">{ct}</Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="flex gap-2">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  className="flex-1"
+                                  onClick={applyUrlAnalysisToSegments}
+                                  data-testid="button-apply-url-segments"
+                                >
+                                  <Zap className="w-3.5 h-3.5 mr-1.5" />
+                                  Load {urlAnalysisResult.services.length} segment{urlAnalysisResult.services.length !== 1 ? "s" : ""} into builder
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => { setUrlAnalysisResult(null); setUrlInput(""); }}
+                                  data-testid="button-clear-url-result"
+                                >
+                                  <RefreshCw className="w-3.5 h-3.5" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
                     {((v2Configs && v2Configs.length > 0) || (v2Sessions && v2Sessions.length > 0)) && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {v2Configs && v2Configs.length > 0 && (
