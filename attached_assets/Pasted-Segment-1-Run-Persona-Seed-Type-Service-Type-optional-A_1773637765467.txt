@@ -1,0 +1,137 @@
+Segment 1
+Run
+
+Persona
+Seed Type
+Service Type (optional)
+Any service
+Customer Type
+
+
+Any customer type
+Location (city or country)
+Dubai, United Arab Emirates
+Result Count (find top N)
+10
+3 prompts generated
+1
+Find, list and rank top 10 At-home blood tests in Dubai, United Arab Emirates.
+2
+Find, list and rank best 10 At-home blood tests in Dubai, United Arab Emirates.
+3
+Find, list and rank most used 10 At-home blood tests in Dubai, United Arab Emirates.
+
+Segment 2
+Run
+
+Persona
+Seed Type
+Service Type (optional)
+Any service
+Customer Type
+
+
+Any customer type
+Location (city or country)
+Dubai, United Arab Emirates
+Result Count (find top N)
+10
+3 prompts generated
+1
+Find, list and rank top 10 IV therapy in Dubai, United Arab Emirates.
+2
+Find, list and rank best 10 IV therapy in Dubai, United Arab Emirates.
+3
+Find, list and rank most used 10 IV therapy in Dubai, United Arab Emirates.
+
+Segment 3
+Run
+
+Persona
+Seed Type
+Service Type (optional)
+Any service
+Customer Type
+
+
+Any customer type
+Location (city or country)
+Dubai, United Arab Emirates
+Result Count (find top N)
+10
+3 prompts generated
+1
+Find, list and rank top 10 Doctor-on-call services in Dubai, United Arab Emirates.
+2
+Find, list and rank best 10 Doctor-on-call services in Dubai, United Arab Emirates.
+3
+Find, list and rank most used 10 Doctor-on-call services in Dubai, United Arab Emirates.
+
+Segment 4
+Run
+
+Persona
+Seed Type
+Service Type (optional)
+Any service
+Customer Type
+
+
+Any customer type
+Location (city or country)
+Dubai, United Arab Emirates
+Result Count (find top N)
+10
+3 prompts generated
+1
+Find, list and rank top 10 Physiotherapy in Dubai, United Arab Emirates.
+2
+Find, list and rank best 10 Physiotherapy in Dubai, United Arab Emirates.
+3
+Find, list and rank most used 10 Physiotherapy in Dubai, United Arab Emirates.
+
+Segment 5
+Run
+
+Persona
+Seed Type
+Service Type (optional)
+Any service
+Customer Type
+
+
+Any customer type
+Location (city or country)
+Dubai, United Arab Emirates
+Result Count (find top N)
+10
+3 prompts generated
+1
+Find, list and rank top 10 Wellness programs in Dubai, United Arab Emirates.
+2
+Find, list and rank best 10 Wellness programs in Dubai, United Arab Emirates.
+3
+Find, list and rank most used 10 Wellness programs in Dubai, United Arab Emirates.
+
+Segment 6
+Run
+
+Persona
+Seed Type
+Service Type (optional)
+Any service
+Customer Type
+
+
+Any customer type
+Location (city or country)
+Dubai, United Arab Emirates
+Result Count (find top N)
+10
+3 prompts generated
+1
+Find, list and rank top 10 Supplements in Dubai, United Arab Emirates.
+2
+Find, list and rank best 10 Supplements in Dubai, United Arab Emirates.
+3
+Find, list and rank most used 10 Supplements in Dubai, United Arab Emirates.
