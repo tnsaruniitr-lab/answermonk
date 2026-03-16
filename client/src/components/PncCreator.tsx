@@ -265,11 +265,12 @@ function SegmentScoreCard({ seg, brandName }: { seg: PncAnalysisSegment; brandNa
   );
 }
 
-function PncCompetitorLens({ segments, brandName, brandDomain, location }: {
+function PncCompetitorLens({ segments, brandName, brandDomain, location, sessionId = 0 }: {
   segments: PncAnalysisSegment[];
   brandName: string;
   brandDomain: string;
   location: string;
+  sessionId?: number;
 }) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -347,7 +348,7 @@ function PncCompetitorLens({ segments, brandName, brandDomain, location }: {
     try {
       const res = await apiRequest("POST", "/api/competitor-lens/report", {
         competitorName: selected,
-        sessionId: 0,
+        sessionId: sessionId || undefined,
         segments: getSegmentsPayload(),
         brandName,
         brandDomain: brandDomain || undefined,
@@ -373,7 +374,7 @@ function PncCompetitorLens({ segments, brandName, brandDomain, location }: {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           competitors: Array.from(batchSelected),
-          sessionId: 0,
+          sessionId: sessionId || undefined,
           segments: getSegmentsPayload(),
           brandName,
           brandDomain: brandDomain || undefined,
@@ -1776,6 +1777,7 @@ export default function PncCreator() {
                   brandName={v1BrandName}
                   brandDomain={v1BrandDomain}
                   location={locCity || locCountry || ""}
+                  sessionId={pncV1SessionId || 0}
                 />
               )}
             </div>
@@ -1925,6 +1927,7 @@ export default function PncCreator() {
               brandName={pncBrandName}
               brandDomain={pncBrandDomain}
               location={v2LocCity || v2LocCountry || ""}
+              sessionId={pncV2SessionId || 0}
             />
           )}
         </div>
