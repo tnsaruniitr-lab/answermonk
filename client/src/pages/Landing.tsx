@@ -9,6 +9,7 @@ import {
 import { AuthoritySourcesPanel } from "@/components/AuthoritySourcesPanel";
 import { DispatchFeedLive } from "@/components/DispatchFeedLive";
 import { RecentAnalysisTiles } from "@/components/RecentAnalysisTiles";
+import { SessionSummaryHero } from "@/components/SessionSummaryHero";
 
 function normalizeDomain(url: string): string {
   try {
@@ -622,6 +623,16 @@ function LandingInner() {
                   {scoringSession?.brandName || ""}
                 </span>
               </div>
+            )}
+
+            {/* Session summary hero — appears as soon as the first segment scores */}
+            {scoredSegs.length > 0 && (
+              <SessionSummaryHero
+                brandName={scoringSession?.brandName || ""}
+                brandDomain={scoringSession?.brandDomain || undefined}
+                scoredSegs={scoredSegs}
+                totalSegs={scoringSegs.length}
+              />
             )}
 
             {/* Scored segment cards — appear one by one as they complete */}
