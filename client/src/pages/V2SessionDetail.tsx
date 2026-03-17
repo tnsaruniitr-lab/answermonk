@@ -33,6 +33,7 @@ import { motion } from "framer-motion";
 import { SegmentCitationAnalyzer } from "@/components/SegmentCitationAnalyzer";
 import { ReportViewer } from "@/components/ReportViewer";
 import { CitationInsightsPanel } from "@/components/CitationInsightsPanel";
+import { AuthoritySourcesPanel } from "@/components/AuthoritySourcesPanel";
 import { mergeCompetitors } from "@/lib/competitor-merge";
 
 const ENGINE_LABELS: Record<string, string> = {
@@ -185,9 +186,23 @@ export default function V2SessionDetail() {
           />
         )}
 
-        {/* Citation AI Insights — send full citation data to any model */}
+        {/* Authority Sources + Citation AI Insights — unified GEO intelligence panel */}
         {numericId !== null && scored > 0 && (
-          <CitationInsightsPanel sessionId={numericId} />
+          <AuthoritySourcesPanel
+            sessionId={numericId}
+            brandName={session.brandName}
+            groupKey={isGroupKey ? rawId : null}
+            segments={segments
+              .filter(s => s.scoringResult)
+              .map((s, i) => ({
+                id: `hist-seg-${rawId}-${i}`,
+                persona: s.persona,
+                seedType: s.seedType,
+                customerType: s.customerType,
+                location: s.location,
+                scoringResult: s.scoringResult,
+              }))}
+          />
         )}
 
         {scored > 0 && (numericId !== null || isGroupKey) && (

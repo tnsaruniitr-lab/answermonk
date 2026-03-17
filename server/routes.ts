@@ -3588,6 +3588,27 @@ export async function registerRoutes(
     }
   });
 
+  // ── Citation Domain URL lazy-loader ──────────────────────────────────────────
+  app.get("/api/multi-segment-sessions/:id/citation-domains/:domain", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.id, 10);
+      if (isNaN(sessionId)) { res.status(400).json({ message: "Invalid session ID" }); return; }
+      const domain = decodeURIComponent(req.params.domain);
+      const { pool } = await import("./db");
+      const { rows } = await pool.query(
+        `SELECT url, title, llm_pagetype_classification, citation_count
+         FROM citation_urls
+         WHERE session_id = $1 AND domain = $2
+         ORDER BY citation_count DESC, id ASC
+         LIMIT 50`,
+        [sessionId, domain]
+      );
+      res.json({ urls: rows });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   // ── Citation AI Insights ─────────────────────────────────────────────────────
 
   // GET — list past insight runs for a session (+ citation row count for cost estimation)
