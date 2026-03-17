@@ -1,0 +1,250 @@
+1. Database schema — add two more fields
+
+Your five fields are correct but slightly incomplete for long-term management.
+
+Add:
+
+Field	Purpose
+data_version	identifies which analysis cohort produced the ranking
+first_published_at	separates first publication from later updates
+
+Final core schema for publishable segments:
+
+raw_query
+
+canonical_query
+
+canonical_slug
+
+publish_status
+
+dedupe_parent_id
+
+data_version
+
+first_published_at
+
+This prevents problems later when rankings change across months.
+
+2. Canonical query normalization rules
+
+Define them explicitly in code, otherwise duplicates will leak.
+
+Typical rules:
+
+Remove filler words:
+
+best
+top
+in
+providers
+services
+companies
+
+Normalize order:
+
+{serviceType} {location}
+
+Example transformation:
+
+best home healthcare in dubai
+top home healthcare dubai
+home healthcare providers dubai
+
+→ canonical query:
+
+home healthcare dubai
+
+→ canonical slug:
+
+best-home-healthcare-dubai
+
+One slug. Always.
+
+3. Evidence scoring should be numeric
+
+Right now your gate is logical but not scored.
+
+Better:
+
+Each segment gets an evidence score.
+
+Example:
+
+Signal	Score
+citation frequency present	+2
+authority-source presence	+2
+repeated across prompts	+2
+structured entity signals	+1
+
+Publishing threshold:
+
+evidence_score >= 3
+AND brands >= 3
+
+This makes the gate deterministic.
+
+4. Versioning model
+
+Do not store snapshots only as loose JSON.
+
+Use a separate table:
+
+query_page_versions
+
+Fields:
+
+page_slug
+
+data_version
+
+analysis_window
+
+prompt_count
+
+ranking_snapshot_json
+
+created_at
+
+Your live page simply points to the latest version.
+
+This allows historical comparison later.
+
+5. Query page content structure
+
+Lock the template structure early.
+
+Each query page should follow the same semantic outline:
+
+Title + H1
+
+Direct answer paragraph
+
+Ranked list
+
+Evidence block per brand
+
+Authority sources
+
+Versioning block
+
+Related queries
+
+Methodology link
+
+Consistency improves machine extraction.
+
+6. JSON-LD entity graph
+
+Instead of separate objects, use a single graph block:
+
+@graph
+  WebPage
+  Dataset
+  ItemList
+  Organization[]
+  BreadcrumbList
+
+This allows engines to connect the entities in one structure.
+
+7. Brand page entity strategy
+
+Brand pages should gradually become entity authority nodes.
+
+They should expose:
+
+official website
+
+service categories
+
+locations detected
+
+AI engine appearance rates
+
+recurring authority mentions
+
+linked query pages
+
+These pages accumulate trust over time.
+
+8. Category hubs should not be empty aggregations
+
+Add a short editorial summary on each hub page.
+
+Example:
+
+“Home healthcare providers in Dubai are most frequently cited when they demonstrate DHA licensing signals and strong service page structure.”
+
+Even two paragraphs add semantic depth.
+
+9. Comparison pages should use a strict template
+
+Every comparison page should include:
+
+direct comparison paragraph
+
+side-by-side metrics
+
+evidence differences
+
+query pages where each appears
+
+Otherwise they become thin.
+
+10. Internal linking rules
+
+Each query page should always link to:
+
+top 3 brand pages
+
+category hub
+
+3 related queries
+
+methodology page
+
+This creates the crawl graph.
+
+11. Directory listing page
+
+Your React /directory page should support:
+
+filtering by location
+
+filtering by category
+
+search suggestions for queries
+
+sorting by newest analysis
+
+This helps discovery.
+
+12. Growth flywheel — accurate description
+
+Your system will generate three types of durable assets:
+
+Prompt answer pages
+
+Brand entity pages
+
+Category knowledge hubs
+
+Over time the graph becomes:
+
+prompt → brand → category → prompt
+
+This interlinked structure is what makes directories like G2 powerful.
+
+Final assessment
+
+Your architecture now includes the four critical layers that most directories miss:
+
+canonical normalization
+
+strict quality gate
+
+explicit methodology
+
+structured entity pages
+
+Those four elements are what transform a crawlable directory into a citation-worthy dataset.
