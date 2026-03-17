@@ -485,9 +485,46 @@ export async function registerRoutes(
         sessionType: "landing_guided",
       });
 
-      // TODO: re-enable auto-scoring once segment structure is verified in Analyzer → Guided tab
-      // Scoring intentionally paused — segments + prompts are saved, no runs fired yet
-      // (async () => { for each segment: runScoring → updateMultiSegmentSessionSegments })();
+      // Fire scoring for each segment asynchronously — no await, returns immediately so UX is fast
+      (async () => {
+        const updatedSegments = segments.map((s: any) => ({ ...s }));
+        for (let i = 0; i < segments.length; i++) {
+          const seg = segments[i];
+          try {
+            const scoringRes = await runScoring(
+              seg.prompts as any,
+              brandName,
+              brandDomain,
+              undefined,
+              undefined,
+              undefined,
+              ["chatgpt", "gemini", "claude"],
+            );
+            updatedSegments[i] = {
+              ...seg,
+              scoringResult: {
+                score: scoringRes.score,
+                raw_runs: scoringRes.raw_runs.map((r: any) => ({
+                  prompt: r.prompt_id,
+                  engine: r.engine,
+                  response: r.raw_text,
+                  brands_found: (r.extraction?.candidates || []).map((c: any) =>
+                    typeof c === "string" ? c : c.name_raw || c.name || c
+                  ),
+                  rank: r.match?.brand?.brand_rank ?? null,
+                  citations: r.citations || [],
+                  cluster: r.cluster,
+                })),
+              },
+            };
+            await storage.updateMultiSegmentSessionSegments(session.id, updatedSegments);
+            console.log(`[Landing] Scored segment ${i + 1}/${segments.length} for session ${session.id}`);
+          } catch (segErr) {
+            console.error(`[Landing] Scoring failed for segment ${seg.id}:`, segErr);
+          }
+        }
+        console.log(`[Landing] All segments complete for session ${session.id}`);
+      })();
 
       return res.status(201).json({ sessionId: session.id });
     } catch (err: any) {

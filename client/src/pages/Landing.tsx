@@ -27,6 +27,16 @@ const AGENT_STEPS = [
   { emoji: "✨", label: "Compiling GEO intelligence brief…" },
 ];
 
+const RUN_STEPS = [
+  { emoji: "🧠", label: "Classifying segments with AI reasoning engine…" },
+  { emoji: "✍️", label: "Drafting {n} targeted search prompts…" },
+  { emoji: "🔗", label: "Wiring prompt network to scoring pipeline…" },
+  { emoji: "🚀", label: "Dispatching to ChatGPT · Claude · Gemini…" },
+  { emoji: "📡", label: "Calibrating brand visibility scoring model…" },
+  { emoji: "🏆", label: "Benchmarking against competitor landscape…" },
+  { emoji: "📋", label: "Compiling your GEO Intelligence Report…" },
+];
+
 function LandingInner() {
   const [, navigate] = useLocation();
   const [url, setUrl] = useState("");
@@ -35,6 +45,7 @@ function LandingInner() {
   const [isHovered, setIsHovered] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [agentStep, setAgentStep] = useState(0);
+  const [runStep, setRunStep] = useState(0);
   const honeypotRef = useRef<HTMLInputElement>(null);
   const chipsInitialized = useRef(false);
 
@@ -47,7 +58,6 @@ function LandingInner() {
   const [newCustomerInput, setNewCustomerInput] = useState("");
   const [customerLimitError, setCustomerLimitError] = useState(false);
   const [serviceLimitError, setServiceLimitError] = useState(false);
-  const [segmentsReady, setSegmentsReady] = useState<number | null>(null);
 
   const MAX_SELECTED = 4;
 
@@ -128,7 +138,7 @@ function LandingInner() {
       return res.json();
     },
     onSuccess: (data) => {
-      setSegmentsReady(data.sessionId);
+      navigate(`/v2/${data.sessionId}`);
     },
     onError: (err: any) => {
       setError(err?.message || "Analysis setup failed. Please try again.");
@@ -137,6 +147,15 @@ function LandingInner() {
 
   const isError = submission?.status === "error" || runMutation.isError;
   const isRunning = runMutation.isPending;
+
+  useEffect(() => {
+    if (!isRunning) { setRunStep(0); return; }
+    setRunStep(0);
+    const iv = setInterval(() => {
+      setRunStep((prev) => Math.min(prev + 1, RUN_STEPS.length - 1));
+    }, 1400);
+    return () => clearInterval(iv);
+  }, [isRunning]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -354,28 +373,66 @@ function LandingInner() {
           </div>
         )}
 
-        {/* Generating — prompt network being built + analysis triggered */}
+        {/* GEO Agent — Phase 2: cooking the report */}
         {isRunning && (
           <div className="mt-8 max-w-md mx-auto" data-testid="status-running">
-            <div className="bg-[#111827]/60 border border-blue-500/20 rounded-2xl p-8 text-center">
-              <div className="relative mx-auto mb-4 w-12 h-12">
-                <Loader2 className="w-12 h-12 animate-spin text-blue-400" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-violet-400" />
+            <div className="relative">
+              <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-violet-500/50 via-indigo-500/40 to-violet-500/50 blur-sm" />
+              <div className="relative bg-[#0a0f1a] rounded-2xl p-6">
+                {/* Agent header */}
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="relative flex-shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/30 flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-violet-400 animate-pulse" />
+                    </div>
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-violet-400 border-2 border-[#0a0f1a] animate-pulse" />
+                  </div>
+                  <div>
+                    <p className="text-white text-sm font-semibold leading-tight">GEO Agent · Computing Report</p>
+                    <p className="text-violet-400/70 text-xs font-mono truncate">building prompt network for {normalizeDomain(url)}</p>
+                  </div>
+                  <div className="ml-auto flex gap-1">
+                    {[0, 1, 2].map((i) => (
+                      <div key={i} className="w-1 h-1 rounded-full bg-violet-400/60 animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <p className="text-white font-semibold text-lg mb-1">Building your Prompt Network</p>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Generating prompts from your confirmed segments and triggering GEO analysis across ChatGPT, Claude &amp; Gemini…
-              </p>
-              <div className="mt-4 flex justify-center gap-1">
-                {[0, 1, 2].map((i) => (
-                  <div
-                    key={i}
-                    className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce"
-                    style={{ animationDelay: `${i * 0.15}s` }}
-                  />
-                ))}
+
+                {/* Step feed */}
+                <div className="space-y-2">
+                  {RUN_STEPS.map((step, i) => {
+                    const done = i < runStep;
+                    const running = i === runStep && runStep < RUN_STEPS.length;
+                    const pending = i > runStep;
+                    const label = step.label.replace("{n}", String((selectedServices.size + selectedCustomers.size) * 8));
+                    return (
+                      <div
+                        key={i}
+                        className={`flex items-center gap-3 transition-all duration-500 ${pending ? "opacity-25" : "opacity-100"}`}
+                      >
+                        <div className="flex-shrink-0 w-4 h-4 flex items-center justify-center">
+                          {done && (
+                            <div className="w-4 h-4 rounded-full bg-violet-500/15 border border-violet-500/40 flex items-center justify-center">
+                              <span className="text-violet-400 leading-none" style={{ fontSize: "8px" }}>✓</span>
+                            </div>
+                          )}
+                          {running && <div className="w-4 h-4 rounded-full border-2 border-violet-400 border-t-transparent animate-spin" />}
+                          {pending && <div className="w-1.5 h-1.5 rounded-full bg-slate-600 mx-auto" />}
+                        </div>
+                        <p className={`text-xs font-mono transition-colors duration-300 ${
+                          done ? "text-slate-600" :
+                          running ? "text-violet-300" :
+                          "text-slate-700"
+                        }`}>
+                          {step.emoji} {label}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Bottom label */}
+                <p className="mt-5 text-[10px] text-slate-600 font-mono text-center">Scoring fires in background — your report will be ready in ~60s</p>
               </div>
             </div>
           </div>
@@ -543,39 +600,25 @@ function LandingInner() {
               </div>
             </div>
 
-            {/* Generate button / success state */}
-            {segmentsReady ? (
-              <div className="rounded-xl border border-green-500/30 bg-green-950/30 p-5 text-center space-y-2" data-testid="text-segments-ready">
-                <div className="flex items-center justify-center gap-2 text-green-400 font-semibold text-sm">
-                  <Sparkles className="w-4 h-4" />
-                  Segments generated — session #{segmentsReady}
-                </div>
-                <p className="text-slate-400 text-xs">Open the <strong className="text-white">Analyzer → Guided</strong> tab and select this session from the history dropdown to inspect all segments and their prompts.</p>
+            {/* Generate button */}
+            {error && (
+              <div className="mb-3 flex items-center gap-2 text-red-400 text-sm" data-testid="text-run-error">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
               </div>
-            ) : (
-              <>
-                {error && (
-                  <div className="mb-3 flex items-center gap-2 text-red-400 text-sm" data-testid="text-run-error">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={() => { setError(null); runMutation.mutate(); }}
-                  disabled={!canRun || isRunning}
-                  className="w-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_30px_rgba(99,102,241,0.3)] hover:shadow-[0_0_40px_rgba(99,102,241,0.45)]"
-                  data-testid="button-run-analysis"
-                >
-                  {isRunning ? (
-                    <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Generating segments…</>
-                  ) : (
-                    <><Sparkles className="w-5 h-5" />Generate My GEO Report<ArrowRight className="w-4 h-4" /></>
-                  )}
-                </button>
-                {!canRun && (
-                  <p className="text-slate-500 text-xs text-center mt-2">Select at least one service, one customer type, and enter a city.</p>
-                )}
-              </>
+            )}
+            <button
+              type="button"
+              onClick={() => { setError(null); runMutation.mutate(); }}
+              disabled={!canRun || isRunning}
+              className="w-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_30px_rgba(99,102,241,0.3)] hover:shadow-[0_0_40px_rgba(99,102,241,0.45)]"
+              data-testid="button-run-analysis"
+            >
+              <Sparkles className="w-5 h-5" />
+              Generate My GEO Report
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            {!canRun && (
+              <p className="text-slate-500 text-xs text-center mt-2">Select at least one service, one customer type, and enter a city.</p>
             )}
           </div>
         )}
