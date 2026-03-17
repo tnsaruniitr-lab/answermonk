@@ -271,6 +271,9 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
   const [citationSources, setCitationSources] = useState<any[] | null>(null);
   const [authoritySources, setAuthoritySources] = useState<any[] | null>(null);
   const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
+  const [classifyLoading, setClassifyLoading] = useState(false);
+  const [classifyResult, setClassifyResult] = useState<{ updated: number; total: number; tokens: number; costUsd: number } | null>(null);
+  const [classifyError, setClassifyError] = useState<string | null>(null);
 
   const segmentsWithScores = segments.filter(s => s.scoringResult);
   const cacheId = sessionId || groupKey;
@@ -340,6 +343,22 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
       setSiError(String(err));
     } finally {
       setSiLoading(false);
+    }
+  };
+
+  const runClassifyCitationUrls = async () => {
+    if (!sessionId) return;
+    setClassifyLoading(true);
+    setClassifyError(null);
+    try {
+      const res = await apiRequest("POST", `/api/multi-segment-sessions/${sessionId}/classify-citation-urls`, {});
+      const data = await res.json();
+      if (data.message && !data.updated) throw new Error(data.message);
+      setClassifyResult(data);
+    } catch (err) {
+      setClassifyError(String(err));
+    } finally {
+      setClassifyLoading(false);
     }
   };
 
@@ -858,12 +877,36 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
             {/* Section 3: Citation Sources — always shown once available, no AI cost */}
             {citationSources && citationSources.length > 0 && (
               <div className="mt-4 pt-4 border-t border-violet-200/60 dark:border-violet-800/40">
-                <div className="flex items-center gap-1.5 mb-2">
+                <div className="flex items-center gap-1.5 mb-2 flex-wrap">
                   <Globe className="w-3.5 h-3.5 text-blue-500" />
                   <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Citation Sources</span>
                   <Badge className="text-[10px] px-1.5 bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300 border-0">
                     {citationSources.reduce((s: number, c: any) => s + c.totalDomains, 0)} unique domains
                   </Badge>
+                  <div className="ml-auto flex items-center gap-1.5">
+                    {classifyResult && (
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                        ✓ {classifyResult.updated}/{classifyResult.total} classified · ${classifyResult.costUsd.toFixed(4)}
+                      </span>
+                    )}
+                    {classifyError && (
+                      <span className="text-[10px] text-destructive">{classifyError}</span>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={runClassifyCitationUrls}
+                      disabled={classifyLoading || !sessionId}
+                      className="h-6 text-[10px] px-2 gap-1 border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950/40"
+                      data-testid="button-classify-citation-urls"
+                    >
+                      {classifyLoading ? (
+                        <><Loader2 className="w-3 h-3 animate-spin" /> Classifying...</>
+                      ) : (
+                        <><Sparkles className="w-3 h-3" /> Classify URLs with AI</>
+                      )}
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Authority Sources sub-panel */}

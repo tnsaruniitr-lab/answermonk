@@ -25,6 +25,14 @@ import { analyzePanelWebsite } from "./panel/generator";
 import { runInsightsAnalysis, type InsightsInput } from "./insights";
 import { runSegmentAnalysis } from "./segment-analysis";
 import { runSignalIntelligence, getSignalIntelligence } from "./signal-intelligence";
+import OpenAI from "openai";
+
+const openaiClient = new OpenAI({
+  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+});
+const MINI_INPUT_COST_PER_1M = 0.15;
+const MINI_OUTPUT_COST_PER_1M = 0.60;
 import { generateReport } from "./report/generator";
 import { generateTeaserData } from "./report/teaser-generator";
 import { brandIntelligenceJobs } from "@shared/schema";
@@ -1977,6 +1985,113 @@ export async function registerRoutes(
       res.json({ categories, authoritySources });
     } catch (err) {
       console.error("[citation-sources] Error:", err);
+      res.status(500).json({ message: String(err) });
+    }
+  });
+
+  app.post("/api/multi-segment-sessions/:id/classify-citation-urls", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.id, 10);
+      if (isNaN(sessionId)) { res.status(400).json({ message: "Invalid session ID" }); return; }
+
+      const { pool } = await import("./db");
+      const { rows } = await pool.query<{ id: number; url: string; domain: string; title: string; url_category: string }>(
+        `SELECT id, url, domain, title, url_category FROM citation_urls WHERE session_id = $1 AND url IS NOT NULL`,
+        [sessionId]
+      );
+      if (rows.length === 0) { res.status(404).json({ message: "No citation URLs found for this session. Run citation analysis first." }); return; }
+
+      const VALID_CATEGORIES = [
+        "Community Thread", "Jobs Listing", "Social Media Profile",
+        "Government / Regulatory", "Market Research", "News / PR",
+        "Review Platform", "Directory Listing", "Comparison Article",
+        "Brand Blog / Article", "Brand About / Contact", "Brand Service Page",
+        "Brand Homepage", "Brand Inner Page",
+      ];
+
+      const CHUNK_SIZE = 80;
+      const chunks: typeof rows[] = [];
+      for (let i = 0; i < rows.length; i += CHUNK_SIZE) chunks.push(rows.slice(i, i + CHUNK_SIZE));
+
+      let totalInputTokens = 0;
+      let totalOutputTokens = 0;
+      const classifications: { id: number; category: string }[] = [];
+
+      for (const chunk of chunks) {
+        const urlList = chunk.map((r, i) =>
+          `${i + 1}. domain: ${r.domain || ""} | title: ${r.title || "(no title)"} | url: ${r.url}`
+        ).join("\n");
+
+        const systemPrompt = `You are a URL page-type classifier. Classify each URL into exactly one of these categories:
+${VALID_CATEGORIES.map(c => `- "${c}"`).join("\n")}
+
+Rules:
+- "Brand Homepage": root domain with no path, or bare domain
+- "Brand Service Page": a brand's own service/product page
+- "Brand Blog / Article": a brand's own blog or editorial content
+- "Brand About / Contact": about, team, contact, FAQ, accreditation pages
+- "Brand Inner Page": any other page on a brand's own domain
+- "Review Platform": third-party review sites (Trustpilot, Doctify, Okadoc, GoProfiled, etc.)
+- "Directory Listing": health/business directories, aggregator listings
+- "News / PR": news articles, press releases, media coverage
+- "Comparison Article": "best X", "top 10", comparison or guide articles
+- "Government / Regulatory": .gov domains, regulatory authority pages
+- "Community Thread": Reddit, Quora, forums, expat communities
+- "Social Media Profile": LinkedIn, Instagram, Facebook, Twitter/X pages
+- "Market Research": Statista, Mordor Intelligence, market reports
+- "Jobs Listing": Indeed, LinkedIn jobs, careers pages
+
+Return ONLY valid JSON in this exact shape: {"classifications": [{"id": <number>, "category": "<category>"}, ...]} for every item. No extra text.`;
+
+        const userPrompt = `Classify these ${chunk.length} URLs:\n${urlList}`;
+
+        const response = await openaiClient.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+          response_format: { type: "json_object" },
+          temperature: 0.1,
+          max_tokens: 2000,
+        });
+
+        totalInputTokens += response.usage?.prompt_tokens || 0;
+        totalOutputTokens += response.usage?.completion_tokens || 0;
+
+        let parsed: any = null;
+        try {
+          const raw = response.choices[0].message.content || "{}";
+          const obj = JSON.parse(raw);
+          parsed = Array.isArray(obj) ? obj : (obj.classifications || obj.results || obj.urls || Object.values(obj)[0]);
+        } catch { parsed = []; }
+
+        if (Array.isArray(parsed)) {
+          for (const item of parsed) {
+            const rowIndex = (item.id ?? 0) - 1;
+            const row = chunk[rowIndex];
+            if (row && VALID_CATEGORIES.includes(item.category)) {
+              classifications.push({ id: row.id, category: item.category });
+            }
+          }
+        }
+      }
+
+      for (const { id, category } of classifications) {
+        await pool.query(
+          `UPDATE citation_urls SET llm_pagetype_classification = $1 WHERE id = $2`,
+          [category, id]
+        );
+      }
+
+      const costUsd = (totalInputTokens / 1_000_000) * MINI_INPUT_COST_PER_1M
+        + (totalOutputTokens / 1_000_000) * MINI_OUTPUT_COST_PER_1M;
+
+      res.json({
+        updated: classifications.length,
+        total: rows.length,
+        tokens: totalInputTokens + totalOutputTokens,
+        costUsd: Math.round(costUsd * 10000) / 10000,
+      });
+    } catch (err) {
+      console.error("[classify-citation-urls] Error:", err);
       res.status(500).json({ message: String(err) });
     }
   });
