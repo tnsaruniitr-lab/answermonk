@@ -1,0 +1,126 @@
+Remaining must-fix items
+1. Brand slug generation can still collide
+
+Brand pages currently derive slug from domain OR name.
+
+Example risk:
+
+brand name: "Care"
+brand name: "Care!"
+
+Both → /brand/care.
+
+If domains are missing you still have collision risk.
+
+Fix
+
+Prefer this rule:
+
+brand slug = normalized domain
+fallback = name + hash suffix
+
+Example:
+
+/brand/care-9d2
+
+This prevents entity collisions later.
+
+2. Sitemap cache invalidation missing
+
+Pages use:
+
+Cache-Control: public, max-age=3600
+
+But I do not see explicit purge when:
+
+new page published
+
+ranking version added
+
+brand page updated
+
+Result:
+
+New pages may appear up to 1 hour late in the sitemap.
+
+Fix
+
+Trigger purge for:
+
+/sitemap.xml
+/sitemaps/*
+
+on publish event.
+
+3. Category hub editorial text still template-based
+
+Spec required hub summaries to be derived from cluster signals:
+
+top brands
+
+common authority sources
+
+recurring signals
+
+The current implementation uses a generic template like:
+
+Providers in {location} are frequently cited when...
+
+This is acceptable but weak.
+
+Better
+
+Generate hub summaries using dataset signals:
+
+Example:
+
+Across 12 analyzed queries in the Dubai home healthcare cluster,
+Vestacare and Valeo Health appear most frequently in AI responses,
+often associated with DHA licensing mentions and directory citations.
+
+This makes hubs stronger for citation.
+
+Minor items (optional improvements)
+Canonical URL generation
+
+Some routes still use:
+
+req.protocol + req.headers.host
+
+Safer to respect forwarded headers when behind CDN.
+
+Related queries fallback
+
+If cluster has fewer than 3 related queries, you currently render fewer links.
+
+Consider filling with closest evidence_score queries globally.
+
+Comparison pages
+
+Logic now works but could eventually incorporate authority source differences as part of evidence comparison.
+
+Not required now.
+
+Overall readiness
+Area	Status
+Architecture	✅
+Normalization	✅
+Slug immutability	✅
+Quality gate	✅
+Query pages	✅
+Brand pages	⚠ small improvement suggested
+Category hubs	⚠ editorial quality improvement
+Sitemap batching	✅
+Blocked page handling	✅
+JSON-LD schema	✅
+Final verdict
+
+This codebase is production-ready with minor improvements pending.
+
+If you fix the following two practical issues, it will fully match your spec:
+
+brand slug collision prevention
+
+sitemap cache purge on publish
+
+The hub editorial improvement can come later.
