@@ -137,3 +137,27 @@ After running the script, restart the dev server to pick up the changes.
 - `ADMIN_PASSWORD`: Admin password for accessing the full tool (required).
 - `AI_INTEGRATIONS_OPENAI_API_KEY`, `AI_INTEGRATIONS_OPENAI_BASE_URL`: OpenAI API credentials.
 - `AI_INTEGRATIONS_ANTHROPIC_API_KEY`, `AI_INTEGRATIONS_ANTHROPIC_BASE_URL`: Anthropic API credentials.
+## GEO Directory — Auto-Publish Pipeline
+
+### How it works
+Every completed analysis session is automatically published to the GEO directory (`/best-{service}-{location}` pages). The pipeline:
+
+1. **Auto-hook (new searches)**: Two trigger points in `server/routes.ts`:
+   - After the landing flow finishes scoring all segments (`[Landing] All segments complete`)
+   - After segment citation analysis saves a `citationReport`
+   Both fire `syncSessionToDirectory(sessionId)` asynchronously (fire-and-forget, never blocks the user response).
+
+2. **Backfill (historical)**: `POST /api/internal/directory/backfill?limit=N` with header `x-admin-key: $ADMIN_PASSWORD` runs `backfillRecentSessions(N)` over the last N sessions.
+
+### Key file
+- `server/directory/sessionToDirectory.ts` — maps session segments → directory pages
+  - Quality gate: `MIN_COMPETITORS = 3`, `MIN_VALID_RUNS = 5`
+  - Reads `segment.persona` (with underscore→space conversion), `location`, `scoringResult.score.competitors`
+  - Skips `seedType = "__blank__"` sentinel values
+  - Calls `storage.upsertDirectoryPage()` — fully idempotent, safe to call multiple times
+
+### Deduplication
+Pages are keyed on `canonical_slug` (unique DB constraint). Running the same analysis twice just updates the existing page. Published pages never change their slug/location/cluster even if re-scored.
+
+### Current state
+36 pages published as of first backfill (10 historical sessions, service categories across Dubai, MENA, Netherlands, Amsterdam).

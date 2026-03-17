@@ -9,6 +9,7 @@ import { registerSitemapRoutes } from "./directory/sitemapRoutes";
 import { registerBrandPageRoutes } from "./directory/brandPageRoute";
 import { registerCategoryHubRoutes } from "./directory/categoryHubRoute";
 import { registerComparisonPageRoutes } from "./directory/comparisonPageRoute";
+import { syncSessionToDirectory, backfillRecentSessions } from "./directory/sessionToDirectory";
 import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
@@ -609,6 +610,10 @@ export async function registerRoutes(
           }
         }
         console.log(`[Landing] All segments complete for session ${session.id}`);
+        // Auto-publish to GEO directory — fire-and-forget, never blocks the response
+        syncSessionToDirectory(session.id).then((r) => {
+          console.log(`[dir-sync] Landing session ${session.id}: published=${r.published} skipped=${r.skipped} errors=${r.errors.length}`);
+        }).catch((e) => console.error("[dir-sync] Landing hook error:", e));
       })();
 
       return res.status(201).json({ sessionId: session.id });
@@ -1997,6 +2002,10 @@ export async function registerRoutes(
         } catch (persistErr) {
           console.error("Failed to persist citation report:", persistErr);
         }
+        // Auto-publish to GEO directory with enriched citation data — fire-and-forget
+        syncSessionToDirectory(sessionId).then((r) => {
+          console.log(`[dir-sync] Citation hook session ${sessionId}: published=${r.published} skipped=${r.skipped}`);
+        }).catch((e) => console.error("[dir-sync] Citation hook error:", e));
         try {
           await populateCitationUrls(sessionId);
           console.log(`[segment-analysis] Populated citation_urls for session ${sessionId}`);
@@ -2949,6 +2958,28 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Set slug error:", err);
       res.status(500).json({ message: "Failed to set slug" });
+    }
+  });
+
+  // ── Directory backfill ─────────────────────────────────────────────────────
+  // POST /api/internal/directory/backfill?limit=10
+  // Reads the last N sessions and publishes any that pass the quality gate.
+  app.post("/api/internal/directory/backfill", async (req, res) => {
+    try {
+      const secret = req.headers["x-admin-key"] as string | undefined;
+      if (secret !== process.env.ADMIN_PASSWORD) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      const limit = Math.min(parseInt(String(req.query.limit ?? "10"), 10) || 10, 50);
+      const results = await backfillRecentSessions(limit);
+      const totalPublished = results.reduce((s, r) => s + r.published, 0);
+      const totalSkipped   = results.reduce((s, r) => s + r.skipped,   0);
+      const totalErrors    = results.flatMap((r) => r.errors);
+      console.log(`[dir-backfill] limit=${limit} sessions=${results.length} published=${totalPublished} skipped=${totalSkipped} errors=${totalErrors.length}`);
+      return res.json({ sessions: results.length, published: totalPublished, skipped: totalSkipped, errors: totalErrors });
+    } catch (err) {
+      console.error("[dir-backfill] error:", err);
+      return res.status(500).json({ message: "Backfill failed", error: String(err) });
     }
   });
 
