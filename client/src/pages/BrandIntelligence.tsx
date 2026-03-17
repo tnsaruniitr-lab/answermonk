@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ArrowLeft, Brain, Loader2, CheckCircle, XCircle, Clock, ChevronRight,
-  ExternalLink, Package, Zap, ChevronDown, ChevronUp, BarChart2, AlertTriangle, ShieldCheck, RefreshCw, HelpCircle,
+  ExternalLink, Package, Zap, ChevronDown, ChevronUp, BarChart2, AlertTriangle, ShieldCheck, RefreshCw,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -305,14 +305,15 @@ function AttributeRow({
       data-testid={`attr-row-${attrKey}`}
     >
       <div className="flex items-start gap-3">
-        <div className="w-36 shrink-0 flex items-center gap-1.5 pt-0.5">
-          <span className="text-xs font-medium text-muted-foreground">{label}</span>
-          <CoherenceDot pct={coherence_pct} />
+        <div className="w-40 shrink-0 pt-0.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-medium text-muted-foreground">{label}</span>
+            <CoherenceDot pct={coherence_pct} />
+          </div>
           {ATTRIBUTE_GUIDE[attrKey] && (
-            <HelpCircle
-              className="w-3 h-3 text-muted-foreground/40 hover:text-muted-foreground/70 shrink-0 cursor-help transition-colors"
-              title={`Prompt: ${ATTRIBUTE_GUIDE[attrKey]}`}
-            />
+            <p className="text-[10px] text-muted-foreground/45 leading-tight mt-0.5">
+              {ATTRIBUTE_GUIDE[attrKey]}
+            </p>
           )}
         </div>
 
