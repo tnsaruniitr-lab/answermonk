@@ -386,15 +386,16 @@ export function registerCategoryHubRoutes(app: Express): void {
   app.get("/:location/:category", async (req: Request, res: Response, next: NextFunction) => {
     const { location, category } = req.params;
 
-    // Only handle clean lowercase slugs (no dots, slashes, uppercase, etc.)
+    // Only handle clean lowercase slugs (no dots, slashes, uppercase, @, etc.)
+    // If it doesn't look like a slug pair, pass to Vite/SPA handler
     const slugRe = /^[a-z][a-z0-9-]*$/;
     if (!slugRe.test(location) || !slugRe.test(category)) {
-      return res.status(404).send("Not found");
+      return next();
     }
 
-    // Skip known non-hub path prefixes
-    const reserved = new Set(["api", "brand", "sitemaps", "directory", "start", "v2", "share", "summary", "teaser", "assets"]);
-    if (reserved.has(location)) return res.status(404).send("Not found");
+    // Skip known non-hub path prefixes — let Vite/SPA handle them
+    const reserved = new Set(["api", "brand", "sitemaps", "directory", "start", "v2", "share", "summary", "teaser", "assets", "src", "node_modules"]);
+    if (reserved.has(location)) return next();
 
     try {
       const result = await buildHubData(location, category);
