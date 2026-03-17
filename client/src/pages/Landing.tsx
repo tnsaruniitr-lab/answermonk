@@ -25,6 +25,7 @@ function LandingInner() {
   const [isHovered, setIsHovered] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
+  const chipsInitialized = useRef(false);
 
   const [services, setServices] = useState<string[]>([]);
   const [customers, setCustomers] = useState<string[]>([]);
@@ -74,7 +75,8 @@ function LandingInner() {
   });
 
   useEffect(() => {
-    if (submission?.status === "complete" && submission?.pncResult) {
+    if (!chipsInitialized.current && submission?.status === "complete" && submission?.pncResult) {
+      chipsInitialized.current = true;
       const svcs: string[] = submission.pncResult.service_types || submission.pncResult.serviceTypes || [];
       const custs: string[] = submission.pncResult.customer_types || submission.pncResult.customerTypes || [];
       const ct: string = submission.pncResult.city || "";
@@ -357,12 +359,7 @@ function LandingInner() {
                     >
                       {on && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />}
                       {s}
-                      {on && (
-                        <X
-                          className="w-3 h-3 opacity-60 hover:opacity-100"
-                          onClick={(e) => { e.stopPropagation(); toggleService(s); }}
-                        />
-                      )}
+                      {on && <X className="w-3 h-3 opacity-50 flex-shrink-0" />}
                     </button>
                   );
                 })}
@@ -420,12 +417,7 @@ function LandingInner() {
                     >
                       {on && <span className="w-1.5 h-1.5 rounded-full bg-violet-400 flex-shrink-0" />}
                       {c}
-                      {on && (
-                        <X
-                          className="w-3 h-3 opacity-60 hover:opacity-100"
-                          onClick={(e) => { e.stopPropagation(); toggleCustomer(c); }}
-                        />
-                      )}
+                      {on && <X className="w-3 h-3 opacity-50 flex-shrink-0" />}
                     </button>
                   );
                 })}
