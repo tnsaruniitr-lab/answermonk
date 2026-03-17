@@ -61,8 +61,24 @@ interface BrandPageData {
 // ─── Helpers ──────────────────────────────────────────────────────
 
 /**
- * Prefer domain-based brand slugs to avoid name collisions (e.g. "Care+" vs "Care" → both "care").
- * Domain is the true entity identifier: "vestacare.ae" → "vestacare-ae".
+ * Deterministic 4-char base-36 hash of any string.
+ * Used as suffix for name-only brand slugs to prevent collisions.
+ * e.g. "Care" → "1k4z", "Care!" → "3mq8" (different originals, different hashes)
+ */
+function simpleHash(s: string): string {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (Math.imul(31, h) + s.charCodeAt(i)) >>> 0;
+  }
+  return h.toString(36).slice(0, 4).padStart(4, "0");
+}
+
+/**
+ * Prefer domain-based brand slugs (globally unique entity identifier).
+ * Fall back to name slug + deterministic hash suffix to prevent collisions.
+ *   domain: "vestacare.ae"  → "vestacare-ae"
+ *   name only: "Care"       → "care-1k4z"
+ *   name only: "Care!"      → "care-3mq8"  ← different from "Care"
  */
 function brandToSlug(name: string, domain?: string | null): string {
   if (domain) {
@@ -72,13 +88,14 @@ function brandToSlug(name: string, domain?: string | null): string {
       .replace(/[^a-z0-9-]/g, "")
       .toLowerCase();
   }
-  return name
+  const nameSlug = name
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9\s]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
+  return `${nameSlug}-${simpleHash(name)}`;
 }
 
 function slugToBrandTitle(slug: string): string {
@@ -411,7 +428,8 @@ export function registerBrandPageRoutes(app: Express): void {
 
       res
         .set("Content-Type", "text/html; charset=utf-8")
-        .set("Cache-Control", "public, max-age=3600")
+        .set("Cache-Control", "public, max-age=300, stale-while-revalidate=60")
+        .set("Surrogate-Key", "geo-directory-brand")
         .status(200)
         .send(html);
     } catch (err) {

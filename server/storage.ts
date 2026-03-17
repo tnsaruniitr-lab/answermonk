@@ -569,6 +569,15 @@ export class DatabaseStorage implements IStorage {
       ))
       .returning();
     if (!row) throw new Error(`Cannot publish: page '${slug}' not found or is blocked`);
+
+    // CDN PURGE HOOK — trigger after publish to invalidate stale edge caches.
+    // Pages use Surrogate-Key headers: "geo-directory-page", "geo-directory-hub",
+    // "geo-directory-brand", "geo-directory-comparison".
+    // Sitemap routes use Cache-Control: no-cache and do not need purging.
+    // To integrate: call your CDN purge API here (Cloudflare, Fastly, Varnish, etc.)
+    //   e.g. await cloudflareApi.purgeByTag("geo-directory-page");
+    //        await cloudflareApi.purgeByUrl(`https://example.com/${slug}`);
+
     return row;
   }
 

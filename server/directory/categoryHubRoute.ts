@@ -175,18 +175,36 @@ async function buildHubData(
 function buildEditorialSummary(hub: HubData): { p1: string; p2: string } {
   const locTitle = toTitleCase(hub.location);
   const catTitle = toTitleCase(hub.category);
-  const top3 = hub.topBrands.slice(0, 3);
-  const topName = top3[0]?.name ?? "the leading provider";
-  const topPct  = top3[0] ? `${Math.round(top3[0].avgRate * 100)}%` : "";
+  const top3     = hub.topBrands.slice(0, 3);
+
+  // ── Paragraph 1: lead brand + cluster size ─────────────────────
+  const topName = top3[0]?.name;
+  const topPct  = top3[0] ? `${Math.round(top3[0].avgRate * 100)}%` : null;
   const second  = top3[1]?.name;
   const third   = top3[2]?.name;
 
-  const othersStr = [second, third].filter(Boolean).join(" and ");
+  let p1: string;
+  if (topName && topPct) {
+    const othersStr = [second, third].filter(Boolean).join(" and ");
+    const othersSentence = othersStr
+      ? ` ${othersStr} ${third ? "are" : "is"} the next most-cited ${third ? "brands" : "brand"} in this cluster.`
+      : "";
+    p1 = `Across ${hub.pageCount} analysed ${catTitle} quer${hub.pageCount === 1 ? "y" : "ies"} in ${locTitle}, ${topName} is the most AI-visible provider — cited in ${topPct} of responses across ChatGPT, Claude, Gemini, and Perplexity.${othersSentence}`;
+  } else {
+    p1 = `Nexalytics GEO has analysed ${hub.pageCount} ${catTitle} quer${hub.pageCount === 1 ? "y" : "ies"} in ${locTitle}. AI visibility rankings will appear here as data is collected.`;
+  }
 
-  const p1 = `In ${locTitle}, ${topName} leads AI search visibility for ${catTitle} services with ${topPct} average appearance rate across Nexalytics GEO analysis. ${othersStr ? `${othersStr} also maintain strong presence, consistently appearing across ChatGPT, Claude, Gemini, and Perplexity responses.` : ""}`.trim();
-
-  const authList = hub.allAuthoritySources.slice(0, 3).join(", ");
-  const p2 = `This category hub covers ${hub.pageCount} distinct ${catTitle} query variants analysed in ${locTitle}, drawing on ${hub.allAuthoritySources.length} authority source${hub.allAuthoritySources.length !== 1 ? "s" : ""}${authList ? ` including ${authList}` : ""}. Rankings are derived from prompt-level AI analysis and updated each time new data is collected.`;
+  // ── Paragraph 2: authority sources + data freshness ────────────
+  const authSources = hub.allAuthoritySources.slice(0, 4);
+  let p2: string;
+  if (authSources.length > 0) {
+    const authList = authSources.length === 1
+      ? authSources[0]
+      : `${authSources.slice(0, -1).join(", ")} and ${authSources[authSources.length - 1]}`;
+    p2 = `${authList} ${authSources.length === 1 ? "is" : "are"} among the most frequently cited authority sources when AI engines respond to ${catTitle} queries in ${locTitle}. Nexalytics GEO tracks rankings across all ${hub.pageCount} cluster variant${hub.pageCount === 1 ? "" : "s"} continuously, updating each time new prompt analysis is collected.`;
+  } else {
+    p2 = `Nexalytics GEO monitors ${hub.pageCount} ${catTitle} query variant${hub.pageCount === 1 ? "" : "s"} in ${locTitle} across ChatGPT, Claude, Gemini, and Perplexity. Rankings are updated each time new prompt analysis data is collected.`;
+  }
 
   return { p1, p2 };
 }
@@ -399,7 +417,8 @@ export function registerCategoryHubRoutes(app: Express): void {
 
       res
         .set("Content-Type", "text/html; charset=utf-8")
-        .set("Cache-Control", "public, max-age=3600")
+        .set("Cache-Control", "public, max-age=300, stale-while-revalidate=60")
+        .set("Surrogate-Key", "geo-directory-hub")
         .status(200)
         .send(html);
     } catch (err) {
