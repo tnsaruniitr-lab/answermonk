@@ -318,6 +318,72 @@ export const insertLandingSubmissionSchema = createInsertSchema(landingSubmissio
 export type LandingSubmission = typeof landingSubmissions.$inferSelect;
 export type InsertLandingSubmission = z.infer<typeof insertLandingSubmissionSchema>;
 
+// === DIRECTORY: Publishable segment pages ===
+// One row per publishable segment. Session is a container only — invisible to directory.
+
+export const directoryPages = pgTable("directory_pages", {
+  id: serial("id").primaryKey(),
+
+  // Source reference
+  sessionId: integer("session_id").notNull(),
+  segmentIndex: integer("segment_index").notNull().default(0),
+
+  // Normalisation fields
+  rawQuery: text("raw_query").notNull(),
+  canonicalQuery: text("canonical_query").notNull(),
+  canonicalSlug: text("canonical_slug").notNull().unique(),
+  canonicalLocation: text("canonical_location"),
+  clusterId: text("cluster_id"),
+
+  // Publishing state
+  publishStatus: text("publish_status").notNull().default("draft"),
+  dedupeParentId: integer("dedupe_parent_id"),
+
+  // Dataset versioning
+  dataVersion: text("data_version"),
+  engineSet: jsonb("engine_set").$type<string[]>(),
+
+  // Quality gate
+  evidenceScore: integer("evidence_score").notNull().default(0),
+  brandCount: integer("brand_count").notNull().default(0),
+
+  // Snapshot of ranking at publish time
+  rankingSnapshot: jsonb("ranking_snapshot"),
+
+  // Timestamps
+  firstPublishedAt: timestamp("first_published_at"),
+  lastUpdatedAt: timestamp("last_updated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => ({
+  slugIdx: index("directory_pages_slug_idx").on(t.canonicalSlug),
+  clusterIdx: index("directory_pages_cluster_idx").on(t.clusterId),
+  statusIdx: index("directory_pages_status_idx").on(t.publishStatus),
+}));
+
+export const insertDirectoryPageSchema = createInsertSchema(directoryPages).omit({ id: true, createdAt: true });
+export type DirectoryPage = typeof directoryPages.$inferSelect;
+export type InsertDirectoryPage = z.infer<typeof insertDirectoryPageSchema>;
+
+// === DIRECTORY: Version history per query page ===
+// Each time a page's rankings change, a new version row is inserted.
+// The live page always points to the latest version.
+
+export const queryPageVersions = pgTable("query_page_versions", {
+  id: serial("id").primaryKey(),
+  pageSlug: text("page_slug").notNull(),
+  dataVersion: text("data_version").notNull(),
+  analysisWindow: text("analysis_window"),
+  promptCount: integer("prompt_count").notNull().default(0),
+  rankingSnapshotJson: jsonb("ranking_snapshot_json").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => ({
+  slugIdx: index("query_page_versions_slug_idx").on(t.pageSlug),
+}));
+
+export const insertQueryPageVersionSchema = createInsertSchema(queryPageVersions).omit({ id: true, createdAt: true });
+export type QueryPageVersion = typeof queryPageVersions.$inferSelect;
+export type InsertQueryPageVersion = z.infer<typeof insertQueryPageVersionSchema>;
+
 export const EvalResponseSchema = z.object({
   engine: EngineEnum,
   query: z.string(),
