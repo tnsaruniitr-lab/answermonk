@@ -1,0 +1,66 @@
+Two separate problems but the same root solution. Let me untangle them.
+
+Problem 1 — Competitive Analysis Category Drift
+When you send 3 websites to Claude separately, it will naturally anchor each brand in its own strongest category. A generalist competitor might come back as "digital health platform" while your primary brand is "at-home healthcare." Now you're scoring them on different frameworks and the comparison is meaningless.
+The fix: category is derived once, from the primary brand only.
+Competitors never go through signal derivation. They inherit the primary brand's signal framework and are tested against it. The flow becomes:
+Primary brand URL → Stage 1 → derives category + 4 signals + questions
+Competitor URLs   → skip Stage 1 entirely
+                  → tested with the same 4 questions as primary brand
+                  → scored by Claude against the same signal definitions
+The primary brand is the anchor. You're not asking "what is this competitor good at" — you're asking "how does this competitor perform on the dimensions that matter for my brand's category." That's the right competitive question anyway.
+
+Problem 2 — Multi-Service / Multi-Product Brands
+This is trickier. A brand like Valeo offers blood tests, IV therapy, doctor visits, physiotherapy. A SaaS might offer debt collection software, dunning, payment recovery. If you derive signals at the service level you get fragmentation — each service looks like a different business.
+The fix: Business Type as the category anchor, services as question parameters.
+You need a two-level taxonomy:
+Business Type  →  the stable, unifying category level
+               →  "At-home healthcare provider"
+               →  "Revenue recovery SaaS"
+
+Service Verticals  →  what varies per question
+                   →  blood tests, IV therapy, doctor visits
+                   →  debt collection, dunning, payment recovery
+Signals are always derived at the Business Type level — things like clinical credibility, service accessibility, provider trust, geographic coverage apply to the whole business, not one service. But the question for each signal gets parameterized with the specific service.
+So instead of one question per signal, you get question variants:
+Signal: Service Accessibility
+→ "How quickly can you get a blood test done at home in Dubai?"
+→ "How quickly can you get IV therapy at home in Dubai?"
+→ "How quickly can a doctor visit you at home in Dubai?"
+Same signal, same scoring framework, different service surface. This also handles geo naturally — location just becomes another parameter in the question, not a separate framework.
+
+How This Changes Your Stage 1 Prompt
+Claude needs one additional instruction during signal derivation: derive at the business model level, not the service level. And it needs to return the service verticals separately so your engine knows how to parameterize questions.
+The Stage 1 output schema should expand to:
+json{
+  "brand_name": "",
+  "business_type": "",
+  "service_verticals": [],
+  "geo_markets": [],
+  "segment": "",
+  "signals": [
+    {
+      "id": "signal_1",
+      "name": "",
+      "why_it_matters_for_ai_visibility": "",
+      "what_strong_looks_like": "",
+      "what_weak_looks_like": "",
+      "base_question": "",
+      "question_variants": []
+    }
+  ]
+}
+```
+
+`base_question` is the signal-level question. `question_variants` are the service and geo parameterized versions Claude auto-generates. Your engine then decides — run base question only for MVP, or expand to variants when the user opts in.
+
+---
+
+## The Unified Mental Model
+```
+Business Type    →  what defines the category (never changes per competitor)
+Service Verticals →  what parameterizes the questions
+Geo Markets      →  second parameter on top of service
+Signals          →  always derived at Business Type level
+Competitors      →  always inherit primary brand's signals, never re-derive
+This way whether you're testing one brand or three, one service or six, one city or four — the scoring framework stays consistent and the numbers are actually comparable.
