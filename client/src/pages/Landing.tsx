@@ -2,7 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { ArrowRight, Sparkles, Globe, Activity, BarChart3, Code, Bot, Zap, Database, Loader2, AlertCircle } from "lucide-react";
+import {
+  ArrowRight, Sparkles, Globe, Activity, BarChart3, Code, Bot, Zap,
+  Database, Loader2, AlertCircle, Plus, X, MapPin, CheckCircle2,
+} from "lucide-react";
 
 function normalizeDomain(url: string): string {
   try {
@@ -22,6 +25,14 @@ export default function Landing() {
   const [isHovered, setIsHovered] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
+
+  const [services, setServices] = useState<string[]>([]);
+  const [customers, setCustomers] = useState<string[]>([]);
+  const [selectedServices, setSelectedServices] = useState<Set<string>>(new Set());
+  const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
+  const [city, setCity] = useState("");
+  const [newServiceInput, setNewServiceInput] = useState("");
+  const [newCustomerInput, setNewCustomerInput] = useState("");
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -58,9 +69,41 @@ export default function Landing() {
       data?.state?.data?.status === "complete" || data?.state?.data?.status === "error" ? false : 2000,
   });
 
+  useEffect(() => {
+    if (submission?.status === "complete" && submission?.pncResult) {
+      const svcs: string[] = submission.pncResult.service_types || submission.pncResult.serviceTypes || [];
+      const custs: string[] = submission.pncResult.customer_types || submission.pncResult.customerTypes || [];
+      const ct: string = submission.pncResult.city || "";
+      setServices(svcs);
+      setCustomers(custs);
+      setSelectedServices(new Set(svcs));
+      setSelectedCustomers(new Set(custs));
+      setCity(ct);
+    }
+  }, [submission?.status, submission?.pncResult]);
+
+  const runMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/landing/run-analysis", {
+        submissionId,
+        services: Array.from(selectedServices),
+        customers: Array.from(selectedCustomers),
+        city: city.trim() || "Global",
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      navigate(`/v2/${data.sessionId}`);
+    },
+    onError: (err: any) => {
+      setError(err?.message || "Analysis setup failed. Please try again.");
+    },
+  });
+
   const isProcessing = submitMutation.isPending || (submissionId !== null && submission?.status === "processing");
   const isComplete = submission?.status === "complete";
-  const isError = submission?.status === "error";
+  const isError = submission?.status === "error" || runMutation.isError;
+  const isRunning = runMutation.isPending;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -69,6 +112,40 @@ export default function Landing() {
     if (!trimmed) return;
     submitMutation.mutate(trimmed);
   }
+
+  function toggleService(s: string) {
+    setSelectedServices((prev) => {
+      const next = new Set(prev);
+      if (next.has(s)) next.delete(s); else next.add(s);
+      return next;
+    });
+  }
+
+  function toggleCustomer(c: string) {
+    setSelectedCustomers((prev) => {
+      const next = new Set(prev);
+      if (next.has(c)) next.delete(c); else next.add(c);
+      return next;
+    });
+  }
+
+  function addService() {
+    const s = newServiceInput.trim();
+    if (!s || services.includes(s)) { setNewServiceInput(""); return; }
+    setServices((prev) => [...prev, s]);
+    setSelectedServices((prev) => new Set([...prev, s]));
+    setNewServiceInput("");
+  }
+
+  function addCustomer() {
+    const c = newCustomerInput.trim();
+    if (!c || customers.includes(c)) { setNewCustomerInput(""); return; }
+    setCustomers((prev) => [...prev, c]);
+    setSelectedCustomers((prev) => new Set([...prev, c]));
+    setNewCustomerInput("");
+  }
+
+  const canRun = selectedServices.size > 0 && selectedCustomers.size > 0 && city.trim().length > 0;
 
   const steps = [
     { title: "Website Ingestion", desc: "Deep crawl of domain architecture", icon: Globe },
@@ -82,12 +159,10 @@ export default function Landing() {
       className="min-h-screen bg-[#0A0F1E] text-slate-200 font-sans overflow-hidden relative"
       data-testid="landing-page"
     >
-      {/* Background glow effects */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none" />
       <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-violet-600/10 blur-[120px] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(59,130,246,0.05)_0%,_transparent_60%)] pointer-events-none" />
 
-      {/* Nav — logo only */}
       <nav className="relative z-10 flex items-center px-8 py-6 max-w-7xl mx-auto border-b border-white/5">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
@@ -99,7 +174,6 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* Hero */}
       <main className="relative z-10 max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-8 backdrop-blur-sm">
           <span className="relative flex h-2 w-2">
@@ -121,10 +195,9 @@ export default function Landing() {
           brand. Enter your website to get a free Prompt Network analysis — no account required.
         </p>
 
-        {/* Input area */}
+        {/* URL Input — hidden once complete */}
         {!isComplete && !isError && (
           <form onSubmit={handleSubmit} className="max-w-3xl mx-auto relative group">
-            {/* Honeypot — hidden from real users */}
             <input
               ref={honeypotRef}
               name="_hp"
@@ -157,50 +230,67 @@ export default function Landing() {
                 data-testid="button-analyze"
               >
                 {isProcessing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Analyzing
-                  </>
+                  <><Loader2 className="w-4 h-4 animate-spin" />Analyzing</>
                 ) : (
-                  <>
-                    Analyze
-                    <ArrowRight className={`w-4 h-4 transition-transform duration-300 ${isHovered ? "translate-x-1" : ""}`} />
-                  </>
+                  <>Analyze<ArrowRight className={`w-4 h-4 transition-transform duration-300 ${isHovered ? "translate-x-1" : ""}`} /></>
                 )}
               </button>
             </div>
-
             {error && (
               <div className="mt-3 flex items-center gap-2 text-red-400 text-sm justify-center" data-testid="text-error">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                {error}
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
               </div>
             )}
           </form>
         )}
 
-        {/* Processing state */}
+        {/* Processing — PNC extracting */}
         {isProcessing && submissionId && (
           <div className="mt-8 max-w-md mx-auto" data-testid="status-processing">
             <div className="bg-[#111827]/60 border border-white/10 rounded-2xl p-6 text-center">
               <Loader2 className="w-8 h-8 animate-spin text-blue-400 mx-auto mb-3" />
               <p className="text-white font-medium">Analyzing {normalizeDomain(url)}</p>
-              <p className="text-slate-400 text-sm mt-1">
-                Extracting services, customer types, and business signals…
+              <p className="text-slate-400 text-sm mt-1">Extracting services, customer types, and business signals…</p>
+            </div>
+          </div>
+        )}
+
+        {/* Generating — prompt network being built + analysis triggered */}
+        {isRunning && (
+          <div className="mt-8 max-w-md mx-auto" data-testid="status-running">
+            <div className="bg-[#111827]/60 border border-blue-500/20 rounded-2xl p-8 text-center">
+              <div className="relative mx-auto mb-4 w-12 h-12">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-400" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-violet-400" />
+                </div>
+              </div>
+              <p className="text-white font-semibold text-lg mb-1">Building your Prompt Network</p>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Generating prompts from your confirmed segments and triggering GEO analysis across ChatGPT, Claude &amp; Gemini…
               </p>
+              <div className="mt-4 flex justify-center gap-1">
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce"
+                    style={{ animationDelay: `${i * 0.15}s` }}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         )}
 
         {/* Error state */}
-        {isError && (
+        {isError && !isRunning && (
           <div className="mt-8 max-w-md mx-auto" data-testid="status-error">
             <div className="bg-red-900/20 border border-red-500/30 rounded-2xl p-6 text-center">
               <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-3" />
               <p className="text-white font-medium">Analysis failed</p>
-              <p className="text-slate-400 text-sm mt-1">We couldn't analyze that URL. Please check it and try again.</p>
+              <p className="text-slate-400 text-sm mt-1">{error || "We couldn't process that request. Please try again."}</p>
               <button
-                onClick={() => { setSubmissionId(null); setError(null); }}
+                onClick={() => { setSubmissionId(null); setError(null); runMutation.reset(); }}
                 className="mt-4 text-blue-400 text-sm underline"
               >
                 Try again
@@ -209,55 +299,168 @@ export default function Landing() {
           </div>
         )}
 
-        {/* Complete — show PNC results */}
-        {isComplete && submission?.pncResult && (
-          <div className="mt-8 max-w-2xl mx-auto" data-testid="status-complete">
-            <div className="bg-[#111827]/60 border border-blue-500/20 rounded-2xl p-6 text-left">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-2 h-2 rounded-full bg-green-400" />
-                <span className="text-green-400 text-sm font-medium">Analysis complete for {normalizeDomain(url)}</span>
+        {/* ── Chip Confirm UI — shown when PNC extraction is complete ── */}
+        {isComplete && !isRunning && (
+          <div className="mt-8 max-w-2xl mx-auto text-left" data-testid="status-complete">
+
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-5">
+              <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
+              <div>
+                <p className="text-white font-semibold">Signals detected for {normalizeDomain(url)}</p>
+                <p className="text-slate-400 text-xs mt-0.5">Confirm your services and customer types, then generate your report.</p>
               </div>
-
-              {submission.pncResult.serviceTypes?.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Services Detected</p>
-                  <div className="flex flex-wrap gap-2">
-                    {submission.pncResult.serviceTypes.map((s: string) => (
-                      <span key={s} className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm" data-testid={`badge-service-${s}`}>
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {submission.pncResult.customerTypes?.length > 0 && (
-                <div className="mb-6">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Customer Types</p>
-                  <div className="flex flex-wrap gap-2">
-                    {submission.pncResult.customerTypes.map((c: string) => (
-                      <span key={c} className="px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300 text-sm" data-testid={`badge-customer-${c}`}>
-                        {c}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <button
-                onClick={() => navigate(`/v2/${submissionId}`)}
-                className="w-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"
-                data-testid="button-run-analysis"
-              >
-                Run Full GEO Analysis
-                <ArrowRight className="w-4 h-4" />
-              </button>
             </div>
+
+            {/* Services */}
+            <div className="bg-[#111827]/60 border border-white/10 rounded-2xl p-5 mb-4">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+                Services &mdash; <span className="text-blue-400">{selectedServices.size} selected</span>
+              </p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {services.map((s) => {
+                  const on = selectedServices.has(s);
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => toggleService(s)}
+                      data-testid={`chip-service-${s}`}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 cursor-pointer select-none ${
+                        on
+                          ? "bg-blue-500/20 border-blue-500/50 text-blue-300"
+                          : "bg-white/5 border-white/10 text-slate-500 hover:border-white/20 hover:text-slate-400"
+                      }`}
+                    >
+                      {on && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />}
+                      {s}
+                      {on && (
+                        <X
+                          className="w-3 h-3 opacity-60 hover:opacity-100"
+                          onClick={(e) => { e.stopPropagation(); toggleService(s); }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newServiceInput}
+                  onChange={(e) => setNewServiceInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addService(); } }}
+                  placeholder="Add a service…"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-slate-600 outline-none focus:border-blue-500/40 transition-colors"
+                  data-testid="input-add-service"
+                />
+                <button
+                  type="button"
+                  onClick={addService}
+                  disabled={!newServiceInput.trim()}
+                  className="p-1.5 rounded-lg bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  data-testid="button-add-service"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Customer Types */}
+            <div className="bg-[#111827]/60 border border-white/10 rounded-2xl p-5 mb-4">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+                Customer Types &mdash; <span className="text-violet-400">{selectedCustomers.size} selected</span>
+              </p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {customers.map((c) => {
+                  const on = selectedCustomers.has(c);
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => toggleCustomer(c)}
+                      data-testid={`chip-customer-${c}`}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 cursor-pointer select-none ${
+                        on
+                          ? "bg-violet-500/20 border-violet-500/50 text-violet-300"
+                          : "bg-white/5 border-white/10 text-slate-500 hover:border-white/20 hover:text-slate-400"
+                      }`}
+                    >
+                      {on && <span className="w-1.5 h-1.5 rounded-full bg-violet-400 flex-shrink-0" />}
+                      {c}
+                      {on && (
+                        <X
+                          className="w-3 h-3 opacity-60 hover:opacity-100"
+                          onClick={(e) => { e.stopPropagation(); toggleCustomer(c); }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newCustomerInput}
+                  onChange={(e) => setNewCustomerInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomer(); } }}
+                  placeholder="Add a customer type…"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-slate-600 outline-none focus:border-violet-500/40 transition-colors"
+                  data-testid="input-add-customer"
+                />
+                <button
+                  type="button"
+                  onClick={addCustomer}
+                  disabled={!newCustomerInput.trim()}
+                  className="p-1.5 rounded-lg bg-violet-500/20 border border-violet-500/30 text-violet-400 hover:bg-violet-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  data-testid="button-add-customer"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* City */}
+            <div className="bg-[#111827]/60 border border-white/10 rounded-2xl p-5 mb-5">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Location</p>
+              <div className="flex items-center gap-3">
+                <MapPin className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="e.g. Dubai, New York, London"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 outline-none focus:border-white/25 transition-colors"
+                  data-testid="input-city"
+                />
+              </div>
+            </div>
+
+            {/* Generate button */}
+            {error && (
+              <div className="mb-3 flex items-center gap-2 text-red-400 text-sm" data-testid="text-run-error">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => { setError(null); runMutation.mutate(); }}
+              disabled={!canRun || isRunning}
+              className="w-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_30px_rgba(99,102,241,0.3)] hover:shadow-[0_0_40px_rgba(99,102,241,0.45)]"
+              data-testid="button-run-analysis"
+            >
+              <Sparkles className="w-5 h-5" />
+              Generate My GEO Report
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            {!canRun && (
+              <p className="text-slate-500 text-xs text-center mt-2">Select at least one service, one customer type, and enter a city.</p>
+            )}
           </div>
         )}
 
         {/* Trust bar */}
-        {!isComplete && (
+        {!isComplete && !isRunning && (
           <div className="mt-14 pt-8 border-t border-white/5">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-5">
               Analyzing signals across primary intelligence engines
@@ -343,68 +546,46 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Features definition list — semantic for LLM crawlers ── */}
+      {/* Features definition list — semantic for LLM crawlers */}
       <section
         id="features"
         aria-labelledby="features-heading"
         className="relative z-10 max-w-4xl mx-auto px-6 pb-4"
       >
-        {/* Visually hidden heading keeps semantic structure without affecting visual layout */}
         <h2 id="features-heading" className="sr-only">Key features of Nexalytics GEO Intelligence</h2>
         <dl className="sr-only">
           <div>
             <dt>Prompt Network Creator (PNC)</dt>
-            <dd>
-              Automatically generates service-specific and persona-specific search prompts from
-              your website using AI analysis. Produces 25–30 intent-based queries per analysis
-              run — no manual configuration required.
-            </dd>
+            <dd>Automatically generates service-specific and persona-specific search prompts from your website using AI analysis. Produces 25–30 intent-based queries per analysis run — no manual configuration required.</dd>
           </div>
           <div>
             <dt>Cross-engine scoring across ChatGPT, Claude, and Gemini</dt>
-            <dd>
-              Every prompt is run against all three major AI engines simultaneously. Results are
-              weighted by engine market share: ChatGPT 35%, Gemini 35%, Claude 20%, Perplexity 10%.
-            </dd>
+            <dd>Every prompt is run against all three major AI engines simultaneously. Results are weighted by engine market share: ChatGPT 35%, Gemini 35%, Claude 20%, Perplexity 10%.</dd>
           </div>
           <div>
             <dt>Competitor leaderboard</dt>
-            <dd>
-              Identifies which competitors appear most frequently in AI responses for your target
-              prompts, with their presence score and rank position per engine.
-            </dd>
+            <dd>Identifies which competitors appear most frequently in AI responses for your target prompts, with their presence score and rank position per engine.</dd>
           </div>
           <div>
             <dt>Citation source breakdown</dt>
-            <dd>
-              Crawls and classifies all URLs cited by AI engines — directories, review platforms,
-              brand pages, media coverage — to show which third-party sites drive AI recommendations
-              in your category.
-            </dd>
+            <dd>Crawls and classifies all URLs cited by AI engines — directories, review platforms, brand pages, media coverage — to show which third-party sites drive AI recommendations in your category.</dd>
           </div>
           <div>
             <dt>Signal Consistency analysis</dt>
-            <dd>
-              Checks whether AI models agree on the same facts about your brand — location,
-              services, attributes — or produce conflicting information across engines.
-            </dd>
+            <dd>Checks whether AI models agree on the same facts about your brand — location, services, attributes — or produce conflicting information across engines.</dd>
           </div>
         </dl>
       </section>
 
-      {/* ── FAQ — visible HTML and semantically structured for LLM extraction ── */}
+      {/* FAQ */}
       <section
         id="faq"
         aria-labelledby="faq-heading"
         className="relative z-10 max-w-3xl mx-auto px-6 py-16"
       >
-        <h2
-          id="faq-heading"
-          className="text-2xl font-semibold text-white text-center mb-10"
-        >
+        <h2 id="faq-heading" className="text-2xl font-semibold text-white text-center mb-10">
           Common questions about GEO and AI search
         </h2>
-
         <div className="space-y-6">
           {[
             {

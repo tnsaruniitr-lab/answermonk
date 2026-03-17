@@ -430,6 +430,109 @@ export async function registerRoutes(
       return res.status(500).json({ error: "Failed to fetch submission" });
     }
   });
+  app.post("/api/landing/run-analysis", async (req: Request, res: Response) => {
+    try {
+      const schema = z.object({
+        submissionId: z.number().int().positive(),
+        services: z.array(z.string().min(1)).min(1),
+        customers: z.array(z.string().min(1)).min(1),
+        city: z.string().min(1),
+      });
+      const { submissionId, services, customers, city } = schema.parse(req.body);
+
+      const submissions = await storage.listLandingSubmissions();
+      const submission = submissions.find((s) => s.id === submissionId);
+      if (!submission) return res.status(404).json({ error: "Submission not found" });
+
+      const url = submission.websiteUrl;
+
+      const { result: pncResult } = await pncClassifyGenerate(services, customers, city, url);
+
+      const brandName = (pncResult as any).business_name || submission.normalizedDomain || "Brand";
+      const brandDomain = submission.normalizedDomain || undefined;
+
+      const segments: any[] = [
+        ...((pncResult as any).by_service || []).map((group: any, i: number) => ({
+          id: `svc-${i}`,
+          persona: group.service,
+          seedType: "service",
+          serviceType: group.service,
+          customerType: null,
+          customerTypeEnabled: false,
+          location: city,
+          prompts: (group.prompts || []).map((p: any, j: number) => ({ id: `svc-${i}-p${j}`, text: p.text })),
+          scoringResult: null,
+        })),
+        ...((pncResult as any).by_customer || []).map((group: any, i: number) => ({
+          id: `cust-${i}`,
+          persona: group.customer,
+          seedType: "customer",
+          serviceType: null,
+          customerType: group.customer,
+          customerTypeEnabled: true,
+          location: city,
+          prompts: (group.prompts || []).map((p: any, j: number) => ({ id: `cust-${i}-p${j}`, text: p.text })),
+          scoringResult: null,
+        })),
+      ];
+
+      const session = await storage.createMultiSegmentSession({
+        brandName,
+        brandDomain: brandDomain || null,
+        promptsPerSegment: 8,
+        segments,
+        sessionType: "pnc_v2",
+      });
+
+      // Fire scoring for each segment asynchronously — no await, saves results to DB as they complete
+      (async () => {
+        const updatedSegments = segments.map((s) => ({ ...s }));
+        for (let i = 0; i < segments.length; i++) {
+          const seg = segments[i];
+          try {
+            const scoringRes = await runScoring(
+              seg.prompts as any,
+              brandName,
+              brandDomain,
+              undefined,
+              undefined,
+              undefined,
+              ["chatgpt", "gemini", "claude"],
+            );
+            updatedSegments[i] = {
+              ...seg,
+              scoringResult: {
+                score: scoringRes.score,
+                raw_runs: scoringRes.raw_runs.map((r: any) => ({
+                  prompt: r.prompt_id,
+                  engine: r.engine,
+                  response: r.raw_text,
+                  brands_found: (r.extraction?.candidates || []).map((c: any) =>
+                    typeof c === "string" ? c : c.name_raw || c.name || c
+                  ),
+                  rank: r.match?.brand?.brand_rank ?? null,
+                  citations: r.citations || [],
+                  cluster: r.cluster,
+                })),
+              },
+            };
+            await storage.updateMultiSegmentSessionSegments(session.id, updatedSegments);
+            console.log(`[Landing] Scored segment ${i + 1}/${segments.length} for session ${session.id}`);
+          } catch (segErr) {
+            console.error(`[Landing] Scoring failed for segment ${seg.id}:`, segErr);
+          }
+        }
+        console.log(`[Landing] All segments complete for session ${session.id}`);
+      })();
+
+      return res.status(201).json({ sessionId: session.id });
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ error: "Invalid request" });
+      console.error("[Landing] run-analysis error:", err);
+      return res.status(500).json({ error: err.message || "Analysis setup failed" });
+    }
+  });
+
   // ── End landing page submission ────────────────────────────────────────────
 
   app.post(api.eval.run.path, async (req, res) => {
