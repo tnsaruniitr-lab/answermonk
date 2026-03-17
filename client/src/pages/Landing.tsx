@@ -650,39 +650,17 @@ function LandingInner() {
               />
             )}
 
-            {/* All done — CTA */}
-            {allSegmentsDone && (
-              <div className="relative">
-                <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-green-500/40 via-emerald-500/30 to-green-500/40 blur-sm" />
-                <div className="relative bg-[#0a0f1a] rounded-2xl p-6 text-center">
-                  <div className="w-12 h-12 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center mx-auto mb-3">
-                    <CheckCircle2 className="w-6 h-6 text-green-400" />
-                  </div>
-                  <p className="text-white font-semibold text-lg mb-1">GEO Intelligence Report Ready</p>
-                  <p className="text-slate-400 text-sm mb-5">
-                    All {scoringSegs.length} segments scored across ChatGPT · Claude · Gemini
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-                    <button
-                      onClick={() => navigate(`/v2/${activeSessionId}`)}
-                      data-testid="btn-view-full-report"
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold transition-all duration-200 shadow-lg shadow-green-500/20"
-                    >
-                      View Full Report
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                    {!showIntelligence && (
-                      <button
-                        onClick={() => setShowIntelligence(true)}
-                        data-testid="btn-analyse-intelligence"
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-violet-600/20 border border-violet-500/40 hover:bg-violet-600/30 hover:border-violet-500/60 text-violet-300 font-semibold transition-all duration-200"
-                      >
-                        <Brain className="w-4 h-4" />
-                        Analyse Citation Intelligence
-                      </button>
-                    )}
-                  </div>
-                </div>
+            {/* All done — single CTA button */}
+            {allSegmentsDone && !showIntelligence && (
+              <div className="flex justify-center">
+                <button
+                  onClick={() => setShowIntelligence(true)}
+                  data-testid="btn-analyse-intelligence"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-violet-600/20 border border-violet-500/40 hover:bg-violet-600/30 hover:border-violet-500/60 text-violet-300 font-semibold transition-all duration-200"
+                >
+                  <Brain className="w-4 h-4" />
+                  Analyse Citation Intelligence
+                </button>
               </div>
             )}
 
