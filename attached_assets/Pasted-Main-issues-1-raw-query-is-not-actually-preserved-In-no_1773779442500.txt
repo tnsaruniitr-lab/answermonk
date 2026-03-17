@@ -1,0 +1,308 @@
+Main issues
+1. raw_query is not actually preserved
+
+In normalise.ts, rawQuery is reconstructed as best ${rawService} in ${rawLocation} instead of storing the real original input query.
+
+Why this matters:
+Your plan explicitly said raw_query should be the original query, untouched.
+Right now:
+
+"top home healthcare dubai"
+
+"home healthcare providers in dubai"
+
+both become a synthetic best ... in ... form.
+
+That breaks your original schema intent and makes dedupe/version/audit less accurate.
+
+Fix: accept raw query as input and store it verbatim. Normalization should derive canonical fields from it, not overwrite it.
+
+2. Slug/H1 parsing breaks for multi-word locations
+
+This is the biggest functional issue.
+
+In queryPageRoute.ts, brandPageRoute.ts, and comparisonPageRoute.ts, location is inferred as the last hyphen token.
+
+Example:
+
+best-home-healthcare-abu-dhabi
+
+route logic treats location as just dhabi
+
+service becomes home healthcare abu
+
+That is wrong.
+
+Same problem affects:
+
+query page H1 generation
+
+comparison URL parsing
+
+brand page derived query titles
+
+Impact: this will fail for many real markets:
+
+Abu Dhabi
+
+Saudi Arabia
+
+New York
+
+Los Angeles
+
+United Arab Emirates
+
+Fix: never parse location back out of the slug by “last token”. Use stored DB fields:
+
+canonical_location
+
+normalized service/category field
+The slug should be output-only, not the source of truth.
+
+3. Category hub route likely breaks for hyphenated locations
+
+In categoryHubRoute.ts, cluster construction is:
+
+clusterId = ${category.replace(/-/g, "_")}_${location}
+
+But your cluster format is underscore-normalized.
+If location URL is abu-dhabi, this becomes:
+
+home_healthcare_abu-dhabi
+
+while stored cluster likely is:
+
+home_healthcare_abu_dhabi
+
+Mismatch.
+
+So hub lookup will fail for multi-word locations.
+
+Fix: normalize both category and location consistently into the same cluster format function used everywhere else.
+
+4. Query pages do not link to brand pages
+
+Your original plan/UAT required each query page to link to:
+
+top 3 brand pages
+
+parent category hub
+
+3 related queries
+
+methodology page
+
+In queryPageRoute.ts, the query page currently has:
+
+related query links
+
+methodology links
+
+But the brand cards render brand names/domains as plain text, not links to /brand/....
+
+That is a direct miss against the plan.
+
+Fix: slugify brand names and link top brands to /brand/:slug.
+
+5. Query pages do not link to the parent category hub
+
+Same issue: the plan required a hub link from each query page.
+I do not see a parent hub link in the query page HTML.
+
+That weakens the internal link graph materially.
+
+Fix: derive the hub URL from normalized location + category and render it near breadcrumb or related links.
+
+6. Blocked pages are still routable
+
+In queryPageRoute.ts, any row matching canonicalSlug is served with HTTP 200.
+robots changes to noindex,nofollow if not published, but the route still serves:
+
+draft
+
+noindex
+
+blocked
+
+This is not fully aligned with the plan.
+
+Per the plan:
+
+noindex can exist quietly
+
+blocked should effectively not become a public page
+
+Right now, a blocked page can still be fetched if the slug exists.
+
+Fix:
+
+published → 200 indexable
+
+noindex → 200 noindex
+
+draft / blocked → probably 404, unless intentionally internal-only
+
+7. Sitemap index is not actually dynamic beyond batch 1
+
+You planned for scalable sitemap batching.
+The route supports /sitemaps/query-pages-:batch.xml, but /sitemap.xml always lists only:
+
+query-pages-1.xml
+
+brands.xml
+
+hubs.xml
+
+comparisons.xml
+
+So if query pages exceed 50k, batch 2+ will not be listed in the sitemap index.
+
+Fix: compute number of published query pages and emit all needed query sitemap batch files in the index.
+
+8. Normalization is more aggressive than the agreed plan
+
+normalise.ts strips extra words beyond the original filler list:
+
+the, and, for, a, an, of, with
+
+This may be okay in some cases, but it can distort meaning.
+
+Example:
+
+“software for restaurants dubai”
+
+“home care for seniors dubai”
+
+You may unintentionally collapse queries that should stay distinct.
+
+Fix: keep filler removal conservative unless you’ve explicitly approved the expanded list.
+
+9. rawService fallback logic can create wrong canonical units
+
+normaliseSegment falls back in this order:
+
+serviceType || seedType || persona || customerType
+
+That means if serviceType is missing, you may end up generating public query pages from:
+
+persona
+
+customer type
+
+This can create pages that are not true “query pages” in the sense you wanted.
+
+Fix: make the public-page generator stricter. Only certain segment types should become public query pages.
+
+10. Methodology routes do not use proxy-aware canonical base logic
+
+Most routes use forwarded headers.
+methodologyRoutes.ts uses:
+
+req.protocol + req.headers.host
+
+Behind a proxy/CDN this may produce wrong canonical URLs or mixed protocol issues.
+
+Minor, but worth fixing.
+
+Medium issues
+11. Brand pages derive service context from slugs, not normalized fields
+
+Brand page display seems to infer query labels from slugs rather than structured service/category fields.
+
+That is brittle and tied to slug shape. It will get messy as soon as:
+
+locations are multi-word
+
+slug formats evolve
+
+canonical rules change
+
+Better to derive display data from stored normalized fields, not from reverse-parsing slugs.
+
+12. Comparison pages use a simplified gate
+
+The comparison rule is:
+
+co-occurrence >= 3
+
+avg visibility diff >= 1%
+
+That is reasonable, but still simpler than your narrative plan around “sufficient differentiating evidence”. It may create valid-but-thin comparisons.
+
+Not a blocker, but it is a reduced interpretation of the original rule.
+
+13. Missing proof of slug immutability enforcement
+
+Your plan said:
+once published, canonical_slug is immutable.
+
+I see comments about this in normalization docs, but I do not see actual enforcement in this code set. It may exist elsewhere, but from this zip alone I cannot verify it.
+
+So at code-review level: not proven.
+
+Biggest deviations from the original plan
+
+If I compress this to the most important mismatches, they are:
+
+raw query is not preserved
+
+multi-word locations will break
+
+query pages are missing brand links
+
+query pages are missing category hub links
+
+blocked pages still serve 200
+
+sitemap index is not truly scalable yet
+
+Those are the ones I would fix first.
+
+Will it work?
+
+Yes, for a limited v1.
+It should work if your data mostly looks like:
+
+best-home-healthcare-dubai
+
+best-corporate-card-uae
+
+clean single-token locations
+
+manually curated published rows
+
+No, not safely for the full version of the original plan yet.
+Especially once you introduce:
+
+multi-word geographies
+
+stricter publication rules
+
+larger sitemap scale
+
+stronger internal linking requirements
+
+My verdict
+
+I’d call this:
+
+~75% aligned with the plan
+
+Strong enough to continue, but not ready to be called “fully as per plan”.
+
+Priority fixes, in order:
+
+stop parsing location from slug
+
+preserve true raw_query
+
+add brand-page links on query pages
+
+add category-hub link on query pages
+
+make blocked/draft behavior stricter
+
+make sitemap index dynamic
+
+If you want, I can turn this into a precise fix checklist file-by-file.
