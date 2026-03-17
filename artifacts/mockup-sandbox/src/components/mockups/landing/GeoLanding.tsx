@@ -42,7 +42,7 @@ export function GeoLanding() {
         </div>
         
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
-          Dominate <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">AI Search</span> Visibility.
+          Dominate <span className="text-transparent bg-clip-text [-webkit-background-clip:text] bg-gradient-to-r from-blue-400 to-violet-400">AI Search</span> Visibility.
         </h1>
         
         <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-12 font-light leading-relaxed">

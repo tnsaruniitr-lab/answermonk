@@ -111,7 +111,7 @@ export default function Landing() {
 
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
           Measure your brand's visibility in{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">
+          <span className="text-transparent bg-clip-text [-webkit-background-clip:text] bg-gradient-to-r from-blue-400 to-violet-400">
             AI search results
           </span>
         </h1>
