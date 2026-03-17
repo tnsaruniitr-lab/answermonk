@@ -17,6 +17,16 @@ function normalizeDomain(url: string): string {
   }
 }
 
+const AGENT_STEPS = [
+  { emoji: "🔍", label: "Crawling {domain} homepage…" },
+  { emoji: "🌐", label: "Running web intelligence search…" },
+  { emoji: "📊", label: "Identifying service offerings…" },
+  { emoji: "👥", label: "Mapping customer segments…" },
+  { emoji: "🏙️", label: "Pinpointing geographic footprint…" },
+  { emoji: "🔎", label: "Scouting competitor landscape…" },
+  { emoji: "✨", label: "Compiling GEO intelligence brief…" },
+];
+
 function LandingInner() {
   const [, navigate] = useLocation();
   const [url, setUrl] = useState("");
@@ -24,6 +34,7 @@ function LandingInner() {
   const [activeStep, setActiveStep] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [agentStep, setAgentStep] = useState(0);
   const honeypotRef = useRef<HTMLInputElement>(null);
   const chipsInitialized = useRef(false);
 
@@ -87,6 +98,20 @@ function LandingInner() {
       setCity(ct);
     }
   }, [submission?.status, submission?.pncResult]);
+
+  useEffect(() => {
+    if (!submissionId) { setAgentStep(0); return; }
+    if (!isProcessing) return;
+    setAgentStep(0);
+    const iv = setInterval(() => {
+      setAgentStep((prev) => Math.min(prev + 1, AGENT_STEPS.length - 1));
+    }, 1800);
+    return () => clearInterval(iv);
+  }, [submissionId, isProcessing]);
+
+  useEffect(() => {
+    if (isComplete) setAgentStep(AGENT_STEPS.length);
+  }, [isComplete]);
 
   const runMutation = useMutation({
     mutationFn: async () => {
@@ -269,10 +294,60 @@ function LandingInner() {
         {/* Processing — PNC extracting */}
         {isProcessing && submissionId && (
           <div className="mt-8 max-w-md mx-auto" data-testid="status-processing">
-            <div className="bg-[#111827]/60 border border-white/10 rounded-2xl p-6 text-center">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-400 mx-auto mb-3" />
-              <p className="text-white font-medium">Analyzing {normalizeDomain(url)}</p>
-              <p className="text-slate-400 text-sm mt-1">Extracting services, customer types, and business signals…</p>
+            <div className="relative">
+              <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-blue-500/50 via-violet-500/40 to-blue-500/50 blur-sm" />
+              <div className="relative bg-[#0a0f1a] rounded-2xl p-6">
+                {/* Bot header */}
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="relative flex-shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-violet-500/20 border border-blue-500/30 flex items-center justify-center">
+                      <Bot className="w-5 h-5 text-blue-400 animate-pulse" />
+                    </div>
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-[#0a0f1a] animate-pulse" />
+                  </div>
+                  <div>
+                    <p className="text-white text-sm font-semibold leading-tight">GEO Agent · Active</p>
+                    <p className="text-blue-400/70 text-xs font-mono truncate">analyzing {normalizeDomain(url)}</p>
+                  </div>
+                  <div className="ml-auto flex gap-1">
+                    {[0, 1, 2].map((i) => (
+                      <div key={i} className="w-1 h-1 rounded-full bg-blue-400/60 animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Step feed */}
+                <div className="space-y-2">
+                  {AGENT_STEPS.map((step, i) => {
+                    const done = i < agentStep;
+                    const running = i === agentStep && agentStep < AGENT_STEPS.length;
+                    const pending = i > agentStep;
+                    return (
+                      <div
+                        key={i}
+                        className={`flex items-center gap-3 transition-all duration-500 ${pending ? "opacity-25" : "opacity-100"}`}
+                      >
+                        <div className="flex-shrink-0 w-4 h-4 flex items-center justify-center">
+                          {done && (
+                            <div className="w-4 h-4 rounded-full bg-green-500/15 border border-green-500/40 flex items-center justify-center">
+                              <span className="text-green-400 leading-none" style={{ fontSize: "8px" }}>✓</span>
+                            </div>
+                          )}
+                          {running && <div className="w-4 h-4 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />}
+                          {pending && <div className="w-1.5 h-1.5 rounded-full bg-slate-600 mx-auto" />}
+                        </div>
+                        <p className={`text-xs font-mono transition-colors duration-300 ${
+                          done ? "text-slate-600" :
+                          running ? "text-blue-300" :
+                          "text-slate-700"
+                        }`}>
+                          {step.emoji} {step.label.replace("{domain}", normalizeDomain(url))}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         )}
