@@ -34,9 +34,9 @@ function LandingInner() {
   const [newServiceInput, setNewServiceInput] = useState("");
   const [newCustomerInput, setNewCustomerInput] = useState("");
   const [customerLimitError, setCustomerLimitError] = useState(false);
+  const [serviceLimitError, setServiceLimitError] = useState(false);
 
-  const MAX_SERVICES = 4;
-  const MAX_CUSTOMERS = 2;
+  const MAX_SELECTED = 4;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -80,8 +80,8 @@ function LandingInner() {
       const ct: string = submission.pncResult.city || "";
       setServices(svcs);
       setCustomers(custs);
-      setSelectedServices(new Set(svcs.slice(0, MAX_SERVICES)));
-      setSelectedCustomers(new Set(custs.slice(0, MAX_CUSTOMERS)));
+      setSelectedServices(new Set(svcs.slice(0, MAX_SELECTED)));
+      setSelectedCustomers(new Set(custs.slice(0, MAX_SELECTED)));
       setCity(ct);
     }
   }, [submission?.status, submission?.pncResult]);
@@ -119,6 +119,11 @@ function LandingInner() {
 
   function toggleService(s: string) {
     setSelectedServices((prev) => {
+      if (!prev.has(s) && prev.size >= MAX_SELECTED) {
+        setServiceLimitError(true);
+        return prev;
+      }
+      setServiceLimitError(false);
       const next = new Set(prev);
       if (next.has(s)) next.delete(s); else next.add(s);
       return next;
@@ -127,7 +132,7 @@ function LandingInner() {
 
   function toggleCustomer(c: string) {
     setSelectedCustomers((prev) => {
-      if (!prev.has(c) && prev.size >= MAX_CUSTOMERS) {
+      if (!prev.has(c) && prev.size >= MAX_SELECTED) {
         setCustomerLimitError(true);
         return prev;
       }
@@ -142,7 +147,10 @@ function LandingInner() {
     const s = newServiceInput.trim();
     if (!s || services.includes(s)) { setNewServiceInput(""); return; }
     setServices((prev) => [...prev, s]);
-    setSelectedServices((prev) => new Set([...prev, s]));
+    setSelectedServices((prev) => {
+      if (prev.size >= MAX_SELECTED) { setServiceLimitError(true); return prev; }
+      return new Set([...prev, s]);
+    });
     setNewServiceInput("");
   }
 
@@ -150,7 +158,10 @@ function LandingInner() {
     const c = newCustomerInput.trim();
     if (!c || customers.includes(c)) { setNewCustomerInput(""); return; }
     setCustomers((prev) => [...prev, c]);
-    setSelectedCustomers((prev) => new Set([...prev, c]));
+    setSelectedCustomers((prev) => {
+      if (prev.size >= MAX_SELECTED) { setCustomerLimitError(true); return prev; }
+      return new Set([...prev, c]);
+    });
     setNewCustomerInput("");
   }
 
@@ -326,19 +337,22 @@ function LandingInner() {
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
                 Services &mdash; <span className="text-blue-400">{selectedServices.size} selected</span>
               </p>
-              <div className="flex flex-wrap gap-2 mb-3">
+              <div className="flex flex-wrap gap-2 mb-2">
                 {services.map((s) => {
                   const on = selectedServices.has(s);
+                  const locked = !on && selectedServices.size >= MAX_SELECTED;
                   return (
                     <button
                       key={s}
                       type="button"
                       onClick={() => toggleService(s)}
                       data-testid={`chip-service-${s}`}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 cursor-pointer select-none ${
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 select-none ${
                         on
-                          ? "bg-blue-500/20 border-blue-500/50 text-blue-300"
-                          : "bg-white/5 border-white/10 text-slate-500 hover:border-white/20 hover:text-slate-400"
+                          ? "bg-blue-500/20 border-blue-500/50 text-blue-300 cursor-pointer"
+                          : locked
+                          ? "bg-white/3 border-white/5 text-slate-600 cursor-not-allowed opacity-50"
+                          : "bg-white/5 border-white/10 text-slate-500 hover:border-white/20 hover:text-slate-400 cursor-pointer"
                       }`}
                     >
                       {on && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />}
@@ -353,6 +367,12 @@ function LandingInner() {
                   );
                 })}
               </div>
+              {serviceLimitError && (
+                <p className="text-xs text-amber-400/90 mb-2 flex items-center gap-1.5">
+                  <span className="inline-block w-3.5 h-3.5 rounded-full border border-amber-400/70 text-center leading-none" style={{fontSize:"9px"}}>!</span>
+                  Max 4 segments on the free scan — unlock more in the full audit.
+                </p>
+              )}
               <div className="flex items-center gap-2">
                 <input
                   type="text"
@@ -383,7 +403,7 @@ function LandingInner() {
               <div className="flex flex-wrap gap-2 mb-2">
                 {customers.map((c) => {
                   const on = selectedCustomers.has(c);
-                  const locked = !on && selectedCustomers.size >= MAX_CUSTOMERS;
+                  const locked = !on && selectedCustomers.size >= MAX_SELECTED;
                   return (
                     <button
                       key={c}
@@ -413,7 +433,7 @@ function LandingInner() {
               {customerLimitError && (
                 <p className="text-xs text-amber-400/90 mb-2 flex items-center gap-1.5">
                   <span className="inline-block w-3.5 h-3.5 rounded-full border border-amber-400/70 text-center leading-none" style={{fontSize:"9px"}}>!</span>
-                  Max 2 segments on the free scan — unlock more in the full audit.
+                  Max 4 segments on the free scan — unlock more in the full audit.
                 </p>
               )}
               <div className="flex items-center gap-2">
