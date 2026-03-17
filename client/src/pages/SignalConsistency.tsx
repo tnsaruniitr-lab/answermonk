@@ -54,6 +54,7 @@ type Signal = {
   what_strong_looks_like: string;
   what_weak_looks_like: string;
   base_question: string;
+  question?: string; // legacy field name
 };
 
 type BrandEntry = {
@@ -255,14 +256,20 @@ function SignalRow({ signal, brands, urls, scoringResults, engines }: {
           </div>
           {/* Why it matters — always visible */}
           <p className="text-xs text-muted-foreground mb-2">{signal.why_it_matters_for_ai_visibility}</p>
-          {/* Prompt sent to engines — always visible, clearly labelled */}
-          <div className="flex items-start gap-1.5 rounded-md bg-muted/50 border border-dashed px-2.5 py-1.5">
-            <MessageSquareCode className="w-3 h-3 text-primary mt-0.5 flex-shrink-0" />
-            <div className="min-w-0">
-              <span className="text-[10px] font-semibold text-primary uppercase tracking-wide mr-1.5">Prompt sent to engines</span>
-              <span className="text-xs text-muted-foreground italic">"{signal.base_question}"</span>
+          {/* Full prompt sent to engines — verbatim, always visible */}
+          {(signal.base_question || signal.question) && (
+            <div className="rounded-md border border-dashed bg-muted/40 overflow-hidden">
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 border-b border-dashed bg-muted/60">
+                <MessageSquareCode className="w-3 h-3 text-primary flex-shrink-0" />
+                <span className="text-[10px] font-semibold text-primary uppercase tracking-wide">Full prompt sent to ChatGPT &amp; Gemini</span>
+              </div>
+              <pre className="px-3 py-2.5 text-xs text-foreground font-mono whitespace-pre-wrap leading-relaxed">
+{`${signal.base_question ?? signal.question}
+
+Please answer based on current, reliable information.`}
+              </pre>
             </div>
-          </div>
+          )}
         </div>
         {expanded
           ? <ChevronUp className="w-4 h-4 mt-1 text-muted-foreground flex-shrink-0" />
