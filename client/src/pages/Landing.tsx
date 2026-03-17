@@ -85,6 +85,9 @@ function LandingInner() {
       data?.state?.data?.status === "complete" || data?.state?.data?.status === "error" ? false : 2000,
   });
 
+  const isProcessing = submitMutation.isPending || (submissionId !== null && submission?.status === "processing");
+  const isComplete = submission?.status === "complete";
+
   useEffect(() => {
     if (!chipsInitialized.current && submission?.status === "complete" && submission?.pncResult) {
       chipsInitialized.current = true;
@@ -131,8 +134,6 @@ function LandingInner() {
     },
   });
 
-  const isProcessing = submitMutation.isPending || (submissionId !== null && submission?.status === "processing");
-  const isComplete = submission?.status === "complete";
   const isError = submission?.status === "error" || runMutation.isError;
   const isRunning = runMutation.isPending;
 
