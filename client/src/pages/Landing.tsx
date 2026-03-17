@@ -656,10 +656,10 @@ function LandingInner() {
                 <button
                   onClick={() => setShowIntelligence(true)}
                   data-testid="btn-analyse-intelligence"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02]" style={{ background: "linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%)", color: "#1e1b4b", boxShadow: "0 0 24px rgba(255,255,255,0.15), 0 4px 16px rgba(0,0,0,0.3)" }}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-[1.02]" style={{ background: "#ffffff", color: "#0f172a", boxShadow: "0 2px 12px rgba(0,0,0,0.3)" }}
                 >
-                  <Brain className="w-4 h-4" />
                   Analyse Citation Intelligence
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             )}
