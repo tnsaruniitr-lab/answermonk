@@ -216,7 +216,11 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
 
 const INITIAL_COUNT = 6;
 
-export function RecentAnalysisTiles() {
+interface RecentAnalysisTilesProps {
+  onSelect?: (sessionId: number) => void;
+}
+
+export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
   const [, navigate] = useLocation();
   const [expanded, setExpanded] = useState(false);
 
@@ -265,7 +269,7 @@ export function RecentAnalysisTiles() {
               <Tile
                 key={tile.id}
                 tile={tile}
-                onClick={() => navigate(`/v2/${tile.sessionId}`)}
+                onClick={() => onSelect ? onSelect(tile.sessionId) : navigate(`/v2/${tile.sessionId}`)}
               />
             ))}
       </div>

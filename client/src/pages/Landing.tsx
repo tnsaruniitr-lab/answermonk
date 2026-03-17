@@ -162,7 +162,9 @@ function LandingInner() {
   const [agentStep, setAgentStep] = useState(0);
   const [runStep, setRunStep] = useState(0);
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
+  const [replayMode, setReplayMode] = useState(false);
   const honeypotRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const chipsInitialized = useRef(false);
 
   const [services, setServices] = useState<string[]>([]);
@@ -293,6 +295,19 @@ function LandingInner() {
     return () => clearInterval(iv);
   }, [isRunning]);
 
+  function handleTileSelect(sessionId: number) {
+    setActiveSessionId(sessionId);
+    setReplayMode(true);
+    setShowIntelligence(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function exitReplay() {
+    setActiveSessionId(null);
+    setReplayMode(false);
+    setShowIntelligence(false);
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -379,27 +394,31 @@ function LandingInner() {
       </nav>
 
       <main className="relative z-10 max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-8 backdrop-blur-sm">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
-          </span>
-          Intelligence Engine v2.0 — Live
-        </div>
+        {!replayMode && (
+          <>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-8 backdrop-blur-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+              </span>
+              Intelligence Engine v2.0 — Live
+            </div>
 
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
-          Dominate{" "}
-          <span style={{background: "linear-gradient(to right, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text"}}>
-            AI search results
-          </span>
-        </h1>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
+              Dominate{" "}
+              <span style={{background: "linear-gradient(to right, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text"}}>
+                AI search results
+              </span>
+            </h1>
 
-        <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-12 font-light leading-relaxed">
-          See which brands AI recommends in your category, why they win, and which sources shape those answers.
-        </p>
+            <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-12 font-light leading-relaxed">
+              See which brands AI recommends in your category, why they win, and which sources shape those answers.
+            </p>
+          </>
+        )}
 
-        {/* URL Input — hidden once complete */}
-        {!isComplete && !isError && (
+        {/* URL Input — hidden once complete or in replay mode */}
+        {!isComplete && !isError && !replayMode && (
           <form onSubmit={handleSubmit} className="max-w-3xl mx-auto relative group">
             <input
               ref={honeypotRef}
@@ -449,7 +468,7 @@ function LandingInner() {
 
         {/* Recent Analyses directory — visible when idle */}
         {!isProcessing && !isRunning && activeSessionId === null && (
-          <RecentAnalysisTiles />
+          <RecentAnalysisTiles onSelect={handleTileSelect} />
         )}
 
         {/* Processing — PNC extracting */}
@@ -580,7 +599,24 @@ function LandingInner() {
 
         {/* ── Live Scoring Feed — shown after run-analysis returns ── */}
         {activeSessionId !== null && !isRunning && (
-          <div className="mt-8 max-w-xl mx-auto space-y-4">
+          <div className="mt-8 max-w-xl mx-auto space-y-4" ref={resultsRef}>
+
+            {/* Replay mode header — back button + brand context */}
+            {replayMode && (
+              <div className="flex items-center justify-between mb-2">
+                <button
+                  onClick={exitReplay}
+                  data-testid="button-exit-replay"
+                  className="flex items-center gap-2 text-slate-400 hover:text-white text-sm transition-colors"
+                >
+                  <ArrowRight className="w-4 h-4 rotate-180" />
+                  Back to analyses
+                </button>
+                <span className="text-xs text-slate-600 font-mono">
+                  {scoringSession?.brandName || ""}
+                </span>
+              </div>
+            )}
 
             {/* Scored segment cards — appear one by one as they complete */}
             {scoredSegs.map((seg) => (
