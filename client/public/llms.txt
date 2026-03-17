@@ -1,0 +1,41 @@
+# Nexalytics GEO Intelligence
+
+Nexalytics GEO is a web platform that measures and analyzes brand visibility inside AI-generated search results from ChatGPT (OpenAI), Claude (Anthropic), Gemini (Google), and Perplexity. It is designed for marketing managers, SEO professionals, brand strategists, and digital agencies who need to understand and improve how AI engines represent their brand.
+
+The core workflow is: enter a website URL → AI extracts services and customer types → a Prompt Network of 25–30 queries is auto-generated → queries run across AI engines → a share-of-voice report is produced with competitor breakdown and citation source analysis.
+
+## Key pages
+
+- `/start` — Free GEO analysis entry point. Enter any domain to begin.
+- `/share/summary/:id` — Publicly shareable GEO Intelligence report for a given analysis session.
+- `/analytics/:sessionId` — Engine Intelligence Dashboard showing per-engine scoring breakdown.
+- `/reports/crawlability` — GEO crawlability comparison report across brands.
+- `/citations/:sessionId` — Citation source viewer showing which third-party URLs AI engines cited.
+
+## What this tool measures
+
+- **Presence score**: Whether a brand appears in an AI engine response (0 = absent, 1 = weak mention, 2 = strong mention).
+- **Rank score**: The weighted position of the brand within the AI response, decayed by distance from top position.
+- **Share of voice**: A 0–100 composite score combining presence and rank across all tested AI engines, weighted by engine market share (ChatGPT 35%, Gemini 35%, Claude 20%, Perplexity 10%).
+- **Competitor leaderboard**: Other brands mentioned in AI responses alongside or instead of the target brand, ranked by frequency and score.
+- **Citation sources**: The third-party URLs (directories, review platforms, media, brand pages) that AI engines cited when generating responses — classified by type.
+- **Signal consistency**: Whether different AI models agree on the same facts about a brand (location, services, attributes) or contradict each other.
+
+## Glossary
+
+- **GEO (Generative Engine Optimization)**: The practice of optimizing a brand's presence in AI-generated search results, as distinct from traditional SEO which targets ranked URL lists. GEO focuses on how often and how prominently a brand is mentioned within AI answer text.
+- **PNC (Prompt Network Creator)**: The module that analyzes a brand's website to extract service types and customer personas, then auto-generates 25–30 intent-based search queries to test across AI engines.
+- **Prompt Network**: The full set of generated queries for a given brand, organized by service type and customer segment.
+- **Share of voice**: In AI search, the proportion of AI-generated responses in which a brand appears, weighted by rank position and engine importance.
+- **Citation source**: A URL that an AI engine references or links to when generating a response. These sources — review sites, directories, industry publications — are a primary driver of which brands AI engines recommend.
+- **Signal consistency**: A measure of whether AI models produce consistent facts about a brand across different engines and runs. Inconsistency indicates unreliable or conflicting training data.
+- **Brand Intelligence**: A deep analysis of how a specific AI engine represents a brand's identity, core attributes, and competitive positioning.
+- **Segment**: A combination of a service type and a customer persona. The PNC generates one or more prompts per segment.
+
+## Who this is for
+
+Marketing managers and brand teams who want to know if their brand appears in AI responses. SEO professionals expanding into GEO and AI search. Digital agencies running AI visibility audits for clients. Businesses in competitive categories where AI recommendations drive purchase decisions (professional services, SaaS, healthcare, hospitality, finance, real estate).
+
+## Technical notes
+
+This is a web application. Analysis results are stored and shareable via URL. No account is required for the initial free analysis at /start. Full reports are available via shareable links at /share/summary/:id.

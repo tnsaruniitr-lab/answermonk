@@ -1,0 +1,50 @@
+User-agent: *
+
+# Public entry points — index and allow
+Allow: /start
+Allow: /share/
+Allow: /analytics/
+Allow: /audit/
+Allow: /reports/
+Allow: /citations/
+
+# Admin and internal tools — block from all crawlers
+Disallow: /api/
+Disallow: /incoming-leads
+Disallow: /leads
+Disallow: /brand-intelligence
+Disallow: /signal-consistency
+Disallow: /prompts
+Disallow: /history
+Disallow: /scoring/
+Disallow: /v2/
+Disallow: /teaser/
+Disallow: /summary/
+
+# LLM crawlers — explicit allow for AI indexing agents
+User-agent: GPTBot
+Allow: /start
+Allow: /share/
+Allow: /reports/
+Allow: /llms.txt
+
+User-agent: ClaudeBot
+Allow: /start
+Allow: /share/
+Allow: /reports/
+Allow: /llms.txt
+
+User-agent: PerplexityBot
+Allow: /start
+Allow: /share/
+Allow: /reports/
+Allow: /llms.txt
+
+User-agent: Google-Extended
+Allow: /start
+Allow: /share/
+Allow: /reports/
+Allow: /llms.txt
+
+# Sitemap (add when available)
+# Sitemap: https://app.nexalytics.io/sitemap.xml
