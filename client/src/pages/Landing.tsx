@@ -33,6 +33,10 @@ function LandingInner() {
   const [city, setCity] = useState("");
   const [newServiceInput, setNewServiceInput] = useState("");
   const [newCustomerInput, setNewCustomerInput] = useState("");
+  const [customerLimitError, setCustomerLimitError] = useState(false);
+
+  const MAX_SERVICES = 4;
+  const MAX_CUSTOMERS = 2;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -76,8 +80,8 @@ function LandingInner() {
       const ct: string = submission.pncResult.city || "";
       setServices(svcs);
       setCustomers(custs);
-      setSelectedServices(new Set(svcs));
-      setSelectedCustomers(new Set(custs));
+      setSelectedServices(new Set(svcs.slice(0, MAX_SERVICES)));
+      setSelectedCustomers(new Set(custs.slice(0, MAX_CUSTOMERS)));
       setCity(ct);
     }
   }, [submission?.status, submission?.pncResult]);
@@ -123,6 +127,11 @@ function LandingInner() {
 
   function toggleCustomer(c: string) {
     setSelectedCustomers((prev) => {
+      if (!prev.has(c) && prev.size >= MAX_CUSTOMERS) {
+        setCustomerLimitError(true);
+        return prev;
+      }
+      setCustomerLimitError(false);
       const next = new Set(prev);
       if (next.has(c)) next.delete(c); else next.add(c);
       return next;
@@ -371,19 +380,22 @@ function LandingInner() {
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
                 Customer Types &mdash; <span className="text-violet-400">{selectedCustomers.size} selected</span>
               </p>
-              <div className="flex flex-wrap gap-2 mb-3">
+              <div className="flex flex-wrap gap-2 mb-2">
                 {customers.map((c) => {
                   const on = selectedCustomers.has(c);
+                  const locked = !on && selectedCustomers.size >= MAX_CUSTOMERS;
                   return (
                     <button
                       key={c}
                       type="button"
                       onClick={() => toggleCustomer(c)}
                       data-testid={`chip-customer-${c}`}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 cursor-pointer select-none ${
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 select-none ${
                         on
-                          ? "bg-violet-500/20 border-violet-500/50 text-violet-300"
-                          : "bg-white/5 border-white/10 text-slate-500 hover:border-white/20 hover:text-slate-400"
+                          ? "bg-violet-500/20 border-violet-500/50 text-violet-300 cursor-pointer"
+                          : locked
+                          ? "bg-white/3 border-white/5 text-slate-600 cursor-not-allowed opacity-50"
+                          : "bg-white/5 border-white/10 text-slate-500 hover:border-white/20 hover:text-slate-400 cursor-pointer"
                       }`}
                     >
                       {on && <span className="w-1.5 h-1.5 rounded-full bg-violet-400 flex-shrink-0" />}
@@ -398,6 +410,12 @@ function LandingInner() {
                   );
                 })}
               </div>
+              {customerLimitError && (
+                <p className="text-xs text-amber-400/90 mb-2 flex items-center gap-1.5">
+                  <span className="inline-block w-3.5 h-3.5 rounded-full border border-amber-400/70 text-center leading-none" style={{fontSize:"9px"}}>!</span>
+                  Max 2 segments on the free scan — unlock more in the full audit.
+                </p>
+              )}
               <div className="flex items-center gap-2">
                 <input
                   type="text"
