@@ -7,12 +7,21 @@ interface DirectoryPage {
   slug: string;
   serviceType: string;
   location: string;
+  vertical: string;
   dataVersion: string | null;
   lastUpdated: string | null;
   firstPublished: string | null;
   evidenceScore: number;
   brandCount: number;
 }
+
+const VERTICAL_LABELS: Record<string, string> = {
+  "healthcare":       "Healthcare",
+  "b2b-saas":         "B2B SaaS",
+  "venture-capital":  "Venture Capital",
+  "marketing":        "Marketing",
+  "other":            "Other",
+};
 
 interface DirectoryResponse {
   pages: DirectoryPage[];
@@ -59,7 +68,8 @@ export default function DirectoryListing() {
     return (
       p.slug.includes(q) ||
       p.serviceType.includes(q) ||
-      p.location.includes(q)
+      p.location.includes(q) ||
+      (VERTICAL_LABELS[p.vertical] ?? "").toLowerCase().includes(q)
     );
   });
 
@@ -124,7 +134,7 @@ export default function DirectoryListing() {
             </select>
           </div>
 
-          {/* Category filter */}
+          {/* Category (vertical) filter */}
           <div style={{ position: "relative" }}>
             <Filter size={12} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#374151" }} />
             <select
@@ -135,7 +145,7 @@ export default function DirectoryListing() {
             >
               <option value="">All categories</option>
               {categories.map((c) => (
-                <option key={c} value={c}>{toTitleCase(c)}</option>
+                <option key={c} value={c}>{VERTICAL_LABELS[c] ?? toTitleCase(c)}</option>
               ))}
             </select>
           </div>
@@ -194,6 +204,11 @@ export default function DirectoryListing() {
                     {page.location && (
                       <span style={{ fontSize: 11, padding: "1px 7px", borderRadius: 99, background: "rgba(59,130,246,0.08)", color: "#60a5fa", border: "1px solid rgba(59,130,246,0.15)" }}>
                         {toTitleCase(page.location)}
+                      </span>
+                    )}
+                    {page.vertical && page.vertical !== "other" && (
+                      <span style={{ fontSize: 11, padding: "1px 7px", borderRadius: 99, background: "rgba(99,102,241,0.08)", color: "#a5b4fc", border: "1px solid rgba(99,102,241,0.15)" }}>
+                        {VERTICAL_LABELS[page.vertical] ?? page.vertical}
                       </span>
                     )}
                     <span style={{ fontSize: 11, color: "#334155" }}>

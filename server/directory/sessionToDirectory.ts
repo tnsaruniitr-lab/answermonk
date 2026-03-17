@@ -24,6 +24,34 @@ import { desc, isNotNull } from "drizzle-orm";
 const MIN_COMPETITORS = 3;
 const MIN_VALID_RUNS  = 5;
 
+// ── Vertical classifier ────────────────────────────────────────────────────
+// Maps a raw persona string to one of five industry verticals.
+// Matching is keyword-based (lowercase), so it stays in sync as personas evolve.
+const HEALTHCARE_KEYWORDS = [
+  "health", "doctor", "nurse", "blood test", "iv drip", "physiother",
+  "medical", "clinic", "newborn", "weight loss", "dental", "pharmacy",
+  "care provider", "home care", "hospital",
+];
+const VC_KEYWORDS = [
+  "seed fund", "series a", "series b", "series c", "venture capital",
+  "early stage capital", "vc fund", "angel invest", "startup fund",
+  "series invest", "pre-seed",
+];
+const MARKETING_KEYWORDS = [
+  "marketing agency", "seo agency", "pr agency", "branding agency",
+  "content marketing", "social media", "web design", "web development",
+  "digital marketing", "performance marketing",
+];
+
+export function deriveVertical(persona: string): string {
+  const p = persona.toLowerCase();
+  if (HEALTHCARE_KEYWORDS.some((kw) => p.includes(kw))) return "healthcare";
+  if (VC_KEYWORDS.some((kw) => p.includes(kw)))          return "venture-capital";
+  if (MARKETING_KEYWORDS.some((kw) => p.includes(kw)))   return "marketing";
+  // Everything else (expense management, collections, corporate cards, etc.)
+  return "b2b-saas";
+}
+
 interface SegmentCompetitor {
   name:        string;
   share:       number;
@@ -125,6 +153,14 @@ export async function syncSessionToDirectory(
       location:     seg.location     || undefined,
     });
 
+    // Derive industry vertical — prefer persona unless it is an internal marker like "pnc"
+    const INTERNAL_PERSONA_MARKERS = new Set(["pnc", "pnc_v2", "competitor", "landing_guided", "__blank__"]);
+    const rawPersona = (seg.persona || "").trim();
+    const personaForVertical = (!rawPersona || INTERNAL_PERSONA_MARKERS.has(rawPersona.toLowerCase()))
+      ? (seg.serviceType || normalisedSeg.rawQuery || seg.seedType || "")
+      : rawPersona;
+    const vertical = deriveVertical(personaForVertical);
+
     if (!normalisedSeg.canonicalSlug) {
       result.skipped++;
       continue;
@@ -157,6 +193,7 @@ export async function syncSessionToDirectory(
         canonicalSlug:    normalisedSeg.canonicalSlug,
         canonicalLocation: normalisedSeg.canonicalLocation,
         clusterId:        normalisedSeg.clusterId,
+        vertical,
         publishStatus:    "published",
         dataVersion:      today,
         engineSet:        engines,

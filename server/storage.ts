@@ -521,6 +521,7 @@ export class DatabaseStorage implements IStorage {
           canonicalQuery:    sql`CASE WHEN directory_pages.publish_status = 'published' THEN directory_pages.canonical_query    ELSE EXCLUDED.canonical_query    END`,
           canonicalLocation: sql`CASE WHEN directory_pages.publish_status = 'published' THEN directory_pages.canonical_location ELSE EXCLUDED.canonical_location END`,
           clusterId:         sql`CASE WHEN directory_pages.publish_status = 'published' THEN directory_pages.cluster_id          ELSE EXCLUDED.cluster_id          END`,
+          vertical:          sql`EXCLUDED.vertical`,
           dataVersion:       sql`EXCLUDED.data_version`,
           engineSet:         sql`EXCLUDED.engine_set`,
           evidenceScore:     sql`EXCLUDED.evidence_score`,

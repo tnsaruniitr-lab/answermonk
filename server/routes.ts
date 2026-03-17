@@ -374,6 +374,7 @@ export async function registerRoutes(
           canonicalSlug:     directoryPagesTable.canonicalSlug,
           canonicalLocation: directoryPagesTable.canonicalLocation,
           clusterId:         directoryPagesTable.clusterId,
+          vertical:          directoryPagesTable.vertical,
           dataVersion:       directoryPagesTable.dataVersion,
           lastUpdatedAt:     directoryPagesTable.lastUpdatedAt,
           firstPublishedAt:  directoryPagesTable.firstPublishedAt,
@@ -397,16 +398,12 @@ export async function registerRoutes(
         return st;
       };
 
-      const allRows = rows.map((r) => ({
-        location:    r.canonicalLocation ?? "",
-        serviceType: toServiceType(r),
-      }));
-
       const pages = rows
         .map((r) => ({
           slug:          r.canonicalSlug,
           serviceType:   toServiceType(r),
           location:      r.canonicalLocation ?? "",
+          vertical:      r.vertical ?? "other",
           dataVersion:   r.dataVersion ?? null,
           lastUpdated:   r.lastUpdatedAt?.toISOString() ?? null,
           firstPublished: r.firstPublishedAt?.toISOString() ?? null,
@@ -415,12 +412,17 @@ export async function registerRoutes(
         }))
         .filter((p) => {
           if (locationFilter && p.location !== locationFilter) return false;
-          if (categoryFilter && p.serviceType !== categoryFilter) return false;
+          if (categoryFilter && p.vertical !== categoryFilter) return false;
           return true;
         });
 
+      const allRows = rows.map((r) => ({
+        location: r.canonicalLocation ?? "",
+        vertical: r.vertical ?? "other",
+      }));
+
       const locations  = [...new Set(allRows.map((r) => r.location).filter(Boolean))].sort();
-      const categories = [...new Set(allRows.map((r) => r.serviceType).filter(Boolean))].sort();
+      const categories = [...new Set(allRows.map((r) => r.vertical).filter(Boolean))].sort();
 
       res.json({ pages, filters: { locations, categories } });
     } catch (err) {

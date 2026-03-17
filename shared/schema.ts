@@ -334,6 +334,7 @@ export const directoryPages = pgTable("directory_pages", {
   canonicalSlug: text("canonical_slug").notNull().unique(),
   canonicalLocation: text("canonical_location"),
   clusterId: text("cluster_id"),
+  vertical: text("vertical"),           // industry group: healthcare | b2b-saas | venture-capital | marketing | other
 
   // Publishing state
   publishStatus: text("publish_status").notNull().default("draft"),
