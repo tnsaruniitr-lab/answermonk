@@ -861,36 +861,47 @@ function MdBodyBlocks({ body }: { body: string }) {
 
 function CollapsibleMdCard({ section, rank }: { section: MdSection; rank: number }) {
   const [open, setOpen] = useState(false);
-  const RANK_COLORS = ["#ef4444", "#f97316", "#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#6366f1", "#ec4899"];
-  const color = RANK_COLORS[(rank - 1) % RANK_COLORS.length];
+
+  const RANK_IMPACT = ["HIGHEST", "VERY HIGH", "HIGH", "MEDIUM", "LOW"];
+  const impact = RANK_IMPACT[Math.min(rank - 1, RANK_IMPACT.length - 1)];
+  const impactCls = IMPACT_COLORS[impact] ?? IMPACT_COLORS.LOW;
 
   const titleMatch = section.heading.match(/^(\d+)\.\s*(.+)/);
   const displayTitle = titleMatch ? titleMatch[2].trim() : section.heading;
-  const impactMatch = section.body.match(/impact.rank.*?#?(\d+)|confidence.*?(High|Medium|Low)/i);
-  const confidence = impactMatch?.[2] ?? null;
+  const cleanBody = section.body
+    .replace(/impact.rank.*\n?/i, "")
+    .replace(/confidence.*?:(.*)\n?/i, "")
+    .trim();
 
   return (
-    <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, overflow: "hidden", marginBottom: 10 }}>
+    <div className="border border-border/60 rounded-xl overflow-hidden mb-2">
       <button
         onClick={() => setOpen(o => !o)}
-        style={{ width: "100%", background: open ? "#f8faff" : "white", border: "none", padding: "14px 18px", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}
+        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/30 ${open ? "bg-secondary/20" : "bg-background"}`}
       >
-        <div style={{ width: 28, height: 28, borderRadius: 8, background: `${color}15`, border: `1px solid ${color}40`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <span style={{ color, fontSize: 12, fontWeight: 700 }}>#{rank}</span>
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold border shrink-0 ${impactCls}`}>
+          #{rank}
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ color: "#0f172a", fontSize: 14, fontWeight: 600, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayTitle}</div>
-          {confidence && (
-            <span style={{ background: `${color}15`, color, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 4, letterSpacing: 0.5 }}>{confidence.toUpperCase()} CONFIDENCE</span>
-          )}
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold text-foreground leading-tight truncate">{displayTitle}</div>
+          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${impactCls}`}>{impact}</span>
         </div>
-        <ChevronDown className={`w-4 h-4 transition-transform duration-200 flex-shrink-0 ${open ? "rotate-180" : ""}`} style={{ color: "#cbd5e1" }} />
+        <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
-      {open && (
-        <div style={{ background: "#f8faff", borderTop: "1px solid #e2e8f0", padding: "16px 18px" }}>
-          <MdBodyBlocks body={section.body.replace(/impact.rank.*\n?/i, "").replace(/confidence.*\n?/i, "").trim()} />
-        </div>
-      )}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 pt-3 bg-secondary/10 border-t border-border/40">
+              <MdBodyBlocks body={cleanBody} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -926,11 +937,11 @@ function MarkdownReport({ text }: { text: string }) {
 
       {/* Executive summary → amber key finding */}
       {summarySection && (
-        <div className="flex gap-3 items-start rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-3">
+        <div className="flex gap-3 items-start rounded-xl border border-amber-200 dark:border-amber-800/60 bg-amber-50/60 dark:bg-amber-950/20 px-4 py-3">
           <span className="text-lg shrink-0">⚡</span>
           <div>
-            <div className="text-[11px] font-bold text-amber-700 mb-1">Key Finding</div>
-            <div className="text-xs text-amber-800 leading-relaxed" dangerouslySetInnerHTML={{ __html: renderInline(summarySection.body.split("\n\n")[0] ?? summarySection.body) }} />
+            <div className="text-[11px] font-bold text-amber-700 dark:text-amber-400 mb-1">Key Finding</div>
+            <div className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed" dangerouslySetInnerHTML={{ __html: renderInline(summarySection.body.split("\n\n")[0] ?? summarySection.body) }} />
           </div>
         </div>
       )}
