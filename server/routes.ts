@@ -25,14 +25,14 @@ import { analyzePanelWebsite } from "./panel/generator";
 import { runInsightsAnalysis, type InsightsInput } from "./insights";
 import { runSegmentAnalysis } from "./segment-analysis";
 import { runSignalIntelligence, getSignalIntelligence } from "./signal-intelligence";
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 
-const openaiClient = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+const anthropicClassifier = new Anthropic({
+  apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY,
+  baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
 });
-const MINI_INPUT_COST_PER_1M = 0.15;
-const MINI_OUTPUT_COST_PER_1M = 0.60;
+const CLAUDE_INPUT_COST_PER_1M = 3.00;
+const CLAUDE_OUTPUT_COST_PER_1M = 15.00;
 import { generateReport } from "./report/generator";
 import { generateTeaserData } from "./report/teaser-generator";
 import { brandIntelligenceJobs } from "@shared/schema";
@@ -2045,21 +2045,22 @@ Return ONLY valid JSON in this exact shape: {"classifications": [{"id": <number>
 
         const userPrompt = `Classify these ${chunk.length} URLs:\n${urlList}`;
 
-        const response = await openaiClient.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
-          response_format: { type: "json_object" },
-          temperature: 0.1,
+        const response = await anthropicClassifier.messages.create({
+          model: "claude-sonnet-4-5",
+          system: systemPrompt,
+          messages: [{ role: "user", content: userPrompt }],
           max_tokens: 2000,
+          temperature: 0.1,
         });
 
-        totalInputTokens += response.usage?.prompt_tokens || 0;
-        totalOutputTokens += response.usage?.completion_tokens || 0;
+        totalInputTokens += response.usage?.input_tokens || 0;
+        totalOutputTokens += response.usage?.output_tokens || 0;
 
         let parsed: any = null;
         try {
-          const raw = response.choices[0].message.content || "{}";
-          const obj = JSON.parse(raw);
+          const raw = response.content[0].type === "text" ? response.content[0].text : "{}";
+          const jsonMatch = raw.match(/\{[\s\S]*\}/);
+          const obj = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
           parsed = Array.isArray(obj) ? obj : (obj.classifications || obj.results || obj.urls || Object.values(obj)[0]);
         } catch { parsed = []; }
 
@@ -2081,8 +2082,8 @@ Return ONLY valid JSON in this exact shape: {"classifications": [{"id": <number>
         );
       }
 
-      const costUsd = (totalInputTokens / 1_000_000) * MINI_INPUT_COST_PER_1M
-        + (totalOutputTokens / 1_000_000) * MINI_OUTPUT_COST_PER_1M;
+      const costUsd = (totalInputTokens / 1_000_000) * CLAUDE_INPUT_COST_PER_1M
+        + (totalOutputTokens / 1_000_000) * CLAUDE_OUTPUT_COST_PER_1M;
 
       res.json({
         updated: classifications.length,
