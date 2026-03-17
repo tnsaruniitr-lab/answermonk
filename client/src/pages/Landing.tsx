@@ -110,16 +110,15 @@ export default function Landing() {
         </div>
 
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
-          Dominate{" "}
+          Measure your brand's visibility in{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">
-            AI Search
-          </span>{" "}
-          Visibility.
+            AI search results
+          </span>
         </h1>
 
         <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-12 font-light leading-relaxed">
-          Map, analyze, and optimize how Generative AI engines perceive your brand. Discover
-          where you rank in ChatGPT, Claude, and Gemini before your competitors do.
+          Nexalytics GEO analyzes how ChatGPT, Claude, Gemini, and Perplexity mention your
+          brand. Enter your website to get a free Prompt Network analysis — no account required.
         </p>
 
         {/* Input area */}
@@ -340,6 +339,102 @@ export default function Landing() {
               <h3 className="text-xl font-semibold text-white mb-3">{card.title}</h3>
               <p className="text-slate-400 text-sm leading-relaxed">{card.desc}</p>
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Features definition list — semantic for LLM crawlers ── */}
+      <section
+        id="features"
+        aria-labelledby="features-heading"
+        className="relative z-10 max-w-4xl mx-auto px-6 pb-4"
+      >
+        {/* Visually hidden heading keeps semantic structure without affecting visual layout */}
+        <h2 id="features-heading" className="sr-only">Key features of Nexalytics GEO Intelligence</h2>
+        <dl className="sr-only">
+          <div>
+            <dt>Prompt Network Creator (PNC)</dt>
+            <dd>
+              Automatically generates service-specific and persona-specific search prompts from
+              your website using AI analysis. Produces 25–30 intent-based queries per analysis
+              run — no manual configuration required.
+            </dd>
+          </div>
+          <div>
+            <dt>Cross-engine scoring across ChatGPT, Claude, and Gemini</dt>
+            <dd>
+              Every prompt is run against all three major AI engines simultaneously. Results are
+              weighted by engine market share: ChatGPT 35%, Gemini 35%, Claude 20%, Perplexity 10%.
+            </dd>
+          </div>
+          <div>
+            <dt>Competitor leaderboard</dt>
+            <dd>
+              Identifies which competitors appear most frequently in AI responses for your target
+              prompts, with their presence score and rank position per engine.
+            </dd>
+          </div>
+          <div>
+            <dt>Citation source breakdown</dt>
+            <dd>
+              Crawls and classifies all URLs cited by AI engines — directories, review platforms,
+              brand pages, media coverage — to show which third-party sites drive AI recommendations
+              in your category.
+            </dd>
+          </div>
+          <div>
+            <dt>Signal Consistency analysis</dt>
+            <dd>
+              Checks whether AI models agree on the same facts about your brand — location,
+              services, attributes — or produce conflicting information across engines.
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      {/* ── FAQ — visible HTML and semantically structured for LLM extraction ── */}
+      <section
+        id="faq"
+        aria-labelledby="faq-heading"
+        className="relative z-10 max-w-3xl mx-auto px-6 py-16"
+      >
+        <h2
+          id="faq-heading"
+          className="text-2xl font-semibold text-white text-center mb-10"
+        >
+          Common questions about GEO and AI search
+        </h2>
+
+        <div className="space-y-6">
+          {[
+            {
+              q: "What is GEO (Generative Engine Optimization)?",
+              a: "GEO is the practice of optimizing a brand's presence in AI-generated search results from engines like ChatGPT, Claude, Gemini, and Perplexity. Unlike traditional SEO — which targets ranked URL lists — GEO focuses on how often and how prominently a brand is mentioned within the AI-generated answer text itself.",
+            },
+            {
+              q: "How does the Prompt Network Creator (PNC) work?",
+              a: "The PNC analyzes your website to extract service types and customer segments. It then auto-generates 25–30 natural-language search prompts that a real customer might ask an AI engine — for example: \"Find the 10 most trusted [service] providers in [city]\". These prompts run against multiple AI engines and results are scored for presence, rank position, and share of voice.",
+            },
+            {
+              q: "What is a share-of-voice score in AI search?",
+              a: "Share of voice in AI search measures how often your brand appears in AI engine responses relative to competitors, weighted by rank position and engine importance. A score of 100 means your brand is the top-cited answer across all tested prompts and engines. A score of 0 means your brand does not appear.",
+            },
+            {
+              q: "What are citation sources in AI search results?",
+              a: "AI engines cite external sources when generating answers. These may include review platforms (G2, Trustpilot), directories (Clutch, Yelp), industry publications, and brand websites. Nexalytics crawls and classifies these citation sources to show which third-party sites drive AI visibility for your brand and competitors.",
+            },
+            {
+              q: "How long does a GEO analysis take?",
+              a: "A full analysis — website extraction, prompt generation, cross-engine scoring, and report generation — typically completes in 3 to 8 minutes depending on the number of service segments and AI engine response times.",
+            },
+          ].map(({ q, a }) => (
+            <article
+              key={q}
+              className="bg-[#111827]/50 border border-white/8 rounded-xl p-6 hover:border-white/15 transition-colors"
+            >
+              <h3 className="text-white font-medium mb-2">{q}</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">{a}</p>
+            </article>
           ))}
         </div>
       </section>
