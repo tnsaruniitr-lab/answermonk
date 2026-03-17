@@ -384,7 +384,7 @@ function LandingInner() {
         </div>
 
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
-          Measure your brand's visibility in{" "}
+          Dominate{" "}
           <span style={{background: "linear-gradient(to right, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text"}}>
             AI search results
           </span>
