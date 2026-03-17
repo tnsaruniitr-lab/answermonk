@@ -49,6 +49,8 @@ interface RankingSnapshot {
 interface SharedPage {
   slug: string;
   location: string;
+  canonicalLocation: string | null;
+  clusterId: string | null;
   rate1: number;
   rate2: number;
   evidenceDiff: number; // rate1 - rate2
@@ -104,12 +106,18 @@ function canonicalBase(req: Request): string {
   return `${proto}://${host}`;
 }
 
-function formatQueryH1(slug: string): string {
-  const withoutBest = slug.replace(/^best-/, "");
-  const parts  = withoutBest.split("-");
-  const loc    = parts[parts.length - 1];
-  const svc    = parts.slice(0, -1).join(" ");
-  return `Best ${toTitleCase(svc)} in ${toTitleCase(loc)}`;
+/**
+ * Derive H1 from stored DB fields — never parse the slug.
+ * Works correctly for multi-word locations like "abu dhabi".
+ */
+function h1FromDb(canonicalLocation: string | null, clusterId: string | null): string {
+  if (!canonicalLocation || !clusterId) return "AI Search Rankings";
+  const locKey     = canonicalLocation.replace(/\s+/g, "_");
+  const serviceKey = clusterId.endsWith(`_${locKey}`)
+    ? clusterId.slice(0, -(locKey.length + 1))
+    : clusterId;
+  const service = serviceKey.replace(/_/g, " ");
+  return `Best ${toTitleCase(service)} in ${toTitleCase(canonicalLocation)}`;
 }
 
 // ─── URL parsing ──────────────────────────────────────────────────
@@ -148,9 +156,10 @@ async function buildComparisonData(
 ): Promise<ComparisonData | null> {
   const pages = await db
     .select({
-      canonicalSlug:    directoryPages.canonicalSlug,
+      canonicalSlug:     directoryPages.canonicalSlug,
       canonicalLocation: directoryPages.canonicalLocation,
-      rankingSnapshot:  directoryPages.rankingSnapshot,
+      clusterId:         directoryPages.clusterId,
+      rankingSnapshot:   directoryPages.rankingSnapshot,
     })
     .from(directoryPages)
     .where(
@@ -183,14 +192,16 @@ async function buildComparisonData(
     const rate2 = b2.appearance_rate ?? 0;
 
     sharedPages.push({
-      slug:             page.canonicalSlug,
-      location:         page.canonicalLocation ?? location,
+      slug:              page.canonicalSlug,
+      location:          page.canonicalLocation ?? location,
+      canonicalLocation: page.canonicalLocation,
+      clusterId:         page.clusterId,
       rate1,
       rate2,
-      evidenceDiff:     rate1 - rate2,
-      evidence1:        b1.evidence ?? [],
-      evidence2:        b2.evidence ?? [],
-      authoritySources: snap.authority_sources ?? [],
+      evidenceDiff:      rate1 - rate2,
+      evidence1:         b1.evidence ?? [],
+      evidence2:         b2.evidence ?? [],
+      authoritySources:  snap.authority_sources ?? [],
     });
   }
 
@@ -363,7 +374,7 @@ function buildComparisonHtml(d: ComparisonData, canonicalUrl: string): string {
       const ev2 = p.evidence2.map((e) => `<div class="evidence-line">${e}</div>`).join("");
       return `
       <div class="query-row">
-        <div class="query-title">${formatQueryH1(p.slug)}</div>
+        <div class="query-title">${h1FromDb(p.canonicalLocation, p.clusterId)}</div>
         <div class="query-slug"><a href="/${p.slug}">/${p.slug}</a></div>
         <div class="rates">
           <div class="rate-box b1">

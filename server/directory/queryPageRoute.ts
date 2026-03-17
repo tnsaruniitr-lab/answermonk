@@ -43,23 +43,56 @@ interface PageVersion {
   rankingSnapshotJson: RankingSnapshot;
 }
 
+interface RelatedPage {
+  canonicalSlug: string;
+  canonicalLocation: string | null;
+  clusterId: string | null;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────
 
 function titleCase(str: string): string {
   return str
-    .split(/[-\s]+/)
+    .split(/[-_\s]+/)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 }
 
-function formatH1(slug: string): string {
-  // "best-home-healthcare-dubai" → "Best Home Healthcare in Dubai"
-  const withoutBest = slug.replace(/^best-/, "");
-  const parts = withoutBest.split("-");
-  // Last part is the location (capitalised)
-  const location = parts[parts.length - 1];
-  const service  = parts.slice(0, -1).join(" ");
-  return `Best ${titleCase(service)} in ${titleCase(location)}`;
+/**
+ * Derive H1 from stored DB fields — never parse the slug.
+ * canonicalLocation = "abu dhabi" | "dubai" etc.
+ * clusterId         = "home_healthcare_abu_dhabi" etc.
+ */
+function h1FromDb(canonicalLocation: string | null, clusterId: string | null): string {
+  if (!canonicalLocation || !clusterId) return "AI Search Rankings";
+  const locKey = canonicalLocation.replace(/\s+/g, "_");
+  const serviceKey = clusterId.endsWith(`_${locKey}`)
+    ? clusterId.slice(0, -(locKey.length + 1))
+    : clusterId;
+  const service = serviceKey.replace(/_/g, " ");
+  return `Best ${titleCase(service)} in ${titleCase(canonicalLocation)}`;
+}
+
+/** Derive the parent category hub URL from DB fields. */
+function hubUrlFromDb(canonicalLocation: string | null, clusterId: string | null): string | null {
+  if (!canonicalLocation || !clusterId) return null;
+  const locKey     = canonicalLocation.replace(/\s+/g, "_");
+  const serviceKey = clusterId.endsWith(`_${locKey}`)
+    ? clusterId.slice(0, -(locKey.length + 1))
+    : clusterId;
+  const categorySlug  = serviceKey.replace(/_/g, "-");
+  const locationSlug  = canonicalLocation.replace(/\s+/g, "-");
+  return `/${locationSlug}/${categorySlug}`;
+}
+
+function brandToSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function scoreColor(rate: number): string {
@@ -169,6 +202,8 @@ const CSS = `
   .answer-box { background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-left: 3px solid #6366f1; border-radius: 10px; padding: 16px 20px; margin: 20px 0 28px; font-size: 15px; line-height: 1.7; color: #cbd5e1; }
   .answer-box strong { color: #fff; }
   .answer-box .stat { color: #a5b4fc; }
+  .hub-link { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.15); border-radius: 9px; text-decoration: none; font-size: 13px; color: #818cf8; margin-bottom: 24px; width: fit-content; }
+  .hub-link:hover { background: rgba(99,102,241,0.1); color: #a5b4fc; }
   .section-label { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
   .rankings { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
   .brand-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px 18px; }
@@ -179,6 +214,8 @@ const CSS = `
   .brand-content { flex: 1; }
   .brand-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
   .brand-name { font-weight: 600; font-size: 15px; color: #f1f5f9; margin-bottom: 2px; }
+  .brand-name a { color: #f1f5f9; text-decoration: none; }
+  .brand-name a:hover { color: #a5b4fc; text-decoration: underline; }
   .brand-domain { font-size: 11px; color: #374151; font-family: monospace; }
   .brand-score { text-align: right; }
   .score-pct { font-size: 20px; font-weight: 700; }
@@ -211,12 +248,26 @@ function buildQueryPageHtml(opts: {
   slug: string;
   canonicalUrl: string;
   robots: string;
-  page: { evidenceScore: number; brandCount: number; lastUpdatedAt: Date | null; clusterId: string | null };
+  canonicalLocation: string | null;
+  clusterId: string | null;
+  page: { evidenceScore: number; brandCount: number; lastUpdatedAt: Date | null };
   version: PageVersion | null;
-  related: Array<{ canonicalSlug: string; canonicalQuery: string }>;
+  related: RelatedPage[];
 }): string {
-  const { slug, canonicalUrl, robots, page, version, related } = opts;
-  const h1 = formatH1(slug);
+  const { slug, canonicalUrl, robots, canonicalLocation, clusterId, page, version, related } = opts;
+
+  // H1 derived from DB fields — never parse the slug
+  const h1 = h1FromDb(canonicalLocation, clusterId);
+
+  // Derive hub URL from DB fields
+  const hubUrl = hubUrlFromDb(canonicalLocation, clusterId);
+  const locTitle = canonicalLocation ? titleCase(canonicalLocation) : "";
+  const locKey = (canonicalLocation ?? "").replace(/\s+/g, "_");
+  const serviceKey = (clusterId ?? "").endsWith(`_${locKey}`)
+    ? (clusterId ?? "").slice(0, -(locKey.length + 1))
+    : (clusterId ?? "");
+  const catTitle = titleCase(serviceKey.replace(/_/g, " "));
+
   const snapshot: RankingSnapshot = version?.rankingSnapshotJson ?? {};
   const brands: BrandEntry[] = snapshot.brands ?? [];
   const authSources: string[] = snapshot.authority_sources ?? [];
@@ -232,10 +283,15 @@ function buildQueryPageHtml(opts: {
 
   const jsonLd = buildJsonLd({ canonicalUrl, h1, slug, brands, lastUpdated, promptCount, dataVersion });
 
+  // ── Hub link ───────────────────────────────────────────────────
+  const hubLinkHtml = hubUrl
+    ? `<a href="${hubUrl}" class="hub-link">📂 View all ${catTitle} rankings in ${locTitle} →</a>`
+    : "";
+
   // ── Related query rows ─────────────────────────────────────────
   const relatedHtml = related.length > 0
     ? related.map((r) => {
-        const rH1 = formatH1(r.canonicalSlug);
+        const rH1 = h1FromDb(r.canonicalLocation, r.clusterId);
         return `<a href="/${r.canonicalSlug}" class="related-link">${rH1} <span>›</span></a>`;
       }).join("\n")
     : `<p style="font-size:13px;color:#374151;">No related queries yet.</p>`;
@@ -252,6 +308,7 @@ function buildQueryPageHtml(opts: {
         const domainChips = b.domain
           ? `<div class="brand-sources"><span class="source-chip">${b.domain}</span></div>`
           : "";
+        const brandSlug = brandToSlug(b.name);
         return `
           <div class="brand-card ${i === 0 ? "top" : ""}">
             <div class="brand-row">
@@ -259,7 +316,7 @@ function buildQueryPageHtml(opts: {
               <div class="brand-content">
                 <div class="brand-header">
                   <div>
-                    <div class="brand-name">${b.name}</div>
+                    <div class="brand-name"><a href="/brand/${brandSlug}">${b.name}</a></div>
                     ${b.domain ? `<div class="brand-domain">${b.domain}</div>` : ""}
                   </div>
                   <div class="brand-score">
@@ -317,6 +374,7 @@ ${jsonLd}
     <a href="/">Home</a>
     <span>›</span>
     <a href="/directory">Directory</a>
+    ${hubUrl ? `<span>›</span><a href="${hubUrl}">${catTitle} in ${locTitle}</a>` : ""}
     <span>›</span>
     <span style="color:#94a3b8">${h1}</span>
   </div>
@@ -340,6 +398,9 @@ ${jsonLd}
       The top-ranked brand appeared in
       <span class="stat">${Math.round(topRate * 100)}% of AI responses</span>.
     </div>
+
+    <!-- Hub link — parent category page -->
+    ${hubLinkHtml}
 
     <!-- §3 + §4 Ranked list with evidence -->
     <div class="section-label">AI Visibility Rankings</div>
@@ -392,7 +453,7 @@ export function registerQueryPageRoutes(app: Express): void {
     }
 
     try {
-      // ── Fetch page row ─────────────────────────────────────────
+      // ── Fetch page row (all columns) ───────────────────────────
       const [page] = await db
         .select()
         .from(directoryPages)
@@ -426,12 +487,13 @@ export function registerQueryPageRoutes(app: Express): void {
         };
       }
 
-      // ── Related queries ─────────────────────────────────────────
-      const related = page.clusterId
+      // ── Related queries (fetch DB fields needed for H1) ────────
+      const related: RelatedPage[] = page.clusterId
         ? await db
             .select({
-              canonicalSlug: directoryPages.canonicalSlug,
-              canonicalQuery: directoryPages.canonicalQuery,
+              canonicalSlug:     directoryPages.canonicalSlug,
+              canonicalLocation: directoryPages.canonicalLocation,
+              clusterId:         directoryPages.clusterId,
             })
             .from(directoryPages)
             .where(
@@ -454,11 +516,12 @@ export function registerQueryPageRoutes(app: Express): void {
         slug: rawSlug,
         canonicalUrl,
         robots,
+        canonicalLocation: page.canonicalLocation,
+        clusterId:         page.clusterId,
         page: {
           evidenceScore: page.evidenceScore,
-          brandCount: page.brandCount,
+          brandCount:    page.brandCount,
           lastUpdatedAt: page.lastUpdatedAt,
-          clusterId: page.clusterId,
         },
         version: versionData,
         related,

@@ -39,6 +39,8 @@ interface RankingSnapshot {
 interface ClusterPage {
   canonicalSlug: string;
   canonicalQuery: string;
+  canonicalLocation: string | null;
+  clusterId: string | null;
   evidenceScore: number;
   brandCount: number;
   rankingSnapshot: RankingSnapshot | null;
@@ -63,12 +65,19 @@ function toTitleCase(str: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function formatQueryH1(slug: string): string {
-  const withoutBest = slug.replace(/^best-/, "");
-  const parts = withoutBest.split("-");
-  const loc     = parts[parts.length - 1];
-  const service = parts.slice(0, -1).join(" ");
-  return `Best ${toTitleCase(service)} in ${toTitleCase(loc)}`;
+/**
+ * Derive H1 from stored DB fields — never parse the slug.
+ * canonicalLocation = "abu dhabi" | "dubai" etc. (space-separated after normalisation)
+ * clusterId         = "home_healthcare_abu_dhabi" etc.
+ */
+function h1FromDb(canonicalLocation: string | null, clusterId: string | null): string {
+  if (!canonicalLocation || !clusterId) return "AI Search Rankings";
+  const locKey     = canonicalLocation.replace(/\s+/g, "_");
+  const serviceKey = clusterId.endsWith(`_${locKey}`)
+    ? clusterId.slice(0, -(locKey.length + 1))
+    : clusterId;
+  const service = serviceKey.replace(/_/g, " ");
+  return `Best ${toTitleCase(service)} in ${toTitleCase(canonicalLocation)}`;
 }
 
 function canonicalBase(req: Request): string {
@@ -88,15 +97,18 @@ async function buildHubData(
   location: string,
   category: string,
 ): Promise<HubResult> {
-  const clusterId = `${category.replace(/-/g, "_")}_${location}`;
+  // Normalise both sides to underscores so "abu-dhabi" → "abu_dhabi" matches DB
+  const clusterId = `${category.replace(/-/g, "_")}_${location.replace(/-/g, "_")}`;
 
   const pages = await db
     .select({
-      canonicalSlug:   directoryPages.canonicalSlug,
-      canonicalQuery:  directoryPages.canonicalQuery,
-      evidenceScore:   directoryPages.evidenceScore,
-      brandCount:      directoryPages.brandCount,
-      rankingSnapshot: directoryPages.rankingSnapshot,
+      canonicalSlug:     directoryPages.canonicalSlug,
+      canonicalQuery:    directoryPages.canonicalQuery,
+      canonicalLocation: directoryPages.canonicalLocation,
+      clusterId:         directoryPages.clusterId,
+      evidenceScore:     directoryPages.evidenceScore,
+      brandCount:        directoryPages.brandCount,
+      rankingSnapshot:   directoryPages.rankingSnapshot,
     })
     .from(directoryPages)
     .where(
@@ -143,11 +155,13 @@ async function buildHubData(
       clusterId,
       pageCount: pages.length,
       pages: pages.map((p) => ({
-        canonicalSlug:   p.canonicalSlug,
-        canonicalQuery:  p.canonicalQuery,
-        evidenceScore:   p.evidenceScore,
-        brandCount:      p.brandCount,
-        rankingSnapshot: p.rankingSnapshot as RankingSnapshot | null,
+        canonicalSlug:     p.canonicalSlug,
+        canonicalQuery:    p.canonicalQuery,
+        canonicalLocation: p.canonicalLocation,
+        clusterId:         p.clusterId,
+        evidenceScore:     p.evidenceScore,
+        brandCount:        p.brandCount,
+        rankingSnapshot:   p.rankingSnapshot as RankingSnapshot | null,
       })),
       topBrands,
       allAuthoritySources: [...authSet].sort(),
@@ -267,7 +281,8 @@ function buildHubHtml(hub: HubData, canonicalUrl: string): string {
 
   const pageCards = hub.pages
     .map((p) => {
-      const h1 = formatQueryH1(p.canonicalSlug);
+      // Use DB fields for H1 — never parse the slug
+      const h1 = h1FromDb(p.canonicalLocation, p.clusterId);
       return `
       <div class="page-card">
         <div>

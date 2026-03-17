@@ -41,6 +41,7 @@ interface PageOccurrence {
   slug: string;
   h1: string;
   location: string | null;
+  clusterId: string | null;
   appearanceRate: number;
   evidence: string[];
   authoritySources: string[];
@@ -76,12 +77,19 @@ function slugToBrandTitle(slug: string): string {
     .join(" ");
 }
 
-function formatQueryH1(slug: string): string {
-  const withoutBest = slug.replace(/^best-/, "");
-  const parts = withoutBest.split("-");
-  const location = parts[parts.length - 1];
-  const service  = parts.slice(0, -1).join(" ");
-  return `Best ${service.replace(/\b\w/g, (c) => c.toUpperCase())} in ${location.charAt(0).toUpperCase() + location.slice(1)}`;
+/**
+ * Derive H1 from stored DB fields — never parse the slug.
+ * Works correctly for multi-word locations like "abu dhabi".
+ */
+function h1FromDb(canonicalLocation: string | null, clusterId: string | null): string {
+  if (!canonicalLocation || !clusterId) return "AI Search Rankings";
+  const locKey     = canonicalLocation.replace(/\s+/g, "_");
+  const serviceKey = clusterId.endsWith(`_${locKey}`)
+    ? clusterId.slice(0, -(locKey.length + 1))
+    : clusterId;
+  const service = serviceKey.replace(/_/g, " ");
+  const tc = (s: string) => s.replace(/\b\w/g, (c) => c.toUpperCase());
+  return `Best ${tc(service)} in ${tc(canonicalLocation)}`;
 }
 
 function scoreColor(rate: number): string {
@@ -100,9 +108,10 @@ function canonicalBase(req: Request): string {
 async function buildBrandData(brandSlug: string): Promise<BrandPageData | null> {
   const pages = await db
     .select({
-      canonicalSlug:    directoryPages.canonicalSlug,
+      canonicalSlug:     directoryPages.canonicalSlug,
       canonicalLocation: directoryPages.canonicalLocation,
-      rankingSnapshot:  directoryPages.rankingSnapshot,
+      clusterId:         directoryPages.clusterId,
+      rankingSnapshot:   directoryPages.rankingSnapshot,
     })
     .from(directoryPages)
     .where(eq(directoryPages.publishStatus, "published"));
@@ -127,8 +136,10 @@ async function buildBrandData(brandSlug: string): Promise<BrandPageData | null> 
 
     occurrences.push({
       slug:             page.canonicalSlug,
-      h1:               formatQueryH1(page.canonicalSlug),
+      // Use DB fields for H1 — never parse the slug (breaks multi-word locations)
+      h1:               h1FromDb(page.canonicalLocation, page.clusterId),
       location:         page.canonicalLocation,
+      clusterId:        page.clusterId,
       appearanceRate:   match.appearance_rate ?? 0,
       evidence:         match.evidence ?? [],
       authoritySources: snap.authority_sources ?? [],
