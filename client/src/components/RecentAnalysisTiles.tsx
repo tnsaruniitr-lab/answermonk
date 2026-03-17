@@ -153,7 +153,7 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
           display: "-webkit-box", WebkitLineClamp: 2,
           WebkitBoxOrient: "vertical", overflow: "hidden",
         }}>
-          {tile.query}
+          {tile.query.replace(/^best\s+/i, "")}
         </p>
 
         {/* Score ring + top brand */}
@@ -239,12 +239,9 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
       {/* Section header */}
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 20 }}>
         <div>
-          <h2 style={{ color: "#e2e8f0", fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>
-            Recent Analyses
+          <h2 style={{ color: "#e2e8f0", fontSize: 16, fontWeight: 700, margin: 0 }}>
+            Recent reports on most cited businesses
           </h2>
-          <p style={{ color: "#475569", fontSize: 12, margin: 0 }}>
-            Live rankings across every category — updated as analyses complete
-          </p>
         </div>
         {!isLoading && tiles.length > INITIAL_COUNT && !expanded && (
           <button

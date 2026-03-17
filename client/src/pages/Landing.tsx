@@ -448,13 +448,19 @@ function LandingInner() {
                 disabled={isProcessing || !url.trim()}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
-                className="bg-white text-black hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.2)] min-w-[120px] justify-center"
+                className="disabled:opacity-50 disabled:cursor-not-allowed px-7 py-3.5 rounded-xl font-bold flex items-center gap-2 transition-all duration-300 min-w-[130px] justify-center text-[15px]"
+                style={{
+                  background: "linear-gradient(135deg, #ffffff 0%, #e8eeff 100%)",
+                  color: "#0a0f1e",
+                  boxShadow: "0 0 0 1px rgba(255,255,255,0.6), 0 0 30px rgba(255,255,255,0.25), 0 0 60px rgba(139,92,246,0.2), 0 4px 20px rgba(0,0,0,0.5)",
+                  letterSpacing: "-0.01em",
+                }}
                 data-testid="button-analyze"
               >
                 {isProcessing ? (
                   <><Loader2 className="w-4 h-4 animate-spin" />Analyzing</>
                 ) : (
-                  <>Analyze<ArrowRight className={`w-4 h-4 transition-transform duration-300 ${isHovered ? "translate-x-1" : ""}`} /></>
+                  <>Analyze <ArrowRight className={`w-4 h-4 transition-transform duration-300 ${isHovered ? "translate-x-1" : ""}`} /></>
                 )}
               </button>
             </div>
