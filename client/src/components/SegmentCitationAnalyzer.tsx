@@ -270,6 +270,7 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
   const [siPromptText, setSiPromptText] = useState<string>("");
   const [citationSources, setCitationSources] = useState<any[] | null>(null);
   const [authoritySources, setAuthoritySources] = useState<any[] | null>(null);
+  const [brandMentions, setBrandMentions] = useState<any[] | null>(null);
   const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
   const [classifyLoading, setClassifyLoading] = useState(false);
   const [classifyResult, setClassifyResult] = useState<{ updated: number; total: number; tokens: number; costUsd: number } | null>(null);
@@ -323,6 +324,7 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
         setCitationSources(data.categories);
         setExpandedCats(new Set(data.categories.slice(0, 2).map((c: any) => c.key)));
         if (data.authoritySources) setAuthoritySources(data.authoritySources);
+        if (data.brandMentions) setBrandMentions(data.brandMentions);
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -961,6 +963,42 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
                           </div>
                         );
                       })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Brand & Competitor Mentions sub-panel */}
+                {brandMentions && brandMentions.length > 0 && (
+                  <div className="mb-4 bg-rose-50/60 dark:bg-rose-950/20 rounded-lg border border-rose-200/60 dark:border-rose-800/40 overflow-hidden">
+                    <div className="px-3 py-2 border-b border-rose-200/60 dark:border-rose-800/40 flex items-center gap-1.5">
+                      <span className="text-[11px] font-semibold text-rose-900 dark:text-rose-200">Brand & Competitor Mentions</span>
+                      <span className="text-[10px] text-rose-600/70 dark:text-rose-400/60 ml-1">brand domains cited by LLMs — excluded from authority ranking</span>
+                    </div>
+                    <div className="divide-y divide-rose-200/40 dark:divide-rose-800/30">
+                      {brandMentions.map((src: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2.5 px-3 py-2">
+                          <span className="text-[11px] text-rose-400 font-bold w-4 shrink-0 text-right">{i + 1}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <a
+                                href={`https://${src.domain}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs font-semibold text-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:underline truncate"
+                              >
+                                {src.domain}
+                              </a>
+                              <span className="text-[10px] px-1.5 py-0 rounded-full font-medium bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 shrink-0">Brand</span>
+                            </div>
+                            <span className="text-[10px] text-rose-600/60 dark:text-rose-400/50">{src.appearances}× cited</span>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {src.inChatgpt && <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 px-1 rounded font-medium">GPT</span>}
+                            {src.inGemini && <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 px-1 rounded font-medium">Gem</span>}
+                            {src.inClaude && <span className="text-[10px] bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400 px-1 rounded font-medium">Cla</span>}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}

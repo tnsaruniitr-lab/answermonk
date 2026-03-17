@@ -240,6 +240,106 @@ function requireAdmin(req: any, res: any, next: any) {
   next();
 }
 
+async function runLlmClassification(sessionId: number): Promise<{ updated: number; total: number; tokens: number; costUsd: number }> {
+  const { pool } = await import("./db");
+  const { rows } = await pool.query<{ id: number; url: string; domain: string; title: string; url_category: string }>(
+    `SELECT id, url, domain, title, url_category FROM citation_urls WHERE session_id = $1 AND url IS NOT NULL`,
+    [sessionId]
+  );
+  if (rows.length === 0) return { updated: 0, total: 0, tokens: 0, costUsd: 0 };
+
+  const VALID_CATEGORIES = [
+    "Community Thread", "Jobs Listing", "Social Media Profile",
+    "Government / Regulatory", "Market Research", "News / PR",
+    "Review Platform", "Directory Listing", "Comparison Article",
+    "Brand Blog / Article", "Brand About / Contact", "Brand Service Page",
+    "Brand Homepage", "Brand Inner Page",
+  ];
+
+  const CHUNK_SIZE = 80;
+  const chunks: typeof rows[] = [];
+  for (let i = 0; i < rows.length; i += CHUNK_SIZE) chunks.push(rows.slice(i, i + CHUNK_SIZE));
+
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
+  const classifications: { id: number; category: string }[] = [];
+
+  for (const chunk of chunks) {
+    const urlList = chunk.map((r, i) =>
+      `${i + 1}. domain: ${r.domain || ""} | title: ${r.title || "(no title)"} | url: ${r.url}`
+    ).join("\n");
+
+    const systemPrompt = `You are a URL page-type classifier. Classify each URL into exactly one of these categories:
+${VALID_CATEGORIES.map(c => `- "${c}"`).join("\n")}
+
+Rules:
+- "Brand Homepage": root domain with no path, or bare domain
+- "Brand Service Page": a brand's own service/product page
+- "Brand Blog / Article": a brand's own blog or editorial content
+- "Brand About / Contact": about, team, contact, FAQ, accreditation pages
+- "Brand Inner Page": any other page on a brand's own domain
+- "Review Platform": third-party review sites (Trustpilot, Doctify, Okadoc, GoProfiled, etc.)
+- "Directory Listing": health/business directories, aggregator listings
+- "News / PR": news articles, press releases, media coverage
+- "Comparison Article": "best X", "top 10", comparison or guide articles
+- "Government / Regulatory": .gov domains, regulatory authority pages
+- "Community Thread": Reddit, Quora, forums, expat communities
+- "Social Media Profile": LinkedIn, Instagram, Facebook, Twitter/X pages
+- "Market Research": Statista, Mordor Intelligence, market reports
+- "Jobs Listing": Indeed, LinkedIn jobs, careers pages
+
+Return ONLY valid JSON in this exact shape: {"classifications": [{"id": <number>, "category": "<category>"}, ...]} for every item. No extra text.`;
+
+    const userPrompt = `Classify these ${chunk.length} URLs:\n${urlList}`;
+
+    const response = await anthropicClassifier.messages.create({
+      model: "claude-sonnet-4-5",
+      system: systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+      max_tokens: 2000,
+      temperature: 0.1,
+    });
+
+    totalInputTokens += response.usage?.input_tokens || 0;
+    totalOutputTokens += response.usage?.output_tokens || 0;
+
+    let parsed: any = null;
+    try {
+      const raw = response.content[0].type === "text" ? response.content[0].text : "{}";
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      const obj = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
+      parsed = Array.isArray(obj) ? obj : (obj.classifications || obj.results || obj.urls || Object.values(obj)[0]);
+    } catch { parsed = []; }
+
+    if (Array.isArray(parsed)) {
+      for (const item of parsed) {
+        const rowIndex = (item.id ?? 0) - 1;
+        const row = chunk[rowIndex];
+        if (row && VALID_CATEGORIES.includes(item.category)) {
+          classifications.push({ id: row.id, category: item.category });
+        }
+      }
+    }
+  }
+
+  for (const { id, category } of classifications) {
+    await pool.query(
+      `UPDATE citation_urls SET llm_pagetype_classification = $1 WHERE id = $2`,
+      [category, id]
+    );
+  }
+
+  const costUsd = (totalInputTokens / 1_000_000) * CLAUDE_INPUT_COST_PER_1M
+    + (totalOutputTokens / 1_000_000) * CLAUDE_OUTPUT_COST_PER_1M;
+
+  return {
+    updated: classifications.length,
+    total: rows.length,
+    tokens: totalInputTokens + totalOutputTokens,
+    costUsd: Math.round(costUsd * 10000) / 10000,
+  };
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -1554,6 +1654,12 @@ export async function registerRoutes(
         } catch (citErr) {
           console.error("Failed to populate citation_urls:", citErr);
         }
+        try {
+          const classifyResult = await runLlmClassification(sessionId);
+          console.log(`[segment-analysis] Auto-classified ${classifyResult.updated}/${classifyResult.total} URLs for session ${sessionId} ($${classifyResult.costUsd})`);
+        } catch (classifyErr) {
+          console.error("Failed to auto-classify citation URLs:", classifyErr);
+        }
       } else if (groupKey && typeof groupKey === "string") {
         try {
           const cacheKey = `group:${groupKey}:citation`;
@@ -1843,20 +1949,7 @@ export async function registerRoutes(
         ORDER BY appearances DESC
       `);
 
-      // Infer category from domain name heuristics
-      function inferCategory(domain: string): string {
-        const d = domain.toLowerCase();
-        if (d.includes(".gov.") || d.startsWith("gov.") || d.includes("mohap") || d.includes("dha.gov") || d.includes("haad")) return "government";
-        if (d === "reddit.com" || d === "facebook.com" || d === "instagram.com" || d === "linkedin.com" || d === "twitter.com" || d === "x.com" || d === "youtube.com" || d === "tiktok.com" || d.endsWith(".reddit.com") || d.endsWith(".facebook.com") || d.endsWith(".instagram.com") || d.endsWith(".linkedin.com") || d.endsWith(".youtube.com")) return "social_media";
-        if (d.includes("trustpilot") || d.includes("yelp.com") || d.includes("google.com/maps") || d.includes("tripadvisor") || d.includes("rannkly") || d.includes("birdeye")) return "review_platform";
-        if (d.includes("gulfnews") || d.includes("khaleejtimes") || d.includes("arabianbusiness") || d.includes("thenational") || d.includes("zawya") || d.includes("economictimes") || d.includes("ladyleadmag") || d.includes("timeoutdubai")) return "news_media";
-        if (d.includes("healthfinder") || d.includes("doctorlist") || d.includes("nearme") || d.includes("clinicin") || d.includes("okadoc") || d.includes("zocdoc") || d.includes("bookimed") || d.includes("gooddoctor") || d.includes("fresha.com")) return "healthcare_directory";
-        if (d.includes("asterclinic") || d.includes("aster.") || d.includes("mediclinic") || d.includes("american.hospital") || d.includes("cloverleafclinic") || d.includes("sidrahc") || d.includes("feelvaleo")) return "hospital_clinic";
-        if (d.endsWith(".ae") || d.includes("health") || d.includes("care") || d.includes("clinic") || d.includes("medical") || d.includes("nurse") || d.includes("doctor") || d.includes("pharma")) return "healthcare_provider";
-        return "general_web";
-      }
-
-      // Build a map from the direct rows
+      // Build a map from the direct rows (use "pending" category — will be overridden by LLM below)
       const domainMap = new Map<string, {
         domain: string; category: string; appearances: number;
         inChatgpt: boolean; inGemini: boolean; inClaude: boolean; segmentCount: number;
@@ -1866,7 +1959,7 @@ export async function registerRoutes(
         const key = String(row.domain).toLowerCase();
         domainMap.set(key, {
           domain: String(row.domain),
-          category: String(row.domain_category || "general_web"),
+          category: "general_web",
           appearances: Number(row.total_appearances),
           inChatgpt: Number(row.in_chatgpt) === 1,
           inGemini: Number(row.in_gemini) === 1,
@@ -1882,14 +1975,12 @@ export async function registerRoutes(
         const geminiAppearances = Number(row.appearances);
         const existing = domainMap.get(resolvedDomain);
         if (existing) {
-          // Domain already in direct results — add Gemini appearances and mark inGemini
           existing.appearances += geminiAppearances;
           existing.inGemini = true;
         } else {
-          // New domain only seen via Gemini redirects
           domainMap.set(resolvedDomain, {
             domain: resolvedDomain,
-            category: inferCategory(resolvedDomain),
+            category: "general_web",
             appearances: geminiAppearances,
             inChatgpt: false,
             inGemini: true,
@@ -1899,17 +1990,53 @@ export async function registerRoutes(
         }
       }
 
+      // Apply LLM modal classification per domain from citation_urls
+      // LLM categories map to internal weight categories; any containing "Brand" → "brand"
+      const LLM_TO_INTERNAL: Record<string, string> = {
+        "Government / Regulatory": "government",
+        "News / PR": "news_media",
+        "Review Platform": "review_platform",
+        "Directory Listing": "directory",
+        "Community Thread": "social_media",
+        "Social Media Profile": "social_media",
+        "Comparison Article": "comparison",
+        "Market Research": "comparison",
+        "Jobs Listing": "general_web",
+      };
+      const { pool } = await import("./db");
+      const llmResult = await pool.query(
+        `SELECT domain, llm_pagetype_classification, COUNT(*) as cnt
+         FROM citation_urls
+         WHERE session_id = $1 AND llm_pagetype_classification IS NOT NULL AND domain IS NOT NULL
+         GROUP BY domain, llm_pagetype_classification
+         ORDER BY domain, cnt DESC`,
+        [id]
+      );
+      // Build modal per domain (first row per domain = most frequent category)
+      const llmModalMap = new Map<string, string>();
+      for (const row of llmResult.rows) {
+        const d = String(row.domain).toLowerCase();
+        if (!llmModalMap.has(d)) llmModalMap.set(d, String(row.llm_pagetype_classification));
+      }
+      // Apply to domainMap
+      for (const [key, entry] of domainMap.entries()) {
+        const llmCat = llmModalMap.get(key);
+        if (llmCat) {
+          entry.category = llmCat.toLowerCase().includes("brand")
+            ? "brand"
+            : (LLM_TO_INTERNAL[llmCat] ?? "general_web");
+        }
+      }
+
       const CATEGORY_LABELS: Record<string, string> = {
-        healthcare_provider: "Healthcare Providers",
-        hospital_clinic: "Hospitals & Clinics",
-        healthcare_directory: "Healthcare Directories",
         government: "Government & Regulatory",
-        general_web: "General Web",
-        review_platform: "Review Platforms",
-        social_media: "Social Media",
         news_media: "News & Media",
-        ecommerce: "E-commerce",
-        comparison: "Comparison Pages",
+        review_platform: "Review Platforms",
+        directory: "Directories",
+        social_media: "Social Media",
+        general_web: "General Web",
+        comparison: "Comparison & Research",
+        brand: "Brand / Competitor",
       };
 
       const grouped: Record<string, any[]> = {};
@@ -1936,31 +2063,27 @@ export async function registerRoutes(
         }))
         .sort((a, b) => b.totalAppearances - a.totalAppearances);
 
-      // Authority sources: third-party validators, not competitor brands
-      const COMPETITOR_CATS = new Set(["healthcare_provider", "hospital_clinic"]);
       const CATEGORY_WEIGHT: Record<string, number> = {
         government: 1.8,
         news_media: 1.5,
         review_platform: 1.4,
-        healthcare_directory: 1.3,
+        directory: 1.3,
         social_media: 1.2,
-        general_web: 1.0,
-        ecommerce: 1.0,
         comparison: 1.1,
+        general_web: 1.0,
       };
       const CATEGORY_WHY: Record<string, string> = {
         government: "Government & regulatory credentialing source",
         news_media: "Authoritative media coverage",
         review_platform: "Third-party trust & reviews aggregator",
-        healthcare_directory: "Healthcare-specific listing & directory",
+        directory: "Listing & directory platform",
         social_media: "Public community discussion & social proof",
         general_web: "Third-party general reference",
-        ecommerce: "Marketplace or booking platform",
         comparison: "Comparison / ranking platform",
       };
 
       const authoritySources = Array.from(domainMap.values())
-        .filter(e => !COMPETITOR_CATS.has(e.category))
+        .filter(e => e.category !== "brand")
         .map(e => {
           const engineCount = (e.inChatgpt ? 1 : 0) + (e.inGemini ? 1 : 0) + (e.inClaude ? 1 : 0);
           const crossEngineMultiplier = engineCount === 3 ? 2.0 : engineCount === 2 ? 1.5 : 1.0;
@@ -1982,7 +2105,23 @@ export async function registerRoutes(
         .sort((a, b) => b.authorityScore - a.authorityScore)
         .slice(0, 25);
 
-      res.json({ categories, authoritySources });
+      const brandMentions = Array.from(domainMap.values())
+        .filter(e => e.category === "brand")
+        .map(e => {
+          const engineCount = (e.inChatgpt ? 1 : 0) + (e.inGemini ? 1 : 0) + (e.inClaude ? 1 : 0);
+          return {
+            domain: e.domain,
+            appearances: e.appearances,
+            inChatgpt: e.inChatgpt,
+            inGemini: e.inGemini,
+            inClaude: e.inClaude,
+            engineCount,
+          };
+        })
+        .sort((a, b) => b.appearances - a.appearances)
+        .slice(0, 25);
+
+      res.json({ categories, authoritySources, brandMentions });
     } catch (err) {
       console.error("[citation-sources] Error:", err);
       res.status(500).json({ message: String(err) });
@@ -1993,104 +2132,9 @@ export async function registerRoutes(
     try {
       const sessionId = parseInt(req.params.id, 10);
       if (isNaN(sessionId)) { res.status(400).json({ message: "Invalid session ID" }); return; }
-
-      const { pool } = await import("./db");
-      const { rows } = await pool.query<{ id: number; url: string; domain: string; title: string; url_category: string }>(
-        `SELECT id, url, domain, title, url_category FROM citation_urls WHERE session_id = $1 AND url IS NOT NULL`,
-        [sessionId]
-      );
-      if (rows.length === 0) { res.status(404).json({ message: "No citation URLs found for this session. Run citation analysis first." }); return; }
-
-      const VALID_CATEGORIES = [
-        "Community Thread", "Jobs Listing", "Social Media Profile",
-        "Government / Regulatory", "Market Research", "News / PR",
-        "Review Platform", "Directory Listing", "Comparison Article",
-        "Brand Blog / Article", "Brand About / Contact", "Brand Service Page",
-        "Brand Homepage", "Brand Inner Page",
-      ];
-
-      const CHUNK_SIZE = 80;
-      const chunks: typeof rows[] = [];
-      for (let i = 0; i < rows.length; i += CHUNK_SIZE) chunks.push(rows.slice(i, i + CHUNK_SIZE));
-
-      let totalInputTokens = 0;
-      let totalOutputTokens = 0;
-      const classifications: { id: number; category: string }[] = [];
-
-      for (const chunk of chunks) {
-        const urlList = chunk.map((r, i) =>
-          `${i + 1}. domain: ${r.domain || ""} | title: ${r.title || "(no title)"} | url: ${r.url}`
-        ).join("\n");
-
-        const systemPrompt = `You are a URL page-type classifier. Classify each URL into exactly one of these categories:
-${VALID_CATEGORIES.map(c => `- "${c}"`).join("\n")}
-
-Rules:
-- "Brand Homepage": root domain with no path, or bare domain
-- "Brand Service Page": a brand's own service/product page
-- "Brand Blog / Article": a brand's own blog or editorial content
-- "Brand About / Contact": about, team, contact, FAQ, accreditation pages
-- "Brand Inner Page": any other page on a brand's own domain
-- "Review Platform": third-party review sites (Trustpilot, Doctify, Okadoc, GoProfiled, etc.)
-- "Directory Listing": health/business directories, aggregator listings
-- "News / PR": news articles, press releases, media coverage
-- "Comparison Article": "best X", "top 10", comparison or guide articles
-- "Government / Regulatory": .gov domains, regulatory authority pages
-- "Community Thread": Reddit, Quora, forums, expat communities
-- "Social Media Profile": LinkedIn, Instagram, Facebook, Twitter/X pages
-- "Market Research": Statista, Mordor Intelligence, market reports
-- "Jobs Listing": Indeed, LinkedIn jobs, careers pages
-
-Return ONLY valid JSON in this exact shape: {"classifications": [{"id": <number>, "category": "<category>"}, ...]} for every item. No extra text.`;
-
-        const userPrompt = `Classify these ${chunk.length} URLs:\n${urlList}`;
-
-        const response = await anthropicClassifier.messages.create({
-          model: "claude-sonnet-4-5",
-          system: systemPrompt,
-          messages: [{ role: "user", content: userPrompt }],
-          max_tokens: 2000,
-          temperature: 0.1,
-        });
-
-        totalInputTokens += response.usage?.input_tokens || 0;
-        totalOutputTokens += response.usage?.output_tokens || 0;
-
-        let parsed: any = null;
-        try {
-          const raw = response.content[0].type === "text" ? response.content[0].text : "{}";
-          const jsonMatch = raw.match(/\{[\s\S]*\}/);
-          const obj = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
-          parsed = Array.isArray(obj) ? obj : (obj.classifications || obj.results || obj.urls || Object.values(obj)[0]);
-        } catch { parsed = []; }
-
-        if (Array.isArray(parsed)) {
-          for (const item of parsed) {
-            const rowIndex = (item.id ?? 0) - 1;
-            const row = chunk[rowIndex];
-            if (row && VALID_CATEGORIES.includes(item.category)) {
-              classifications.push({ id: row.id, category: item.category });
-            }
-          }
-        }
-      }
-
-      for (const { id, category } of classifications) {
-        await pool.query(
-          `UPDATE citation_urls SET llm_pagetype_classification = $1 WHERE id = $2`,
-          [category, id]
-        );
-      }
-
-      const costUsd = (totalInputTokens / 1_000_000) * CLAUDE_INPUT_COST_PER_1M
-        + (totalOutputTokens / 1_000_000) * CLAUDE_OUTPUT_COST_PER_1M;
-
-      res.json({
-        updated: classifications.length,
-        total: rows.length,
-        tokens: totalInputTokens + totalOutputTokens,
-        costUsd: Math.round(costUsd * 10000) / 10000,
-      });
+      const result = await runLlmClassification(sessionId);
+      if (result.total === 0) { res.status(404).json({ message: "No citation URLs found for this session. Run citation analysis first." }); return; }
+      res.json(result);
     } catch (err) {
       console.error("[classify-citation-urls] Error:", err);
       res.status(500).json({ message: String(err) });
