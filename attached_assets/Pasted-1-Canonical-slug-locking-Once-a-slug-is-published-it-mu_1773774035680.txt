@@ -1,0 +1,123 @@
+1. Canonical slug locking
+
+Once a slug is published, it must never change, even if normalization rules evolve.
+
+Add rule:
+
+if publish_status = published
+  canonical_slug becomes immutable
+
+Otherwise links and citations will break.
+
+2. Cluster ID format standard
+
+Define the cluster format strictly now:
+
+cluster_id = {serviceType_normalized}_{canonical_location}
+
+Example:
+
+home_healthcare_dubai
+debt_collection_software_netherlands
+
+Avoid spaces, hyphens, or mixed formats.
+
+Clusters become key for:
+
+hub generation
+
+related queries
+
+comparisons
+
+Consistency matters.
+
+3. Authority source normalization
+
+Authority domains should be normalized before storage.
+
+Example mapping table:
+
+Raw	Stored
+reddit.com/r/dubai	reddit.com
+www.g2.com
+	g2.com
+dha.gov.ae/en	dha.gov.ae
+
+Otherwise the authority source list becomes noisy.
+
+4. Sitemap size control
+
+When the directory grows, one sitemap will become too large.
+
+Add rule now:
+
+/sitemap.xml → sitemap index
+/sitemaps/query-pages-1.xml
+/sitemaps/query-pages-2.xml
+/sitemaps/brands.xml
+/sitemaps/hubs.xml
+
+Google limit:
+
+50,000 URLs per sitemap
+
+Planning this early prevents migration later.
+
+5. Cache invalidation rule
+
+Since pages are cached for 1 hour:
+
+Cache-Control: public, max-age=3600
+
+Add purge trigger when:
+
+new page published
+
+ranking version updated
+
+brand page updated
+
+Otherwise cached pages may lag behind the dataset.
+
+Final implementation sequence
+
+Development should follow this order:
+
+DB schema migration (11 fields + versions table)
+
+normalization engine + slug generator
+
+evidence scoring + quality gate
+
+publish_status logic + override controls
+
+Express query page route
+
+JSON-LD generation
+
+methodology pages
+
+sitemap route
+
+brand page route
+
+category hub route
+
+comparison page route
+
+directory listing API + React page
+
+What success should look like after launch
+
+Within the first few weeks the site should contain roughly:
+
+50–150 query pages
+30–80 brand pages
+5–15 category hubs
+
+Once that graph exists:
+
+prompt → brand → category → prompt
+
+the dataset becomes crawlable and quotable.
