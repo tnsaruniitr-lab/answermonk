@@ -71,8 +71,11 @@ function SegmentResultCard({ seg, brandName }: { seg: any; brandName: string }) 
           <span className="text-green-400 leading-none" style={{ fontSize: "10px" }}>✓</span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-white text-sm font-semibold truncate">{label}</p>
-          <p className="text-slate-500 text-xs">{type} · 8 prompts</p>
+          <p className="text-white text-sm font-semibold truncate capitalize">{label}</p>
+          <span className="inline-block mt-0.5 text-[10px] font-semibold tracking-widest uppercase px-2 py-0.5 rounded-full"
+            style={{ background: type === "customer" ? "rgba(139,92,246,0.12)" : "rgba(59,130,246,0.12)", color: type === "customer" ? "#a78bfa" : "#60a5fa", border: `1px solid ${type === "customer" ? "rgba(139,92,246,0.25)" : "rgba(59,130,246,0.25)"}` }}>
+            {type === "customer" ? "Customer" : "Service"}
+          </span>
         </div>
         <div className="text-right flex-shrink-0">
           <p className="text-2xl font-bold text-white">{appearance}%</p>
@@ -913,43 +916,6 @@ function LandingInner() {
         </div>
       </section>
 
-      {/* Feature cards */}
-      <section className="relative z-10 py-20 max-w-6xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            {
-              color: "blue",
-              icon: <Code className="w-6 h-6 text-blue-400" />,
-              title: "Prompt Network",
-              desc: "Auto-generate 25–30 intent-based prompts mapped to your exact services and customer personas. Test across query variations at scale.",
-            },
-            {
-              color: "violet",
-              icon: <Activity className="w-6 h-6 text-violet-400" />,
-              title: "Signal Intelligence",
-              desc: "Identify exactly which third-party citations, reviews, and mentions are feeding AI models and shaping your brand's narrative.",
-            },
-            {
-              color: "emerald",
-              icon: <BarChart3 className="w-6 h-6 text-emerald-400" />,
-              title: "Live Reporting",
-              desc: "Beautiful dashboards showing share of voice, competitor matrices, and clear action items to improve your AI search presence.",
-            },
-          ].map((card) => (
-            <div
-              key={card.title}
-              className="bg-gradient-to-b from-[#111827] to-[#0D1326] border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-all group"
-              data-testid={`card-feature-${card.title.toLowerCase().replace(/\s+/g, "-")}`}
-            >
-              <div className={`w-12 h-12 rounded-lg bg-${card.color}-500/10 border border-${card.color}-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                {card.icon}
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-3">{card.title}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">{card.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* Features definition list — semantic for LLM crawlers */}
       <section
