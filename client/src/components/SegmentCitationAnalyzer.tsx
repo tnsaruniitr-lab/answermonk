@@ -272,12 +272,39 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
   const [authoritySources, setAuthoritySources] = useState<any[] | null>(null);
   const [brandMentions, setBrandMentions] = useState<any[] | null>(null);
   const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
+  const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set());
+  const [domainUrls, setDomainUrls] = useState<Map<string, any[]>>(new Map());
+  const [domainUrlsLoading, setDomainUrlsLoading] = useState<Set<string>>(new Set());
   const [classifyLoading, setClassifyLoading] = useState(false);
   const [classifyResult, setClassifyResult] = useState<{ updated: number; total: number; tokens: number; costUsd: number } | null>(null);
   const [classifyError, setClassifyError] = useState<string | null>(null);
 
   const segmentsWithScores = segments.filter(s => s.scoringResult);
   const cacheId = sessionId || groupKey;
+
+  const toggleDomainExpanded = (domain: string) => {
+    const key = domain;
+    setExpandedDomains(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) { next.delete(key); return next; }
+      next.add(key);
+      return next;
+    });
+    if (!domainUrls.has(key) && sessionId) {
+      setDomainUrlsLoading(prev => new Set(prev).add(key));
+      fetch(`/api/citation-urls/list?sessionId=${sessionId}&domain=${encodeURIComponent(domain)}`)
+        .then(r => r.json())
+        .then(data => {
+          setDomainUrls(prev => new Map(prev).set(key, data.rows || []));
+        })
+        .catch(() => {
+          setDomainUrls(prev => new Map(prev).set(key, []));
+        })
+        .finally(() => {
+          setDomainUrlsLoading(prev => { const next = new Set(prev); next.delete(key); return next; });
+        });
+    }
+  };
 
   useEffect(() => {
     if (!cacheId) return;
@@ -1045,30 +1072,72 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
                       </div>
                       <div className="divide-y divide-border/30">
                         {cat.domains.map((d: any, di: number) => (
-                          <div key={di} className="flex items-center justify-between px-3 py-2 gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-[11px] text-muted-foreground w-4 shrink-0 text-right">{di + 1}</span>
-                              <a
-                                href={`https://${d.domain}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-blue-600 dark:text-blue-400 hover:underline truncate font-medium"
-                              >
-                                {d.domain}
-                              </a>
+                          <div key={di}>
+                            <div className="flex items-center justify-between px-3 py-2 gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-[11px] text-muted-foreground w-4 shrink-0 text-right">{di + 1}</span>
+                                <button
+                                  onClick={() => toggleDomainExpanded(d.domain)}
+                                  className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                                  data-testid={`btn-domain-expand-${d.domain}`}
+                                >
+                                  {expandedDomains.has(d.domain)
+                                    ? <ChevronDown className="w-3 h-3" />
+                                    : <ChevronRight className="w-3 h-3" />}
+                                </button>
+                                <a
+                                  href={`https://${d.domain}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-blue-600 dark:text-blue-400 hover:underline truncate font-medium"
+                                >
+                                  {d.domain}
+                                </a>
+                              </div>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                {d.inChatgpt && (
+                                  <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 px-1.5 py-0 rounded-full font-medium">GPT</span>
+                                )}
+                                {d.inGemini && (
+                                  <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 px-1.5 py-0 rounded-full font-medium">Gem</span>
+                                )}
+                                {d.inClaude && (
+                                  <span className="text-[10px] bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400 px-1.5 py-0 rounded-full font-medium">Cla</span>
+                                )}
+                                <span className="text-[11px] text-muted-foreground font-medium">{d.appearances}×</span>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              {d.inChatgpt && (
-                                <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 px-1.5 py-0 rounded-full font-medium">GPT</span>
-                              )}
-                              {d.inGemini && (
-                                <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 px-1.5 py-0 rounded-full font-medium">Gem</span>
-                              )}
-                              {d.inClaude && (
-                                <span className="text-[10px] bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400 px-1.5 py-0 rounded-full font-medium">Cla</span>
-                              )}
-                              <span className="text-[11px] text-muted-foreground font-medium">{d.appearances}×</span>
-                            </div>
+                            {expandedDomains.has(d.domain) && (
+                              <div className="bg-muted/30 border-t border-border/30 px-3 py-2 space-y-1">
+                                {domainUrlsLoading.has(d.domain) ? (
+                                  <p className="text-[10px] text-muted-foreground">Loading URLs…</p>
+                                ) : (domainUrls.get(d.domain) || []).length === 0 ? (
+                                  <p className="text-[10px] text-muted-foreground">No URLs found</p>
+                                ) : (domainUrls.get(d.domain) || []).map((u: any, ui: number) => (
+                                  <div key={ui} className="flex items-start gap-2">
+                                    <span className="text-[10px] text-muted-foreground shrink-0 mt-0.5">{u.citation_count}×</span>
+                                    <div className="min-w-0 flex-1">
+                                      <a
+                                        href={u.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-[10px] text-blue-600 dark:text-blue-400 hover:underline break-all leading-tight"
+                                      >
+                                        {u.url}
+                                      </a>
+                                      {u.title && (
+                                        <p className="text-[9px] text-muted-foreground truncate mt-0.5">{u.title}</p>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-0.5 shrink-0">
+                                      {Number(u.in_chatgpt) === 1 && <span className="text-[9px] bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 px-1 rounded font-medium">GPT</span>}
+                                      {Number(u.in_gemini) === 1 && <span className="text-[9px] bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 px-1 rounded font-medium">Gem</span>}
+                                      {Number(u.in_claude) === 1 && <span className="text-[9px] bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400 px-1 rounded font-medium">Cla</span>}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

@@ -1793,20 +1793,43 @@ export async function registerRoutes(
       const sessionId = parseInt(req.query.sessionId as string);
       const category = req.query.category as string | undefined;
       const engine = req.query.engine as string | undefined;
+      const domain = req.query.domain as string | undefined;
       if (isNaN(sessionId)) { res.status(400).json({ message: "sessionId required" }); return; }
       const { pool } = await import("./db");
       const conditions = ["session_id = $1"];
       const params: any[] = [sessionId];
       if (category) { params.push(category); conditions.push(`url_category = $${params.length}`); }
       if (engine) { params.push(engine); conditions.push(`engine = $${params.length}`); }
-      const result = await pool.query(`
-        SELECT url, domain, engine, url_category, segment_persona, title,
-          COUNT(*) OVER (PARTITION BY url) as citation_count
-        FROM citation_urls
-        WHERE ${conditions.join(" AND ")}
-        ORDER BY citation_count DESC, url
-      `, params);
-      res.json({ rows: result.rows });
+      if (domain) { params.push(domain); conditions.push(`domain = $${params.length}`); }
+
+      if (domain) {
+        // When filtering by domain, return deduplicated URLs with engine flags and total count
+        const result = await pool.query(`
+          SELECT
+            url,
+            domain,
+            MAX(title) as title,
+            MAX(llm_pagetype_classification) as llm_pagetype_classification,
+            COUNT(*) as citation_count,
+            MAX(CASE WHEN engine = 'chatgpt' THEN 1 ELSE 0 END) as in_chatgpt,
+            MAX(CASE WHEN engine = 'gemini' THEN 1 ELSE 0 END) as in_gemini,
+            MAX(CASE WHEN engine = 'claude' THEN 1 ELSE 0 END) as in_claude
+          FROM citation_urls
+          WHERE ${conditions.join(" AND ")}
+          GROUP BY url, domain
+          ORDER BY citation_count DESC, url
+        `, params);
+        res.json({ rows: result.rows });
+      } else {
+        const result = await pool.query(`
+          SELECT url, domain, engine, url_category, segment_persona, title,
+            COUNT(*) OVER (PARTITION BY url) as citation_count
+          FROM citation_urls
+          WHERE ${conditions.join(" AND ")}
+          ORDER BY citation_count DESC, url
+        `, params);
+        res.json({ rows: result.rows });
+      }
     } catch (err) {
       res.status(500).json({ message: "Failed to load citation URLs", error: String(err) });
     }
