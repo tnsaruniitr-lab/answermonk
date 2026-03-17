@@ -20,6 +20,7 @@ import type { Express, Request, Response } from "express";
 import { db } from "../db";
 import { directoryPages } from "@shared/schema";
 import { desc, eq } from "drizzle-orm";
+import { getAllBrandSlugs } from "./brandPageRoute";
 
 const URLS_PER_BATCH = 50_000;
 
@@ -98,13 +99,18 @@ ${urls}
 </urlset>`;
 }
 
-// ─── /sitemaps/brands.xml — placeholder for Step 9 ───────────────
+// ─── /sitemaps/brands.xml ────────────────────────────────────────
 
-function buildBrandsSitemap(): string {
-  return `${xmlHeader()}
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<!-- Brand entity pages will be added in Step 9 -->
-</urlset>`;
+async function buildBrandsSitemap(base: string): Promise<string> {
+  const slugs = await getAllBrandSlugs();
+  if (slugs.length === 0) {
+    return `${xmlHeader()}\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>`;
+  }
+  const today = new Date().toISOString().split("T")[0];
+  const urls = slugs
+    .map((s) => `  <url>\n    <loc>${base}/brand/${s}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`)
+    .join("\n");
+  return `${xmlHeader()}\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
 }
 
 // ─── /sitemaps/hubs.xml — placeholder for Step 10 ────────────────
@@ -146,8 +152,15 @@ export function registerSitemapRoutes(app: Express): void {
   });
 
   // Brand pages
-  app.get("/sitemaps/brands.xml", (_req: Request, res: Response) => {
-    respond(res, buildBrandsSitemap());
+  app.get("/sitemaps/brands.xml", async (req: Request, res: Response) => {
+    try {
+      const base = canonicalBase(req);
+      const xml  = await buildBrandsSitemap(base);
+      respond(res, xml);
+    } catch (err) {
+      console.error("[sitemap] brands error:", err);
+      res.status(500).send("Internal server error");
+    }
   });
 
   // Category hubs
