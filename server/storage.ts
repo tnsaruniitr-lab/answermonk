@@ -516,9 +516,11 @@ export class DatabaseStorage implements IStorage {
           sessionId:         sql`EXCLUDED.session_id`,
           segmentIndex:      sql`EXCLUDED.segment_index`,
           rawQuery:          sql`EXCLUDED.raw_query`,
-          canonicalQuery:    sql`EXCLUDED.canonical_query`,
-          canonicalLocation: sql`EXCLUDED.canonical_location`,
-          clusterId:         sql`EXCLUDED.cluster_id`,
+          // For published pages, canonical fields are frozen — never overwrite them.
+          // This enforces slug/location/cluster immutability once a page is live.
+          canonicalQuery:    sql`CASE WHEN directory_pages.publish_status = 'published' THEN directory_pages.canonical_query    ELSE EXCLUDED.canonical_query    END`,
+          canonicalLocation: sql`CASE WHEN directory_pages.publish_status = 'published' THEN directory_pages.canonical_location ELSE EXCLUDED.canonical_location END`,
+          clusterId:         sql`CASE WHEN directory_pages.publish_status = 'published' THEN directory_pages.cluster_id          ELSE EXCLUDED.cluster_id          END`,
           dataVersion:       sql`EXCLUDED.data_version`,
           engineSet:         sql`EXCLUDED.engine_set`,
           evidenceScore:     sql`EXCLUDED.evidence_score`,

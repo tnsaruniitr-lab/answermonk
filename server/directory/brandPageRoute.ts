@@ -60,7 +60,18 @@ interface BrandPageData {
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
-function brandToSlug(name: string): string {
+/**
+ * Prefer domain-based brand slugs to avoid name collisions (e.g. "Care+" vs "Care" → both "care").
+ * Domain is the true entity identifier: "vestacare.ae" → "vestacare-ae".
+ */
+function brandToSlug(name: string, domain?: string | null): string {
+  if (domain) {
+    return domain
+      .replace(/^www\./, "")
+      .replace(/\./g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+      .toLowerCase();
+  }
   return name
     .toLowerCase()
     .trim()
@@ -124,7 +135,7 @@ async function buildBrandData(brandSlug: string): Promise<BrandPageData | null> 
     if (!page.rankingSnapshot) continue;
     const snap = page.rankingSnapshot as RankingSnapshot;
     const match = (snap.brands ?? []).find(
-      (b) => brandToSlug(b.name) === brandSlug,
+      (b) => brandToSlug(b.name, b.domain) === brandSlug,
     );
     if (!match) continue;
 
@@ -378,7 +389,7 @@ export async function getAllBrandSlugs(): Promise<string[]> {
     if (!page.rankingSnapshot) continue;
     const snap = page.rankingSnapshot as RankingSnapshot;
     for (const b of snap.brands ?? []) {
-      slugs.add(brandToSlug(b.name));
+      slugs.add(brandToSlug(b.name, b.domain));
     }
   }
   return [...slugs].sort();

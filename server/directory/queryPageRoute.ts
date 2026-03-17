@@ -85,7 +85,18 @@ function hubUrlFromDb(canonicalLocation: string | null, clusterId: string | null
   return `/${locationSlug}/${categorySlug}`;
 }
 
-function brandToSlug(name: string): string {
+/**
+ * Prefer domain-based brand slugs to avoid name collisions (e.g. "Care+" vs "Care" → both "care").
+ * Domain is the true entity identifier: "vestacare.ae" → "vestacare-ae".
+ */
+function brandToSlug(name: string, domain?: string | null): string {
+  if (domain) {
+    return domain
+      .replace(/^www\./, "")
+      .replace(/\./g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+      .toLowerCase();
+  }
   return name
     .toLowerCase()
     .trim()
@@ -308,7 +319,7 @@ function buildQueryPageHtml(opts: {
         const domainChips = b.domain
           ? `<div class="brand-sources"><span class="source-chip">${b.domain}</span></div>`
           : "";
-        const brandSlug = brandToSlug(b.name);
+        const brandSlug = brandToSlug(b.name, b.domain);
         return `
           <div class="brand-card ${i === 0 ? "top" : ""}">
             <div class="brand-row">
@@ -460,6 +471,11 @@ export function registerQueryPageRoutes(app: Express): void {
         .where(eq(directoryPages.canonicalSlug, rawSlug));
 
       if (!page) return res.status(404).send("Not found");
+
+      // Blocked and draft pages are not public — serve a hard 404
+      if (page.publishStatus === "blocked" || page.publishStatus === "draft") {
+        return res.status(404).send("Not found");
+      }
 
       // ── Fetch latest version ────────────────────────────────────
       const [latestVersion] = await db

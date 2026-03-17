@@ -38,6 +38,12 @@ function toClusterKey(normalised: string): string {
 }
 
 export interface SegmentInput {
+  /**
+   * The verbatim user-typed query, stored in raw_query without modification.
+   * If omitted, a synthetic "best {service} in {location}" is used as a fallback.
+   * Callers should always pass the original input here for audit trail accuracy.
+   */
+  rawInput?: string;
   serviceType?: string;
   seedType?: string;
   persona?: string;
@@ -65,9 +71,9 @@ export function normaliseSegment(seg: SegmentInput): NormalisedSegment {
   ).trim();
   const rawLocation = (seg.location || "").trim();
 
-  const rawQuery = rawLocation
-    ? `best ${rawService} in ${rawLocation}`
-    : `best ${rawService}`;
+  // Use verbatim caller-provided input if present; otherwise synthesise a fallback.
+  const rawQuery = seg.rawInput?.trim()
+    ?? (rawLocation ? `best ${rawService} in ${rawLocation}` : `best ${rawService}`);
 
   const normService  = normaliseText(rawService);
   const normLocation = normaliseText(rawLocation);

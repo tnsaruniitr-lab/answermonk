@@ -19,7 +19,7 @@
 import type { Express, Request, Response } from "express";
 import { db } from "../db";
 import { directoryPages } from "@shared/schema";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { getAllBrandSlugs } from "./brandPageRoute";
 import { getAllComparisonSlugs } from "./comparisonPageRoute";
 
@@ -47,8 +47,21 @@ function respond(res: Response, xml: string): void {
 
 async function buildSitemapIndex(base: string): Promise<string> {
   const now = new Date().toISOString().split("T")[0];
+
+  // Count published query pages to determine how many batch sitemaps exist
+  const [countRow] = await db
+    .select({ count: sql<number>`COUNT(*)::int` })
+    .from(directoryPages)
+    .where(eq(directoryPages.publishStatus, "published"));
+
+  const totalPages  = countRow?.count ?? 0;
+  const batchCount  = Math.max(1, Math.ceil(totalPages / URLS_PER_BATCH));
+  const queryBatches = Array.from({ length: batchCount }, (_, i) =>
+    `${base}/sitemaps/query-pages-${i + 1}.xml`,
+  );
+
   const sitemaps = [
-    `${base}/sitemaps/query-pages-1.xml`,
+    ...queryBatches,
     `${base}/sitemaps/brands.xml`,
     `${base}/sitemaps/hubs.xml`,
     `${base}/sitemaps/comparisons.xml`,
