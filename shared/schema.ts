@@ -273,6 +273,24 @@ export const insertIncomingLeadSchema = createInsertSchema(incomingLeads).omit({
 export type IncomingLead = typeof incomingLeads.$inferSelect;
 export type InsertIncomingLead = z.infer<typeof insertIncomingLeadSchema>;
 
+export const signalConsistencyJobs = pgTable("signal_consistency_jobs", {
+  id: serial("id").primaryKey(),
+  status: text("status").notNull().default("pending"),
+  brands: jsonb("brands").notNull().$type<string[]>(),
+  engines: jsonb("engines").notNull().$type<string[]>(),
+  runCount: integer("run_count").notNull().default(10),
+  discoveredSignals: jsonb("discovered_signals").$type<Record<string, any>>(),
+  rawResponses: jsonb("raw_responses").$type<Record<string, any>>(),
+  scoringResults: jsonb("scoring_results").$type<Record<string, any>>(),
+  progress: integer("progress").notNull().default(0),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertSignalConsistencyJobSchema = createInsertSchema(signalConsistencyJobs).omit({ id: true, createdAt: true });
+export type SignalConsistencyJob = typeof signalConsistencyJobs.$inferSelect;
+export type InsertSignalConsistencyJob = z.infer<typeof insertSignalConsistencyJobSchema>;
+
 export const EvalResponseSchema = z.object({
   engine: EngineEnum,
   query: z.string(),

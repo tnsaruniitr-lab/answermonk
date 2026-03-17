@@ -35,8 +35,9 @@ const CLAUDE_INPUT_COST_PER_1M = 3.00;
 const CLAUDE_OUTPUT_COST_PER_1M = 15.00;
 import { generateReport } from "./report/generator";
 import { generateTeaserData } from "./report/teaser-generator";
-import { brandIntelligenceJobs } from "@shared/schema";
+import { brandIntelligenceJobs, signalConsistencyJobs } from "@shared/schema";
 import { runBrandIntelligence } from "./brand-intelligence/runner";
+import { runSignalConsistency } from "./signal-consistency-runner";
 import { resolveGroundingUrls } from "./report/grounding-resolver";
 import { desc, eq as eqDrizzle } from "drizzle-orm";
 import { analyzeUrl } from "./url-analyzer";
@@ -3056,6 +3057,78 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Resolve sources error:", err);
       res.status(500).json({ message: "Failed to resolve sources", error: String(err) });
+    }
+  });
+
+  // ── Signal Consistency ───────────────────────────────────────────────────
+  app.post("/api/signal-consistency", async (req, res) => {
+    try {
+      const body = z.object({
+        brands: z.array(z.string()).min(1).max(3),
+        engines: z.array(z.enum(["chatgpt", "gemini"])).min(1),
+        runCount: z.number().int().min(1).max(30).default(10),
+      }).parse(req.body);
+
+      const { db } = await import("./db");
+      const [job] = await db
+        .insert(signalConsistencyJobs)
+        .values({
+          brands: body.brands,
+          engines: body.engines,
+          runCount: body.runCount,
+          status: "pending",
+          progress: 0,
+        })
+        .returning();
+
+      runSignalConsistency(job.id).catch((err) => {
+        console.error("[signal-consistency] Async runner error:", err);
+      });
+
+      res.json({ id: job.id });
+    } catch (err) {
+      console.error("Signal consistency create error:", err);
+      res.status(500).json({ message: String(err) });
+    }
+  });
+
+  app.get("/api/signal-consistency", async (req, res) => {
+    try {
+      const { db } = await import("./db");
+      const jobs = await db
+        .select({
+          id: signalConsistencyJobs.id,
+          status: signalConsistencyJobs.status,
+          brands: signalConsistencyJobs.brands,
+          engines: signalConsistencyJobs.engines,
+          runCount: signalConsistencyJobs.runCount,
+          progress: signalConsistencyJobs.progress,
+          createdAt: signalConsistencyJobs.createdAt,
+        })
+        .from(signalConsistencyJobs)
+        .orderBy(desc(signalConsistencyJobs.createdAt))
+        .limit(20);
+      res.json(jobs);
+    } catch (err) {
+      console.error("Signal consistency list error:", err);
+      res.status(500).json({ message: String(err) });
+    }
+  });
+
+  app.get("/api/signal-consistency/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid id" });
+      const { db } = await import("./db");
+      const [job] = await db
+        .select()
+        .from(signalConsistencyJobs)
+        .where(eqDrizzle(signalConsistencyJobs.id, id));
+      if (!job) return res.status(404).json({ message: "Job not found" });
+      res.json(job);
+    } catch (err) {
+      console.error("Signal consistency get error:", err);
+      res.status(500).json({ message: String(err) });
     }
   });
 

@@ -1,0 +1,102 @@
+Prompt A — Signal Classification
+This is the most important prompt in the system. The quality of everything downstream depends on it. Here's what makes it work and the prompt itself.
+What it needs to do: Not just categorize the brand, but reason about what an LLM would need to have absorbed for this brand to show up well in AI responses. That's a different frame than "what matters for marketing."
+You are an AI visibility analyst. Your job is not to evaluate how good this brand is — 
+your job is to determine what signals would cause an AI system to confidently and 
+consistently represent this brand when someone asks about its category.
+
+You will read the website content below and identify the 4 most important signals 
+for this specific brand's AI visibility. 
+
+A signal qualifies if:
+- It is something an LLM could plausibly have absorbed from public web content
+- It is specific enough that consistent LLM responses would confirm it
+- It is something this brand is actively claiming or demonstrating, not just aspirational
+- It differentiates this brand from generic players in its category
+
+For each signal, also identify what weak or inconsistent LLM responses would look like — 
+this will be used to design the test question.
+
+Return ONLY valid JSON:
+{
+  "brand_name": "",
+  "category": "",
+  "segment": "b2b_saas | agency | service | other",
+  "signals": [
+    {
+      "id": "signal_1",
+      "name": "",
+      "why_it_matters_for_ai_visibility": "",
+      "what_strong_looks_like": "",
+      "what_weak_looks_like": "",
+      "question": ""
+    }
+  ]
+}
+
+Question rules:
+- Must NOT name the brand
+- Must be a natural question a real person would ask
+- Must be open enough that multiple brands could answer it
+- The brand should appear in the response only if it genuinely has presence on this signal
+
+Website content:
+{{WEBSITE_CONTENT}}
+The what_weak_looks_like field is the key addition. It primes Claude's own scoring later — and it makes the signal derivation more rigorous because it forces the model to think about failure modes, not just positive definitions.
+
+Prompt B — Consistency Data Collection
+This is the question sent to ChatGPT/Gemini N times. The biggest mistake here is over-engineering it. The prompt should feel like a real user query — because that's what you're simulating.
+Two variants depending on mode:
+Web search OFF (model memory mode)
+{{QUESTION}}
+Literally just the question. No system prompt, no framing. You want the model's unprimed, natural response from training knowledge only.
+Web search ON (AI search visibility mode)
+{{QUESTION}}
+
+Please answer based on current, reliable information.
+The single added line nudges the model to use its search capability without biasing the answer direction. Don't say "search the web" explicitly — let the model decide when to retrieve.
+
+Prompt C — Consistency Scoring
+This is what you send to Claude after collecting all N responses. The framing matters a lot here — Claude needs to act as a judge, not a summarizer.
+You are evaluating AI visibility consistency for a brand.
+
+Brand: {{BRAND_NAME}}
+Signal being tested: {{SIGNAL_NAME}}
+What strong looks like: {{WHAT_STRONG_LOOKS_LIKE}}
+What weak looks like: {{WHAT_WEAK_LOOKS_LIKE}}
+Question that was asked: {{QUESTION}}
+Engine tested: {{ENGINE_NAME}}
+
+Below are {{N}} independent responses from {{ENGINE_NAME}} to the same question, 
+collected across separate sessions.
+
+Your job is to evaluate: does this engine have a stable, consistent representation 
+of this brand on this specific signal — or is it uncertain, contradictory, or silent?
+
+Score strictly. Absence is a low score, not a neutral one.
+
+Return ONLY valid JSON:
+{
+  "signal_name": "",
+  "engine": "",
+  "presence_rate": 0.0,
+  "consistency_score": 0,
+  "sentiment": "positive | neutral | negative | mixed",
+  "what_the_engine_believes": "",
+  "contradictions_found": [],
+  "gaps_vs_brand_claim": "",
+  "verdict": "strong | partial | weak | absent"
+}
+
+Scoring guide:
+90-100: Brand appears in most responses with the same consistent message
+70-89:  Brand appears often but with some variation in framing
+50-69:  Brand appears sometimes, inconsistent or vague when it does
+30-49:  Brand rarely appears or is mentioned incidentally
+0-29:   Brand absent or contradicted
+
+Responses:
+{{RESPONSES_ARRAY}}
+
+Why These Three Work Together
+Prompt A forces specificity by asking what weak looks like — that output feeds directly into Prompt C as the scoring benchmark. So you're not asking Claude to judge from scratch; you're asking it to compare against criteria it helped define from the brand's own positioning. That loop is what makes the scoring defensible rather than arbitrary.

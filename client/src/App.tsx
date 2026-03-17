@@ -18,6 +18,7 @@ import Login from "@/pages/Login";
 import CitationViewer from "@/pages/CitationViewer";
 import AnalyticsDashboard from "@/pages/AnalyticsDashboard";
 import BrandIntelligence from "@/pages/BrandIntelligence";
+import SignalConsistency from "@/pages/SignalConsistency";
 import CrawlabilityReport from "@/pages/CrawlabilityReport";
 import GeoLandingPageReport from "@/pages/GeoLandingPageReport";
 import { Loader2 } from "lucide-react";
@@ -118,6 +119,7 @@ function AuthGate() {
           <Route path="/analytics/:sessionId">{(params) => <AnalyticsDashboard />}</Route>
           <Route path="/analytics" component={AnalyticsDashboard} />
           <Route path="/brand-intelligence" component={BrandIntelligence} />
+          <Route path="/signal-consistency" component={SignalConsistency} />
           <Route path="/reports/crawlability" component={CrawlabilityReport} />
           <Route path="/reports/geo-landing-page" component={GeoLandingPageReport} />
           <Route path="/reports/collectmaxx" component={CollectmaxxReport} />
