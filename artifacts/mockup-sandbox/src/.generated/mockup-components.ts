@@ -2,5 +2,6 @@
 type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/geo-comparison/CrawlabilityTable.tsx": () => import("../components/mockups/geo-comparison/CrawlabilityTable.tsx"),
-  "./components/mockups/landing/GeoLanding.tsx": () => import("../components/mockups/landing/GeoLanding.tsx")
+  "./components/mockups/landing/GeoLanding.tsx": () => import("../components/mockups/landing/GeoLanding.tsx"),
+  "./components/mockups/segment-card/SegmentResultCard.tsx": () => import("../components/mockups/segment-card/SegmentResultCard.tsx")
 };
