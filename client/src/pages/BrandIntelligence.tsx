@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ArrowLeft, Brain, Loader2, CheckCircle, XCircle, Clock, ChevronRight,
-  ExternalLink, Package, Zap, ChevronDown, ChevronUp, BarChart2, AlertTriangle, ShieldCheck, RefreshCw,
+  ExternalLink, Package, Zap, ChevronDown, ChevronUp, BarChart2, AlertTriangle, ShieldCheck, RefreshCw, HelpCircle,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +32,23 @@ const ATTRIBUTE_LABELS: Record<string, string> = {
 };
 
 const ATTRIBUTE_KEYS = Object.keys(ATTRIBUTE_LABELS);
+
+const ATTRIBUTE_GUIDE: Record<string, string> = {
+  primary_credential: "Most important specific accreditation or certification this brand holds",
+  years_in_market: "Founding year or specific number of years operating",
+  staff_qualification: "Specific qualification level of staff/team",
+  geographic_coverage: "Specific locations, cities, or regions served",
+  response_time: "Any stated delivery or response time commitment",
+  service_model: "How they deliver — subscription, on-demand, retainer, in-person, etc.",
+  service_list: "Specific named services or products this brand offers",
+  target_customer: "Most specific customer type who benefits most from this brand",
+  proof_numbers: "Specific proof points — review count, satisfaction %, award names",
+  price_tier: "'budget', 'mid-market', or 'premium' with one-line reason",
+  brand_wedge: "The ONE thing this brand is distinctively known for — not generic to category",
+  closest_competitor: "Which other brand in this market is most similar to this one",
+  known_gap: "The most important thing this brand lacks vs. the category leader",
+  identity_summary: "One sentence: 'Brand X is known for [specific thing]' OR 'No clear distinctive identity found'",
+};
 
 const EVIDENCE_COLORS: Record<string, string> = {
   EXPLICIT: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
@@ -291,6 +308,12 @@ function AttributeRow({
         <div className="w-36 shrink-0 flex items-center gap-1.5 pt-0.5">
           <span className="text-xs font-medium text-muted-foreground">{label}</span>
           <CoherenceDot pct={coherence_pct} />
+          {ATTRIBUTE_GUIDE[attrKey] && (
+            <HelpCircle
+              className="w-3 h-3 text-muted-foreground/40 hover:text-muted-foreground/70 shrink-0 cursor-help transition-colors"
+              title={`Prompt: ${ATTRIBUTE_GUIDE[attrKey]}`}
+            />
+          )}
         </div>
 
         <div className="flex-1 min-w-0 space-y-0.5">
