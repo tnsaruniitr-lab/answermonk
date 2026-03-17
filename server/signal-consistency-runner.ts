@@ -23,6 +23,8 @@ const gemini = new GoogleGenAI({
   },
 });
 
+// ── HTML helpers ──────────────────────────────────────────────────────────────
+
 function stripHtml(html: string): string {
   return html
     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, " ")
@@ -37,37 +39,52 @@ function stripHtml(html: string): string {
     .slice(0, 8000);
 }
 
-async function fetchWebsiteContent(url: string): Promise<string> {
+function extractBrandName(html: string, url: string): string {
+  const titleMatch = html.match(/<title[^>]*>([^<]{2,80})<\/title>/i);
+  const h1Match = html.match(/<h1[^>]*>([^<]{2,60})<\/h1>/i);
+  const raw = (titleMatch?.[1] ?? h1Match?.[1] ?? "")
+    .replace(/\s*[\|\-–—\/].*/, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&[a-z]+;/gi, "")
+    .trim();
+  if (raw && raw.length >= 2 && raw.length <= 60) return raw;
+  const domain = url.replace(/^https?:\/\/(www\.)?/, "").split(/[\.\/]/)[0];
+  return domain.charAt(0).toUpperCase() + domain.slice(1);
+}
+
+async function fetchWebsite(url: string): Promise<{ html: string; text: string }> {
   try {
     const normalized = url.startsWith("http") ? url : `https://${url}`;
-    const response = await fetch(normalized, {
+    const res = await fetch(normalized, {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; GEOBot/1.0)" },
       signal: AbortSignal.timeout(12000),
     });
-    const html = await response.text();
-    return stripHtml(html);
+    const html = await res.text();
+    return { html, text: stripHtml(html) };
   } catch {
-    return `[Could not fetch website content for ${url} — using URL only]`;
+    return { html: "", text: `[Could not fetch ${url}]` };
   }
 }
 
-async function discoverSignals(websiteContent: string): Promise<any> {
-  const prompt = `You are an AI visibility analyst. Your job is not to evaluate how good this brand is — your job is to determine what signals would cause an AI system to confidently and consistently represent this brand when someone asks about its category.
+// ── Prompt 1 — Signal Derivation (primary brand only) ────────────────────────
 
-You will read the website content below and identify the 4 most important signals for this specific brand's AI visibility.
+async function deriveSignals(websiteContent: string): Promise<any> {
+  const prompt = `You are an AI visibility analyst.
+
+Read the website content below and identify the 4 most important signals that determine how well this brand is represented in LLM responses.
+
+Focus only on brand-level signals: legitimacy, trust, authority, consistency of positioning, and credibility. Do not derive signals at the service or product level.
 
 A signal qualifies if:
-- It is something an LLM could plausibly have absorbed from public web content
-- It is specific enough that consistent LLM responses would confirm it
-- It is something this brand is actively claiming or demonstrating, not just aspirational
+- It reflects what the brand is fundamentally claiming about itself
+- It is something an LLM could have absorbed from public web content
 - It differentiates this brand from generic players in its category
-
-For each signal, also identify what weak or inconsistent LLM responses would look like — this will be used to design the test question.
+- Weak or absent LLM responses on this signal would indicate a real visibility or trust gap
 
 Return ONLY valid JSON:
 {
   "brand_name": "",
-  "category": "",
+  "business_type": "",
   "segment": "b2b_saas | agency | service | other",
   "signals": [
     {
@@ -76,16 +93,17 @@ Return ONLY valid JSON:
       "why_it_matters_for_ai_visibility": "",
       "what_strong_looks_like": "",
       "what_weak_looks_like": "",
-      "question": ""
+      "base_question": ""
     }
   ]
 }
 
-Question rules:
+base_question rules:
 - Must NOT name the brand
-- Must be a natural question a real person would ask
-- Must be open enough that multiple brands could answer it
-- The brand should appear in the response only if it genuinely has presence on this signal
+- Written at business type level only — no services, no locations
+- A natural question a real person would ask
+- Open enough that multiple brands could appear in the answer
+- Brand should appear only if it genuinely has presence on this signal
 
 Website content:
 ${websiteContent}`;
@@ -97,9 +115,11 @@ ${websiteContent}`;
   });
   const text = response.content[0].type === "text" ? response.content[0].text : "";
   const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error("Claude returned invalid JSON for signal discovery");
+  if (!jsonMatch) throw new Error("Claude returned invalid JSON for signal derivation");
   return JSON.parse(jsonMatch[0]);
 }
+
+// ── Prompt 2 — Response Collection ───────────────────────────────────────────
 
 async function queryChatGPT(question: string): Promise<string> {
   const prompt = `${question}\n\nPlease answer based on current, reliable information.`;
@@ -124,26 +144,31 @@ async function queryGemini(question: string): Promise<string> {
   return response.text ?? "";
 }
 
+// ── Prompt 3 — Consistency Scoring ───────────────────────────────────────────
+
 async function scoreConsistency(
   brandName: string,
+  businessType: string,
   signal: any,
   engine: string,
   responses: string[]
 ): Promise<any> {
-  const prompt = `You are evaluating AI visibility consistency for a brand.
+  const prompt = `You are a brand visibility judge.
+
+You will evaluate how consistently an AI engine represents a brand across multiple independent responses to the same question.
 
 Brand: ${brandName}
-Signal being tested: ${signal.name}
+Business type: ${businessType}
+Signal: ${signal.name}
+Question asked: ${signal.base_question}
+Engine: ${engine}
+
 What strong looks like: ${signal.what_strong_looks_like}
 What weak looks like: ${signal.what_weak_looks_like}
-Question that was asked: ${signal.question}
-Engine tested: ${engine}
 
-Below are ${responses.length} independent responses from ${engine} to the same question, collected across separate sessions.
-
-Your job is to evaluate: does this engine have a stable, consistent representation of this brand on this specific signal — or is it uncertain, contradictory, or silent?
-
+Below are ${responses.length} independent responses collected in separate sessions.
 Score strictly. Absence is a low score, not a neutral one.
+A brand that appears inconsistently is worse than one that is consistently absent — inconsistency signals noise, not presence.
 
 Return ONLY valid JSON:
 {
@@ -158,12 +183,12 @@ Return ONLY valid JSON:
   "verdict": "strong | partial | weak | absent"
 }
 
-Scoring guide:
-90-100: Brand appears in most responses with the same consistent message
-70-89:  Brand appears often but with some variation in framing
-50-69:  Brand appears sometimes, inconsistent or vague when it does
-30-49:  Brand rarely appears or is mentioned incidentally
-0-29:   Brand absent or contradicted
+Scoring:
+90-100 → Appears in most responses with the same consistent message
+70-89  → Appears often, minor variation in framing
+50-69  → Appears sometimes, vague or inconsistent when it does
+30-49  → Rarely appears or only mentioned incidentally
+0-29   → Absent or contradicted
 
 Responses:
 ${JSON.stringify(responses.map(r => r.slice(0, 600)))}`;
@@ -179,9 +204,13 @@ ${JSON.stringify(responses.map(r => r.slice(0, 600)))}`;
   return JSON.parse(jsonMatch[0]);
 }
 
+// ── DB helper ─────────────────────────────────────────────────────────────────
+
 async function updateJob(jobId: number, updates: Record<string, any>) {
   await db.update(signalConsistencyJobs).set(updates).where(eq(signalConsistencyJobs.id, jobId));
 }
+
+// ── Main runner ───────────────────────────────────────────────────────────────
 
 export async function runSignalConsistency(jobId: number): Promise<void> {
   try {
@@ -191,76 +220,96 @@ export async function runSignalConsistency(jobId: number): Promise<void> {
     const brands = (job.brands as string[]).filter(Boolean);
     const engines = (job.engines as string[]).filter(Boolean);
     const runCount = job.runCount;
+    const [primaryUrl, ...competitorUrls] = brands;
 
-    // ── Phase 1: Discover signals ──────────────────────────────────────────────
+    // ── Stage 1: Derive signals from primary brand; extract names for competitors ──
     await updateJob(jobId, { status: "discovering", progress: 5 });
 
+    const [primarySite, ...competitorSites] = await Promise.all(
+      brands.map(url => fetchWebsite(url))
+    );
+
+    // Primary brand: full signal derivation
+    let primaryData: any;
+    try {
+      primaryData = await deriveSignals(primarySite.text);
+    } catch (err) {
+      throw new Error(`Signal derivation failed for primary brand: ${err}`);
+    }
+
+    // Competitors: brand name extraction only — they inherit primary brand's signals
     const discoveredSignals: Record<string, any> = {};
-    await Promise.all(brands.map(async (url) => {
-      try {
-        const content = await fetchWebsiteContent(url);
-        discoveredSignals[url] = await discoverSignals(content);
-      } catch (err) {
-        discoveredSignals[url] = { error: String(err), brand_name: url, signals: [] };
-      }
-    }));
+    discoveredSignals[primaryUrl] = primaryData;
 
-    await updateJob(jobId, { discoveredSignals, progress: 25 });
+    competitorUrls.forEach((url, i) => {
+      const site = competitorSites[i];
+      const brandName = extractBrandName(site.html, url);
+      discoveredSignals[url] = {
+        brand_name: brandName,
+        business_type: primaryData.business_type,
+        segment: primaryData.segment,
+        signals: primaryData.signals, // inherited — same framework, different brand
+        inherited: true,
+      };
+    });
 
-    // ── Phase 2: Collect responses (Prompt B) ─────────────────────────────────
-    await updateJob(jobId, { status: "running", progress: 25 });
+    await updateJob(jobId, { discoveredSignals, progress: 20 });
 
-    const rawResponses: Record<string, Record<string, Record<string, string[]>>> = {};
-    const activeBrands = brands.filter(url => discoveredSignals[url]?.signals?.length > 0);
+    // ── Stage 2: Collect responses ONCE per signal × engine ───────────────────
+    // base_question is brand-agnostic — same responses scored per brand in Stage 3
+    await updateJob(jobId, { status: "running", progress: 20 });
 
-    await Promise.all(activeBrands.map(async (url) => {
-      const signals = discoveredSignals[url].signals as any[];
-      rawResponses[url] = {};
+    const signals = primaryData.signals as any[];
+    // rawResponses keyed by signal_id → engine → responses[]  (NOT per brand)
+    const rawResponses: Record<string, Record<string, string[]>> = {};
 
-      await Promise.all(signals.map(async (signal: any) => {
-        rawResponses[url][signal.id] = {};
-        await Promise.all(engines.map(async (engine) => {
-          const responses: string[] = [];
-          for (let i = 0; i < runCount; i++) {
-            try {
-              const text = engine === "chatgpt"
-                ? await queryChatGPT(signal.question)
-                : await queryGemini(signal.question);
-              responses.push(text);
-              await new Promise(r => setTimeout(r, 300));
-            } catch (err) {
-              responses.push(`[Error: ${String(err).slice(0, 100)}]`);
-            }
+    await Promise.all(signals.map(async (signal: any) => {
+      rawResponses[signal.id] = {};
+      await Promise.all(engines.map(async (engine) => {
+        const responses: string[] = [];
+        for (let i = 0; i < runCount; i++) {
+          try {
+            const text = engine === "chatgpt"
+              ? await queryChatGPT(signal.base_question)
+              : await queryGemini(signal.base_question);
+            responses.push(text);
+            await new Promise(r => setTimeout(r, 300));
+          } catch (err) {
+            responses.push(`[Error: ${String(err).slice(0, 100)}]`);
           }
-          rawResponses[url][signal.id][engine] = responses;
-        }));
+        }
+        rawResponses[signal.id][engine] = responses;
       }));
     }));
 
     await updateJob(jobId, { rawResponses, progress: 75 });
 
-    // ── Phase 3: Score consistency (Prompt C) ─────────────────────────────────
+    // ── Stage 3: Score each brand × signal × engine against same responses ────
     await updateJob(jobId, { status: "scoring", progress: 75 });
 
     const scoringResults: Record<string, Record<string, Record<string, any>>> = {};
-    await Promise.all(activeBrands.map(async (url) => {
+
+    await Promise.all(brands.map(async (url) => {
       const brandData = discoveredSignals[url];
-      const signals = brandData.signals as any[];
+      const brandName = brandData.brand_name;
+      const businessType = primaryData.business_type;
       scoringResults[url] = {};
 
       await Promise.all(signals.map(async (signal: any) => {
         scoringResults[url][signal.id] = {};
         await Promise.all(engines.map(async (engine) => {
           try {
-            const responses = rawResponses[url]?.[signal.id]?.[engine] ?? [];
+            // Same response array, different brand name → Claude searches for each brand
+            const responses = rawResponses[signal.id]?.[engine] ?? [];
             scoringResults[url][signal.id][engine] = await scoreConsistency(
-              brandData.brand_name, signal, engine, responses
+              brandName, businessType, signal, engine, responses
             );
           } catch (err) {
             scoringResults[url][signal.id][engine] = {
-              error: String(err), verdict: "absent", consistency_score: 0, presence_rate: 0,
-              sentiment: "neutral", what_the_engine_believes: "", contradictions_found: [],
-              gaps_vs_brand_claim: "", signal_name: signal.name, engine,
+              error: String(err), verdict: "absent", consistency_score: 0,
+              presence_rate: 0, sentiment: "neutral", what_the_engine_believes: "",
+              contradictions_found: [], gaps_vs_brand_claim: "",
+              signal_name: signal.name, engine,
             };
           }
         }));
