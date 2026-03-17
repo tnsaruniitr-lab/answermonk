@@ -8,6 +8,7 @@ import { registerMethodologyRoutes } from "./directory/methodologyRoutes";
 import { registerSitemapRoutes } from "./directory/sitemapRoutes";
 import { registerBrandPageRoutes } from "./directory/brandPageRoute";
 import { registerCategoryHubRoutes } from "./directory/categoryHubRoute";
+import { registerComparisonPageRoutes } from "./directory/comparisonPageRoute";
 import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
@@ -356,6 +357,7 @@ export async function registerRoutes(
   registerSitemapRoutes(app);
   registerMethodologyRoutes(app);
   registerBrandPageRoutes(app);
+  registerComparisonPageRoutes(app);
   registerCategoryHubRoutes(app);
   registerQueryPageRoutes(app);
 

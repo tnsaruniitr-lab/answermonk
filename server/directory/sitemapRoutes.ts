@@ -21,6 +21,7 @@ import { db } from "../db";
 import { directoryPages } from "@shared/schema";
 import { desc, eq } from "drizzle-orm";
 import { getAllBrandSlugs } from "./brandPageRoute";
+import { getAllComparisonSlugs } from "./comparisonPageRoute";
 
 const URLS_PER_BATCH = 50_000;
 
@@ -50,6 +51,7 @@ async function buildSitemapIndex(base: string): Promise<string> {
     `${base}/sitemaps/query-pages-1.xml`,
     `${base}/sitemaps/brands.xml`,
     `${base}/sitemaps/hubs.xml`,
+    `${base}/sitemaps/comparisons.xml`,
   ];
 
   const entries = sitemaps
@@ -113,13 +115,56 @@ async function buildBrandsSitemap(base: string): Promise<string> {
   return `${xmlHeader()}\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
 }
 
-// ─── /sitemaps/hubs.xml — placeholder for Step 10 ────────────────
+// ─── /sitemaps/hubs.xml — dynamic from clusters with 5+ pages ────
 
-function buildHubsSitemap(): string {
-  return `${xmlHeader()}
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<!-- Category hub pages will be added in Step 10 -->
-</urlset>`;
+async function buildHubsSitemap(base: string): Promise<string> {
+  const HUB_THRESHOLD = 5;
+  const today = new Date().toISOString().split("T")[0];
+
+  const rows = await db
+    .select({ clusterId: directoryPages.clusterId, canonicalLocation: directoryPages.canonicalLocation })
+    .from(directoryPages)
+    .where(eq(directoryPages.publishStatus, "published"));
+
+  // Count pages per cluster
+  const clusterCount = new Map<string, { location: string; count: number }>();
+  for (const row of rows) {
+    if (!row.clusterId || !row.canonicalLocation) continue;
+    const entry = clusterCount.get(row.clusterId) ?? { location: row.canonicalLocation, count: 0 };
+    entry.count++;
+    clusterCount.set(row.clusterId, entry);
+  }
+
+  const urls: string[] = [];
+  for (const [clusterId, { location, count }] of clusterCount.entries()) {
+    if (count < HUB_THRESHOLD) continue;
+    // cluster_id = {category_underscored}_{location}
+    // Strip location suffix to get category
+    const locSuffix = `_${location}`;
+    if (!clusterId.endsWith(locSuffix)) continue;
+    const categoryUnderscored = clusterId.slice(0, -locSuffix.length);
+    const categoryHyphenated  = categoryUnderscored.replace(/_/g, "-");
+    const hubUrl = `${base}/${location}/${categoryHyphenated}`;
+    urls.push(
+      `  <url>\n    <loc>${hubUrl}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>`,
+    );
+  }
+
+  return `${xmlHeader()}\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>`;
+}
+
+// ─── /sitemaps/comparisons.xml — qualifying brand pair pages ─────
+
+async function buildComparisonsSitemap(base: string): Promise<string> {
+  const slugs = await getAllComparisonSlugs();
+  if (slugs.length === 0) {
+    return `${xmlHeader()}\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>`;
+  }
+  const today = new Date().toISOString().split("T")[0];
+  const urls = slugs
+    .map((s) => `  <url>\n    <loc>${base}/compare/${s}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.5</priority>\n  </url>`)
+    .join("\n");
+  return `${xmlHeader()}\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
 }
 
 // ─── Route registration ───────────────────────────────────────────
@@ -164,7 +209,26 @@ export function registerSitemapRoutes(app: Express): void {
   });
 
   // Category hubs
-  app.get("/sitemaps/hubs.xml", (_req: Request, res: Response) => {
-    respond(res, buildHubsSitemap());
+  app.get("/sitemaps/hubs.xml", async (req: Request, res: Response) => {
+    try {
+      const base = canonicalBase(req);
+      const xml  = await buildHubsSitemap(base);
+      respond(res, xml);
+    } catch (err) {
+      console.error("[sitemap] hubs error:", err);
+      res.status(500).send("Internal server error");
+    }
+  });
+
+  // Comparison pages
+  app.get("/sitemaps/comparisons.xml", async (req: Request, res: Response) => {
+    try {
+      const base = canonicalBase(req);
+      const xml  = await buildComparisonsSitemap(base);
+      respond(res, xml);
+    } catch (err) {
+      console.error("[sitemap] comparisons error:", err);
+      res.status(500).send("Internal server error");
+    }
   });
 }
