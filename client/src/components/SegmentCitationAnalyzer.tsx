@@ -29,7 +29,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface RawRunInput {
   prompt: string;
@@ -474,6 +474,9 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
       const allIds = new Set(data.segments.map((s: SegmentAnalysisResult) => s.segmentId));
       setExpandedSegments(allIds);
       setProgress({ step: "complete", detail: "Analysis complete", pct: 100 });
+      if (sessionId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/multi-segment-sessions", sessionId, "citation-insights"] });
+      }
     } catch (err) {
       setError(String(err));
       setProgress(null);
