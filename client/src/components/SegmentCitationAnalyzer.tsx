@@ -688,7 +688,7 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
                   <span className="text-[11px] text-muted-foreground">~$0.03 est.</span>
                   <Button
                     size="sm"
-                    onClick={runSignalIntelligence}
+                    onClick={() => runSignalIntelligence()}
                     disabled={!sessionId}
                     className="h-7 text-xs bg-violet-600 hover:bg-violet-700 text-white"
                     data-testid="button-run-signal-intelligence"
