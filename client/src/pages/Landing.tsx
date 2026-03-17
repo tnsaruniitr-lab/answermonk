@@ -394,8 +394,7 @@ function LandingInner() {
         </h1>
 
         <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-12 font-light leading-relaxed">
-          Nexalytics GEO analyzes how ChatGPT, Claude, Gemini, and Perplexity mention your
-          brand. Enter your website to get a free Prompt Network analysis — no account required.
+          See which brands AI recommends in your category, why they win, and which sources shape those answers.
         </p>
 
         {/* URL Input — hidden once complete */}
