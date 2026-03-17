@@ -32,6 +32,7 @@ import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { SegmentCitationAnalyzer } from "@/components/SegmentCitationAnalyzer";
 import { ReportViewer } from "@/components/ReportViewer";
+import { CitationInsightsPanel } from "@/components/CitationInsightsPanel";
 import { mergeCompetitors } from "@/lib/competitor-merge";
 
 const ENGINE_LABELS: Record<string, string> = {
@@ -182,6 +183,11 @@ export default function V2SessionDetail() {
                 scoringResult: s.scoringResult,
               }))}
           />
+        )}
+
+        {/* Citation AI Insights — send full citation data to any model */}
+        {numericId !== null && scored > 0 && (
+          <CitationInsightsPanel sessionId={numericId} />
         )}
 
         {scored > 0 && (numericId !== null || isGroupKey) && (

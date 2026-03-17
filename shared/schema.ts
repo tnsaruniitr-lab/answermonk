@@ -291,6 +291,18 @@ export const insertSignalConsistencyJobSchema = createInsertSchema(signalConsist
 export type SignalConsistencyJob = typeof signalConsistencyJobs.$inferSelect;
 export type InsertSignalConsistencyJob = z.infer<typeof insertSignalConsistencyJobSchema>;
 
+export const citationInsights = pgTable("citation_insights", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").notNull(),
+  model: text("model").notNull(),
+  resultText: text("result_text").notNull(),
+  inputTokens: integer("input_tokens"),
+  outputTokens: integer("output_tokens"),
+  rowCount: integer("row_count"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type CitationInsight = typeof citationInsights.$inferSelect;
+
 export const EvalResponseSchema = z.object({
   engine: EngineEnum,
   query: z.string(),

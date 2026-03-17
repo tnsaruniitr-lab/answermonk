@@ -3397,6 +3397,159 @@ export async function registerRoutes(
     }
   });
 
+  // ── Citation AI Insights ─────────────────────────────────────────────────────
+
+  // GET — list past insight runs for a session (+ citation row count for cost estimation)
+  app.get("/api/multi-segment-sessions/:id/citation-insights", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.id, 10);
+      if (isNaN(sessionId)) { res.status(400).json({ message: "Invalid session ID" }); return; }
+      const { pool } = await import("./db");
+      const [rowCountResult, insightsResult] = await Promise.all([
+        pool.query("SELECT COUNT(*)::int AS count FROM citation_urls WHERE session_id = $1", [sessionId]),
+        pool.query(
+          "SELECT id, model, result_text, input_tokens, output_tokens, row_count, created_at FROM citation_insights WHERE session_id = $1 ORDER BY created_at DESC",
+          [sessionId]
+        ),
+      ]);
+      res.json({
+        rowCount: rowCountResult.rows[0]?.count ?? 0,
+        insights: insightsResult.rows,
+      });
+    } catch (err: any) {
+      console.error("[citation-insights] GET error:", err);
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // POST — run a new insight analysis
+  app.post("/api/multi-segment-sessions/:id/citation-insights", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.id, 10);
+      if (isNaN(sessionId)) { res.status(400).json({ message: "Invalid session ID" }); return; }
+
+      const { model } = z.object({ model: z.string() }).parse(req.body);
+      const { pool } = await import("./db");
+
+      // Fetch all citation_urls for the session as CSV text
+      const { rows } = await pool.query(
+        `SELECT id, session_id, engine, prompt_text, segment_persona, url, title,
+                created_at, url_category, domain, brand, citation_count, llm_pagetype_classification
+         FROM citation_urls WHERE session_id = $1 ORDER BY citation_count DESC, id ASC`,
+        [sessionId]
+      );
+      if (!rows.length) { res.status(404).json({ message: "No citation data found for this session" }); return; }
+
+      // Build CSV string
+      const csvHeader = "id,session_id,engine,prompt_text,segment_persona,url,title,created_at,url_category,domain,brand,citation_count,llm_pagetype_classification";
+      const csvRows = rows.map(r =>
+        [r.id, r.session_id, r.engine, r.prompt_text ?? "", r.segment_persona ?? "",
+         r.url ?? "", `"${(r.title ?? "").replace(/"/g, '""')}"`, r.created_at, r.url_category ?? "",
+         r.domain ?? "", r.brand ?? "", r.citation_count ?? 0, r.llm_pagetype_classification ?? ""]
+        .map(v => `"${String(v).replace(/"/g, '""')}"`)
+        .join(",")
+      );
+      const csvText = [csvHeader, ...csvRows].join("\n");
+
+      const systemPrompt = `You are an AI search visibility analyst reviewing citation data from a GEO (Generative Engine Optimization) study.
+
+The CSV data below contains every URL cited by ChatGPT and Gemini when answering questions about this brand's market. Each row shows: which engine cited it, the page type (human-labelled as url_category and LLM-classified as llm_pagetype_classification), the domain, the brand, the URL, the page title, and how many times it was cited (citation_count).
+
+TASK: Identify what the most-cited brands and pages are doing RIGHT — specific tactics, signals, and page patterns that correlate with high citation frequency.
+
+For each factor:
+1. Name it as a specific, actionable tactic (not a generic principle)
+2. Rank from most to least impactful — base rank strictly on citation count evidence in this data
+3. Provide 2–4 specific brand + URL examples directly from the CSV
+4. Explain the mechanism: why does this factor signal credibility or relevance to AI training data?
+5. Confidence: High (5+ brands), Medium (3–4), Low (1–2)
+
+Also answer:
+- Which page types dominate citations (service pages vs blogs vs directories vs review platforms)?
+- Which brands appear in BOTH ChatGPT AND Gemini — those are the most strongly trained signals?
+- Any domain naming patterns, licensing signals, or regional patterns (.ae, DHA, etc.)?
+- If certain brands dominate citation counts, what specifically makes those pages stand out?
+
+Rules:
+- Use only evidence from this CSV — no generic SEO advice
+- Be specific: "brand X does Y on page Z" not "brands should do Y"
+- If you notice something unusual, call it out
+
+CSV DATA:
+${csvText}`;
+
+      let resultText = "";
+      let inputTokens: number | null = null;
+      let outputTokens: number | null = null;
+
+      if (model.startsWith("claude")) {
+        const Anthropic = (await import("@anthropic-ai/sdk")).default;
+        const anthropic = new Anthropic({
+          apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY,
+          baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
+        });
+        const response = await anthropic.messages.create({
+          model: model === "claude-haiku-3-5" ? "claude-haiku-3-5" : "claude-sonnet-4-5",
+          max_tokens: 4096,
+          messages: [{ role: "user", content: systemPrompt }],
+        });
+        resultText = response.content[0].type === "text" ? response.content[0].text : "";
+        inputTokens = response.usage?.input_tokens ?? null;
+        outputTokens = response.usage?.output_tokens ?? null;
+      } else if (model.startsWith("gpt") || model === "gpt-4o" || model === "gpt-5.2") {
+        const OpenAI = (await import("openai")).default;
+        const openai = new OpenAI({
+          apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+          baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+        });
+        const response = await openai.chat.completions.create({
+          model: model,
+          messages: [{ role: "user", content: systemPrompt }],
+          max_tokens: 4096,
+        });
+        resultText = response.choices[0]?.message?.content ?? "";
+        inputTokens = response.usage?.prompt_tokens ?? null;
+        outputTokens = response.usage?.completion_tokens ?? null;
+      } else if (model.startsWith("gemini")) {
+        const { GoogleGenAI } = await import("@google/genai");
+        const geminiClient = new GoogleGenAI({
+          apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
+          httpOptions: { apiVersion: "", baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL },
+        });
+        const response = await geminiClient.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: systemPrompt,
+          config: { maxOutputTokens: 8192 },
+        });
+        resultText = response.text ?? "";
+        inputTokens = response.usageMetadata?.promptTokenCount ?? null;
+        outputTokens = response.usageMetadata?.candidatesTokenCount ?? null;
+      } else {
+        res.status(400).json({ message: `Unknown model: ${model}` }); return;
+      }
+
+      // Persist the result
+      const insertResult = await pool.query(
+        `INSERT INTO citation_insights (session_id, model, result_text, input_tokens, output_tokens, row_count)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at`,
+        [sessionId, model, resultText, inputTokens, outputTokens, rows.length]
+      );
+
+      res.json({
+        id: insertResult.rows[0].id,
+        model,
+        resultText,
+        inputTokens,
+        outputTokens,
+        rowCount: rows.length,
+        createdAt: insertResult.rows[0].created_at,
+      });
+    } catch (err: any) {
+      console.error("[citation-insights] POST error:", err);
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   app.post("/api/analyze-url", async (req, res) => {
     try {
       const schema = z.object({ url: z.string().url() });
