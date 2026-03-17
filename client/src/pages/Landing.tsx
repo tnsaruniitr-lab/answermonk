@@ -449,13 +449,7 @@ function LandingInner() {
                 disabled={isProcessing || !url.trim()}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
-                className="disabled:opacity-50 disabled:cursor-not-allowed px-7 py-3.5 rounded-xl font-bold flex items-center gap-2 transition-all duration-300 min-w-[130px] justify-center text-[15px]"
-                style={{
-                  background: "linear-gradient(135deg, #ffffff 0%, #e8eeff 100%)",
-                  color: "#0a0f1e",
-                  boxShadow: "0 0 0 1px rgba(255,255,255,0.6), 0 0 30px rgba(255,255,255,0.25), 0 0 60px rgba(139,92,246,0.2), 0 4px 20px rgba(0,0,0,0.5)",
-                  letterSpacing: "-0.01em",
-                }}
+                className="disabled:opacity-50 disabled:cursor-not-allowed bg-white text-black hover:bg-slate-100 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
                 data-testid="button-analyze"
               >
                 {isProcessing ? (
