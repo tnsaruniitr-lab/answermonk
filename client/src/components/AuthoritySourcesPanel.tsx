@@ -794,83 +794,186 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
 // ── Markdown report renderer (legacy fallback) ───────────────────────────────
 
 function renderInline(text: string) {
-  return text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/`([^`]+)`/g, '<code style="background:#f0f0ff;color:#6366f1;padding:1px 5px;border-radius:3px;font-size:11px">$1</code>');
+}
+
+// ── Format-A aware markdown renderer ─────────────────────────────────────────
+
+interface MdSection { level: number; heading: string; body: string; }
+
+function parseMdSections(text: string): { title: MdSection | null; sections: MdSection[] } {
+  const lines = text.split("\n");
+  const all: MdSection[] = [];
+  let cur: { level: number; heading: string; body: string[] } | null = null;
+
+  for (const line of lines) {
+    const h3 = line.match(/^###\s+(.+)/);
+    const h2 = line.match(/^##\s+(.+)/);
+    const h1 = line.match(/^#\s+(.+)/);
+    if (h1 || h2 || h3) {
+      if (cur) all.push({ level: cur.level, heading: cur.heading, body: cur.body.join("\n").trim() });
+      const level = h1 ? 1 : h2 ? 2 : 3;
+      const heading = (h1?.[1] ?? h2?.[1] ?? h3?.[1] ?? "").trim();
+      cur = { level, heading, body: [] };
+    } else if (cur && line !== "---") {
+      cur.body.push(line);
+    }
+  }
+  if (cur) all.push({ level: cur.level, heading: cur.heading, body: cur.body.join("\n").trim() });
+
+  const title = all.find(s => s.level === 1) ?? null;
+  const sections = all.filter(s => s.level !== 1);
+  return { title, sections };
+}
+
+function MdBodyBlocks({ body }: { body: string }) {
+  const blocks = body.split(/\n\n+/).filter(b => b.trim());
+  return (
+    <div className="space-y-2">
+      {blocks.map((block, j) => {
+        const blockLines = block.trim().split("\n");
+        const isList = blockLines.length > 1 && blockLines.every(
+          l => l.match(/^[-*]\s/) || l.match(/^\d+\.\s/)
+        );
+        if (isList) return (
+          <ul key={j} className="space-y-1">
+            {blockLines.map((item, k) => {
+              const content = item.replace(/^[-*]\s|^\d+\.\s/, "");
+              return (
+                <li key={k} className="flex gap-1.5 text-xs text-muted-foreground">
+                  <span className="text-primary/60 shrink-0 mt-0.5">•</span>
+                  <span dangerouslySetInnerHTML={{ __html: renderInline(content) }} />
+                </li>
+              );
+            })}
+          </ul>
+        );
+        return (
+          <p key={j} className="text-xs text-muted-foreground leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: renderInline(block.trim()) }} />
+        );
+      })}
+    </div>
+  );
+}
+
+function CollapsibleMdCard({ section, rank }: { section: MdSection; rank: number }) {
+  const [open, setOpen] = useState(false);
+  const RANK_COLORS = ["#ef4444", "#f97316", "#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#6366f1", "#ec4899"];
+  const color = RANK_COLORS[(rank - 1) % RANK_COLORS.length];
+
+  const titleMatch = section.heading.match(/^(\d+)\.\s*(.+)/);
+  const displayTitle = titleMatch ? titleMatch[2].trim() : section.heading;
+  const impactMatch = section.body.match(/impact.rank.*?#?(\d+)|confidence.*?(High|Medium|Low)/i);
+  const confidence = impactMatch?.[2] ?? null;
+
+  return (
+    <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, overflow: "hidden", marginBottom: 10 }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{ width: "100%", background: open ? "#f8faff" : "white", border: "none", padding: "14px 18px", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}
+      >
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: `${color}15`, border: `1px solid ${color}40`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <span style={{ color, fontSize: 12, fontWeight: 700 }}>#{rank}</span>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ color: "#0f172a", fontSize: 14, fontWeight: 600, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayTitle}</div>
+          {confidence && (
+            <span style={{ background: `${color}15`, color, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 4, letterSpacing: 0.5 }}>{confidence.toUpperCase()} CONFIDENCE</span>
+          )}
+        </div>
+        <ChevronDown className={`w-4 h-4 transition-transform duration-200 flex-shrink-0 ${open ? "rotate-180" : ""}`} style={{ color: "#cbd5e1" }} />
+      </button>
+      {open && (
+        <div style={{ background: "#f8faff", borderTop: "1px solid #e2e8f0", padding: "16px 18px" }}>
+          <MdBodyBlocks body={section.body.replace(/impact.rank.*\n?/i, "").replace(/confidence.*\n?/i, "").trim()} />
+        </div>
+      )}
+    </div>
+  );
 }
 
 function MarkdownReport({ text }: { text: string }) {
-  const rawSections = text.split(/\n(?=##\s)/);
+  const { title, sections } = parseMdSections(text);
+
+  const isSummary = (s: MdSection) => /executive summary|key finding|overview/i.test(s.heading);
+  const isTacticsHeader = (s: MdSection) => /tactic|doing differently|high.impact|what.*brand/i.test(s.heading);
+  const isSource = (s: MdSection) => /source|shaping|recommendation/i.test(s.heading);
+  const isTacticItem = (s: MdSection) => s.level === 3 || /^\d+\./.test(s.heading);
+
+  const summarySection = sections.find(isSummary);
+  const tacticsHeader = sections.find(isTacticsHeader);
+  const tacticItems = sections.filter(isTacticItem);
+  const sourceSection = sections.find(isSource);
+  const otherSections = sections.filter(s =>
+    s !== summarySection && s !== tacticsHeader && !isTacticItem(s) && s !== sourceSection
+  );
 
   return (
-    <div className="space-y-3">
-      {rawSections.map((section, i) => {
-        const lines = section.trim().split("\n");
-        const firstLine = lines[0] || "";
-        const isH2 = firstLine.startsWith("## ");
-        const isH1 = firstLine.startsWith("# ");
-        const heading = isH2
-          ? firstLine.slice(3).trim()
-          : isH1
-          ? firstLine.slice(2).trim()
-          : null;
-        const bodyLines = heading ? lines.slice(1) : lines;
-        const body = bodyLines.join("\n").trim();
+    <div className="space-y-5">
+      {/* Dark navy header */}
+      <div className="rounded-xl overflow-hidden border border-border/40" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)" }}>
+        <div className="px-5 py-4">
+          <div className="text-[10px] text-slate-400 tracking-widest mb-1 uppercase">Citation Intelligence Report</div>
+          <div className="text-white text-lg font-bold leading-tight">{title?.heading ?? "GEO Citation Analysis"}</div>
+          {title?.body && (
+            <p className="text-slate-400 text-xs mt-2 leading-relaxed line-clamp-2">{title.body.replace(/\*\*/g, "")}</p>
+          )}
+        </div>
+      </div>
 
-        if (!body && !heading) return null;
-
-        const blocks = body.split(/\n\n+/);
-
-        return (
-          <div
-            key={i}
-            className={
-              heading
-                ? "rounded-lg border border-border/60 bg-secondary/20 p-4"
-                : "px-1"
-            }
-          >
-            {heading && (
-              <p className="text-sm font-semibold mb-2.5 text-foreground">
-                {heading}
-              </p>
-            )}
-            <div className="space-y-2">
-              {blocks.map((block, j) => {
-                if (!block.trim()) return null;
-                const blockLines = block.trim().split("\n");
-                const isList = blockLines.every(
-                  (l) => l.startsWith("- ") || l.startsWith("* ") || l.match(/^\d+\.\s/)
-                );
-
-                if (isList) {
-                  return (
-                    <ul key={j} className="space-y-1">
-                      {blockLines.map((item, k) => {
-                        const content = item.replace(/^[-*]\s|^\d+\.\s/, "");
-                        return (
-                          <li key={k} className="flex gap-1.5 text-xs text-muted-foreground">
-                            <span className="text-primary/70 shrink-0 mt-0.5">•</span>
-                            <span
-                              dangerouslySetInnerHTML={{ __html: renderInline(content) }}
-                            />
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  );
-                }
-
-                return (
-                  <p
-                    key={j}
-                    className="text-xs text-muted-foreground leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: renderInline(block.trim()) }}
-                  />
-                );
-              })}
-            </div>
+      {/* Executive summary → amber key finding */}
+      {summarySection && (
+        <div className="flex gap-3 items-start rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-3">
+          <span className="text-lg shrink-0">⚡</span>
+          <div>
+            <div className="text-[11px] font-bold text-amber-700 mb-1">Key Finding</div>
+            <div className="text-xs text-amber-800 leading-relaxed" dangerouslySetInnerHTML={{ __html: renderInline(summarySection.body.split("\n\n")[0] ?? summarySection.body) }} />
           </div>
-        );
-      })}
+        </div>
+      )}
+
+      {/* What top brands do differently */}
+      {(tacticItems.length > 0) && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-1 h-5 rounded-full" style={{ background: "linear-gradient(180deg, #f97316, #ef4444)" }} />
+            <span className="text-sm font-bold text-foreground">{tacticsHeader?.heading ?? "What Top Brands Are Doing Differently"}</span>
+            <span className="text-[10px] text-muted-foreground bg-secondary px-2 py-0.5 rounded ml-1">{tacticItems.length} tactics</span>
+          </div>
+          {tacticItems.map((s, i) => (
+            <CollapsibleMdCard key={i} section={s} rank={i + 1} />
+          ))}
+        </div>
+      )}
+
+      {/* Sources */}
+      {sourceSection && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-1 h-5 rounded-full" style={{ background: "linear-gradient(180deg, #10b981, #3b82f6)" }} />
+            <span className="text-sm font-bold text-foreground">{sourceSection.heading}</span>
+          </div>
+          <div className="rounded-xl border border-border/50 bg-background p-4">
+            <MdBodyBlocks body={sourceSection.body} />
+          </div>
+        </div>
+      )}
+
+      {/* Remaining sections */}
+      {otherSections.map((s, i) => (
+        <div key={i}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-1 h-5 rounded-full" style={{ background: "linear-gradient(180deg, #8b5cf6, #6366f1)" }} />
+            <span className="text-sm font-bold text-foreground">{s.heading}</span>
+          </div>
+          <div className="rounded-xl border border-border/50 bg-secondary/10 px-4 py-3">
+            <MdBodyBlocks body={s.body} />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -1101,7 +1204,9 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
                 {/* Report body — structured or markdown */}
                 {(() => {
                   try {
-                    const parsed: StructuredReportData = JSON.parse(latestInsight.result_text);
+                    const raw = latestInsight.result_text.trim()
+                      .replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/, "");
+                    const parsed: StructuredReportData = JSON.parse(raw);
                     if (parsed?.tactics) return <StructuredReport data={parsed} sessionId={sessionId} />;
                   } catch { /* fall through */ }
                   return <MarkdownReport text={latestInsight.result_text} />;
