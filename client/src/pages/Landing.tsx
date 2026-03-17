@@ -7,6 +7,7 @@ import {
   Database, Loader2, AlertCircle, Plus, X, MapPin, CheckCircle2, Brain,
 } from "lucide-react";
 import { AuthoritySourcesPanel } from "@/components/AuthoritySourcesPanel";
+import { DispatchFeedLive } from "@/components/DispatchFeedLive";
 
 function normalizeDomain(url: string): string {
   try {
@@ -581,72 +582,14 @@ function LandingInner() {
               <SegmentResultCard key={seg.id} seg={seg} brandName={scoringSession?.brandName || ""} />
             ))}
 
-            {/* Scoring progress indicator */}
+            {/* Live Dispatch Feed — shown while scoring is in progress */}
             {isScoring && (
-              <div className="relative">
-                <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-violet-500/30 via-indigo-500/20 to-violet-500/30 blur-sm" />
-                <div className="relative bg-[#0a0f1a] rounded-2xl p-5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="relative flex-shrink-0">
-                      <div className="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/30 flex items-center justify-center">
-                        <Activity className="w-4 h-4 text-violet-400 animate-pulse" />
-                      </div>
-                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-violet-400 border-2 border-[#0a0f1a] animate-pulse" />
-                    </div>
-                    <div>
-                      <p className="text-white text-sm font-semibold">GEO Agent · Scoring Segments</p>
-                      <p className="text-violet-400/70 text-xs font-mono">
-                        {scoredSegs.length} of {scoringSegs.length} complete
-                      </p>
-                    </div>
-                    <div className="ml-auto flex gap-1">
-                      {[0, 1, 2].map((i) => (
-                        <div key={i} className="w-1 h-1 rounded-full bg-violet-400/60 animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    {scoringSegs.map((seg, i) => {
-                      const done = !!seg.scoringResult;
-                      const runningNow = !done && scoringSegs.filter((s) => !s.scoringResult).indexOf(seg) === 0;
-                      const pending = !done && !runningNow;
-                      const segLabel = seg.persona || seg.serviceType || seg.customerType || seg.label || `Segment ${i + 1}`;
-                      return (
-                        <div key={seg.id || i} className={`flex items-center gap-3 transition-all duration-500 ${pending ? "opacity-30" : "opacity-100"}`}>
-                          <div className="flex-shrink-0 w-4 h-4 flex items-center justify-center">
-                            {done && (
-                              <div className="w-4 h-4 rounded-full bg-green-500/15 border border-green-500/40 flex items-center justify-center">
-                                <span className="text-green-400 leading-none" style={{ fontSize: "8px" }}>✓</span>
-                              </div>
-                            )}
-                            {runningNow && <div className="w-4 h-4 rounded-full border-2 border-violet-400 border-t-transparent animate-spin" />}
-                            {pending && <div className="w-1.5 h-1.5 rounded-full bg-slate-600 mx-auto" />}
-                          </div>
-                          <p className={`text-xs font-mono truncate transition-colors duration-300 ${
-                            done ? "text-slate-600 line-through" :
-                            runningNow ? "text-violet-300" :
-                            "text-slate-700"
-                          }`}>
-                            {runningNow ? "⚡ " : ""}{segLabel}
-                            {runningNow && <span className="text-violet-400/50"> · running 3 engines…</span>}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-4 h-1 bg-white/5 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-1000"
-                      style={{ width: `${scoringSegs.length > 0 ? Math.round((scoredSegs.length / scoringSegs.length) * 100) : 0}%` }}
-                    />
-                  </div>
-                  <p className="mt-2 text-[10px] text-slate-600 font-mono text-center">
-                    Each segment runs 8 prompts × 3 engines — results appear as they complete
-                  </p>
-                </div>
-              </div>
+              <DispatchFeedLive
+                scoringSegs={scoringSegs}
+                scoredSegs={scoredSegs}
+                brandName={scoringSession?.brandName || ""}
+                brandDomain={scoringSession?.brandDomain || undefined}
+              />
             )}
 
             {/* All done — CTA */}
