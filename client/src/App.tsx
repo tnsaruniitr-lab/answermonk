@@ -139,7 +139,7 @@ function AuthGate() {
 function App() {
   const [path] = useLocation();
 
-  if (path === "/start" || path.startsWith("/start?")) {
+  if (path === "/start" || path.startsWith("/start?") || window.location.pathname === "/start") {
     return (
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
