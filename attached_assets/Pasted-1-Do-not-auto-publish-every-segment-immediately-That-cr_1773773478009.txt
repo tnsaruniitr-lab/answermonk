@@ -1,0 +1,134 @@
+1. Do not auto-publish every segment immediately
+That creates thin, near-duplicate pages fast. Only publish pages that pass a threshold:
+
+enough brands in ranking
+
+enough evidence/citations
+
+unique enough from existing pages
+
+commercially meaningful query
+
+Otherwise you’ll flood the site with weak pages.
+
+2. Pick one canonical query pattern
+Do not generate all of:
+
+/best-home-healthcare-dubai
+
+/top-home-healthcare-dubai
+
+/home-healthcare-dubai-providers
+
+unless there is genuinely different content intent. Usually one should be canonical, others should redirect or not exist. Otherwise you split authority.
+
+3. The primary unit should be query pages, not segments blindly
+A segment may not always equal a good public page. You need a normalization layer:
+
+serviceType normalized
+
+location normalized
+
+query intent normalized
+
+dedupe merged
+
+Example: “home healthcare dubai”, “best home healthcare in dubai”, “top home healthcare dubai” should usually map to one main page.
+
+4. Brand pages should be entity-first, not just appearance logs
+Good brand page structure:
+
+what the company is
+
+where it appears
+
+what services it is associated with
+
+which engines cite it
+
+recurring authority sources
+
+related comparisons
+
+related category pages
+
+Not just “appeared in X sessions”.
+
+5. Category hubs are important, but keep them curated
+Don’t make empty hubs. A hub should only exist if it meaningfully clusters enough pages and internal links.
+
+6. Comparison pages should be rule-based
+Only generate when:
+
+both brands co-occur enough times
+
+same location/service cluster
+
+enough differentiating evidence exists
+
+Otherwise comparison pages become junk.
+
+7. Add human-readable source methodology pages
+Very important. You need pages like:
+
+/methodology
+
+/how-rankings-work
+
+/about-the-data
+
+AI engines and users trust ranking datasets more when the methodology is explicit.
+
+8. Add dataset/versioning signals
+On pages, expose:
+
+analysis window
+
+engine set used
+
+number of prompts analyzed
+
+last updated
+
+data version or run cohort
+
+That makes the content more quotable and defensible.
+
+9. Internal linking matters as much as schema
+Each query page should link to:
+
+top brand pages
+
+related query pages
+
+category hub
+
+methodology page
+
+That link graph is a major part of discoverability.
+
+10. The biggest risk is templated sameness
+If every page has the same structure with only swapped nouns, many pages will feel low-value. The evidence paragraphs and summary blocks must be materially distinct.
+
+So overall:
+
+Yes, this is the right architecture.
+But the real moat will not come from “Express HTML + JSON-LD” alone. It will come from:
+
+strong canonicalization
+
+aggressive dedupe
+
+publish thresholds
+
+entity normalization
+
+distinct evidence-rich prose
+
+methodology trust pages
+
+That is the difference between a crawlable directory and a citeable authority dataset.
+
+The one line I’d add to the architecture decision is:
+
+“Only publish normalized, non-duplicate, evidence-sufficient pages.”
