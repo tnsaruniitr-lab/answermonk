@@ -220,6 +220,212 @@ function DomainRow({
   );
 }
 
+// ── Mission Control Loader ────────────────────────────────────────────────────
+
+const STREAM_POOLS = [
+  ["healthfinder.ae","dha.gov.ae","nhfd.ae","haad.to","seha.ae","moh.gov.ae"],
+  ["reddit.com","trustpilot.com","g2.com","capterra.com","glassdoor.com","quora.com"],
+  ["gulfnews.com","thenationalnews.com","arabianbusiness.com","zawya.com","entrepreneur.com"],
+];
+const STATUSES = ["CRAWLING","RESOLVING","CLASSIFYING","INDEXED"];
+
+function useCrawlProgress(sessionId: number, active: boolean) {
+  const [progress, setProgress] = useState<{ step: string; detail: string; pct: number } | null>(null);
+
+  useEffect(() => {
+    if (!active) return;
+    const key = `session-${sessionId}`;
+    let alive = true;
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/segment-analysis/progress/${key}`);
+        if (res.ok && alive) setProgress(await res.json());
+      } catch { /* silent */ }
+    };
+    poll();
+    const id = setInterval(poll, 800);
+    return () => { alive = false; clearInterval(id); };
+  }, [sessionId, active]);
+
+  return progress;
+}
+
+function MissionControlLoader({
+  sessionId,
+  crawlPending,
+  insightsPending,
+}: {
+  sessionId: number;
+  crawlPending: boolean;
+  insightsPending: boolean;
+}) {
+  const progress = useCrawlProgress(sessionId, crawlPending);
+  const [streamDomains, setStreamDomains] = useState(STREAM_POOLS.map(p => p[0]));
+  const [streamStatus, setStreamStatus] = useState([0, 1, 2]);
+  const tick = useRef(0);
+
+  // Parse real numbers from progress detail string
+  const crawledMatch = progress?.detail?.match(/(\d+)\/(\d+)/);
+  const okMatch = progress?.detail?.match(/(\d+) ok/);
+  const realCrawled = crawledMatch ? parseInt(crawledMatch[1]) : null;
+  const realTotal = crawledMatch ? parseInt(crawledMatch[2]) : null;
+  const realOk = okMatch ? parseInt(okMatch[1]) : null;
+
+  const [animCrawled, setAnimCrawled] = useState(0);
+  const [animOk, setAnimOk] = useState(0);
+  const [animClassified, setAnimClassified] = useState(0);
+  const animCrawledRef = useRef(0);
+
+  // Animate stream domains
+  useEffect(() => {
+    if (!crawlPending) return;
+    const id = setInterval(() => {
+      tick.current++;
+      if (tick.current % 4 === 0) {
+        setStreamDomains(STREAM_POOLS.map(pool => pool[Math.floor(Math.random() * pool.length)]));
+        setStreamStatus([
+          Math.floor(Math.random() * 4),
+          Math.floor(Math.random() * 4),
+          Math.floor(Math.random() * 4),
+        ]);
+      }
+      setAnimCrawled(c => {
+        const next = realCrawled ? Math.min(realCrawled, c + Math.floor(Math.random() * 5) + 1) : Math.min(999, c + Math.floor(Math.random() * 4) + 1);
+        animCrawledRef.current = next;
+        return next;
+      });
+      setAnimOk(o => realOk ? Math.min(realOk, o + Math.floor(Math.random() * 4) + 1) : Math.min(800, o + Math.floor(Math.random() * 3) + 1));
+      setAnimClassified(cl => Math.min(animCrawledRef.current, cl + Math.floor(Math.random() * 3) + 1));
+    }, 600);
+    return () => clearInterval(id);
+  }, [crawlPending, realCrawled, realOk]);
+
+  const phaseStep = progress?.step ?? "crawling";
+  const phaseLabel = insightsPending
+    ? "AI ANALYSIS"
+    : phaseStep === "starting" ? "INITIALIZING"
+    : phaseStep === "crawling" ? "CRAWLING"
+    : phaseStep === "snippets" ? "EXTRACTING"
+    : phaseStep === "classifying" ? "CLASSIFYING"
+    : phaseStep === "scoring" || phaseStep === "global" ? "INDEXING"
+    : phaseStep === "complete" ? "COMPLETE"
+    : "PROCESSING";
+
+  const displayPct = insightsPending ? 100 : (progress?.pct ?? Math.min(95, (animCrawled / (realTotal ?? 600)) * 100));
+  const classifiedPct = animClassified / Math.max(animCrawled, 1);
+
+  const streamColors = ["#3b82f6", "#6366f1", "#10b981"];
+
+  return (
+    <div style={{ background: "#040912", borderRadius: 12, overflow: "hidden", fontFamily: "system-ui, sans-serif" }}>
+      {/* Status bar */}
+      <div style={{ background: "#0a1628", borderBottom: "1px solid #1e3a5f", padding: "8px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ color: "#3b82f6", fontSize: 10, fontFamily: "monospace", letterSpacing: 2 }}>NEXALYTICS GEO</span>
+          <span style={{ color: "#1e3a5f", fontSize: 10 }}>·</span>
+          <span style={{ color: "#64748b", fontSize: 10, fontFamily: "monospace" }}>CITATION INTELLIGENCE</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ width: 5, height: 5, borderRadius: "50%", background: insightsPending ? "#f59e0b" : "#ef4444", animation: "mc-blink 0.8s infinite" }} />
+          <span style={{ color: insightsPending ? "#f59e0b" : "#ef4444", fontSize: 10, fontFamily: "monospace", letterSpacing: 1 }}>{phaseLabel}</span>
+        </div>
+      </div>
+
+      {/* Main panel */}
+      <div style={{ background: "#060f1e", padding: "20px 20px 16px" }}>
+        {/* Central ring */}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
+          <div style={{ position: "relative", width: 130, height: 130 }}>
+            <svg viewBox="0 0 140 140" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
+              <circle cx="70" cy="70" r="62" fill="none" stroke="#1e3a5f" strokeWidth="4" />
+              <circle cx="70" cy="70" r="62" fill="none"
+                stroke={insightsPending ? "#f59e0b" : "#3b82f6"} strokeWidth="4"
+                strokeDasharray={`${2 * Math.PI * 62}`}
+                strokeDashoffset={`${2 * Math.PI * 62 * (1 - displayPct / 100)}`}
+                strokeLinecap="round"
+                style={{ transition: "stroke-dashoffset 0.8s ease", filter: insightsPending ? "drop-shadow(0 0 8px #f59e0b)" : "drop-shadow(0 0 8px #3b82f6)" }}
+              />
+            </svg>
+            <svg viewBox="0 0 140 140" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
+              <circle cx="70" cy="70" r="46" fill="none" stroke="#0a1e3a" strokeWidth="2" />
+              <circle cx="70" cy="70" r="46" fill="none" stroke="#6366f1" strokeWidth="2"
+                strokeDasharray={`${2 * Math.PI * 46}`}
+                strokeDashoffset={`${2 * Math.PI * 46 * (1 - classifiedPct)}`}
+                strokeLinecap="round"
+                style={{ transition: "stroke-dashoffset 0.8s ease", filter: "drop-shadow(0 0 5px #6366f1)" }}
+              />
+            </svg>
+            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ color: "#e2e8f0", fontSize: 26, fontWeight: 700, lineHeight: 1, fontFamily: "monospace" }}>
+                {Math.round(displayPct)}%
+              </div>
+              <div style={{ color: insightsPending ? "#f59e0b" : "#3b82f6", fontSize: 9, letterSpacing: 1, marginTop: 4, fontFamily: "monospace" }}>
+                {insightsPending ? "ANALYSING" : "CRAWLED"}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Stream monitors — hidden during insights phase */}
+        {!insightsPending && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
+            {[0, 1, 2].map(i => (
+              <div key={i} style={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 8, padding: "8px 10px" }}>
+                <div style={{ color: "#334155", fontSize: 9, fontFamily: "monospace", marginBottom: 5, letterSpacing: 1 }}>STREAM {i + 1}</div>
+                <div style={{ color: streamColors[i], fontSize: 10, fontFamily: "monospace", marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {streamDomains[i]}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <div style={{ width: 4, height: 4, borderRadius: "50%", background: streamColors[streamStatus[i] % 3], animation: "mc-pulse 1.2s infinite" }} />
+                  <span style={{ color: "#475569", fontSize: 9, fontFamily: "monospace" }}>{STATUSES[streamStatus[i]]}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Claude Sonnet analysis message — insights phase */}
+        {insightsPending && (
+          <div style={{ background: "#0a1628", border: "1px solid #78350f", borderRadius: 8, padding: "12px 16px", marginBottom: 14, textAlign: "center" }}>
+            <div style={{ color: "#f59e0b", fontSize: 11, fontFamily: "monospace", letterSpacing: 1, marginBottom: 6 }}>CLAUDE SONNET ANALYSIS</div>
+            <div style={{ color: "#64748b", fontSize: 10, fontFamily: "monospace" }}>Analysing {animCrawled.toLocaleString()} citation rows · discovering GEO tactics…</div>
+          </div>
+        )}
+
+        {/* Stats row */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
+          {[
+            { label: "PAGES FOUND", value: realCrawled ?? animCrawled, suffix: realTotal ? `/${realTotal}` : "", color: "#3b82f6" },
+            { label: "ACCESSIBLE", value: realOk ?? animOk, suffix: "", color: "#10b981" },
+            { label: "CLASSIFIED", value: animClassified, suffix: "", color: "#6366f1" },
+          ].map(s => (
+            <div key={s.label} style={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 8, padding: "10px 12px", textAlign: "center" }}>
+              <div style={{ color: s.color, fontFamily: "monospace", fontSize: 20, fontWeight: 700, letterSpacing: -0.5 }}>
+                {s.value.toLocaleString()}
+                {s.suffix && <span style={{ color: "#1e3a5f", fontSize: 12 }}>{s.suffix}</span>}
+              </div>
+              <div style={{ color: "#334155", fontSize: 9, fontFamily: "monospace", letterSpacing: 1, marginTop: 3 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Phase detail */}
+        <div style={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 8, padding: "10px 14px" }}>
+          <div style={{ color: "#334155", fontSize: 9, fontFamily: "monospace", letterSpacing: 1, marginBottom: 7 }}>CURRENT OPERATION</div>
+          <div style={{ color: "#475569", fontSize: 10, fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {progress?.detail ?? (insightsPending ? "Running Claude Sonnet 4.5 citation intelligence analysis…" : "Initialising web crawler…")}
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes mc-pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        @keyframes mc-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+      `}</style>
+    </div>
+  );
+}
+
 // ── Structured JSON report types ─────────────────────────────────────────────
 
 interface ReportSummary {
@@ -806,19 +1012,19 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
         <CardContent className="space-y-4 pt-0">
           {/* ── Empty state / Crawl trigger ────────────────────────────── */}
           {!hasData && (
-            <div className="rounded-lg border border-dashed border-border/60 bg-secondary/10 px-6 py-8 text-center space-y-3">
-              {insightsLoading || (autoRun && crawlMutation.isPending) ? (
+            <div className={crawlMutation.isPending ? "" : "rounded-lg border border-dashed border-border/60 bg-secondary/10 px-6 py-8 text-center space-y-3"}>
+              {crawlMutation.isPending ? (
+                <MissionControlLoader
+                  sessionId={sessionId}
+                  crawlPending={true}
+                  insightsPending={false}
+                />
+              ) : insightsLoading ? (
                 <>
                   <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary/60" />
                   <div>
-                    <p className="text-sm font-medium text-foreground">
-                      {insightsLoading ? "Loading…" : "Crawling citation URLs…"}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {insightsLoading
-                        ? "Checking citation data…"
-                        : "Scraping and classifying all citation sources with AI. This takes 1–3 minutes."}
-                    </p>
+                    <p className="text-sm font-medium text-foreground">Loading…</p>
+                    <p className="text-xs text-muted-foreground mt-1">Checking citation data…</p>
                   </div>
                 </>
               ) : (
@@ -993,39 +1199,50 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
           </CardHeader>
 
           <CardContent className="space-y-4 pt-0">
-            {/* Generate / re-run button */}
-            <div className="flex items-center gap-3">
-              <Button
-                size="sm"
-                onClick={() => insightsMutation.mutate()}
-                disabled={insightsMutation.isPending}
-                data-testid="button-generate-insights"
-                className="gap-2"
-                variant={latestInsight ? "outline" : "default"}
-              >
-                {insightsMutation.isPending ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Sparkles className="w-3.5 h-3.5" />
+            {/* Mission Control during Claude analysis (auto-run chain) */}
+            {insightsMutation.isPending && autoRun && !latestInsight && (
+              <MissionControlLoader
+                sessionId={sessionId}
+                crawlPending={false}
+                insightsPending={true}
+              />
+            )}
+
+            {/* Generate / re-run button — shown when not auto-running */}
+            {(!insightsMutation.isPending || !autoRun || latestInsight) && (
+              <div className="flex items-center gap-3">
+                <Button
+                  size="sm"
+                  onClick={() => insightsMutation.mutate()}
+                  disabled={insightsMutation.isPending}
+                  data-testid="button-generate-insights"
+                  className="gap-2"
+                  variant={latestInsight ? "outline" : "default"}
+                >
+                  {insightsMutation.isPending ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3.5 h-3.5" />
+                  )}
+                  {insightsMutation.isPending
+                    ? "Analysing with Claude…"
+                    : latestInsight
+                    ? "Re-run Analysis"
+                    : "Generate Intelligence Report"}
+                </Button>
+                {insightsMutation.isPending && (
+                  <p className="text-xs text-muted-foreground">
+                    This may take 30–60 seconds…
+                  </p>
                 )}
-                {insightsMutation.isPending
-                  ? "Analysing with Claude…"
-                  : latestInsight
-                  ? "Re-run Analysis"
-                  : "Generate Intelligence Report"}
-              </Button>
-              {insightsMutation.isPending && (
-                <p className="text-xs text-muted-foreground">
-                  This may take 30–60 seconds…
-                </p>
-              )}
-              {insightsMutation.isError && (
-                <div className="flex items-center gap-1.5 text-xs text-destructive">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  Generation failed. Try again.
-                </div>
-              )}
-            </div>
+                {insightsMutation.isError && (
+                  <div className="flex items-center gap-1.5 text-xs text-destructive">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    Generation failed. Try again.
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Latest insight report */}
             {latestInsight && (
