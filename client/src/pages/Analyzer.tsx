@@ -4,7 +4,7 @@ import { AnalysisResults } from "@/components/AnalysisResults";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ArrowRight, History, Sparkles, Brain, BarChart2, FileSearch, Webhook, Zap } from "lucide-react";
+import { Loader2, ArrowRight, History, Sparkles, Brain, BarChart2, FileSearch, Webhook, Zap, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -77,6 +77,10 @@ export default function Analyzer() {
             <Link href="/incoming-leads" className="text-sm text-muted-foreground flex items-center gap-1.5 transition-colors hover:text-foreground" data-testid="link-incoming-leads">
               <Webhook className="w-3.5 h-3.5" />
               Incoming
+            </Link>
+            <Link href="/start" className="text-sm text-muted-foreground flex items-center gap-1.5 transition-colors hover:text-foreground" data-testid="link-start">
+              <Globe className="w-3.5 h-3.5" />
+              GEO Start
             </Link>
           </div>
         </div>

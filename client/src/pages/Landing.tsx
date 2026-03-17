@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Component } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -17,7 +17,7 @@ function normalizeDomain(url: string): string {
   }
 }
 
-export default function Landing() {
+function LandingInner() {
   const [, navigate] = useLocation();
   const [url, setUrl] = useState("");
   const [submissionId, setSubmissionId] = useState<number | null>(null);
@@ -624,5 +624,43 @@ export default function Landing() {
         <p>© 2026 Nexalytics GEO. All rights reserved.</p>
       </footer>
     </div>
+  );
+}
+
+class LandingErrorBoundary extends Component<{ children: React.ReactNode }, { error: string | null }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(err: Error) {
+    return { error: err.message };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="min-h-screen bg-[#0A0F1E] flex items-center justify-center p-8">
+          <div className="bg-red-900/20 border border-red-500/30 rounded-2xl p-8 max-w-md text-center">
+            <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-4" />
+            <p className="text-white font-semibold mb-2">Something went wrong</p>
+            <p className="text-slate-400 text-sm">{this.state.error}</p>
+            <button
+              onClick={() => this.setState({ error: null })}
+              className="mt-4 text-blue-400 text-sm underline"
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function Landing() {
+  return (
+    <LandingErrorBoundary>
+      <LandingInner />
+    </LandingErrorBoundary>
   );
 }

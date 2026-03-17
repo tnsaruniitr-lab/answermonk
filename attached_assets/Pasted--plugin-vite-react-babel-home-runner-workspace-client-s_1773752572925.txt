@@ -1,0 +1,49 @@
+[plugin:vite:react-babel] /home/runner/workspace/client/src/pages/Landing.tsx: Identifier 'Landing' has already been declared. (660:24)
+  663 |       <LandingInner />
+/home/runner/workspace/client/src/pages/Landing.tsx:660:24
+658 |  }
+659 |  
+660 |  export default function Landing() {
+    |                          ^
+661 |    return (
+662 |      <LandingErrorBoundary>
+    at toParseError (/home/runner/workspace/node_modules/@babel/parser/src/parse-error.ts:95:45)
+    at raise (/home/runner/workspace/node_modules/@babel/parser/src/tokenizer/index.ts:1503:19)
+    at checkRedeclarationInScope (/home/runner/workspace/node_modules/@babel/parser/src/util/scope.ts:164:19)
+    at declareName (/home/runner/workspace/node_modules/@babel/parser/src/util/scope.ts:118:12)
+    at declareName (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/scope.ts:89:11)
+    at registerFunctionStatementId (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1740:16)
+    at registerFunctionStatementId (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:2655:15)
+    at parseFunction (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1703:12)
+    at parseExportDefaultExpression (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:2565:19)
+    at parseExportDefaultExpression (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:3117:20)
+    at parseExport (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:2447:25)
+    at parseExport (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:3087:22)
+    at parseStatementContent (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:644:25)
+    at parseStatementContent (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:3185:20)
+    at parseStatementLike (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:477:17)
+    at parseModuleItem (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:414:17)
+    at parseBlockOrModuleBlockBody (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1438:16)
+    at parseBlockBody (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1412:10)
+    at parseProgram (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:229:10)
+    at parseTopLevel (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:203:25)
+    at parse (/home/runner/workspace/node_modules/@babel/parser/src/parser/index.ts:93:10)
+    at parse (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:4309:20)
+    at parse (/home/runner/workspace/node_modules/@babel/parser/src/index.ts:92:38)
+    at parser (/home/runner/workspace/node_modules/@babel/core/src/parser/index.ts:28:19)
+    at parser.next (<anonymous>)
+    at normalizeFile (/home/runner/workspace/node_modules/@babel/core/src/transformation/normalize-file.ts:49:24)
+    at normalizeFile.next (<anonymous>)
+    at run (/home/runner/workspace/node_modules/@babel/core/src/transformation/index.ts:40:36)
+    at run.next (<anonymous>)
+    at transform (/home/runner/workspace/node_modules/@babel/core/src/transform.ts:29:20)
+    at transform.next (<anonymous>)
+    at step (/home/runner/workspace/node_modules/gensync/index.js:261:32)
+    at /home/runner/workspace/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (/home/runner/workspace/node_modules/gensync/index.js:223:11)
+    at /home/runner/workspace/node_modules/gensync/index.js:189:28
+    at <anonymous> (/home/runner/workspace/node_modules/@babel/core/src/gensync-utils/async.ts:90:7)
+    at /home/runner/workspace/node_modules/gensync/index.js:113:33
+    at step (/home/runner/workspace/node_modules/gensync/index.js:287:14)
+    at /home/runner/workspace/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (/home/runner/workspace/node_modules/gensync/index.js:223:11)
