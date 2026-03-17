@@ -1,0 +1,63 @@
+
+The core insight first
+AI engines don't crawl databases — they cite readable, structured, authoritative text. Your goal is to make every brand page feel like a Wikipedia article written for a machine.
+
+Best storage architecture: Hybrid
+Keep two layers:
+
+Internal DB (Postgres/Supabase) — raw structured data, numbers, rankings, timestamps. For querying and updating.
+Public-facing HTML/Markdown pages — auto-generated from the DB, optimised for AI crawling. This is what gets cited.
+
+Never expose raw JSON as your public surface. AI engines ignore it.
+
+Format of each brand page — what to include
+Every brand page should have these in plain readable prose, not tables or JSON:
+
+A declarative opening sentence — "Notion is a productivity tool recommended by ChatGPT, Claude, and Perplexity in 47% of queries about note-taking apps for teams." — This is citation gold. AI engines love pulling exact stat sentences.
+Category + use case tags written as full sentences, not just tags
+Comparative context — "Notion ranks 2nd behind Linear for project management queries on Claude" — comparative sentences get cited far more than standalone facts
+Recency signals — timestamp every data point. "As of March 2026, Notion appears in..." — AI engines heavily weight freshness
+Source attribution sentences — list which sources (blogs, Reddit, G2) are causing the AI recommendation. This makes your data uniquely citable.
+
+
+Schema markup — non-negotiable
+Add these to every brand page's HTML:
+
+Organization schema with sameAs, description, url
+Dataset schema for your ranking data
+FAQPage schema with questions like "Is Notion recommended by ChatGPT?" answered in one clean sentence
+BreadcrumbList for category hierarchy
+
+AI engines increasingly use schema to understand relationships between entities.
+
+URL structure matters enormously
+/directory/crm/salesforce
+/directory/crm/salesforce/chatgpt-visibility
+/directory/crm/salesforce/vs-hubspot
+The /vs/ comparison pages will get cited the most — that's the query pattern AI engines answer constantly.
+
+The single biggest lever: FAQ blocks
+Write 5–8 questions per brand page in natural language that match real AI search queries:
+
+"Is Salesforce recommended by AI assistants?"
+"What CRM does ChatGPT recommend for enterprise?"
+"How visible is Salesforce on Perplexity?"
+
+Answer each in 1–2 sentences with a specific data point. These get pulled verbatim into AI answers.
+
+What to avoid
+
+JavaScript-rendered content (Vercel/Next SPAs without SSR) — AI crawlers often don't execute JS
+Paginated tables with no text context
+Storing everything behind login/auth walls
+Duplicate thin pages (one per engine without unique insight per page)
+
+
+Summary priority order
+
+SSR/static HTML pages with prose-first layout
+FAQ schema blocks with stat-rich answers
+Comparison pages (/brand-a-vs-brand-b)
+Freshness timestamps on every data claim
+Dataset + Organization schema markup
+Clean semantic URL hierarchy

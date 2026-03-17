@@ -1,0 +1,106 @@
+Best format is not one format. You should separate:
+
+1. internal storage for your product
+Use a normalized database + entity graph:
+
+brand
+
+location
+
+query
+
+analysis_run
+
+competitor
+
+citation/source
+
+service/category
+
+visibility_score
+
+structured facts like licenses, reviews, locations, comparisons
+
+That gives you reusable data. But this alone does nothing for AI visibility unless it is published well.
+
+2. public publishing format for AI/search engines
+Publish each important record as a server-rendered canonical HTML page with clean text, not as data trapped inside a JS dashboard or app state. Google explicitly supports structured data in HTML pages, recommends JSON-LD, and stresses crawlability, canonicalization, and sitemap discovery. OpenAI also says sites should allow OAI-SearchBot if they want to appear in ChatGPT search results.
+
+For your use case, the best public page types are:
+
+query pages: /best-home-healthcare-dubai
+
+brand-in-query pages: /best-home-healthcare-dubai/valeo-health
+
+category/location hubs: /dubai/home-healthcare
+
+brand profile pages: /brand/valeo-health
+
+comparison pages: /compare/valeo-vs-vestacare-dubai
+
+This is better than one giant directory table because AI systems and search engines cite specific pages answering specific intents. Canonical pages also help consolidate signals across similar URLs.
+
+The single best schema pattern is:
+
+WebPage or CollectionPage for the page
+
+ItemList for ranked results
+
+Organization for each brand
+
+Dataset for pages exposing analysis data
+
+BreadcrumbList for hierarchy
+
+optional review/rating-style fields only where they are real and defensible
+
+Schema.org supports these entities, and Google recommends JSON-LD as the preferred structured data format.
+
+So the practical answer is:
+
+Store once, publish three ways
+
+Database / graph for product logic
+
+Canonical HTML landing pages for citation and indexing
+
+Machine-readable JSON endpoints / dataset exports for reuse and future ingestion
+
+That is the strongest setup. Sitemaps help crawlers find these pages and understand what changed.
+
+For the actual page content, make every page highly extractable:
+
+exact query in title/H1
+
+short direct answer at top
+
+ranked list
+
+why each brand appears
+
+evidence blocks
+
+sources/citations
+
+last updated
+
+geography and category clearly stated
+
+unique page summary, not templated fluff
+
+That matters more than fancy schema alone; Google’s guidance is clear that structured data does not guarantee visibility, and quality/crawlability still matter.
+
+One important caution: do not bet on FAQ markup as your main lever. Google reduced FAQ rich results heavily and now shows them mainly for well-known government and health sites. So for your directory, the main win is strong page structure + ItemList/Organization/Dataset markup + crawlable pages, not FAQ spam.
+
+So, in one line:
+
+Best architecture = normalized entity database internally, but publish it externally as crawlable canonical HTML query pages with JSON-LD ItemList/Organization/Dataset markup, backed by sitemaps and clear robots access.
+
+For your GEO directory specifically, the strongest public unit is probably:
+
+one page per high-intent prompt
+like
+Best Home Healthcare in Dubai
+with ranked brands, evidence, winners, and structured entities.
+
+That aligns best with how users ask AI systems and how citation pages tend to be selected.
