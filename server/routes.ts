@@ -348,9 +348,10 @@ export async function registerRoutes(
 ): Promise<Server> {
 
   // ── Landing page submission ────────────────────────────────────────────────
+  const isDev = process.env.NODE_ENV !== "production";
   const landingRateLimit = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 3,
+    max: isDev ? 100 : 3,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Too many submissions from this IP. Please try again later." },
