@@ -4,8 +4,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import {
   ArrowRight, Sparkles, Globe, Activity, BarChart3, Code, Bot, Zap,
-  Database, Loader2, AlertCircle, Plus, X, MapPin, CheckCircle2,
+  Database, Loader2, AlertCircle, Plus, X, MapPin, CheckCircle2, Brain,
 } from "lucide-react";
+import { AuthoritySourcesPanel } from "@/components/AuthoritySourcesPanel";
 
 function normalizeDomain(url: string): string {
   try {
@@ -169,6 +170,7 @@ function LandingInner() {
   const [city, setCity] = useState("");
   const [newServiceInput, setNewServiceInput] = useState("");
   const [newCustomerInput, setNewCustomerInput] = useState("");
+  const [showIntelligence, setShowIntelligence] = useState(false);
   const [customerLimitError, setCustomerLimitError] = useState(false);
   const [serviceLimitError, setServiceLimitError] = useState(false);
 
@@ -659,15 +661,46 @@ function LandingInner() {
                   <p className="text-slate-400 text-sm mb-5">
                     All {scoringSegs.length} segments scored across ChatGPT · Claude · Gemini
                   </p>
-                  <button
-                    onClick={() => navigate(`/v2/${activeSessionId}`)}
-                    data-testid="btn-view-full-report"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold transition-all duration-200 shadow-lg shadow-green-500/20"
-                  >
-                    View Full Report
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                    <button
+                      onClick={() => navigate(`/v2/${activeSessionId}`)}
+                      data-testid="btn-view-full-report"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold transition-all duration-200 shadow-lg shadow-green-500/20"
+                    >
+                      View Full Report
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                    {!showIntelligence && (
+                      <button
+                        onClick={() => setShowIntelligence(true)}
+                        data-testid="btn-analyse-intelligence"
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-violet-600/20 border border-violet-500/40 hover:bg-violet-600/30 hover:border-violet-500/60 text-violet-300 font-semibold transition-all duration-200"
+                      >
+                        <Brain className="w-4 h-4" />
+                        Analyse Citation Intelligence
+                      </button>
+                    )}
+                  </div>
                 </div>
+              </div>
+            )}
+
+            {/* Citation Intelligence panel — revealed after button press */}
+            {allSegmentsDone && showIntelligence && activeSessionId !== null && (
+              <div className="mt-2">
+                <AuthoritySourcesPanel
+                  autoRun
+                  sessionId={activeSessionId}
+                  brandName={scoringSession?.brandName || ""}
+                  segments={scoredSegs.map((s: any, i: number) => ({
+                    id: s.id || `seg-${i}`,
+                    persona: s.persona || s.serviceType || s.label || `Segment ${i + 1}`,
+                    seedType: s.seedType || "",
+                    customerType: s.customerType || "",
+                    location: s.location || "",
+                    scoringResult: s.scoringResult,
+                  }))}
+                />
               </div>
             )}
           </div>

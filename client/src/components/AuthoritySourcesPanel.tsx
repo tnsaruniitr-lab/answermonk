@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -74,6 +74,7 @@ interface Props {
   brandName: string;
   segments: SegmentInput[];
   groupKey?: string | null;
+  autoRun?: boolean;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -305,10 +306,12 @@ function MarkdownReport({ text }: { text: string }) {
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey }: Props) {
+export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey, autoRun }: Props) {
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<"authority" | "brand">("authority");
   const [crawlError, setCrawlError] = useState<string | null>(null);
+  const autoInsightsTriggered = useRef(false);
+  const autoCrawlTriggered = useRef(false);
 
   // Gate check: rowCount + past insight runs
   const { data: insightsData, isLoading: insightsLoading } = useQuery<CitationInsightsData>({
@@ -366,6 +369,11 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       setCrawlError(null);
       qc.invalidateQueries({ queryKey: ["/api/multi-segment-sessions", sessionId, "citation-insights"] });
       qc.invalidateQueries({ queryKey: ["/api/multi-segment-sessions", sessionId, "citation-sources"] });
+      // Auto-chain: fire Claude Sonnet immediately after crawl if autoRun
+      if (autoRun && !autoInsightsTriggered.current) {
+        autoInsightsTriggered.current = true;
+        insightsMutation.mutate();
+      }
     },
     onError: (err: any) => setCrawlError(String(err)),
   });
@@ -386,6 +394,24 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       });
     },
   });
+
+  // ── Auto-run chain: fire crawl → insights without user interaction ──────────
+  useEffect(() => {
+    if (!autoRun || insightsLoading) return;
+
+    // Case 1: No citation data yet → start crawl
+    if (rowCount === 0 && !autoCrawlTriggered.current && !crawlMutation.isPending) {
+      autoCrawlTriggered.current = true;
+      crawlMutation.mutate();
+      return;
+    }
+
+    // Case 2: Citation data exists but no insights yet → start Claude
+    if (rowCount > 0 && pastInsights.length === 0 && !autoInsightsTriggered.current && !insightsMutation.isPending) {
+      autoInsightsTriggered.current = true;
+      insightsMutation.mutate();
+    }
+  }, [autoRun, insightsLoading, rowCount, pastInsights.length]);
 
   const authorityMax = authoritySources[0]?.appearances ?? 1;
   const brandMax = brandMentions[0]?.appearances ?? 1;
@@ -414,8 +440,20 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
           {/* ── Empty state / Crawl trigger ────────────────────────────── */}
           {!hasData && (
             <div className="rounded-lg border border-dashed border-border/60 bg-secondary/10 px-6 py-8 text-center space-y-3">
-              {insightsLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin mx-auto text-muted-foreground" />
+              {insightsLoading || (autoRun && crawlMutation.isPending) ? (
+                <>
+                  <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary/60" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {insightsLoading ? "Loading…" : "Crawling citation URLs…"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {insightsLoading
+                        ? "Checking citation data…"
+                        : "Scraping and classifying all citation sources with AI. This takes 1–3 minutes."}
+                    </p>
+                  </div>
+                </>
               ) : (
                 <>
                   <Globe className="w-8 h-8 mx-auto text-muted-foreground/40" />
@@ -445,11 +483,6 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
                     )}
                     {crawlMutation.isPending ? "Analysing…" : "Analyse & Crawl"}
                   </Button>
-                  {crawlMutation.isPending && (
-                    <p className="text-[11px] text-muted-foreground">
-                      This may take 1–3 minutes. Crawling and classifying citation URLs…
-                    </p>
-                  )}
                 </>
               )}
             </div>
