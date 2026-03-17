@@ -1,0 +1,213 @@
+Must-fix issues (before launch)
+1. rawQuery is still synthetic (same issue as before)
+
+normaliseSegment() creates:
+
+rawQuery = `best ${rawService} in ${rawLocation}`
+
+This does not preserve the real query.
+
+Example input:
+
+"top home healthcare dubai"
+
+Stored raw query becomes:
+
+best home healthcare in dubai
+
+That violates your schema definition:
+
+raw_query = original query, untouched
+
+Why it matters:
+
+audit trail
+
+dataset reproducibility
+
+debugging prompt variants
+
+Fix
+
+Add raw query to SegmentInput and store it directly.
+
+2. Canonical slug immutability not enforced in code
+
+The comments say:
+
+canonical_slug is IMMUTABLE once publish_status = published
+
+But I cannot find any actual guard enforcing this.
+
+If an update query modifies canonicalSlug, nothing prevents it.
+
+Fix
+
+Enforce at DB or service layer:
+
+if (existing.publish_status === "published")
+  reject canonical_slug change
+
+Preferably also enforce at database level.
+
+3. Sitemap index is still static
+
+sitemapRoutes.ts builds:
+
+/sitemaps/query-pages-1.xml
+
+But the index does not dynamically add batches when >50k pages exist.
+
+Your plan required:
+
+/sitemap.xml → index
+/sitemaps/query-pages-1.xml
+/sitemaps/query-pages-2.xml
+...
+
+Fix
+
+Compute:
+
+totalPublishedQueryPages
+batchCount = ceil(total / 50000)
+
+and emit all batches.
+
+4. clusterId generation can produce trailing underscores
+
+In normaliseSegment():
+
+[toClusterKey(normService), toClusterKey(normLocation)].join("_")
+
+If one component is empty, you may get:
+
+home_healthcare_
+
+Your spec required:
+
+service_location
+
+Fix
+
+Filter empty components before joining.
+
+5. Brand slug generation may collide
+
+Current logic:
+
+brandToSlug(name)
+
+Example collision:
+
+"Care+"
+"Care"
+
+Both → care
+
+If two brands collide you will overwrite pages.
+
+Fix
+
+Prefer domain-based slugs when available:
+
+/brand/vestacare-ae
+
+Domain is the true entity identifier.
+
+6. Blocked pages still return HTTP 200
+
+Query route checks publish status for robots meta but still returns HTML.
+
+Per your plan:
+
+blocked → not a public page
+
+Returning 200 exposes it.
+
+Fix
+
+if publish_status === "blocked"
+  return 404
+
+Draft can remain hidden too.
+
+Medium issues (not blockers)
+7. Normalization filler word list may be too aggressive
+
+You remove:
+
+the, and, for, of, with
+
+Example risk:
+
+software for restaurants dubai
+
+becomes
+
+software restaurants dubai
+
+Meaning can change.
+
+Not critical, but something to watch.
+
+8. Category hub editorial text still template-like
+
+Spec required:
+
+editorial summary derived from signals
+
+The current code looks like a simple template.
+
+Not fatal but weakens authority signals.
+
+9. Comparison evidence threshold is simplified
+
+Your spec described "sufficient differentiating evidence".
+
+Code currently checks:
+
+co_occurrence >= 3
+visibility difference >= threshold
+
+This is a reasonable approximation but simpler than the spec.
+
+Minor issues
+10. Canonical URL building may break behind proxies
+
+Some routes use:
+
+req.protocol + req.headers.host
+
+Behind Cloudflare or reverse proxy this may produce:
+
+http://internal-host
+
+Use forwarded headers.
+
+Final evaluation
+Area	Status
+Architecture	✅ correct
+Normalization	⚠ minor improvements needed
+Query pages	✅ good
+Brand pages	✅ good
+Category hubs	✅ good
+Comparison pages	⚠ simplified rule
+Sitemap	❗ needs dynamic batching
+Slug immutability	❗ missing enforcement
+raw_query preservation	❗ must fix
+Deployment readiness
+
+If you fix the four critical items:
+
+preserve real raw_query
+
+enforce slug immutability
+
+dynamic sitemap batching
+
+return 404 for blocked pages
+
+then this codebase becomes production-ready for the directory described in your spec.
+
+Everything else is refinement.
