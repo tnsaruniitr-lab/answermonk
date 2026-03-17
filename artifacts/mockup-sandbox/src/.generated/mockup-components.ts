@@ -6,5 +6,7 @@ export const modules: ModuleMap = {
   "./components/mockups/crawl-loading/TerminalDark.tsx": () => import("../components/mockups/crawl-loading/TerminalDark.tsx"),
   "./components/mockups/geo-comparison/CrawlabilityTable.tsx": () => import("../components/mockups/geo-comparison/CrawlabilityTable.tsx"),
   "./components/mockups/landing/GeoLanding.tsx": () => import("../components/mockups/landing/GeoLanding.tsx"),
+  "./components/mockups/report-format/IntelligenceDashboard.tsx": () => import("../components/mockups/report-format/IntelligenceDashboard.tsx"),
+  "./components/mockups/report-format/StructuredSections.tsx": () => import("../components/mockups/report-format/StructuredSections.tsx"),
   "./components/mockups/segment-card/SegmentResultCard.tsx": () => import("../components/mockups/segment-card/SegmentResultCard.tsx")
 };
