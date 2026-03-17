@@ -26,6 +26,10 @@ import {
   TrendingUp,
   Anchor,
   Users,
+  Building2,
+  Tag,
+  MessageSquareCode,
+  Layers,
 } from "lucide-react";
 
 type Verdict = "strong" | "partial" | "weak" | "absent";
@@ -122,6 +126,57 @@ function EngineChip({ engine }: { engine: string }) {
     : <span className="text-xs font-semibold text-blue-700 dark:text-blue-400">Gemini</span>;
 }
 
+// Business Profile Card — shows what Claude identified about the primary brand
+function BusinessProfileCard({ data, allBrands }: { data: BrandEntry; allBrands: BrandEntry[] }) {
+  const SEGMENT_LABELS: Record<string, string> = {
+    b2b_saas: "B2B SaaS",
+    agency: "Agency",
+    service: "Service business",
+    other: "Other",
+  };
+  return (
+    <Card className="border-primary/20 bg-primary/[0.02]">
+      <CardContent className="pt-5 pb-5 space-y-4">
+        <div className="flex items-start gap-3">
+          <Building2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-2">Business Identification</p>
+            <div className="flex flex-wrap gap-3">
+              <div className="rounded-lg border bg-background px-3 py-2 min-w-[120px]">
+                <p className="text-xs text-muted-foreground mb-0.5">Brand</p>
+                <p className="text-sm font-semibold">{data.brand_name}</p>
+              </div>
+              <div className="rounded-lg border bg-background px-3 py-2 min-w-[160px]">
+                <p className="text-xs text-muted-foreground mb-0.5">Business type</p>
+                <p className="text-sm font-semibold">{data.business_type}</p>
+              </div>
+              <div className="rounded-lg border bg-background px-3 py-2 min-w-[120px]">
+                <p className="text-xs text-muted-foreground mb-0.5">Segment</p>
+                <p className="text-sm font-semibold">{SEGMENT_LABELS[data.segment] ?? data.segment}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <Separator />
+        <div className="flex items-start gap-3">
+          <Tag className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+          <div className="text-xs text-muted-foreground leading-relaxed">
+            <span className="font-medium text-foreground">Why this shapes the signal framework:</span>{" "}
+            Claude identified this as a <span className="font-medium text-foreground">{data.business_type}</span> business
+            in the <span className="font-medium text-foreground">{SEGMENT_LABELS[data.segment] ?? data.segment}</span> segment.
+            Signals are derived at brand trust level — legitimacy, authority, and consistency of positioning —
+            not at service or product level. Questions are written to be brand-agnostic so all competitors can be
+            tested on the same prompts.
+            {allBrands.length > 1 && (
+              <span> The {allBrands.length - 1} competitor{allBrands.length > 2 ? "s" : ""} ({allBrands.slice(1).map(b => b.brand_name).join(", ")}) inherit this framework and are scored against the same responses.</span>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function BrandScoreCell({ score, brandName }: { score?: SignalScore; brandName: string }) {
   if (!score) return <div className="rounded-lg border bg-muted/20 p-3 text-xs text-muted-foreground text-center">Pending…</div>;
   if (score.error) return <div className="rounded-lg border border-destructive/30 p-3 text-xs text-destructive">Error</div>;
@@ -190,7 +245,7 @@ function SignalRow({ signal, brands, urls, scoringResults, engines }: {
         data-testid={`signal-row-${signal.id}`}
       >
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
+          <div className="flex items-center gap-2 flex-wrap mb-1.5">
             <span className="font-semibold text-sm">{signal.name}</span>
             {Object.entries(avgPerEngine).map(([eng, avg]) => (
               <Badge key={eng} variant="outline" className={`text-xs ${scoreColor(avg)}`}>
@@ -198,7 +253,16 @@ function SignalRow({ signal, brands, urls, scoringResults, engines }: {
               </Badge>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground italic">"{signal.base_question}"</p>
+          {/* Why it matters — always visible */}
+          <p className="text-xs text-muted-foreground mb-2">{signal.why_it_matters_for_ai_visibility}</p>
+          {/* Prompt sent to engines — always visible, clearly labelled */}
+          <div className="flex items-start gap-1.5 rounded-md bg-muted/50 border border-dashed px-2.5 py-1.5">
+            <MessageSquareCode className="w-3 h-3 text-primary mt-0.5 flex-shrink-0" />
+            <div className="min-w-0">
+              <span className="text-[10px] font-semibold text-primary uppercase tracking-wide mr-1.5">Prompt sent to engines</span>
+              <span className="text-xs text-muted-foreground italic">"{signal.base_question}"</span>
+            </div>
+          </div>
         </div>
         {expanded
           ? <ChevronUp className="w-4 h-4 mt-1 text-muted-foreground flex-shrink-0" />
@@ -207,21 +271,15 @@ function SignalRow({ signal, brands, urls, scoringResults, engines }: {
 
       {expanded && (
         <div className="px-5 pb-5 space-y-4">
-          {/* Signal metadata */}
+          {/* Strong / weak criteria */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div className="rounded-lg bg-muted/40 px-3 py-2">
-              <p className="font-medium text-muted-foreground mb-1">Why it matters for AI visibility</p>
-              <p>{signal.why_it_matters_for_ai_visibility}</p>
+            <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2">
+              <p className="font-medium text-emerald-700 dark:text-emerald-400 mb-0.5">Strong looks like</p>
+              <p className="text-muted-foreground">{signal.what_strong_looks_like}</p>
             </div>
-            <div className="grid grid-rows-2 gap-2">
-              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2">
-                <p className="font-medium text-emerald-700 dark:text-emerald-400 mb-0.5">Strong looks like</p>
-                <p className="text-muted-foreground">{signal.what_strong_looks_like}</p>
-              </div>
-              <div className="rounded-lg bg-red-50 dark:bg-red-950/30 px-3 py-2">
-                <p className="font-medium text-red-700 dark:text-red-400 mb-0.5">Weak looks like</p>
-                <p className="text-muted-foreground">{signal.what_weak_looks_like}</p>
-              </div>
+            <div className="rounded-lg bg-red-50 dark:bg-red-950/30 px-3 py-2">
+              <p className="font-medium text-red-700 dark:text-red-400 mb-0.5">Weak looks like</p>
+              <p className="text-muted-foreground">{signal.what_weak_looks_like}</p>
             </div>
           </div>
 
@@ -463,51 +521,53 @@ export default function SignalConsistency() {
           </Card>
         )}
 
-        {/* Signal framework (shown once signals are derived) */}
+        {/* Business identification + signal framework */}
         {primaryData && !primaryData.error && (
-          <div className="space-y-4">
+          <div className="space-y-5">
+
+            {/* Section header */}
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <Search className="w-4 h-4 text-muted-foreground" />
+                <Layers className="w-4 h-4 text-muted-foreground" />
                 <h2 className="text-sm font-semibold">
-                  {job?.status === "discovering" ? "Deriving signal framework…" : "Signal framework"}
+                  {job?.status === "discovering" ? "Analysing primary brand…" : "Signal framework"}
                 </h2>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Anchor className="w-3 h-3" />
-                <span className="font-medium">{primaryData.brand_name}</span>
-                <span>·</span>
-                <span>{primaryData.business_type}</span>
-                {allBrandEntries.length > 1 && (
-                  <span className="ml-2 text-muted-foreground/70">
-                    · competitors tested on same questions
-                  </span>
-                )}
-              </div>
-              {/* Competitor badges */}
               <div className="flex gap-1.5 ml-auto flex-wrap">
                 {allBrandEntries.map((b, i) => (
                   <span key={i} className={`text-xs px-2 py-0.5 rounded-full border ${i === 0 ? "border-primary/40 text-primary bg-primary/5" : "border-border text-muted-foreground bg-muted/30"}`}>
-                    {i === 0 ? <Anchor className="w-2.5 h-2.5 inline mr-1" /> : null}{b.brand_name}
+                    {i === 0 && <Anchor className="w-2.5 h-2.5 inline mr-1" />}
+                    {b.brand_name}
+                    {i > 0 && <span className="ml-1 opacity-60">competitor</span>}
                   </span>
                 ))}
               </div>
             </div>
 
-            {/* Signal rows — each shows all brands compared */}
+            {/* Business identification card */}
+            <BusinessProfileCard data={primaryData} allBrands={allBrandEntries} />
+
+            {/* 4 signals — each with visible why + prompt */}
             {signals.length > 0 ? (
-              <div className="space-y-2">
-                {signals.map(signal => (
-                  <SignalRow
-                    key={signal.id}
-                    signal={signal}
-                    brands={allBrandEntries}
-                    urls={activeBrandUrls.filter(u => job?.discoveredSignals?.[u])}
-                    scoringResults={job?.scoringResults}
-                    engines={job?.engines ?? engines}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="flex items-center gap-2">
+                  <Search className="w-4 h-4 text-muted-foreground" />
+                  <h3 className="text-sm font-semibold">{signals.length} signals identified</h3>
+                  <span className="text-xs text-muted-foreground ml-1">— expand any to see brand scores</span>
+                </div>
+                <div className="space-y-2">
+                  {signals.map(signal => (
+                    <SignalRow
+                      key={signal.id}
+                      signal={signal}
+                      brands={allBrandEntries}
+                      urls={activeBrandUrls.filter(u => job?.discoveredSignals?.[u])}
+                      scoringResults={job?.scoringResults}
+                      engines={job?.engines ?? engines}
+                    />
+                  ))}
+                </div>
+              </>
             ) : job?.status === "discovering" ? (
               <div className="rounded-xl border p-6 flex items-center gap-3 text-muted-foreground text-sm">
                 <Loader2 className="w-4 h-4 animate-spin" />Reading primary brand…
