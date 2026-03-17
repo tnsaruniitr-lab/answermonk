@@ -1,0 +1,229 @@
+Citation Sources
+140 unique domains
+Classify URLs with AI
+Authority Sources
+third-party validators, ranked by citation weight
+1
+zimyo.com
+Comparison & Research
+26× · score 43
+GPT
+Gem
+2
+getapp.ae
+Review Platforms
+17× · score 36
+GPT
+Gem
+3
+capterra.ae
+Review Platforms
+12× · score 25
+GPT
+Gem
+4
+g2.com
+Review Platforms
+9× · score 19
+GPT
+Gem
+5
+metaworldconsultant.com
+Comparison & Research
+12× · score 13
+Gem
+6
+en.wikipedia.org
+Directories
+6× · score 12
+GPT
+Gem
+7
+news.sap.com
+News & Media
+5× · score 11
+GPT
+Gem
+8
+slideshare.net
+Comparison & Research
+8× · score 9
+Gem
+9
+zawya.com
+News & Media
+3× · score 7
+GPT
+Gem
+10
+getwealthi.ai
+Comparison & Research
+4× · score 7
+GPT
+Gem
+11
+mastercard.com
+News & Media
+3× · score 7
+GPT
+Gem
+12
+apps.apple.com
+Directories
+5× · score 7
+GPT
+13
+cpapracticeadvisor.com
+Comparison & Research
+5× · score 6
+GPT
+14
+capterra.com
+Review Platforms
+4× · score 6
+GPT
+15
+gartner.com
+Review Platforms
+3× · score 6
+GPT
+Gem
+16
+cotocus.com
+Comparison & Research
+5× · score 6
+GPT
+17
+dmcc.ae
+News & Media
+2× · score 5
+GPT
+Gem
+18
+reddit.com
+Social Media
+3× · score 4
+GPT
+19
+zynoexpenz.com
+Comparison & Research
+4× · score 4
+Gem
+20
+s201.q4cdn.com
+News & Media
+2× · score 3
+GPT
+21
+trustpilot.com
+Review Platforms
+2× · score 3
+GPT
+22
+paisabazaar.ae
+Directories
+2× · score 3
+Gem
+23
+oysterhr.com
+Comparison & Research
+3× · score 3
+Gem
+24
+wealthgcc.com
+Comparison & Research
+3× · score 3
+Gem
+25
+investors.expensify.com
+News & Media
+1× · score 2
+GPT
+Brand & Competitor Mentions
+brand domains cited by LLMs — excluded from authority ranking
+1
+alaan.com
+Brand
+49× cited
+GPT
+Gem
+2
+pemo.io
+Brand
+48× cited
+GPT
+Gem
+3
+getpluto.com
+Brand
+33× cited
+GPT
+Gem
+4
+qashio.com
+Brand
+28× cited
+GPT
+Gem
+5
+emiratesnbd.com
+Brand
+13× cited
+GPT
+Gem
+6
+zoho.com
+Brand
+10× cited
+GPT
+Gem
+7
+xpence.com
+Brand
+10× cited
+Gem
+8
+meydanfz.ae
+Brand
+8× cited
+Gem
+9
+rydoo.com
+Brand
+8× cited
+Gem
+10
+peko.one
+Brand
+8× cited
+Gem
+11
+emiratesislamic.ae
+Brand
+7× cited
+Gem
+12
+cbd.ae
+Brand
+6× cited
+GPT
+Gem
+13
+concur.ae
+Brand
+6× cited
+GPT
+14
+mazeed.com
+Brand
+5× cited
+Gem
+15
+inlex-partners.com
+Brand
+5× cited
+Gem
+16
+buvei.com
+Brand
+4× cited
