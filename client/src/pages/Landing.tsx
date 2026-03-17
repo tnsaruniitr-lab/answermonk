@@ -44,11 +44,20 @@ function SegmentResultCard({ seg, brandName }: { seg: any; brandName: string }) 
   const primary = Math.round((score.primary_rate ?? 0) * 100);
   const avgRank = score.avg_rank != null ? `#${score.avg_rank}` : "—";
   const engines = score.engine_breakdown || {};
-  const competitors = (score.competitors || []).slice(0, 6);
   const rawRuns = sr?.raw_runs || [];
   const citationCount = rawRuns.reduce((s: number, r: any) => s + (r.citations?.length || 0), 0);
   const label = seg.persona || seg.serviceType || seg.customerType || seg.label || "Segment";
   const type = seg.seedType || seg.type || "service";
+
+  const rawCompetitors: { name: string; share: number; isBrand?: boolean }[] = (score.competitors || []).slice(0, 8);
+  const brandAlreadyIn = rawCompetitors.some((c) => c.name?.toLowerCase() === brandName?.toLowerCase());
+  const allRankings = [
+    ...rawCompetitors,
+    ...(!brandAlreadyIn && brandName ? [{ name: brandName, share: score.appearance_rate ?? 0, isBrand: true }] : []),
+  ]
+    .sort((a, b) => b.share - a.share)
+    .slice(0, 8)
+    .map((c) => ({ ...c, isBrand: c.isBrand || c.name?.toLowerCase() === brandName?.toLowerCase() }));
 
   return (
     <div className="bg-[#111827]/80 border border-white/10 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -103,23 +112,33 @@ function SegmentResultCard({ seg, brandName }: { seg: any; brandName: string }) 
         </div>
       )}
 
-      {/* Competitor rankings */}
-      {competitors.length > 0 && (
+      {/* Rankings */}
+      {allRankings.length > 0 && (
         <div className="p-4">
-          <p className="text-xs text-slate-500 mb-2 font-mono uppercase tracking-wider">Rankings</p>
-          <div className="space-y-1.5">
-            {competitors.map((c: any) => {
+          <p className="text-xs text-slate-500 mb-3 font-mono uppercase tracking-wider">Rankings</p>
+          <div className="space-y-2.5">
+            {allRankings.map((c, idx) => {
               const pct = Math.round((c.share ?? 0) * 100);
-              const isBrand = c.name?.toLowerCase() === brandName?.toLowerCase();
+              const maxPct = Math.round((allRankings[0]?.share ?? 1) * 100) || 1;
+              const barWidth = Math.round((pct / maxPct) * 100);
               return (
-                <div key={c.name} className="flex items-center gap-2">
-                  <div className="flex-1 relative h-5">
-                    <div className="absolute inset-0 bg-white/5 rounded overflow-hidden">
-                      <div className={`h-full rounded transition-all duration-700 ${isBrand ? "bg-gradient-to-r from-blue-600/60 to-violet-600/60" : "bg-gradient-to-r from-slate-700 to-slate-600"}`} style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className={`absolute inset-0 flex items-center px-2 text-xs ${isBrand ? "text-blue-300 font-semibold" : "text-slate-300"}`}>{c.name}</span>
+                <div key={c.name} className="flex items-center gap-2.5">
+                  <span className={`text-[10px] font-mono w-4 text-right flex-shrink-0 ${c.isBrand ? "text-blue-400 font-bold" : "text-slate-600"}`}>
+                    {idx + 1}
+                  </span>
+                  <span className={`text-xs w-32 truncate flex-shrink-0 ${c.isBrand ? "text-blue-300 font-semibold" : "text-slate-400"}`}>
+                    {c.name}
+                    {c.isBrand && <span className="ml-1 text-[9px] text-blue-500 font-mono uppercase">you</span>}
+                  </span>
+                  <div className="flex-1 h-1 rounded-full bg-white/5 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ${c.isBrand ? "bg-gradient-to-r from-blue-500 to-violet-500" : "bg-slate-600"}`}
+                      style={{ width: `${barWidth}%` }}
+                    />
                   </div>
-                  <span className="text-xs text-slate-400 w-8 text-right flex-shrink-0">{pct}%</span>
+                  <span className={`text-xs w-8 text-right flex-shrink-0 tabular-nums ${c.isBrand ? "text-blue-300 font-semibold" : "text-slate-500"}`}>
+                    {pct}%
+                  </span>
                 </div>
               );
             })}
