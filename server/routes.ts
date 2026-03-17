@@ -1803,22 +1803,22 @@ export async function registerRoutes(
       if (domain) { params.push(domain); conditions.push(`domain = $${params.length}`); }
 
       if (domain) {
-        // When filtering by domain, return deduplicated URLs with engine flags and total count
+        // Use citation_urls — SUM(citation_count) gives true citation frequency per URL
         const result = await pool.query(`
           SELECT
             url,
             domain,
             MAX(title) as title,
             MAX(llm_pagetype_classification) as llm_pagetype_classification,
-            COUNT(*) as citation_count,
+            SUM(citation_count) as citation_count,
             MAX(CASE WHEN engine = 'chatgpt' THEN 1 ELSE 0 END) as in_chatgpt,
             MAX(CASE WHEN engine = 'gemini' THEN 1 ELSE 0 END) as in_gemini,
             MAX(CASE WHEN engine = 'claude' THEN 1 ELSE 0 END) as in_claude
           FROM citation_urls
-          WHERE ${conditions.join(" AND ")}
+          WHERE session_id = $1 AND domain = $2
           GROUP BY url, domain
           ORDER BY citation_count DESC, url
-        `, params);
+        `, [sessionId, domain]);
         res.json({ rows: result.rows });
       } else {
         const result = await pool.query(`
@@ -2049,6 +2049,21 @@ export async function registerRoutes(
             ? "brand"
             : (LLM_TO_INTERNAL[llmCat] ?? "general_web");
         }
+      }
+
+      // Override appearances with SUM(citation_count) from citation_urls so domain total
+      // matches the sum of per-URL counts shown in the URL expander
+      const cuCountResult = await pool.query(
+        `SELECT domain, SUM(citation_count) as total_count
+         FROM citation_urls
+         WHERE session_id = $1 AND domain IS NOT NULL
+         GROUP BY domain`,
+        [id]
+      );
+      for (const row of cuCountResult.rows) {
+        const key = String(row.domain).toLowerCase();
+        const entry = domainMap.get(key);
+        if (entry) entry.appearances = Number(row.total_count);
       }
 
       const CATEGORY_LABELS: Record<string, string> = {
