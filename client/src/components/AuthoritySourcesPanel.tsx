@@ -859,34 +859,57 @@ function MdBodyBlocks({ body }: { body: string }) {
   );
 }
 
+const MD_IMPACT_META: { color: string; bg: string; border: string; label: string }[] = [
+  { color: "#ef4444", bg: "rgba(239,68,68,0.12)",   border: "rgba(239,68,68,0.3)",   label: "HIGHEST"   },
+  { color: "#f97316", bg: "rgba(249,115,22,0.12)",  border: "rgba(249,115,22,0.3)",  label: "VERY HIGH" },
+  { color: "#3b82f6", bg: "rgba(59,130,246,0.12)",  border: "rgba(59,130,246,0.3)",  label: "HIGH"      },
+  { color: "#8b5cf6", bg: "rgba(139,92,246,0.12)",  border: "rgba(139,92,246,0.3)",  label: "MEDIUM"    },
+  { color: "#64748b", bg: "rgba(100,116,139,0.12)", border: "rgba(100,116,139,0.3)", label: "LOW"       },
+];
+
 function CollapsibleMdCard({ section, rank }: { section: MdSection; rank: number }) {
   const [open, setOpen] = useState(false);
-
-  const RANK_IMPACT = ["HIGHEST", "VERY HIGH", "HIGH", "MEDIUM", "LOW"];
-  const impact = RANK_IMPACT[Math.min(rank - 1, RANK_IMPACT.length - 1)];
-  const impactCls = IMPACT_COLORS[impact] ?? IMPACT_COLORS.LOW;
+  const meta = MD_IMPACT_META[Math.min(rank - 1, MD_IMPACT_META.length - 1)];
 
   const titleMatch = section.heading.match(/^(\d+)\.\s*(.+)/);
-  const displayTitle = titleMatch ? titleMatch[2].trim() : section.heading;
+  const rawTitle = (titleMatch ? titleMatch[2] : section.heading)
+    .replace(/\*\*/g, "")
+    .replace(/\|.*$/, "")
+    .replace(/impact\s*rank.*/i, "")
+    .trim();
+
   const cleanBody = section.body
-    .replace(/impact.rank.*\n?/i, "")
-    .replace(/confidence.*?:(.*)\n?/i, "")
+    .replace(/^\s*impact\s*rank.*\n?/im, "")
+    .replace(/^\s*confidence.*\n?/im, "")
     .trim();
 
   return (
-    <div className="border border-border/60 rounded-xl overflow-hidden mb-2">
+    <div style={{ border: `1px solid rgba(255,255,255,0.08)`, borderRadius: 12, overflow: "hidden", marginBottom: 8 }}>
       <button
         onClick={() => setOpen(o => !o)}
-        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/30 ${open ? "bg-secondary/20" : "bg-background"}`}
+        style={{
+          width: "100%", background: open ? "#0f172a" : "#111827",
+          border: "none", padding: "12px 16px", textAlign: "left", cursor: "pointer",
+          display: "flex", alignItems: "center", gap: 12, transition: "background 0.15s",
+        }}
       >
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold border shrink-0 ${impactCls}`}>
-          #{rank}
+        <div style={{
+          width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+          background: meta.bg, border: `1px solid ${meta.border}`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <span style={{ color: meta.color, fontSize: 11, fontWeight: 700 }}>#{rank}</span>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-semibold text-foreground leading-tight truncate">{displayTitle}</div>
-          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${impactCls}`}>{impact}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{rawTitle}</div>
+          <span style={{
+            display: "inline-block", marginTop: 3,
+            background: meta.bg, border: `1px solid ${meta.border}`,
+            color: meta.color, fontSize: 9, fontWeight: 700,
+            padding: "1px 6px", borderRadius: 4, letterSpacing: 0.5,
+          }}>{meta.label}</span>
         </div>
-        <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`w-4 h-4 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} style={{ color: "#334155" }} />
       </button>
       <AnimatePresence>
         {open && (
@@ -896,7 +919,7 @@ function CollapsibleMdCard({ section, rank }: { section: MdSection; rank: number
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 pt-3 bg-secondary/10 border-t border-border/40">
+            <div style={{ background: "#0a0f1e", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "14px 16px" }}>
               <MdBodyBlocks body={cleanBody} />
             </div>
           </motion.div>
@@ -937,11 +960,11 @@ function MarkdownReport({ text }: { text: string }) {
 
       {/* Executive summary → amber key finding */}
       {summarySection && (
-        <div className="flex gap-3 items-start rounded-xl border border-amber-200 dark:border-amber-800/60 bg-amber-50/60 dark:bg-amber-950/20 px-4 py-3">
+        <div className="flex gap-3 items-start rounded-xl px-4 py-3" style={{ background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.2)" }}>
           <span className="text-lg shrink-0">⚡</span>
           <div>
-            <div className="text-[11px] font-bold text-amber-700 dark:text-amber-400 mb-1">Key Finding</div>
-            <div className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed" dangerouslySetInnerHTML={{ __html: renderInline(summarySection.body.split("\n\n")[0] ?? summarySection.body) }} />
+            <div className="mb-1" style={{ color: "#fbbf24", fontSize: 11, fontWeight: 700 }}>Key Finding</div>
+            <div style={{ color: "#fde68a", fontSize: 12, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: renderInline(summarySection.body.split("\n\n")[0] ?? summarySection.body) }} />
           </div>
         </div>
       )}
