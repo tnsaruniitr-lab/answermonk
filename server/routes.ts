@@ -456,7 +456,7 @@ export async function registerRoutes(
         ...((pncResult as any).by_service || []).map((group: any, i: number) => ({
           id: `svc-${i}`,
           persona: group.service,
-          seedType: "service",
+          seedType: group.service,
           serviceType: group.service,
           customerType: null,
           customerTypeEnabled: false,
@@ -467,7 +467,7 @@ export async function registerRoutes(
         ...((pncResult as any).by_customer || []).map((group: any, i: number) => ({
           id: `cust-${i}`,
           persona: group.customer,
-          seedType: "customer",
+          seedType: group.customer,
           serviceType: null,
           customerType: group.customer,
           customerTypeEnabled: true,
@@ -1203,7 +1203,11 @@ export async function registerRoutes(
         .filter((row: any) => row.primary_seg)
         .map((row: any) => {
           const seg = row.primary_seg;
-          const seedType  = (seg?.seedType  || seg?.serviceType || "").trim();
+          const GENERIC = ["service", "customer", "providers", "provider"];
+          const rawSeed   = (seg?.seedType  || "").trim();
+          const seedType  = GENERIC.includes(rawSeed.toLowerCase())
+            ? (seg?.serviceType || seg?.customerType || seg?.persona || rawSeed).trim()
+            : (rawSeed || seg?.serviceType || seg?.customerType || seg?.persona || "").trim();
           const location  = (seg?.location  || "").trim();
           const persona   = (seg?.persona   || seg?.customerType || "").trim();
           const sr        = seg?.scoringResult ?? {};
