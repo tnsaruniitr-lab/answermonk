@@ -64,7 +64,7 @@ function LandingInner() {
       const res = await fetch(`/api/landing/submission/${submissionId}`);
       return res.json();
     },
-    enabled: submissionId !== null && submission?.status !== "complete",
+    enabled: submissionId !== null,
     refetchInterval: (data) =>
       data?.state?.data?.status === "complete" || data?.state?.data?.status === "error" ? false : 2000,
   });
