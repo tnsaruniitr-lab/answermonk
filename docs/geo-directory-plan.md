@@ -7,10 +7,31 @@
 ## Architecture Decision (Final, Settled)
 
 - Express HTML routes returning complete HTML — no React SSR, no hydration
-- Prompt-based URLs as the primary unit (not session IDs)
+- **Segment = the atomic unit of the directory** (not session, not prompt)
+- One segment → one canonical query page → one URL
+- Session is a container only — has no presence in the public directory
 - JSON-LD `@graph` schema on every page
 - Auto-generated sitemap at `/sitemap.xml`
 - React SPA untouched — directory pages are separate Express routes
+
+### Segment vs Session vs Prompt
+
+| Layer | Role | Directory presence |
+|---|---|---|
+| **Session** | Groups segments for the user's analysis flow | None — invisible to directory |
+| **Segment** | One serviceType + location + persona combination | **Yes — one page per segment** |
+| **Prompt** | Individual queries run within a segment (18 per segment) | Evidence only — shown inside the segment page, not as separate pages |
+
+A session with 6 segments = up to 6 independent directory pages. Each passes or fails the quality gate independently. A weak segment does not block the other 5 from publishing.
+
+If two different sessions produce the same `canonical_slug` (e.g. two clients both analysed "home healthcare Dubai"), the deduplication layer merges the evidence into one canonical page — it does not create two pages.
+
+### Service vs Customer segment URL patterns
+
+- **Service segment** → `/best-{service}-{location}` (e.g. `/best-home-healthcare-dubai`)
+- **Customer segment** → `/best-{service}-for-{persona}-{location}` (e.g. `/best-corporate-cards-for-sme-owners-uae`)
+
+Both are valid publishable pages with distinct content and potentially different winning brands.
 
 ---
 
