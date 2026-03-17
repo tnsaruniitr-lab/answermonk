@@ -1036,7 +1036,7 @@ export default function BrandIntelligence() {
   const [brandUrl, setBrandUrl] = useState("");
   const [engine, setEngine] = useState("gemini");
   const [runCount, setRunCount] = useState("10");
-  const [webSearch, setWebSearch] = useState(false);
+  const [webSearch, setWebSearch] = useState(true);
   const [mode, setMode] = useState<"recall" | "packet" | "benchmark">("recall");
   const [packet, setPacket] = useState<PacketDefinition>({ ...DEFAULT_PACKET });
   const [benchmarkCategory, setBenchmarkCategory] = useState("healthcare_uae");

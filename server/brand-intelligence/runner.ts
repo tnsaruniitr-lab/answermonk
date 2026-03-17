@@ -189,7 +189,7 @@ async function callEngine(engine: string, prompt: string, webSearch: boolean): P
       return { text, sessionSources };
     } else {
       const response = await gemini.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
         contents: prompt,
         config: { maxOutputTokens: 8192 },
       });
@@ -229,7 +229,7 @@ async function callEngine(engine: string, prompt: string, webSearch: boolean): P
       return { text, sessionSources };
     } else {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-5.2",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.7,
       });
@@ -591,7 +591,7 @@ Return ONLY valid JSON in this exact shape (no markdown):
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5.2",
       messages: [{ role: "user", content: batchPrompt }],
       temperature: 0.2,
     });
@@ -717,7 +717,7 @@ Wedge collision: check if recognized brand_wedge semantically overlaps with any 
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5.2",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.2,
     });

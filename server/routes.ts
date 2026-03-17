@@ -2923,7 +2923,7 @@ export async function registerRoutes(
         brandUrl: z.string().url().optional().or(z.literal("")),
         engine: z.enum(["chatgpt", "gemini", "claude"]),
         runCount: z.number().int().min(5).max(20).default(15),
-        webSearch: z.boolean().default(false),
+        webSearch: z.boolean().default(true),
         packetMode: z.boolean().default(false),
         packetDefinition: z.object({
           idealIdentity: z.string(),
