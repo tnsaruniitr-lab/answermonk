@@ -354,3 +354,87 @@ Each analysis run automatically generates:
 - Updated sitemap
 
 At scale: thousands of AI-answer pages indexed and cited by AI engines as a structured ranking dataset.
+
+---
+
+## Final Engineering Rules (Non-Negotiable)
+
+### Canonical slug locking
+Once `publish_status = published`, the `canonical_slug` is **immutable** — even if normalisation rules change in future. Changing a published slug breaks all external citations and inbound links.
+
+Implementation rule:
+```
+if publish_status = published → reject any update to canonical_slug
+```
+
+### Cluster ID format (strict)
+```
+cluster_id = {serviceType_normalized}_{canonical_location}
+```
+- Underscore separator only — no spaces, hyphens, or mixed formats
+- All lowercase
+- Examples: `home_healthcare_dubai`, `debt_collection_software_netherlands`
+
+Clusters drive: hub generation, related query selection, comparison triggers. Format consistency is required.
+
+### Authority source normalisation
+Strip paths and `www.` before storing authority domains:
+
+| Raw | Stored |
+|---|---|
+| `reddit.com/r/dubai` | `reddit.com` |
+| `www.g2.com` | `g2.com` |
+| `dha.gov.ae/en` | `dha.gov.ae` |
+
+Normalise before inserting into `ranking_snapshot_json.authority_sources`.
+
+### Sitemap size control (plan for scale)
+```
+/sitemap.xml            → sitemap index file
+/sitemaps/query-pages-1.xml
+/sitemaps/query-pages-2.xml   (when > 50,000 query pages)
+/sitemaps/brands.xml
+/sitemaps/hubs.xml
+```
+Google limit: 50,000 URLs per sitemap. Build the index structure from day one to avoid migration later.
+
+### Cache invalidation triggers
+`Cache-Control: public, max-age=3600` is set on all pages.
+
+Purge cache when:
+- New page published
+- Ranking version updated (`query_page_versions` new row inserted)
+- Brand page updated
+
+Without purge triggers, cached pages will lag behind live dataset.
+
+---
+
+## Final Implementation Sequence (12 Steps)
+
+| Step | Task |
+|---|---|
+| 1 | DB schema migration (11 fields + `query_page_versions` table) |
+| 2 | Normalisation engine + slug generator + authority source normaliser |
+| 3 | Evidence scoring + quality gate |
+| 4 | `publish_status` logic + override controls |
+| 5 | Express query page route (full 8-section template) |
+| 6 | JSON-LD `@graph` generation |
+| 7 | Methodology pages (3 static pages) |
+| 8 | Sitemap index route + sub-sitemaps |
+| 9 | Brand entity page route |
+| 10 | Category hub route |
+| 11 | Comparison page route |
+| 12 | Directory listing API + React `/directory` page + nav link |
+
+---
+
+## Success Metrics (First Weeks After Launch)
+
+| Metric | Target |
+|---|---|
+| Query pages published | 50–150 |
+| Brand entity pages | 30–80 |
+| Category hubs | 5–15 |
+
+Once that graph density is reached, the `prompt → brand → category → prompt` flywheel is self-reinforcing and the dataset becomes crawlable and quotable by AI engines.
