@@ -999,7 +999,7 @@ export default function PncCreator() {
     queryKey: ["/api/multisegment/sessions"],
   });
   const pncSessions = (allSessions || []).filter(
-    (s) => s.sessionType === "pnc_v2" || s.sessionType === "pnc_v1"
+    (s) => s.sessionType === "pnc_v2" || s.sessionType === "pnc_v1" || s.sessionType === "landing_guided"
   ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const saveV2SessionToDB = async (segments: PncAnalysisSegment[], brandName: string, brandDomain: string, engines: Set<string>, currentSessionId: number | null): Promise<number | null> => {
@@ -1693,7 +1693,7 @@ export default function PncCreator() {
             <SelectContent>
               {pncSessions.map((s) => {
                 const segCount = Array.isArray(s.segments) ? (s.segments as any[]).length : 0;
-                const tab = s.sessionType === "pnc_v1" ? "Block Builder" : "Auto Groups";
+                const tab = s.sessionType === "pnc_v1" ? "Block Builder" : s.sessionType === "landing_guided" ? "Guided (GEO Scan)" : "Auto Groups";
                 const dateStr = new Date(s.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
                 return (
                   <SelectItem key={s.id} value={String(s.id)} data-testid={`pnc-session-option-${s.id}`}>

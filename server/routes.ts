@@ -482,7 +482,7 @@ export async function registerRoutes(
         brandDomain: brandDomain || null,
         promptsPerSegment: 8,
         segments,
-        sessionType: "pnc_v2",
+        sessionType: "landing_guided",
       });
 
       // Fire scoring for each segment asynchronously — no await, saves results to DB as they complete
