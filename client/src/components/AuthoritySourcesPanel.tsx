@@ -2,8 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   ChevronDown,
   ChevronRight,
@@ -991,308 +989,215 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
 
   return (
     <div className="space-y-4">
-      {/* ── Section: Domain Intelligence ──────────────────────────────── */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Globe className="w-4 h-4 text-primary" />
-            Authority Sources
-            {hasData && (
-              <Badge variant="secondary" className="text-[10px] font-normal ml-1">
-                {rowCount.toLocaleString()} citation rows
-              </Badge>
-            )}
-          </CardTitle>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Domains ranked by citation frequency — split between authority sources and competitor
-            brands.
-          </p>
-        </CardHeader>
 
-        <CardContent className="space-y-4 pt-0">
-          {/* ── Empty state / Crawl trigger ────────────────────────────── */}
-          {!hasData && (
-            <div className={crawlMutation.isPending ? "" : "rounded-lg border border-dashed border-border/60 bg-secondary/10 px-6 py-8 text-center space-y-3"}>
-              {crawlMutation.isPending ? (
-                <MissionControlLoader
-                  sessionId={sessionId}
-                  crawlPending={true}
-                  insightsPending={false}
-                />
-              ) : insightsLoading ? (
-                <>
-                  <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary/60" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Loading…</p>
-                    <p className="text-xs text-muted-foreground mt-1">Checking citation data…</p>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <Globe className="w-8 h-8 mx-auto text-muted-foreground/40" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">No citation data yet</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Run Analyse & Crawl to scrape citation URLs and classify them with AI.
-                    </p>
-                  </div>
-                  {crawlError && (
-                    <div className="flex items-center gap-2 text-xs text-destructive justify-center">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      {crawlError}
-                    </div>
-                  )}
-                  <Button
-                    size="sm"
-                    onClick={() => crawlMutation.mutate()}
-                    disabled={crawlMutation.isPending || segments.length === 0}
-                    data-testid="button-authority-run-crawl"
-                    className="gap-2"
-                  >
-                    {crawlMutation.isPending ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <RefreshCw className="w-3.5 h-3.5" />
-                    )}
-                    {crawlMutation.isPending ? "Analysing…" : "Analyse & Crawl"}
-                  </Button>
-                </>
+      {/* ── No data yet: loading / empty / crawl trigger ──────────────── */}
+      {!hasData && (
+        <>
+          {crawlMutation.isPending ? (
+            <MissionControlLoader sessionId={sessionId} crawlPending={true} insightsPending={false} />
+          ) : insightsLoading ? (
+            <div className="flex items-center justify-center gap-2 py-10 text-xs text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Checking citation data…
+            </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-border/60 bg-secondary/10 px-6 py-10 text-center space-y-3">
+              <Globe className="w-8 h-8 mx-auto text-muted-foreground/40" />
+              <div>
+                <p className="text-sm font-medium text-foreground">No citation data yet</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Analyse &amp; Crawl will scrape citation URLs and classify them with AI.
+                </p>
+              </div>
+              {crawlError && (
+                <div className="flex items-center gap-2 text-xs text-destructive justify-center">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  {crawlError}
+                </div>
               )}
+              <Button
+                size="sm"
+                onClick={() => crawlMutation.mutate()}
+                disabled={crawlMutation.isPending || segments.length === 0}
+                data-testid="button-authority-run-crawl"
+                className="gap-2"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Analyse &amp; Crawl
+              </Button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ── Data exists ───────────────────────────────────────────────── */}
+      {hasData && (
+        <>
+          {/* Claude loading state (auto-run chain, before first result) */}
+          {insightsMutation.isPending && autoRun && !latestInsight && (
+            <MissionControlLoader sessionId={sessionId} crawlPending={false} insightsPending={true} />
+          )}
+
+          {/* Generate button — when no insight exists yet */}
+          {!latestInsight && (!insightsMutation.isPending || !autoRun) && (
+            <div className="flex items-center gap-4 rounded-xl border border-dashed border-border/60 bg-secondary/10 px-5 py-4">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">Citation Intelligence Report</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Send {rowCount.toLocaleString()} citation rows to Claude Sonnet 4.5 to extract ranked GEO tactics and source patterns.
+                </p>
+                {insightsMutation.isError && (
+                  <div className="flex items-center gap-1.5 text-xs text-destructive mt-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    Generation failed — try again.
+                  </div>
+                )}
+              </div>
+              <Button
+                size="sm"
+                onClick={() => insightsMutation.mutate()}
+                disabled={insightsMutation.isPending}
+                data-testid="button-generate-insights"
+                className="gap-2 shrink-0"
+              >
+                {insightsMutation.isPending
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <Sparkles className="w-3.5 h-3.5" />}
+                {insightsMutation.isPending ? "Analysing…" : "Generate Intelligence Report"}
+              </Button>
             </div>
           )}
 
-          {/* ── Tabs: Authority Sources | Competitor Brands ────────────── */}
-          {hasData && (
-            <>
-              <div className="flex gap-1 bg-secondary/30 rounded-lg p-1">
-                <button
-                  onClick={() => setActiveTab("authority")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-medium transition-all ${
-                    activeTab === "authority"
-                      ? "bg-background shadow-sm text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  data-testid="tab-authority-sources"
-                >
-                  <Shield className="w-3 h-3" />
-                  Authority Sources
-                  {authoritySources.length > 0 && (
-                    <span className="text-[10px] opacity-60">({authoritySources.length})</span>
-                  )}
-                </button>
-                <button
-                  onClick={() => setActiveTab("brand")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-medium transition-all ${
-                    activeTab === "brand"
-                      ? "bg-background shadow-sm text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  data-testid="tab-competitor-brands"
-                >
-                  <Building2 className="w-3 h-3" />
-                  Competitor Brands
-                  {brandMentions.length > 0 && (
-                    <span className="text-[10px] opacity-60">({brandMentions.length})</span>
-                  )}
-                </button>
-              </div>
-
-              {sourcesLoading && (
-                <div className="flex items-center justify-center gap-2 py-8 text-xs text-muted-foreground">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Loading domain data…
-                </div>
-              )}
-
-              {!sourcesLoading && (
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeTab}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    {activeTab === "authority" && (
-                      <div className="rounded-lg border border-border/60 overflow-hidden">
-                        {authoritySources.length === 0 ? (
-                          <p className="text-xs text-muted-foreground text-center py-6">
-                            No authority sources found yet.
-                          </p>
-                        ) : (
-                          authoritySources.map((d, i) => (
-                            <DomainRow
-                              key={d.domain}
-                              {...d}
-                              rank={i + 1}
-                              sessionId={sessionId}
-                              maxAppearances={authorityMax}
-                            />
-                          ))
-                        )}
-                      </div>
-                    )}
-
-                    {activeTab === "brand" && (
-                      <div className="rounded-lg border border-border/60 overflow-hidden">
-                        {brandMentions.length === 0 ? (
-                          <p className="text-xs text-muted-foreground text-center py-6">
-                            No competitor brand domains found.
-                          </p>
-                        ) : (
-                          brandMentions.map((d, i) => (
-                            <DomainRow
-                              key={d.domain}
-                              {...d}
-                              rank={i + 1}
-                              sessionId={sessionId}
-                              maxAppearances={brandMax}
-                            />
-                          ))
-                        )}
-                      </div>
-                    )}
-
-                    <div className="flex justify-end mt-2">
-                      <button
-                        onClick={() => crawlMutation.mutate()}
-                        disabled={crawlMutation.isPending}
-                        className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-                        data-testid="button-rerun-crawl"
-                      >
-                        <RefreshCw className="w-3 h-3" />
-                        Re-run Analyse & Crawl
-                      </button>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* ── Section: Citation AI Insights ─────────────────────────────── */}
-      {hasData && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Brain className="w-4 h-4 text-primary" />
-              Citation AI Insights
-              <Badge
-                variant="secondary"
-                className="text-[10px] font-normal ml-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border-0"
+          {/* ── Format A: Intelligence Report — rendered directly ─────── */}
+          {latestInsight && (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={latestInsight.id}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-1"
               >
-                Claude Sonnet 4.5
-              </Badge>
-              {pastInsights.length > 0 && (
-                <Badge variant="secondary" className="text-[10px] font-normal">
-                  {pastInsights.length} run{pastInsights.length > 1 ? "s" : ""}
-                </Badge>
-              )}
-            </CardTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Sends the full {rowCount.toLocaleString()}-row citation dataset to Claude Sonnet 4.5
-              to discover what top-cited brands are doing right — ranked factors with exact
-              examples.
-            </p>
-          </CardHeader>
+                {/* Metadata + re-run row */}
+                <div className="flex items-center justify-between px-1 mb-2">
+                  <span className="text-[10px] text-muted-foreground">
+                    {latestInsight.row_count?.toLocaleString() ?? rowCount.toLocaleString()} rows analysed
+                    {latestInsight.input_tokens && (
+                      <> · {latestInsight.input_tokens.toLocaleString()} / {latestInsight.output_tokens?.toLocaleString() ?? "—"} tokens</>
+                    )}
+                  </span>
+                  <button
+                    onClick={() => insightsMutation.mutate()}
+                    disabled={insightsMutation.isPending}
+                    className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
+                    data-testid="button-rerun-insights"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    Re-run Analysis
+                  </button>
+                </div>
 
-          <CardContent className="space-y-4 pt-0">
-            {/* Mission Control during Claude analysis (auto-run chain) */}
-            {insightsMutation.isPending && autoRun && !latestInsight && (
-              <MissionControlLoader
-                sessionId={sessionId}
-                crawlPending={false}
-                insightsPending={true}
-              />
-            )}
+                {/* Report body — structured or markdown */}
+                {(() => {
+                  try {
+                    const parsed: StructuredReportData = JSON.parse(latestInsight.result_text);
+                    if (parsed?.tactics) return <StructuredReport data={parsed} sessionId={sessionId} />;
+                  } catch { /* fall through */ }
+                  return <MarkdownReport text={latestInsight.result_text} />;
+                })()}
+              </motion.div>
+            </AnimatePresence>
+          )}
 
-            {/* Generate / re-run button — shown when not auto-running */}
-            {(!insightsMutation.isPending || !autoRun || latestInsight) && (
-              <div className="flex items-center gap-3">
-                <Button
-                  size="sm"
-                  onClick={() => insightsMutation.mutate()}
-                  disabled={insightsMutation.isPending}
-                  data-testid="button-generate-insights"
-                  className="gap-2"
-                  variant={latestInsight ? "outline" : "default"}
-                >
-                  {insightsMutation.isPending ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Sparkles className="w-3.5 h-3.5" />
-                  )}
-                  {insightsMutation.isPending
-                    ? "Analysing with Claude…"
-                    : latestInsight
-                    ? "Re-run Analysis"
-                    : "Generate Intelligence Report"}
-                </Button>
-                {insightsMutation.isPending && (
-                  <p className="text-xs text-muted-foreground">
-                    This may take 30–60 seconds…
-                  </p>
+          {/* ── Domain Intelligence Tabs (secondary, below report) ───── */}
+          <div className="rounded-xl border border-border/50 overflow-hidden">
+            {/* Tab bar */}
+            <div className="flex gap-1 bg-secondary/20 p-1 border-b border-border/40">
+              <button
+                onClick={() => setActiveTab("authority")}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  activeTab === "authority"
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                data-testid="tab-authority-sources"
+              >
+                <Shield className="w-3 h-3" />
+                Authority Sources
+                {authoritySources.length > 0 && (
+                  <span className="text-[10px] opacity-60">({authoritySources.length})</span>
                 )}
-                {insightsMutation.isError && (
-                  <div className="flex items-center gap-1.5 text-xs text-destructive">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    Generation failed. Try again.
-                  </div>
+              </button>
+              <button
+                onClick={() => setActiveTab("brand")}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  activeTab === "brand"
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                data-testid="tab-competitor-brands"
+              >
+                <Building2 className="w-3 h-3" />
+                Competitor Brands
+                {brandMentions.length > 0 && (
+                  <span className="text-[10px] opacity-60">({brandMentions.length})</span>
                 )}
+              </button>
+            </div>
+
+            {/* Domain list */}
+            {sourcesLoading && (
+              <div className="flex items-center justify-center gap-2 py-8 text-xs text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Loading domain data…
               </div>
             )}
 
-            {/* Latest insight report */}
-            {latestInsight && (
+            {!sourcesLoading && (
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={latestInsight.id}
-                  initial={{ opacity: 0, y: 6 }}
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.15 }}
                 >
-                  <div className="rounded-lg border border-orange-200 dark:border-orange-800/60 bg-orange-50/30 dark:bg-orange-950/10 overflow-hidden">
-                    {/* Report header */}
-                    <div className="flex items-center gap-2 px-4 py-2.5 border-b border-orange-200/60 dark:border-orange-800/40">
-                      <Brain className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
-                      <span className="text-xs font-medium text-orange-700 dark:text-orange-300">
-                        Intelligence Report
-                      </span>
-                      <span className="text-[10px] text-muted-foreground ml-auto">
-                        {latestInsight.row_count?.toLocaleString() ?? rowCount.toLocaleString()} rows
-                        {latestInsight.input_tokens && (
-                          <>
-                            {" · "}
-                            {latestInsight.input_tokens.toLocaleString()} input /{" "}
-                            {latestInsight.output_tokens?.toLocaleString() ?? "—"} output tokens
-                          </>
-                        )}
-                      </span>
-                    </div>
-
-                    {/* Formatted report body */}
-                    <div className="px-4 py-4">
-                      {(() => {
-                        try {
-                          const parsed: StructuredReportData = JSON.parse(latestInsight.result_text);
-                          if (parsed?.tactics) {
-                            return <StructuredReport data={parsed} sessionId={sessionId} />;
-                          }
-                        } catch {
-                          // not JSON — fall through to markdown
-                        }
-                        return <MarkdownReport text={latestInsight.result_text} />;
-                      })()}
-                    </div>
-                  </div>
+                  {activeTab === "authority" && (
+                    authoritySources.length === 0
+                      ? <p className="text-xs text-muted-foreground text-center py-6">No authority sources found yet.</p>
+                      : authoritySources.map((d, i) => (
+                          <DomainRow key={d.domain} {...d} rank={i + 1} sessionId={sessionId} maxAppearances={authorityMax} />
+                        ))
+                  )}
+                  {activeTab === "brand" && (
+                    brandMentions.length === 0
+                      ? <p className="text-xs text-muted-foreground text-center py-6">No competitor brand domains found.</p>
+                      : brandMentions.map((d, i) => (
+                          <DomainRow key={d.domain} {...d} rank={i + 1} sessionId={sessionId} maxAppearances={brandMax} />
+                        ))
+                  )}
                 </motion.div>
               </AnimatePresence>
             )}
-          </CardContent>
-        </Card>
+
+            {/* Footer: row count + re-run */}
+            <div className="flex items-center justify-between px-4 py-2 border-t border-border/30 bg-secondary/5">
+              <span className="text-[10px] text-muted-foreground">
+                {rowCount.toLocaleString()} citation rows indexed
+              </span>
+              <button
+                onClick={() => crawlMutation.mutate()}
+                disabled={crawlMutation.isPending}
+                className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
+                data-testid="button-rerun-crawl"
+              >
+                <RefreshCw className="w-3 h-3" />
+                Re-run Crawl
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
