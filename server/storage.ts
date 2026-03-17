@@ -13,6 +13,8 @@ import {
   citationPageMentions,
   incomingLeads,
   landingSubmissions,
+  directoryPages,
+  queryPageVersions,
   type InsertIncomingLead,
   type IncomingLead,
   type InsertAnalysisResult,
@@ -33,6 +35,10 @@ import {
   type InsertCitationPageMention,
   type LandingSubmission,
   type InsertLandingSubmission,
+  type DirectoryPage,
+  type InsertDirectoryPage,
+  type QueryPageVersion,
+  type InsertQueryPageVersion,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -87,6 +93,15 @@ export interface IStorage {
   getLandingSubmissionByDomain(domain: string, withinHours: number): Promise<LandingSubmission | undefined>;
   updateLandingSubmission(id: number, updates: Partial<InsertLandingSubmission>): Promise<LandingSubmission>;
   listLandingSubmissions(): Promise<LandingSubmission[]>;
+
+  // ── Directory pages ─────────────────────────────────────────────
+  upsertDirectoryPage(data: InsertDirectoryPage): Promise<DirectoryPage>;
+  getDirectoryPage(slug: string): Promise<DirectoryPage | undefined>;
+  listDirectoryPages(opts?: { status?: string; limit?: number }): Promise<DirectoryPage[]>;
+  publishDirectoryPage(slug: string): Promise<DirectoryPage>;
+  blockDirectoryPage(slug: string): Promise<DirectoryPage>;
+  forcePublishDirectoryPage(slug: string, reason: string): Promise<DirectoryPage>;
+  addQueryPageVersion(v: InsertQueryPageVersion): Promise<QueryPageVersion>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -479,6 +494,122 @@ export class DatabaseStorage implements IStorage {
       .from(landingSubmissions)
       .orderBy(desc(landingSubmissions.createdAt))
       .limit(100);
+  }
+
+  // ── Directory pages ─────────────────────────────────────────────
+
+  /**
+   * Create or update a directory page by canonical_slug.
+   *
+   * Immutability rules on conflict:
+   *   - canonical_slug        → never updated (it's the conflict target)
+   *   - first_published_at    → only set if currently NULL (COALESCE)
+   *   - publish_status        → 'blocked' persists even on re-score; otherwise updated
+   */
+  async upsertDirectoryPage(data: InsertDirectoryPage): Promise<DirectoryPage> {
+    const [row] = await db
+      .insert(directoryPages)
+      .values(data)
+      .onConflictDoUpdate({
+        target: directoryPages.canonicalSlug,
+        set: {
+          sessionId:         sql`EXCLUDED.session_id`,
+          segmentIndex:      sql`EXCLUDED.segment_index`,
+          rawQuery:          sql`EXCLUDED.raw_query`,
+          canonicalQuery:    sql`EXCLUDED.canonical_query`,
+          canonicalLocation: sql`EXCLUDED.canonical_location`,
+          clusterId:         sql`EXCLUDED.cluster_id`,
+          dataVersion:       sql`EXCLUDED.data_version`,
+          engineSet:         sql`EXCLUDED.engine_set`,
+          evidenceScore:     sql`EXCLUDED.evidence_score`,
+          brandCount:        sql`EXCLUDED.brand_count`,
+          rankingSnapshot:   sql`EXCLUDED.ranking_snapshot`,
+          lastUpdatedAt:     sql`NOW()`,
+          // blocked status persists; first_published_at never regresses
+          publishStatus: sql`CASE WHEN directory_pages.publish_status = 'blocked' THEN 'blocked' ELSE EXCLUDED.publish_status END`,
+          firstPublishedAt:  sql`COALESCE(directory_pages.first_published_at, EXCLUDED.first_published_at)`,
+        },
+      })
+      .returning();
+    return row;
+  }
+
+  async getDirectoryPage(slug: string): Promise<DirectoryPage | undefined> {
+    const [row] = await db
+      .select()
+      .from(directoryPages)
+      .where(eq(directoryPages.canonicalSlug, slug));
+    return row;
+  }
+
+  async listDirectoryPages(opts: { status?: string; limit?: number } = {}): Promise<DirectoryPage[]> {
+    const { status, limit = 100 } = opts;
+    return db
+      .select()
+      .from(directoryPages)
+      .where(status ? eq(directoryPages.publishStatus, status) : undefined)
+      .orderBy(desc(directoryPages.lastUpdatedAt))
+      .limit(limit);
+  }
+
+  /** Promote a draft page to published. Sets first_published_at on first promotion. */
+  async publishDirectoryPage(slug: string): Promise<DirectoryPage> {
+    const [row] = await db
+      .update(directoryPages)
+      .set({
+        publishStatus:    "published",
+        firstPublishedAt: sql`COALESCE(first_published_at, NOW())`,
+        lastUpdatedAt:    sql`NOW()`,
+      })
+      .where(and(
+        eq(directoryPages.canonicalSlug, slug),
+        ne(directoryPages.publishStatus, "blocked"),
+      ))
+      .returning();
+    if (!row) throw new Error(`Cannot publish: page '${slug}' not found or is blocked`);
+    return row;
+  }
+
+  /** Permanently block a page. Status persists through re-scoring. */
+  async blockDirectoryPage(slug: string): Promise<DirectoryPage> {
+    const [row] = await db
+      .update(directoryPages)
+      .set({ publishStatus: "blocked", lastUpdatedAt: sql`NOW()` })
+      .where(eq(directoryPages.canonicalSlug, slug))
+      .returning();
+    if (!row) throw new Error(`Cannot block: page '${slug}' not found`);
+    return row;
+  }
+
+  /**
+   * Override quality gate — publish a failing segment.
+   * Requires a non-empty reason (audit log).
+   */
+  async forcePublishDirectoryPage(slug: string, reason: string): Promise<DirectoryPage> {
+    if (!reason || reason.trim().length < 3) {
+      throw new Error("forcePublish requires a non-empty reason (min 3 chars)");
+    }
+    console.log(`[directory] force-publish '${slug}' — reason: ${reason.trim()}`);
+    const [row] = await db
+      .update(directoryPages)
+      .set({
+        publishStatus:    "published",
+        firstPublishedAt: sql`COALESCE(first_published_at, NOW())`,
+        lastUpdatedAt:    sql`NOW()`,
+      })
+      .where(eq(directoryPages.canonicalSlug, slug))
+      .returning();
+    if (!row) throw new Error(`forcePublish: page '${slug}' not found`);
+    return row;
+  }
+
+  /** Append a version snapshot for a query page. */
+  async addQueryPageVersion(v: InsertQueryPageVersion): Promise<QueryPageVersion> {
+    const [row] = await db
+      .insert(queryPageVersions)
+      .values(v)
+      .returning();
+    return row;
   }
 }
 
