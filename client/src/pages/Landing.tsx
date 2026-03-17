@@ -446,10 +446,10 @@ function LandingInner() {
               />
               <button
                 type="submit"
-                disabled={isProcessing || !url.trim()}
+                disabled={isProcessing}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
-                className="disabled:opacity-50 disabled:cursor-not-allowed bg-white text-black hover:bg-slate-100 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                className="disabled:opacity-60 disabled:cursor-not-allowed bg-white text-black hover:bg-slate-100 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
                 data-testid="button-analyze"
               >
                 {isProcessing ? (
