@@ -47,6 +47,7 @@ function LandingInner() {
   const [newCustomerInput, setNewCustomerInput] = useState("");
   const [customerLimitError, setCustomerLimitError] = useState(false);
   const [serviceLimitError, setServiceLimitError] = useState(false);
+  const [segmentsReady, setSegmentsReady] = useState<number | null>(null);
 
   const MAX_SELECTED = 4;
 
@@ -127,7 +128,7 @@ function LandingInner() {
       return res.json();
     },
     onSuccess: (data) => {
-      navigate(`/v2/${data.sessionId}`);
+      setSegmentsReady(data.sessionId);
     },
     onError: (err: any) => {
       setError(err?.message || "Analysis setup failed. Please try again.");
@@ -542,25 +543,39 @@ function LandingInner() {
               </div>
             </div>
 
-            {/* Generate button */}
-            {error && (
-              <div className="mb-3 flex items-center gap-2 text-red-400 text-sm" data-testid="text-run-error">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
+            {/* Generate button / success state */}
+            {segmentsReady ? (
+              <div className="rounded-xl border border-green-500/30 bg-green-950/30 p-5 text-center space-y-2" data-testid="text-segments-ready">
+                <div className="flex items-center justify-center gap-2 text-green-400 font-semibold text-sm">
+                  <Sparkles className="w-4 h-4" />
+                  Segments generated — session #{segmentsReady}
+                </div>
+                <p className="text-slate-400 text-xs">Open the <strong className="text-white">Analyzer → Guided</strong> tab and select this session from the history dropdown to inspect all segments and their prompts.</p>
               </div>
-            )}
-            <button
-              type="button"
-              onClick={() => { setError(null); runMutation.mutate(); }}
-              disabled={!canRun || isRunning}
-              className="w-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_30px_rgba(99,102,241,0.3)] hover:shadow-[0_0_40px_rgba(99,102,241,0.45)]"
-              data-testid="button-run-analysis"
-            >
-              <Sparkles className="w-5 h-5" />
-              Generate My GEO Report
-              <ArrowRight className="w-4 h-4" />
-            </button>
-            {!canRun && (
-              <p className="text-slate-500 text-xs text-center mt-2">Select at least one service, one customer type, and enter a city.</p>
+            ) : (
+              <>
+                {error && (
+                  <div className="mb-3 flex items-center gap-2 text-red-400 text-sm" data-testid="text-run-error">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => { setError(null); runMutation.mutate(); }}
+                  disabled={!canRun || isRunning}
+                  className="w-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_30px_rgba(99,102,241,0.3)] hover:shadow-[0_0_40px_rgba(99,102,241,0.45)]"
+                  data-testid="button-run-analysis"
+                >
+                  {isRunning ? (
+                    <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Generating segments…</>
+                  ) : (
+                    <><Sparkles className="w-5 h-5" />Generate My GEO Report<ArrowRight className="w-4 h-4" /></>
+                  )}
+                </button>
+                {!canRun && (
+                  <p className="text-slate-500 text-xs text-center mt-2">Select at least one service, one customer type, and enter a city.</p>
+                )}
+              </>
             )}
           </div>
         )}

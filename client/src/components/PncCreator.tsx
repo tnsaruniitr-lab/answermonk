@@ -756,7 +756,7 @@ function PncCompetitorLens({ segments, brandName, brandDomain, location, session
 export default function PncCreator() {
   const { toast } = useToast();
   const [url, setUrl] = useState("");
-  const [tab, setTab] = useState<"v1" | "v2">("v1");
+  const [tab, setTab] = useState<"v1" | "v2" | "v3">("v1");
   const [err, setErr] = useState("");
 
   const [v1Loading, setV1Loading] = useState(false);
@@ -1093,6 +1093,38 @@ export default function PncCreator() {
       setV1AnalysisSegment(restoredSeg);
       setV1Loaded(true);
       setPncV1SessionId(session.id);
+    } else if (session.sessionType === "landing_guided") {
+      // Sessions created from /start — load into Guided tab (v3) at the "prompts" step
+      setTab("v3");
+      setV3BrandName(session.brandName);
+      setV3BrandDomain(session.brandDomain || "");
+      setUrl(session.brandDomain || "");
+      setV3SessionId(session.id);
+      // Reconstruct v3Result shape from stored segments
+      const byService = rawSegs
+        .filter((s: any) => s.seedType === "service" || s.type === "service")
+        .map((s: any) => ({
+          service: s.serviceType || s.persona || s.label || "Service",
+          prompts: (s.prompts || []).map((p: any) => ({ verb: "", text: typeof p === "string" ? p : p.text || p })),
+        }));
+      const byCustomer = rawSegs
+        .filter((s: any) => s.seedType === "customer" || s.type === "customer")
+        .map((s: any) => ({
+          customer: s.customerType || s.persona || s.label || "Customer",
+          prompts: (s.prompts || []).map((p: any) => ({ verb: "", text: typeof p === "string" ? p : p.text || p })),
+        }));
+      setV3Result({ business_name: session.brandName, by_service: byService, by_customer: byCustomer });
+      const segs: PncAnalysisSegment[] = rawSegs.map((s: any) => ({
+        id: s.id || `seg-${Math.random().toString(36).slice(2, 8)}`,
+        type: (s.seedType || s.type || "service") as "service" | "customer",
+        label: s.serviceType || s.customerType || s.persona || s.label || "",
+        prompts: s.prompts || [],
+        selected: s.selected !== false,
+        isScoring: false,
+        scoringResult: s.scoringResult || null,
+      }));
+      setV3Segments(segs);
+      setV3Step("prompts");
     } else {
       setTab("v2");
       setPncBrandName(session.brandName);
@@ -1748,7 +1780,7 @@ export default function PncCreator() {
             key={t.key}
             type="button"
             className={`text-[12px] font-medium px-5 py-2.5 border-b-2 -mb-px transition-all text-left ${tab === t.key ? "text-lime-400 border-lime-400" : "text-muted-foreground border-transparent hover:text-foreground"}`}
-            onClick={() => setTab(t.key as "v1" | "v2")}
+            onClick={() => setTab(t.key as "v1" | "v2" | "v3")}
             data-testid={`button-pnc-tab-${t.key}`}
           >
             {t.label}
