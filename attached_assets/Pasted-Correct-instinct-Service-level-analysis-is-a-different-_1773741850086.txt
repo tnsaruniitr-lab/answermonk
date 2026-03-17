@@ -1,0 +1,106 @@
+Correct instinct. Service-level analysis is a different product — that's SEO/GEO content optimization. What you're building is brand signal integrity — does this brand exist coherently in LLM memory, and can it be trusted based on what LLMs say about it. That's a business-type level question entirely.
+
+Final Prompt Structure
+Prompt 1 — Signal Derivation
+Once per primary brand. Competitors inherit this output.
+You are an AI visibility analyst.
+
+Read the website content below and identify the 4 most important signals 
+that determine how well this brand is represented in LLM responses.
+
+Focus only on brand-level signals: legitimacy, trust, authority, 
+consistency of positioning, and credibility. Do not derive signals 
+at the service or product level.
+
+A signal qualifies if:
+- It reflects what the brand is fundamentally claiming about itself
+- It is something an LLM could have absorbed from public web content
+- It differentiates this brand from generic players in its category
+- Weak or absent LLM responses on this signal would indicate a 
+  real visibility or trust gap
+
+Return ONLY valid JSON:
+{
+  "brand_name": "",
+  "business_type": "",
+  "segment": "b2b_saas | agency | service | other",
+  "signals": [
+    {
+      "id": "signal_1",
+      "name": "",
+      "why_it_matters_for_ai_visibility": "",
+      "what_strong_looks_like": "",
+      "what_weak_looks_like": "",
+      "base_question": ""
+    }
+  ]
+}
+
+base_question rules:
+- Must NOT name the brand
+- Written at business type level only — no services, no locations
+- A natural question a real person would ask
+- Open enough that multiple brands could appear in the answer
+- Brand should appear only if it genuinely has presence on this signal
+
+Website content:
+{{WEBSITE_CONTENT}}
+
+Prompt 2 — Execution
+Sent to ChatGPT / Gemini N times per question. No system prompt.
+{{BASE_QUESTION}}
+If web search is ON, append one line:
+{{BASE_QUESTION}}
+
+Please answer based on current, reliable information.
+Nothing else. Any framing contaminates the measurement.
+
+Prompt 3 — Consistency Scoring
+Sent to Claude once per signal per engine, after all N responses are collected.
+You are a brand visibility judge.
+
+You will evaluate how consistently an AI engine represents a brand 
+across multiple independent responses to the same question.
+
+Brand: {{BRAND_NAME}}
+Business type: {{BUSINESS_TYPE}}
+Signal: {{SIGNAL_NAME}}
+Question asked: {{BASE_QUESTION}}
+Engine: {{ENGINE_NAME}}
+
+What strong looks like: {{WHAT_STRONG_LOOKS_LIKE}}
+What weak looks like: {{WHAT_WEAK_LOOKS_LIKE}}
+
+Below are {{N}} independent responses collected in separate sessions.
+Score strictly. Absence is a low score, not a neutral one.
+A brand that appears inconsistently is worse than one that is 
+consistently absent — inconsistency signals noise, not presence.
+
+Return ONLY valid JSON:
+{
+  "signal_name": "",
+  "engine": "",
+  "presence_rate": 0.0,
+  "consistency_score": 0,
+  "sentiment": "positive | neutral | negative | mixed",
+  "what_the_engine_believes": "",
+  "contradictions_found": [],
+  "gaps_vs_brand_claim": "",
+  "verdict": "strong | partial | weak | absent"
+}
+
+Scoring:
+90-100 → Appears in most responses with the same consistent message
+70-89  → Appears often, minor variation in framing
+50-69  → Appears sometimes, vague or inconsistent when it does
+30-49  → Rarely appears or only mentioned incidentally
+0-29   → Absent or contradicted
+
+Responses:
+{{RESPONSES_ARRAY}}
+
+What Each Prompt Is Responsible For
+Prompt 1  →  defines the measurement framework from brand's own claims
+Prompt 2  →  collects raw LLM data with zero contamination
+Prompt 3  →  judges that data against the framework Prompt 1 defined
+The loop is closed — you're not importing external judgment criteria at scoring time. Claude scores against what it derived from the brand's own positioning in Prompt 1. That's what makes the output defensible.
