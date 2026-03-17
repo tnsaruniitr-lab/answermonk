@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!--
+    ═══════════════════════════════════════════════════════════════
+    CORE IDENTITY — LLMs read <title> and <meta description> first.
+    Be specific and factual. Avoid marketing fluff.
+    ═══════════════════════════════════════════════════════════════
+  -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>GEO Intelligence — AI Search Visibility Analysis for Brands | Nexalytics</title>
+
+  <meta
+    name="description"
+    content="Nexalytics GEO analyzes how ChatGPT, Claude, Gemini, and Perplexity rank your brand across AI-generated search results. Enter your website to get a free prompt network analysis showing your share of voice and competitor gaps."
+  />
+
+  <!--
+    ═══════════════════════════════════════════════════════════════
+    CANONICAL + ROBOTS
+    ═══════════════════════════════════════════════════════════════
+  -->
+  <link rel="canonical" href="https://app.nexalytics.io/start" />
+  <meta name="robots" content="index, follow" />
+
+  <!--
+    ═══════════════════════════════════════════════════════════════
+    OPEN GRAPH
+    Perplexity, ChatGPT browsing, and Claude all consume OG tags
+    when crawling pages. Write og:description as a factual sentence.
+    ═══════════════════════════════════════════════════════════════
+  -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:site_name"   content="Nexalytics GEO" />
+  <meta property="og:title"       content="GEO Intelligence — AI Search Visibility Analysis" />
+  <meta property="og:description" content="Find out where your brand ranks inside ChatGPT, Claude, and Gemini responses. The Prompt Network Creator generates 25–30 targeted queries, runs them across AI engines, and returns a share-of-voice report with competitor breakdown." />
+  <meta property="og:url"         content="https://app.nexalytics.io/start" />
+  <meta property="og:image"       content="https://app.nexalytics.io/og-image.png" />
+
+  <!--
+    ═══════════════════════════════════════════════════════════════
+    JSON-LD STRUCTURED DATA
+    This is the most important block for LLM indexing.
+    Three schemas are used here:
+
+      1. Organization — establishes entity identity
+      2. SoftwareApplication — tells AI what the product does
+      3. FAQPage — Q&A pairs are the #1 cited format by AI engines
+
+    Rule: Every field must be factually true. LLMs cross-reference.
+    ═══════════════════════════════════════════════════════════════
+  -->
+
+  <!-- 1. Organization schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Nexalytics",
+    "url": "https://app.nexalytics.io",
+    "description": "Nexalytics builds GEO (Generative Engine Optimization) intelligence tools that help brands measure and improve their visibility in AI-generated search results.",
+    "sameAs": []
+  }
+  </script>
+
+  <!-- 2. SoftwareApplication schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Nexalytics GEO Intelligence",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "url": "https://app.nexalytics.io/start",
+    "description": "A GEO analysis platform that extracts service types and customer segments from a brand's website, generates a network of 25–30 AI search prompts, runs them across ChatGPT, Claude, and Gemini, and produces a share-of-voice report with competitor leaderboard and citation source breakdown.",
+    "featureList": [
+      "Prompt Network Creator (PNC) — automatic generation of search prompts by service type and customer persona",
+      "Cross-engine scoring across ChatGPT, Claude, and Gemini",
+      "Share-of-voice calculation and competitor leaderboard",
+      "Citation crawl and source classification (directories, review platforms, brand pages)",
+      "Signal Consistency analysis across AI models",
+      "Brand Intelligence scoring"
+    ],
+    "audience": {
+      "@type": "Audience",
+      "audienceType": "Marketing managers, SEO professionals, brand strategists, and digital agencies seeking to understand AI search visibility"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "Free website analysis — enter a domain to receive a PNC report"
+    }
+  }
+  </script>
+
+  <!-- 3. FAQPage schema — AI engines LOVE this format for citations -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is GEO (Generative Engine Optimization)?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "GEO is the practice of optimizing a brand's presence in AI-generated search results from engines like ChatGPT, Claude, Gemini, and Perplexity. Unlike traditional SEO which targets ranked URL lists, GEO focuses on how often and how prominently a brand is mentioned within AI-generated answers."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does the Prompt Network Creator (PNC) work?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The PNC analyzes a brand's website to extract its service types and customer segments. It then auto-generates 25–30 natural-language search prompts that a real customer might ask an AI engine. These prompts are run against ChatGPT, Claude, and Gemini, and the results are scored for brand presence, rank position, and share of voice."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which AI engines does Nexalytics GEO analyze?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Nexalytics GEO currently analyzes brand visibility across ChatGPT (OpenAI), Claude (Anthropic), Gemini (Google), and Perplexity. Each engine receives different weighting in the share-of-voice score based on their market share and query volume."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is a share-of-voice score in AI search?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Share of voice in AI search measures how often your brand is mentioned in AI engine responses relative to competitors, weighted by rank position and engine importance. A score of 100 means your brand is the top-cited answer across all tested prompts and engines. A score of 0 means you do not appear."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What are citation sources in AI search results?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "AI engines cite external sources when generating answers. These sources — which may include review platforms, directories, industry publications, and brand websites — determine which brands appear in AI responses. Nexalytics crawls and classifies these citation sources to show which third-party sites are driving AI visibility for your brand and your competitors."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How long does a GEO analysis take?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "A full GEO analysis — including website extraction, prompt generation, cross-engine scoring, and report generation — typically completes within 3 to 8 minutes depending on the number of service segments and AI engine response times."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!--
+    ═══════════════════════════════════════════════════════════════
+    HowTo schema — describes the pipeline as a process.
+    AI engines frequently cite step-by-step processes.
+    ═══════════════════════════════════════════════════════════════
+  -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to analyze your brand's AI search visibility",
+    "description": "A 4-step process to measure and understand how AI search engines like ChatGPT, Claude, and Gemini represent your brand.",
+    "step": [
+      {
+        "@type": "HowToStep",
+        "position": 1,
+        "name": "Enter your website URL",
+        "text": "Provide your brand's domain. The system crawls your site to identify core services and customer segments."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 2,
+        "name": "Review discovered services and customer types",
+        "text": "The Prompt Network Creator extracts your service categories and customer personas. Confirm or adjust the detected segments."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 3,
+        "name": "Run the prompt network",
+        "text": "25–30 intent-based search prompts are automatically generated and run against ChatGPT, Claude, and Gemini simultaneously."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 4,
+        "name": "Receive your GEO report",
+        "text": "View your share-of-voice score, competitor leaderboard, citation source breakdown, and signal consistency analysis across all tested AI engines."
+      }
+    ]
+  }
+  </script>
+</head>
+
+<body>
+  <!--
+    ═══════════════════════════════════════════════════════════════
+    SEMANTIC HTML STRUCTURE
+    Rules:
+    - One <h1> only — your primary keyword claim
+    - <h2> tags = the key questions AI is likely to be asked about you
+    - Use <article> for the main content block (LLM-readable entity)
+    - Use <section> with aria-labelledby for each content block
+    - Avoid div-soup — every block should have a semantic role
+    - All key facts must appear in plain text, not just in JS
+      (React-only content is invisible to crawlers before hydration)
+    ═══════════════════════════════════════════════════════════════
+  -->
+
+  <header role="banner">
+    <nav aria-label="Primary navigation">
+      <a href="/" aria-label="Nexalytics GEO — Home">Nexalytics GEO</a>
+    </nav>
+  </header>
+
+  <main id="main-content">
+
+    <article aria-labelledby="hero-headline">
+
+      <!-- ── Hero ── -->
+      <section id="hero">
+        <h1 id="hero-headline">
+          Measure and improve your brand's visibility in AI search results
+        </h1>
+        <p>
+          Nexalytics GEO analyzes how ChatGPT, Claude, Gemini, and Perplexity
+          mention your brand. Enter your website to get a free Prompt Network
+          analysis — no account required.
+        </p>
+
+        <!--
+          The form itself. Even though React controls submission,
+          the static HTML form here ensures crawlers see the input intent.
+        -->
+        <form action="/api/landing/submit" method="POST" aria-label="Start your GEO analysis">
+          <label for="websiteUrl">Your website URL</label>
+          <input
+            id="websiteUrl"
+            name="websiteUrl"
+            type="url"
+            placeholder="e.g., acme.com"
+            autocomplete="url"
+            required
+            aria-describedby="websiteUrl-hint"
+          />
+          <span id="websiteUrl-hint">
+            Enter your domain to begin. We analyze services, customer types,
+            and run your prompt network across all major AI engines.
+          </span>
+          <!-- Honeypot — hidden from humans, visible to bots -->
+          <input
+            name="_hp"
+            type="text"
+            tabindex="-1"
+            aria-hidden="true"
+            autocomplete="off"
+            style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;"
+          />
+          <button type="submit">Analyze my AI search visibility</button>
+        </form>
+      </section>
+
+      <!-- ── What it covers ── -->
+      <section id="ai-engines" aria-labelledby="engines-heading">
+        <h2 id="engines-heading">AI engines analyzed</h2>
+        <ul>
+          <li><strong>ChatGPT</strong> (OpenAI) — weighted at 35% of share-of-voice score</li>
+          <li><strong>Gemini</strong> (Google) — weighted at 35% of share-of-voice score</li>
+          <li><strong>Claude</strong> (Anthropic) — weighted at 20% of share-of-voice score</li>
+          <li><strong>Perplexity</strong> — weighted at 10% of share-of-voice score</li>
+        </ul>
+      </section>
+
+      <!-- ── How it works ── -->
+      <section id="how-it-works" aria-labelledby="how-heading">
+        <h2 id="how-heading">How the GEO analysis works</h2>
+        <ol>
+          <li>
+            <strong>Website ingestion:</strong> We crawl your domain to extract
+            your service types, customer personas, and business category.
+          </li>
+          <li>
+            <strong>Prompt network generation:</strong> The Prompt Network Creator
+            (PNC) generates 25–30 intent-based search queries mapped to your
+            services and customer segments.
+          </li>
+          <li>
+            <strong>Cross-engine execution:</strong> Each prompt is run against
+            ChatGPT, Claude, and Gemini. Responses are scored for brand presence
+            (mentioned / not mentioned), rank position (1–10), and context.
+          </li>
+          <li>
+            <strong>Report delivery:</strong> You receive a share-of-voice score,
+            competitor leaderboard, citation source breakdown, and signal
+            consistency analysis.
+          </li>
+        </ol>
+      </section>
+
+      <!-- ── FAQ — plain text versions of the JSON-LD above ── -->
+      <!--
+        IMPORTANT: The FAQ content must exist BOTH in JSON-LD (above)
+        AND as visible HTML text below. AI models that browse pages
+        read the DOM, not just structured data.
+      -->
+      <section id="faq" aria-labelledby="faq-heading">
+        <h2 id="faq-heading">Frequently asked questions about GEO and AI search</h2>
+
+        <article>
+          <h3>What is GEO (Generative Engine Optimization)?</h3>
+          <p>
+            GEO is the practice of optimizing a brand's presence in AI-generated
+            search results from engines like ChatGPT, Claude, Gemini, and
+            Perplexity. Unlike traditional SEO — which targets ranked URL lists —
+            GEO focuses on how often and how prominently a brand is mentioned
+            within the actual AI-generated answer text.
+          </p>
+        </article>
+
+        <article>
+          <h3>How does the Prompt Network Creator (PNC) work?</h3>
+          <p>
+            The PNC analyzes your website to extract service types and customer
+            segments. It then auto-generates 25–30 natural-language search prompts
+            that a real customer might ask an AI engine (for example:
+            "Find the 10 most trusted [service] providers in [city]"). These
+            prompts are run against multiple AI engines and results are scored for
+            presence, rank, and share of voice.
+          </p>
+        </article>
+
+        <article>
+          <h3>What is a share-of-voice score in AI search?</h3>
+          <p>
+            Share of voice in AI search measures how often your brand is mentioned
+            in AI engine responses relative to competitors, weighted by rank
+            position and engine importance. A score of 100 means your brand is
+            the top-cited answer across all tested prompts and engines. A score
+            of 0 means you do not appear.
+          </p>
+        </article>
+
+        <article>
+          <h3>What are citation sources in AI search?</h3>
+          <p>
+            AI engines cite external sources when generating answers. These may
+            include review platforms (e.g., G2, Trustpilot), directories
+            (e.g., Clutch, Yelp), industry publications, and brand websites.
+            Nexalytics crawls and classifies these citation sources to show which
+            third-party sites drive AI visibility for your brand and competitors.
+          </p>
+        </article>
+
+        <article>
+          <h3>How long does a GEO analysis take?</h3>
+          <p>
+            A full analysis — website extraction, prompt generation, cross-engine
+            scoring, and report generation — typically completes in 3 to 8 minutes
+            depending on the number of service segments and AI engine response
+            times.
+          </p>
+        </article>
+      </section>
+
+      <!-- ── Key features — plain text for LLM extraction ── -->
+      <section id="features" aria-labelledby="features-heading">
+        <h2 id="features-heading">Key features of Nexalytics GEO Intelligence</h2>
+        <dl>
+          <dt>Prompt Network Creator (PNC)</dt>
+          <dd>
+            Automatically generates service-specific and persona-specific search
+            prompts from your website. No manual configuration required.
+          </dd>
+
+          <dt>Cross-engine scoring</dt>
+          <dd>
+            Runs every prompt against ChatGPT, Claude, and Gemini simultaneously.
+            Weighted scoring accounts for each engine's market share.
+          </dd>
+
+          <dt>Competitor leaderboard</dt>
+          <dd>
+            Identifies which competitors appear most frequently in AI responses
+            for your target prompts, with their presence score and rank position.
+          </dd>
+
+          <dt>Citation source breakdown</dt>
+          <dd>
+            Crawls and classifies all URLs cited by AI engines — directories,
+            review platforms, brand pages, media coverage — to show what signals
+            drive AI recommendations in your category.
+          </dd>
+
+          <dt>Signal Consistency analysis</dt>
+          <dd>
+            Checks whether AI models agree on the same facts about your brand
+            (location, services, attributes) or produce conflicting information.
+          </dd>
+        </dl>
+      </section>
+
+    </article>
+  </main>
+
+  <footer role="contentinfo">
+    <p>© 2026 Nexalytics. GEO Intelligence Platform.</p>
+  </footer>
+
+</body>
+</html>
