@@ -37,6 +37,99 @@ const RUN_STEPS = [
   { emoji: "📋", label: "Compiling your GEO Intelligence Report…" },
 ];
 
+function SegmentResultCard({ seg, brandName }: { seg: any; brandName: string }) {
+  const sr = seg.scoringResult;
+  const score = sr?.score || {};
+  const appearance = Math.round((score.appearance_rate ?? 0) * 100);
+  const primary = Math.round((score.primary_rate ?? 0) * 100);
+  const avgRank = score.avg_rank != null ? `#${score.avg_rank}` : "—";
+  const engines = score.engine_breakdown || {};
+  const competitors = (score.competitors || []).slice(0, 6);
+  const rawRuns = sr?.raw_runs || [];
+  const citationCount = rawRuns.reduce((s: number, r: any) => s + (r.citations?.length || 0), 0);
+  const label = seg.persona || seg.serviceType || seg.customerType || seg.label || "Segment";
+  const type = seg.seedType || seg.type || "service";
+
+  return (
+    <div className="bg-[#111827]/80 border border-white/10 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Header */}
+      <div className="flex items-center gap-3 p-4 border-b border-white/5">
+        <div className="w-6 h-6 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center flex-shrink-0">
+          <span className="text-green-400 leading-none" style={{ fontSize: "10px" }}>✓</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-white text-sm font-semibold truncate">{label}</p>
+          <p className="text-slate-500 text-xs">{type} · 8 prompts</p>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <p className="text-2xl font-bold text-white">{appearance}%</p>
+          <p className="text-slate-500 text-xs">Appearance</p>
+        </div>
+      </div>
+
+      {/* Metrics row */}
+      <div className="grid grid-cols-3 divide-x divide-white/5 border-b border-white/5">
+        <div className="p-3 text-center">
+          <p className="text-lg font-bold text-white">{primary}%</p>
+          <p className="text-slate-500 text-xs">Top 3</p>
+        </div>
+        <div className="p-3 text-center">
+          <p className="text-lg font-bold text-white">{avgRank}</p>
+          <p className="text-slate-500 text-xs">Avg Rank</p>
+        </div>
+        <div className="p-3 text-center">
+          <p className="text-lg font-bold text-white">{citationCount}</p>
+          <p className="text-slate-500 text-xs">Citations</p>
+        </div>
+      </div>
+
+      {/* Engine breakdown */}
+      {Object.keys(engines).length > 0 && (
+        <div className="divide-y divide-white/5 border-b border-white/5">
+          {Object.entries(engines).map(([eng, data]: [string, any]) => {
+            const label = eng === "chatgpt" ? "ChatGPT" : eng === "gemini" ? "Gemini" : "Claude";
+            const pct = Math.round((data.appearance_rate ?? 0) * 100);
+            const top3pct = Math.round((data.primary_rate ?? 0) * 100);
+            return (
+              <div key={eng} className="flex items-center gap-3 px-4 py-2">
+                <span className="text-xs text-slate-400 w-16">{label}</span>
+                <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="text-xs text-slate-400 w-20 text-right">{pct}% · Top3: {top3pct}%</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Competitor rankings */}
+      {competitors.length > 0 && (
+        <div className="p-4">
+          <p className="text-xs text-slate-500 mb-2 font-mono uppercase tracking-wider">Rankings</p>
+          <div className="space-y-1.5">
+            {competitors.map((c: any) => {
+              const pct = Math.round((c.share ?? 0) * 100);
+              const isBrand = c.name?.toLowerCase() === brandName?.toLowerCase();
+              return (
+                <div key={c.name} className="flex items-center gap-2">
+                  <div className="flex-1 relative h-5">
+                    <div className="absolute inset-0 bg-white/5 rounded overflow-hidden">
+                      <div className={`h-full rounded transition-all duration-700 ${isBrand ? "bg-gradient-to-r from-blue-600/60 to-violet-600/60" : "bg-gradient-to-r from-slate-700 to-slate-600"}`} style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className={`absolute inset-0 flex items-center px-2 text-xs ${isBrand ? "text-blue-300 font-semibold" : "text-slate-300"}`}>{c.name}</span>
+                  </div>
+                  <span className="text-xs text-slate-400 w-8 text-right flex-shrink-0">{pct}%</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function LandingInner() {
   const [, navigate] = useLocation();
   const [url, setUrl] = useState("");
@@ -46,6 +139,7 @@ function LandingInner() {
   const [error, setError] = useState<string | null>(null);
   const [agentStep, setAgentStep] = useState(0);
   const [runStep, setRunStep] = useState(0);
+  const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
   const chipsInitialized = useRef(false);
 
@@ -138,12 +232,31 @@ function LandingInner() {
       return res.json();
     },
     onSuccess: (data) => {
-      navigate(`/v2/${data.sessionId}`);
+      setActiveSessionId(data.sessionId);
     },
     onError: (err: any) => {
       setError(err?.message || "Analysis setup failed. Please try again.");
     },
   });
+
+  const { data: scoringSession } = useQuery<any>({
+    queryKey: ["/api/multisegment/sessions", activeSessionId],
+    queryFn: async () => {
+      const res = await fetch(`/api/multisegment/sessions/${activeSessionId}`);
+      return res.json();
+    },
+    enabled: activeSessionId !== null,
+    refetchInterval: (q) => {
+      const segs: any[] = Array.isArray(q?.state?.data?.segments) ? q.state.data.segments : [];
+      const allDone = segs.length > 0 && segs.every((s) => s.scoringResult !== null);
+      return allDone ? false : 4000;
+    },
+  });
+
+  const scoringSegs: any[] = scoringSession ? (Array.isArray(scoringSession.segments) ? scoringSession.segments : []) : [];
+  const scoredSegs = scoringSegs.filter((s) => s.scoringResult !== null);
+  const allSegmentsDone = scoringSegs.length > 0 && scoringSegs.every((s) => s.scoringResult !== null);
+  const isScoring = activeSessionId !== null && !allSegmentsDone;
 
   const isError = submission?.status === "error" || runMutation.isError;
   const isRunning = runMutation.isPending;
@@ -438,6 +551,109 @@ function LandingInner() {
           </div>
         )}
 
+        {/* ── Live Scoring Feed — shown after run-analysis returns ── */}
+        {activeSessionId !== null && !isRunning && (
+          <div className="mt-8 max-w-xl mx-auto space-y-4">
+
+            {/* Scored segment cards — appear one by one as they complete */}
+            {scoredSegs.map((seg) => (
+              <SegmentResultCard key={seg.id} seg={seg} brandName={scoringSession?.brandName || ""} />
+            ))}
+
+            {/* Scoring progress indicator */}
+            {isScoring && (
+              <div className="relative">
+                <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-violet-500/30 via-indigo-500/20 to-violet-500/30 blur-sm" />
+                <div className="relative bg-[#0a0f1a] rounded-2xl p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="relative flex-shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/30 flex items-center justify-center">
+                        <Activity className="w-4 h-4 text-violet-400 animate-pulse" />
+                      </div>
+                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-violet-400 border-2 border-[#0a0f1a] animate-pulse" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-semibold">GEO Agent · Scoring Segments</p>
+                      <p className="text-violet-400/70 text-xs font-mono">
+                        {scoredSegs.length} of {scoringSegs.length} complete
+                      </p>
+                    </div>
+                    <div className="ml-auto flex gap-1">
+                      {[0, 1, 2].map((i) => (
+                        <div key={i} className="w-1 h-1 rounded-full bg-violet-400/60 animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {scoringSegs.map((seg, i) => {
+                      const done = !!seg.scoringResult;
+                      const runningNow = !done && scoringSegs.filter((s) => !s.scoringResult).indexOf(seg) === 0;
+                      const pending = !done && !runningNow;
+                      const segLabel = seg.persona || seg.serviceType || seg.customerType || seg.label || `Segment ${i + 1}`;
+                      return (
+                        <div key={seg.id || i} className={`flex items-center gap-3 transition-all duration-500 ${pending ? "opacity-30" : "opacity-100"}`}>
+                          <div className="flex-shrink-0 w-4 h-4 flex items-center justify-center">
+                            {done && (
+                              <div className="w-4 h-4 rounded-full bg-green-500/15 border border-green-500/40 flex items-center justify-center">
+                                <span className="text-green-400 leading-none" style={{ fontSize: "8px" }}>✓</span>
+                              </div>
+                            )}
+                            {runningNow && <div className="w-4 h-4 rounded-full border-2 border-violet-400 border-t-transparent animate-spin" />}
+                            {pending && <div className="w-1.5 h-1.5 rounded-full bg-slate-600 mx-auto" />}
+                          </div>
+                          <p className={`text-xs font-mono truncate transition-colors duration-300 ${
+                            done ? "text-slate-600 line-through" :
+                            runningNow ? "text-violet-300" :
+                            "text-slate-700"
+                          }`}>
+                            {runningNow ? "⚡ " : ""}{segLabel}
+                            {runningNow && <span className="text-violet-400/50"> · running 3 engines…</span>}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-4 h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-1000"
+                      style={{ width: `${scoringSegs.length > 0 ? Math.round((scoredSegs.length / scoringSegs.length) * 100) : 0}%` }}
+                    />
+                  </div>
+                  <p className="mt-2 text-[10px] text-slate-600 font-mono text-center">
+                    Each segment runs 8 prompts × 3 engines — results appear as they complete
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* All done — CTA */}
+            {allSegmentsDone && (
+              <div className="relative">
+                <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-green-500/40 via-emerald-500/30 to-green-500/40 blur-sm" />
+                <div className="relative bg-[#0a0f1a] rounded-2xl p-6 text-center">
+                  <div className="w-12 h-12 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle2 className="w-6 h-6 text-green-400" />
+                  </div>
+                  <p className="text-white font-semibold text-lg mb-1">GEO Intelligence Report Ready</p>
+                  <p className="text-slate-400 text-sm mb-5">
+                    All {scoringSegs.length} segments scored across ChatGPT · Claude · Gemini
+                  </p>
+                  <button
+                    onClick={() => navigate(`/v2/${activeSessionId}`)}
+                    data-testid="btn-view-full-report"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold transition-all duration-200 shadow-lg shadow-green-500/20"
+                  >
+                    View Full Report
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Error state */}
         {isError && !isRunning && (
           <div className="mt-8 max-w-md mx-auto" data-testid="status-error">
@@ -456,7 +672,7 @@ function LandingInner() {
         )}
 
         {/* ── Chip Confirm UI — shown when PNC extraction is complete ── */}
-        {isComplete && !isRunning && (
+        {isComplete && !isRunning && !activeSessionId && (
           <div className="mt-8 max-w-2xl mx-auto text-left" data-testid="status-complete">
 
             {/* Header */}
