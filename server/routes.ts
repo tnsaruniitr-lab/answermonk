@@ -7,6 +7,7 @@ import { registerQueryPageRoutes } from "./directory/queryPageRoute";
 import { registerMethodologyRoutes } from "./directory/methodologyRoutes";
 import { registerSitemapRoutes } from "./directory/sitemapRoutes";
 import { registerBrandPageRoutes } from "./directory/brandPageRoute";
+import { registerCategoryHubRoutes } from "./directory/categoryHubRoute";
 import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
@@ -355,6 +356,7 @@ export async function registerRoutes(
   registerSitemapRoutes(app);
   registerMethodologyRoutes(app);
   registerBrandPageRoutes(app);
+  registerCategoryHubRoutes(app);
   registerQueryPageRoutes(app);
 
   // ── Landing page submission ────────────────────────────────────────────────
