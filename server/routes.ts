@@ -505,15 +505,16 @@ export async function registerRoutes(
               scoringResult: {
                 score: scoringRes.score,
                 raw_runs: scoringRes.raw_runs.map((r: any) => ({
-                  prompt: r.prompt_id,
+                  prompt_id: r.prompt_id,
+                  prompt_text: (seg.prompts as any[]).find((p: any) => p.id === r.prompt_id)?.text || "",
                   engine: r.engine,
-                  response: r.raw_text,
-                  brands_found: (r.extraction?.candidates || []).map((c: any) =>
-                    typeof c === "string" ? c : c.name_raw || c.name || c
-                  ),
-                  rank: r.match?.brand?.brand_rank ?? null,
-                  citations: r.citations || [],
                   cluster: r.cluster,
+                  raw_text: r.raw_text,
+                  citations: r.citations || [],
+                  candidates: r.extraction?.candidates || [],
+                  brand_found: r.match?.brand?.brand_found ?? false,
+                  brand_rank: r.match?.brand?.brand_rank ?? null,
+                  webSearchStatus: r.webSearchStatus,
                 })),
               },
             };
