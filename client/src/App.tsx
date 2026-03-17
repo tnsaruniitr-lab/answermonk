@@ -137,16 +137,23 @@ function AuthGate() {
 }
 
 function App() {
+  const path = window.location.pathname;
+  if (path === "/start" || path.startsWith("/start?")) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Landing />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Switch>
-          <Route path="/start" component={Landing} />
-          <Route>
-            <AuthGate />
-          </Route>
-        </Switch>
+        <AuthGate />
       </TooltipProvider>
     </QueryClientProvider>
   );
