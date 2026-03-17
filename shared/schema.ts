@@ -303,6 +303,21 @@ export const citationInsights = pgTable("citation_insights", {
 });
 export type CitationInsight = typeof citationInsights.$inferSelect;
 
+export const landingSubmissions = pgTable("landing_submissions", {
+  id: serial("id").primaryKey(),
+  websiteUrl: text("website_url").notNull(),
+  normalizedDomain: text("normalized_domain").notNull(),
+  ipAddress: text("ip_address"),
+  status: text("status").notNull().default("pending"),
+  pncResult: jsonb("pnc_result"),
+  sessionId: integer("session_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertLandingSubmissionSchema = createInsertSchema(landingSubmissions).omit({ id: true, createdAt: true });
+export type LandingSubmission = typeof landingSubmissions.$inferSelect;
+export type InsertLandingSubmission = z.infer<typeof insertLandingSubmissionSchema>;
+
 export const EvalResponseSchema = z.object({
   engine: EngineEnum,
   query: z.string(),

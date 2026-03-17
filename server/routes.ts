@@ -1,8 +1,9 @@
 
 import path from "path";
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import type { Server } from "http";
 import { createServer } from "http";
+import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { 
@@ -345,6 +346,91 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  // ── Landing page submission ────────────────────────────────────────────────
+  const landingRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 3,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many submissions from this IP. Please try again later." },
+  });
+
+  function normalizeDomain(url: string): string {
+    try {
+      const withProtocol = url.startsWith("http") ? url : `https://${url}`;
+      const parsed = new URL(withProtocol);
+      return parsed.hostname.replace(/^www\./, "").toLowerCase();
+    } catch {
+      return url.toLowerCase().replace(/^www\./, "").replace(/^https?:\/\//, "");
+    }
+  }
+
+  app.post("/api/landing/submit", landingRateLimit, async (req: Request, res: Response) => {
+    try {
+      const { websiteUrl, _hp } = req.body;
+
+      // Layer 1: Honeypot — bots fill hidden fields, humans don't
+      if (_hp && _hp.length > 0) {
+        return res.status(200).json({ ok: true }); // silent reject
+      }
+
+      // Basic validation
+      if (!websiteUrl || typeof websiteUrl !== "string" || websiteUrl.trim().length < 3) {
+        return res.status(400).json({ error: "A valid website URL is required." });
+      }
+
+      const domain = normalizeDomain(websiteUrl.trim());
+      const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
+
+      // Layer 2: Domain deduplication — same domain within 6 hours returns cached submission
+      const existing = await storage.getLandingSubmissionByDomain(domain, 6);
+      if (existing) {
+        return res.status(200).json({ id: existing.id, cached: true, status: existing.status, pncResult: existing.pncResult });
+      }
+
+      // Layer 3: Write to DB
+      const submission = await storage.createLandingSubmission({
+        websiteUrl: websiteUrl.trim(),
+        normalizedDomain: domain,
+        ipAddress: ip,
+        status: "processing",
+      });
+
+      // Kick off PNC extraction asynchronously — don't await
+      (async () => {
+        try {
+          const { result } = await pncExtract(websiteUrl.trim());
+          await storage.updateLandingSubmission(submission.id, {
+            status: "complete",
+            pncResult: result as any,
+          });
+        } catch (err) {
+          console.error("[Landing] PNC extraction failed:", err);
+          await storage.updateLandingSubmission(submission.id, { status: "error" });
+        }
+      })();
+
+      return res.status(201).json({ id: submission.id, cached: false, status: "processing" });
+    } catch (err) {
+      console.error("[Landing] Submit error:", err);
+      return res.status(500).json({ error: "Submission failed. Please try again." });
+    }
+  });
+
+  app.get("/api/landing/submission/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
+      const submissions = await storage.listLandingSubmissions();
+      const sub = submissions.find((s) => s.id === id);
+      if (!sub) return res.status(404).json({ error: "Not found" });
+      return res.json(sub);
+    } catch (err) {
+      return res.status(500).json({ error: "Failed to fetch submission" });
+    }
+  });
+  // ── End landing page submission ────────────────────────────────────────────
 
   app.post(api.eval.run.path, async (req, res) => {
     try {

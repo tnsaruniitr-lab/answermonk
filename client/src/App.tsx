@@ -21,6 +21,7 @@ import BrandIntelligence from "@/pages/BrandIntelligence";
 import SignalConsistency from "@/pages/SignalConsistency";
 import CrawlabilityReport from "@/pages/CrawlabilityReport";
 import GeoLandingPageReport from "@/pages/GeoLandingPageReport";
+import Landing from "@/pages/Landing";
 import { Loader2 } from "lucide-react";
 
 function AdminRouter() {
@@ -60,6 +61,7 @@ function CollectmaxxReport() {
 function PublicRouter() {
   return (
     <Switch>
+      <Route path="/start" component={Landing} />
       <Route path="/share/summary/:id" component={SummaryReport} />
       <Route path="/share/teaser/:id" component={ProspectTeaser} />
       <Route path="/analytics/:sessionId" component={AnalyticsDashboard} />
@@ -105,6 +107,7 @@ function AuthGate() {
     return (
       <>
         <Switch>
+          <Route path="/start" component={Landing} />
           <Route path="/share/summary/:id" component={SummaryReport} />
           <Route path="/share/teaser/:id" component={ProspectTeaser} />
           <Route path="/history" component={HistoryPage} />

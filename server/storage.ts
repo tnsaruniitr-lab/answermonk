@@ -12,6 +12,7 @@ import {
   summaryLeads,
   citationPageMentions,
   incomingLeads,
+  landingSubmissions,
   type InsertIncomingLead,
   type IncomingLead,
   type InsertAnalysisResult,
@@ -30,6 +31,8 @@ import {
   type SummaryLead,
   type CitationPageMention,
   type InsertCitationPageMention,
+  type LandingSubmission,
+  type InsertLandingSubmission,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -80,6 +83,10 @@ export interface IStorage {
   updateIncomingLeadStatus(id: number, status: string): Promise<void>;
   saveCitationMentions(sessionId: number, mentions: InsertCitationPageMention[]): Promise<void>;
   getCitationMentions(sessionId: number): Promise<CitationPageMention[]>;
+  createLandingSubmission(data: InsertLandingSubmission): Promise<LandingSubmission>;
+  getLandingSubmissionByDomain(domain: string, withinHours: number): Promise<LandingSubmission | undefined>;
+  updateLandingSubmission(id: number, updates: Partial<InsertLandingSubmission>): Promise<LandingSubmission>;
+  listLandingSubmissions(): Promise<LandingSubmission[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -434,6 +441,44 @@ export class DatabaseStorage implements IStorage {
       .from(citationPageMentions)
       .where(eq(citationPageMentions.sessionId, sessionId))
       .orderBy(citationPageMentions.url, citationPageMentions.brand, citationPageMentions.mentionIndex);
+  }
+
+  async createLandingSubmission(data: InsertLandingSubmission): Promise<LandingSubmission> {
+    const [result] = await db.insert(landingSubmissions).values(data).returning();
+    return result;
+  }
+
+  async getLandingSubmissionByDomain(domain: string, withinHours: number): Promise<LandingSubmission | undefined> {
+    const cutoff = new Date(Date.now() - withinHours * 60 * 60 * 1000);
+    const [result] = await db
+      .select()
+      .from(landingSubmissions)
+      .where(
+        and(
+          eq(landingSubmissions.normalizedDomain, domain),
+          sql`${landingSubmissions.createdAt} > ${cutoff}`
+        )
+      )
+      .orderBy(desc(landingSubmissions.createdAt))
+      .limit(1);
+    return result;
+  }
+
+  async updateLandingSubmission(id: number, updates: Partial<InsertLandingSubmission>): Promise<LandingSubmission> {
+    const [result] = await db
+      .update(landingSubmissions)
+      .set(updates)
+      .where(eq(landingSubmissions.id, id))
+      .returning();
+    return result;
+  }
+
+  async listLandingSubmissions(): Promise<LandingSubmission[]> {
+    return db
+      .select()
+      .from(landingSubmissions)
+      .orderBy(desc(landingSubmissions.createdAt))
+      .limit(100);
   }
 }
 
