@@ -3505,7 +3505,7 @@ ${csvText}`;
         const response = await openai.chat.completions.create({
           model: model,
           messages: [{ role: "user", content: systemPrompt }],
-          max_tokens: 4096,
+          max_completion_tokens: 4096,
         });
         resultText = response.choices[0]?.message?.content ?? "";
         inputTokens = response.usage?.prompt_tokens ?? null;
