@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { AuthoritySourcesPanel } from "@/components/AuthoritySourcesPanel";
 import { DispatchFeedLive } from "@/components/DispatchFeedLive";
+import { RecentAnalysisTiles } from "@/components/RecentAnalysisTiles";
 
 function normalizeDomain(url: string): string {
   try {
@@ -444,6 +445,11 @@ function LandingInner() {
               </div>
             )}
           </form>
+        )}
+
+        {/* Recent Analyses directory — visible when idle */}
+        {!isProcessing && !isRunning && activeSessionId === null && (
+          <RecentAnalysisTiles />
         )}
 
         {/* Processing — PNC extracting */}

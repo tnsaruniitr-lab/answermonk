@@ -1175,6 +1175,75 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/directory/recent", async (_req, res) => {
+    try {
+      const { pool } = await import("./db");
+      const result = await pool.query(`
+        SELECT
+          mss.id,
+          mss.brand_name,
+          mss.brand_domain,
+          mss.created_at,
+          (
+            SELECT elem
+            FROM jsonb_array_elements(mss.segments) AS elem
+            WHERE (elem->'scoringResult') IS NOT NULL
+              AND jsonb_typeof(elem->'scoringResult') = 'object'
+            LIMIT 1
+          ) AS primary_seg
+        FROM multi_segment_sessions mss
+        WHERE (mss.session_type IS DISTINCT FROM 'competitor')
+          AND mss.segments IS NOT NULL
+          AND jsonb_array_length(mss.segments) > 0
+        ORDER BY mss.created_at DESC
+        LIMIT 50
+      `);
+
+      const tiles = result.rows
+        .filter((row: any) => row.primary_seg)
+        .map((row: any) => {
+          const seg = row.primary_seg;
+          const seedType  = (seg?.seedType  || seg?.serviceType || "").trim();
+          const location  = (seg?.location  || "").trim();
+          const persona   = (seg?.persona   || seg?.customerType || "").trim();
+          const sr        = seg?.scoringResult ?? {};
+          const score     = sr?.score ?? {};
+          const competitors: any[] = (score.competitors ?? []).slice(0, 3);
+          const eb        = score.engine_breakdown ?? {};
+
+          let query = "";
+          if (seedType && location)       query = `Best ${seedType} in ${location}`;
+          else if (seedType)              query = `Best ${seedType}`;
+          else if (persona && location)   query = `Best ${persona} in ${location}`;
+          else if (persona)               query = `Best ${persona}`;
+          else                            query = row.brand_name ?? "GEO Analysis";
+
+          return {
+            id:          row.id,
+            sessionId:   row.id,
+            query,
+            category:    seedType || persona || "Analysis",
+            brandName:   row.brand_name,
+            brandDomain: row.brand_domain,
+            topBrand:    competitors[0]?.name ?? null,
+            topScore:    Math.round((score.appearance_rate ?? 0) * 100),
+            rivals:      competitors.slice(1, 3).map((c: any) => c.name).filter(Boolean),
+            engines: {
+              chatgpt: (eb.chatgpt?.appearance_rate ?? 0) > 0,
+              gemini:  (eb.gemini?.appearance_rate  ?? 0) > 0,
+              claude:  (eb.claude?.appearance_rate  ?? 0) > 0,
+            },
+            createdAt: row.created_at,
+          };
+        });
+
+      res.json(tiles);
+    } catch (err) {
+      console.error("[directory/recent] error:", err);
+      res.status(500).json({ message: "Failed to load recent analyses" });
+    }
+  });
+
   app.get("/api/multisegment/sessions", async (_req, res) => {
     try {
       const sessions = await storage.listMultiSegmentSessions();
