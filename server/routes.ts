@@ -372,6 +372,7 @@ export async function registerRoutes(
       const rows = await directoryDb
         .select({
           canonicalSlug:     directoryPagesTable.canonicalSlug,
+          canonicalQuery:    directoryPagesTable.canonicalQuery,
           canonicalLocation: directoryPagesTable.canonicalLocation,
           clusterId:         directoryPagesTable.clusterId,
           vertical:          directoryPagesTable.vertical,
@@ -380,6 +381,7 @@ export async function registerRoutes(
           firstPublishedAt:  directoryPagesTable.firstPublishedAt,
           evidenceScore:     directoryPagesTable.evidenceScore,
           brandCount:        directoryPagesTable.brandCount,
+          rankingSnapshot:   directoryPagesTable.rankingSnapshot,
         })
         .from(directoryPagesTable)
         .where(eqDrizzle(directoryPagesTable.publishStatus, "published"))
@@ -399,17 +401,26 @@ export async function registerRoutes(
       };
 
       const pages = rows
-        .map((r) => ({
-          slug:          r.canonicalSlug,
-          serviceType:   toServiceType(r),
-          location:      r.canonicalLocation ?? "",
-          vertical:      r.vertical ?? "other",
-          dataVersion:   r.dataVersion ?? null,
-          lastUpdated:   r.lastUpdatedAt?.toISOString() ?? null,
-          firstPublished: r.firstPublishedAt?.toISOString() ?? null,
-          evidenceScore: r.evidenceScore,
-          brandCount:    r.brandCount,
-        }))
+        .map((r) => {
+          const snapshot = r.rankingSnapshot as { brands?: { name?: string }[] } | null;
+          const brandNames = (snapshot?.brands ?? [])
+            .map((b) => b.name ?? "")
+            .filter(Boolean)
+            .slice(0, 10);
+          return {
+            slug:           r.canonicalSlug,
+            canonicalQuery: r.canonicalQuery ?? "",
+            serviceType:    toServiceType(r),
+            location:       r.canonicalLocation ?? "",
+            vertical:       r.vertical ?? "other",
+            dataVersion:    r.dataVersion ?? null,
+            lastUpdated:    r.lastUpdatedAt?.toISOString() ?? null,
+            firstPublished: r.firstPublishedAt?.toISOString() ?? null,
+            evidenceScore:  r.evidenceScore,
+            brandCount:     r.brandCount,
+            brandNames,
+          };
+        })
         .filter((p) => {
           if (locationFilter && p.location !== locationFilter) return false;
           if (categoryFilter && p.vertical !== categoryFilter) return false;

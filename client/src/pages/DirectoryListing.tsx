@@ -5,9 +5,11 @@ import { ExternalLink, Filter, SortDesc, SortAsc, Search, LayoutGrid } from "luc
 
 interface DirectoryPage {
   slug: string;
+  canonicalQuery: string;
   serviceType: string;
   location: string;
   vertical: string;
+  brandNames: string[];
   dataVersion: string | null;
   lastUpdated: string | null;
   firstPublished: string | null;
@@ -22,6 +24,46 @@ const VERTICAL_LABELS: Record<string, string> = {
   "marketing":        "Marketing",
   "other":            "Other",
 };
+
+// Aliases: terms a user might type that map to a vertical key
+const VERTICAL_ALIASES: { pattern: string; vertical: string }[] = [
+  { pattern: "vc",         vertical: "venture-capital" },
+  { pattern: "venture",    vertical: "venture-capital" },
+  { pattern: "invest",     vertical: "venture-capital" },
+  { pattern: "funding",    vertical: "venture-capital" },
+  { pattern: "startup",    vertical: "venture-capital" },
+  { pattern: "b2b",        vertical: "b2b-saas" },
+  { pattern: "saas",       vertical: "b2b-saas" },
+  { pattern: "software",   vertical: "b2b-saas" },
+  { pattern: "fintech",    vertical: "b2b-saas" },
+  { pattern: "expense",    vertical: "b2b-saas" },
+  { pattern: "payment",    vertical: "b2b-saas" },
+  { pattern: "health",     vertical: "healthcare" },
+  { pattern: "medical",    vertical: "healthcare" },
+  { pattern: "doctor",     vertical: "healthcare" },
+  { pattern: "clinic",     vertical: "healthcare" },
+];
+
+function matchesSearch(page: DirectoryPage, raw: string): boolean {
+  if (!raw.trim()) return true;
+  const q = raw.toLowerCase().trim();
+
+  // Direct field matches
+  if (page.slug.includes(q))            return true;
+  if (page.canonicalQuery.toLowerCase().includes(q)) return true;
+  if (page.serviceType.toLowerCase().includes(q))    return true;
+  if (page.location.toLowerCase().includes(q))       return true;
+  if ((VERTICAL_LABELS[page.vertical] ?? "").toLowerCase().includes(q)) return true;
+
+  // Brand name search
+  if (page.brandNames.some((b) => b.toLowerCase().includes(q))) return true;
+
+  // Alias → vertical check
+  const matchedVertical = VERTICAL_ALIASES.find((a) => q.includes(a.pattern) || a.pattern.includes(q));
+  if (matchedVertical && page.vertical === matchedVertical.vertical) return true;
+
+  return false;
+}
 
 interface DirectoryResponse {
   pages: DirectoryPage[];
@@ -62,16 +104,7 @@ export default function DirectoryListing() {
     queryFn: () => fetch(`/api/directory?${params}`).then((r) => r.json()),
   });
 
-  const pages = (data?.pages ?? []).filter((p) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return (
-      p.slug.includes(q) ||
-      p.serviceType.includes(q) ||
-      p.location.includes(q) ||
-      (VERTICAL_LABELS[p.vertical] ?? "").toLowerCase().includes(q)
-    );
-  });
+  const pages = (data?.pages ?? []).filter((p) => matchesSearch(p, search));
 
   const locations  = data?.filters.locations  ?? [];
   const categories = data?.filters.categories ?? [];
