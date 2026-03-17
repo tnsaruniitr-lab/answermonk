@@ -3669,23 +3669,53 @@ The CSV data below contains every URL cited by ChatGPT and Gemini when answering
 
 TASK: Identify what the most-cited brands and pages are doing RIGHT — specific tactics, signals, and page patterns that correlate with high citation frequency.
 
-For each factor:
-1. Name it as a specific, actionable tactic (not a generic principle)
-2. Rank from most to least impactful — base rank strictly on citation count evidence in this data
-3. Provide 2–4 specific brand + URL examples directly from the CSV
-4. Explain the mechanism: why does this factor signal credibility or relevance to AI training data?
-5. Confidence: High (5+ brands), Medium (3–4), Low (1–2)
+Return ONLY a valid JSON object with this EXACT structure (no markdown fences, no explanation before or after — just raw JSON):
 
-Also answer:
-- Which page types dominate citations (service pages vs blogs vs directories vs review platforms)?
-- Which brands appear in BOTH ChatGPT AND Gemini — those are the most strongly trained signals?
-- Any domain naming patterns, licensing signals, or regional patterns (.ae, DHA, etc.)?
-- If certain brands dominate citation counts, what specifically makes those pages stand out?
+{
+  "summary": {
+    "total_citations": <number — sum of all citation_count values>,
+    "domains_analysed": <number — count of unique domains>,
+    "cross_engine_brands": <number — brands appearing in BOTH ChatGPT AND Gemini>,
+    "key_finding": "<single most important insight from this data — one sentence, specific>"
+  },
+  "page_type_distribution": {
+    "winner": "<page type with most citations>",
+    "winner_citations": <number>,
+    "summary": "<2-3 sentence explanation of the distribution pattern>"
+  },
+  "cross_engine_champions": [
+    { "brand": "<name>", "chatgpt": <citations in chatgpt>, "gemini": <citations in gemini>, "total": <combined total> }
+  ],
+  "tactics": [
+    {
+      "rank": <number starting at 1>,
+      "title": "<specific actionable tactic name — not a generic principle>",
+      "impact": "<HIGHEST|VERY HIGH|HIGH|MEDIUM|LOW>",
+      "citations": <total citation count supporting this tactic>,
+      "confidence": "<HIGH|MEDIUM|LOW>",
+      "mechanism": "<paragraph explaining WHY this factor signals credibility or relevance to AI training — be specific>",
+      "examples": [
+        { "url": "<exact URL from the CSV>", "brand": "<brand name>", "count": <citation_count number> }
+      ],
+      "why_it_works": ["<specific signal 1>", "<specific signal 2>", "<specific signal 3>"]
+    }
+  ],
+  "sources": [
+    { "domain": "<domain>", "type": "<Government|Directory|Community|News|Review Platform|Brand|Aggregator|Other>", "importance": "<High|Medium|Low>", "appearances": <number> }
+  ],
+  "unusual_findings": [
+    { "title": "<short title>", "finding": "<explanation of what is unusual and why it matters>" }
+  ]
+}
 
-Rules:
-- Use only evidence from this CSV — no generic SEO advice
+Rules for content:
+- Base ALL rankings strictly on citation_count evidence from this CSV — no generic SEO advice
+- For tactics: rank from most to least impactful. Identify ALL meaningful tactics (typically 8-12), not just the top 4
+- For each tactic: provide 2-4 specific brand + URL examples directly from the CSV
+- For sources: include all notable domains that shape AI knowledge in this market (8-15 entries)
+- confidence: HIGH = 5+ brands show this pattern, MEDIUM = 3-4, LOW = 1-2
 - Be specific: "brand X does Y on page Z" not "brands should do Y"
-- If you notice something unusual, call it out
+- For unusual_findings: include 3-5 genuinely surprising or counterintuitive patterns
 
 CSV DATA:
 ${csvText}`;
