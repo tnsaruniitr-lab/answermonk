@@ -22,6 +22,7 @@ import SignalConsistency from "@/pages/SignalConsistency";
 import CrawlabilityReport from "@/pages/CrawlabilityReport";
 import GeoLandingPageReport from "@/pages/GeoLandingPageReport";
 import Landing from "@/pages/Landing";
+import DirectoryListing from "@/pages/DirectoryListing";
 import { Loader2 } from "lucide-react";
 
 function AdminRouter() {
@@ -68,6 +69,7 @@ function PublicRouter() {
       <Route path="/reports/crawlability" component={CrawlabilityReport} />
       <Route path="/reports/geo-landing-page" component={GeoLandingPageReport} />
       <Route path="/reports/collectmaxx" component={CollectmaxxReport} />
+      <Route path="/directory" component={DirectoryListing} />
       <Route path="/summary/:id" component={SlugSummary} />
       <Route path="/incoming-leads">
         <Login onSuccess={() => window.location.reload()} />
@@ -124,6 +126,7 @@ function AuthGate() {
           <Route path="/reports/crawlability" component={CrawlabilityReport} />
           <Route path="/reports/geo-landing-page" component={GeoLandingPageReport} />
           <Route path="/reports/collectmaxx" component={CollectmaxxReport} />
+          <Route path="/directory" component={DirectoryListing} />
           <Route path="/audit/:slug">{(params) => <AuditBySlug params={params} />}</Route>
           <Route path="/" component={Analyzer} />
           <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>

@@ -46,7 +46,9 @@ import { brandIntelligenceJobs, signalConsistencyJobs } from "@shared/schema";
 import { runBrandIntelligence } from "./brand-intelligence/runner";
 import { runSignalConsistency } from "./signal-consistency-runner";
 import { resolveGroundingUrls } from "./report/grounding-resolver";
-import { desc, eq as eqDrizzle } from "drizzle-orm";
+import { desc, asc, eq as eqDrizzle } from "drizzle-orm";
+import { db as directoryDb } from "./db";
+import { directoryPages as directoryPagesTable } from "@shared/schema";
 import { analyzeUrl } from "./url-analyzer";
 import { pncExtract, pncV1Generate, pncV2Generate, pncClassify, pncClassifyGenerate } from "./pnc";
 
@@ -358,6 +360,74 @@ export async function registerRoutes(
   registerMethodologyRoutes(app);
   registerBrandPageRoutes(app);
   registerComparisonPageRoutes(app);
+
+  // ── Public directory listing API (must be before /:location/:category hub) ──
+  app.get("/api/directory", async (req: Request, res: Response) => {
+    try {
+      const locationFilter = typeof req.query.location === "string" ? req.query.location.trim() : null;
+      const categoryFilter = typeof req.query.category === "string" ? req.query.category.trim() : null;
+      const sortParam      = typeof req.query.sort     === "string" ? req.query.sort.trim()     : "newest";
+
+      const rows = await directoryDb
+        .select({
+          canonicalSlug:     directoryPagesTable.canonicalSlug,
+          canonicalLocation: directoryPagesTable.canonicalLocation,
+          clusterId:         directoryPagesTable.clusterId,
+          dataVersion:       directoryPagesTable.dataVersion,
+          lastUpdatedAt:     directoryPagesTable.lastUpdatedAt,
+          firstPublishedAt:  directoryPagesTable.firstPublishedAt,
+          evidenceScore:     directoryPagesTable.evidenceScore,
+          brandCount:        directoryPagesTable.brandCount,
+        })
+        .from(directoryPagesTable)
+        .where(eqDrizzle(directoryPagesTable.publishStatus, "published"))
+        .orderBy(
+          sortParam === "oldest"
+            ? asc(directoryPagesTable.firstPublishedAt)
+            : desc(directoryPagesTable.lastUpdatedAt)
+        );
+
+      const toServiceType = (r: { clusterId: string | null; canonicalLocation: string | null }) => {
+        const loc = r.canonicalLocation ?? "";
+        let st    = r.clusterId ?? "";
+        if (loc && st.endsWith(`_${loc}`)) {
+          st = st.slice(0, -(loc.length + 1)).replace(/_/g, "-");
+        }
+        return st;
+      };
+
+      const allRows = rows.map((r) => ({
+        location:    r.canonicalLocation ?? "",
+        serviceType: toServiceType(r),
+      }));
+
+      const pages = rows
+        .map((r) => ({
+          slug:          r.canonicalSlug,
+          serviceType:   toServiceType(r),
+          location:      r.canonicalLocation ?? "",
+          dataVersion:   r.dataVersion ?? null,
+          lastUpdated:   r.lastUpdatedAt?.toISOString() ?? null,
+          firstPublished: r.firstPublishedAt?.toISOString() ?? null,
+          evidenceScore: r.evidenceScore,
+          brandCount:    r.brandCount,
+        }))
+        .filter((p) => {
+          if (locationFilter && p.location !== locationFilter) return false;
+          if (categoryFilter && p.serviceType !== categoryFilter) return false;
+          return true;
+        });
+
+      const locations  = [...new Set(allRows.map((r) => r.location).filter(Boolean))].sort();
+      const categories = [...new Set(allRows.map((r) => r.serviceType).filter(Boolean))].sort();
+
+      res.json({ pages, filters: { locations, categories } });
+    } catch (err) {
+      console.error("[api/directory] error:", err);
+      res.status(500).json({ message: "Failed to load directory" });
+    }
+  });
+
   registerCategoryHubRoutes(app);
   registerQueryPageRoutes(app);
 

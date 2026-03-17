@@ -386,7 +386,7 @@ function LandingInner() {
       <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-violet-600/10 blur-[120px] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(59,130,246,0.05)_0%,_transparent_60%)] pointer-events-none" />
 
-      <nav className="relative z-10 flex items-center px-8 py-6 max-w-7xl mx-auto border-b border-white/5">
+      <nav className="relative z-10 flex items-center justify-between px-8 py-6 max-w-7xl mx-auto border-b border-white/5">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
             <Sparkles className="w-4 h-4 text-white" />
@@ -395,6 +395,14 @@ function LandingInner() {
             Nexalytics <span className="text-blue-400 font-light">GEO</span>
           </span>
         </div>
+        <a
+          data-testid="link-ai-directory"
+          href="/directory"
+          className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          AI Directory
+        </a>
       </nav>
 
       <main className="relative z-10 max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">
