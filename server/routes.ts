@@ -3,6 +3,7 @@ import path from "path";
 import type { Express, Request, Response, NextFunction } from "express";
 import type { Server } from "http";
 import { createServer } from "http";
+import { registerQueryPageRoutes } from "./directory/queryPageRoute";
 import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
@@ -346,6 +347,9 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  // ── Directory HTML routes (must be before React SPA catch-all) ─────────────
+  registerQueryPageRoutes(app);
 
   // ── Landing page submission ────────────────────────────────────────────────
   const isDev = process.env.NODE_ENV !== "production";
