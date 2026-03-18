@@ -1274,6 +1274,133 @@ function FactorReport({ data }: { data: any }) {
   );
 }
 
+function KeyFindingCard({ text, brands }: { text: string; brands: string[] }) {
+  const statRegex = /\b\d+[\s,]+(?:appearances?|citations?|mentions?|brands?|domains?|results?|listings?|pages?|times?|%)\b/gi;
+  const statPhrases: string[] = [];
+  let m: RegExpExecArray | null;
+  const re = new RegExp(statRegex.source, "gi");
+  while ((m = re.exec(text)) !== null) statPhrases.push(m[0]);
+
+  const uniqueBrands = Array.from(new Set(brands.filter(Boolean)));
+  const allTerms = [...uniqueBrands, ...statPhrases].sort((a, b) => b.length - a.length);
+  const splitRe = allTerms.length
+    ? new RegExp(`(${allTerms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "gi")
+    : null;
+  const parts = splitRe ? text.split(splitRe) : [text];
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        backdropFilter: "blur(20px)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "0 0 40px rgba(245,158,11,0.08), inset 0 1px 0 rgba(255,255,255,0.06)",
+      }}
+    >
+      <div
+        className="px-5 py-2.5 flex items-center gap-2"
+        style={{
+          background: "linear-gradient(90deg, rgba(245,158,11,0.15) 0%, rgba(139,92,246,0.08) 100%)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        <span style={{ fontSize: 14 }}>⚡</span>
+        <span style={{ color: "#fcd34d", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+          Key Finding
+        </span>
+      </div>
+      <div className="p-5">
+        <p style={{ color: "#f1f5f9", fontSize: 13, lineHeight: 1.7, textAlign: "left", fontWeight: 400, margin: 0 }}>
+          {parts.map((part, i) => {
+            const isBrand = uniqueBrands.some((b) => b.toLowerCase() === part.toLowerCase());
+            const isStat = statPhrases.some((s) => s.toLowerCase() === part.toLowerCase());
+            if (isBrand) {
+              return (
+                <span
+                  key={i}
+                  style={{
+                    display: "inline-block",
+                    padding: "1px 7px",
+                    borderRadius: 5,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    marginInline: 2,
+                    verticalAlign: "middle",
+                    background: "rgba(245,158,11,0.18)",
+                    color: "#fbbf24",
+                    border: "1px solid rgba(245,158,11,0.35)",
+                  }}
+                >
+                  {part}
+                </span>
+              );
+            }
+            if (isStat) {
+              return (
+                <span
+                  key={i}
+                  style={{
+                    display: "inline-block",
+                    padding: "1px 7px",
+                    borderRadius: 5,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    marginInline: 2,
+                    verticalAlign: "middle",
+                    background: "rgba(139,92,246,0.2)",
+                    color: "#c4b5fd",
+                    border: "1px solid rgba(139,92,246,0.4)",
+                  }}
+                >
+                  {part}
+                </span>
+              );
+            }
+            return <span key={i}>{part}</span>;
+          })}
+        </p>
+        {(uniqueBrands.length > 0 || statPhrases.length > 0) && (
+          <div className="flex flex-wrap gap-1.5 mt-4">
+            {uniqueBrands.map((b) => (
+              <span
+                key={b}
+                style={{
+                  padding: "3px 10px",
+                  borderRadius: 999,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  background: "rgba(245,158,11,0.12)",
+                  color: "#fbbf24",
+                  border: "1px solid rgba(245,158,11,0.3)",
+                }}
+              >
+                {b}
+              </span>
+            ))}
+            {statPhrases.map((s) => (
+              <span
+                key={s}
+                style={{
+                  padding: "3px 10px",
+                  borderRadius: 999,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  background: "rgba(139,92,246,0.12)",
+                  color: "#c4b5fd",
+                  border: "1px solid rgba(139,92,246,0.3)",
+                }}
+              >
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function StructuredReport({ data, sessionId }: { data: StructuredReportData; sessionId: number }) {
   const maxSourceApps = Math.max(...(data.sources?.map((s) => s.appearances) ?? [1]), 1);
   const maxChampTotal = Math.max(...(data.cross_engine_champions?.map((c) => c.total) ?? [1]), 1);
@@ -1448,13 +1575,13 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
 
       {/* Key finding callout */}
       {data.summary?.key_finding && (
-        <div className="flex gap-3 items-start rounded-xl border border-amber-200 dark:border-amber-800/60 bg-amber-50/60 dark:bg-amber-950/20 px-4 py-3">
-          <span className="text-lg shrink-0">⚡</span>
-          <div>
-            <div className="text-[11px] font-bold text-amber-700 dark:text-amber-400 mb-1">Key Finding</div>
-            <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">{data.summary.key_finding}</p>
-          </div>
-        </div>
+        <KeyFindingCard
+          text={data.summary.key_finding}
+          brands={Array.from(new Set([
+            ...(data.cross_engine_champions?.map((c) => c.brand) ?? []),
+            ...(data.tactics?.flatMap((t) => t.examples?.map((e) => e.brand) ?? []) ?? []),
+          ]))}
+        />
       )}
 
       {/* Page type distribution */}
