@@ -1,0 +1,147 @@
+This is the core problem. This prompt produces plain text output but your UI code is built to render JSON. They are completely mismatched.
+Here is exactly what happens when this text output hits your UI:
+javascripttry {
+  const raw = displayedInsight.result_text.trim()
+    .replace(/^```json\n?/i, "").replace(/^```\n?/i, "").replace(/\n?```\s*$/, "");
+  const parsed: StructuredReportData = JSON.parse(raw);
+  // ↑ This throws because the output is not JSON
+} catch {
+  // Falls through to MarkdownReport
+  return <MarkdownReport text={displayedInsight.result_text} />;
+}
+So your UI renders it through MarkdownReport which is a generic markdown parser that does not know about your brand performance blocks, How they appear lines, evidence URLs, or actions section. It just renders everything as generic paragraphs and bullet points. That is why you are losing all the structured per-brand data.
+You have two paths:
+
+Path 1 — Keep the text prompt, fix the UI to parse text
+Add a text parser that reads this specific format and converts it to your data structure before rendering. This is significant frontend work because you need to parse the #1 — Title, brand blocks, evidence lines, and actions section out of freeform text reliably.
+Not recommended. Text parsing is brittle and breaks whenever Claude varies its formatting slightly.
+
+Path 2 — Convert the prompt to output JSON matching your existing schema
+This is the right fix. Your UI already renders JSON perfectly. The only reason you switched to text was for readability during prompt development. Now that you are building into a real UI, go back to JSON.
+Here is the complete prompt converted to produce JSON that matches your existing StructuredReportData schema plus the new fields your UI needs:
+
+You are a GEO (Generative Engine Optimization) analyst. The CSV below contains every URL cited by ChatGPT and Gemini in a specific market with columns: engine, url_category, llm_pagetype_classification, domain, brand, URL, page title, citation_count.
+The three brands to analyse are: [BRAND A], [BRAND B], [BRAND C]
+CRITICAL: The CSV brand column contains publishing domains not target brand names — never use it for brand identification. For brand-owned pages match on URL or domain. For third-party pages use web search to visit the page and confirm which brands appear in the body. If web search is unavailable mark third-party citations UNATTRIBUTED.
+BEFORE WRITING ANY OUTPUT — complete these steps silently:
+Step 1 — Read the entire CSV. For brand-owned pages match brand name in URL or domain. For third-party pages use web search to visit and confirm which brands are mentioned inside. Extract citation counts per brand per tactic category.
+Step 2 — While visiting pages note the exact verbatim language used to describe each brand. This becomes the how_they_appear field.
+Step 3 — Only after completing Steps 1 and 2 write the JSON output below.
+Return ONLY a valid raw JSON object, no markdown fences, no text before or after:
+json{
+  "summary": {
+    "total_citations": 0,
+    "domains_analysed": 0,
+    "cross_engine_brands": 0,
+    "key_finding": "one specific sentence grounded in citation data"
+  },
+  "tactics": [
+    {
+      "rank": 1,
+      "title": "Action verb phrase describing what winning brands DO — never a category label",
+      "impact": "HIGHEST | VERY HIGH | HIGH | MEDIUM | LOW",
+      "citations": 0,
+      "confidence": "HIGH | MEDIUM | LOW",
+      "mechanism": "one sentence on why AI engines respond to this signal",
+      "examples": [
+        {
+          "url": "exact URL from CSV",
+          "brand": "publishing domain",
+          "count": 0,
+          "description": "one sentence on what this page contains"
+        }
+      ],
+      "why_it_works": ["signal 1", "signal 2", "signal 3"],
+      "brand_performance": [
+        {
+          "brand": "brand name",
+          "citation_count": 0,
+          "performance_rating": "Strong | Partial | Weak",
+          "what_they_do": "one sentence on how this brand executes this tactic with specific URL reference",
+          "how_they_appear": "verbatim language from the source — copy exact quotes and any data points. Write NOT FOUND if web search unavailable or brand not found in source",
+          "evidence_urls": [
+            { "url": "exact URL from CSV", "count": 0 },
+            { "url": "exact URL from CSV", "count": 0 },
+            { "url": "exact URL from CSV", "count": 0 }
+          ]
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "domain": "domain",
+      "type": "Government | Directory | Community | News | Review Platform | Brand | Aggregator | Other",
+      "importance": "High | Medium | Low",
+      "appearances": 0
+    }
+  ],
+  "unusual_findings": [
+    {
+      "title": "short title",
+      "finding": "explanation"
+    }
+  ],
+  "actions": [
+    {
+      "brand": "brand name",
+      "weakest_tactic": "tactic title",
+      "weakest_tactic_citations": 0,
+      "strongest_brand_on_tactic": "brand name",
+      "strongest_brand_citations": 0,
+      "action": "specific action that replicates what the stronger brand does"
+    }
+  ],
+  "quick_win": "one sentence naming a specific URL or platform from the CSV with its citation count and the exact action to take"
+}
+Rules:
+
+tactics array must contain 5 entries ranked by citation count
+examples array must contain minimum 5 real URLs from the CSV with counts
+brand_performance array must contain all three brands in every tactic — if count is zero explain the gap in what_they_do
+how_they_appear must contain verbatim language — not summary, actual words from the source
+Strong = multiple cited URLs with specific data attribution, Partial = present but surface level, Weak = minimal or no direct brand attribution
+actions array must contain one entry per brand
+If web search reveals language contradicting CSV write CONFLICT at start of how_they_appear
+tactic titles must be action verb phrases never category labels
+
+This is exactly what a completed brand_performance entry must look like:
+json{
+  "brand": "Shorooq Partners",
+  "citation_count": 51,
+  "performance_rating": "Strong",
+  "what_they_do": "Appear consistently across top-tier MENA VC listicles in both UAE-specific and pan-regional rankings, capturing two geographic audiences simultaneously.",
+  "how_they_appear": "Described verbatim as 'one of the most active venture capital firms across the Middle East and North Africa, backed by the world's leading sovereign wealth funds' — this exact phrase is echoed across comparison sites creating citation loops where brand language transfers from their own site to aggregators to AI citations.",
+  "evidence_urls": [
+    { "url": "https://www.sadu.vc/top-10-venture-capital-firms-in-mena-2026", "count": 33 },
+    { "url": "https://www.basetemplates.com/investors/top-9-vc-investors-in-the-united-arab-emirates", "count": 10 },
+    { "url": "https://www.forbesmiddleeast.com/lists/the-middle-easts-top-venture-capitalists-2024", "count": 4 }
+  ]
+}
+[PASTE CSV BELOW THIS LINE]
+
+The three changes in your frontend to complete this:
+First — your DEFAULT_OUTPUT_SCHEMA constant already contains an older schema. Replace it entirely with the JSON schema above so when users edit the output structure they see the correct template.
+Second — your StructuredReportData TypeScript interface is missing actions and quick_win. Add them:
+typescriptinterface ActionEntry {
+  brand: string;
+  weakest_tactic: string;
+  weakest_tactic_citations: number;
+  strongest_brand_on_tactic: string;
+  strongest_brand_citations: number;
+  action: string;
+}
+
+interface StructuredReportData {
+  summary: ReportSummary;
+  tactics: Tactic[];
+  sources: SourceEntry[];
+  unusual_findings: UnusualFinding[];
+  actions: ActionEntry[];
+  quick_win: string;
+  // keep existing fields for backwards compatibility
+  page_type_distribution?: PageTypeDistribution;
+  cross_engine_champions?: CrossEngineChampion[];
+}
+Third — apply the three rendering fixes from the previous message: show How they appear even when partial, render the actions array, and fix the em-dash evidence URL parser.
+The text prompt was the right format for human reading and prompt development. The JSON prompt is the right format for your UI. They are the same analytical content — just different output shapes.
