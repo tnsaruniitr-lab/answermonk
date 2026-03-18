@@ -2054,51 +2054,137 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                {MODEL_OPTIONS.map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setSelectedModel(opt.value)}
-                    title={opt.desc}
-                    className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
-                      selectedModel === opt.value
-                        ? "bg-foreground text-background border-foreground"
-                        : "bg-transparent text-muted-foreground border-border/50 hover:border-foreground/40 hover:text-foreground"
-                    }`}
-                    data-testid={`model-select-init-${opt.value}`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-                {/* Schema mode selector */}
-                <div className="flex items-center rounded border border-border/50 overflow-hidden">
-                  {(["standard", "factors"] as const).map(mode => (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {MODEL_OPTIONS.map(opt => (
                     <button
-                      key={mode}
-                      onClick={() => switchSchemaMode(mode)}
-                      className={`px-2 py-0.5 text-[10px] font-medium transition-all ${
-                        schemaMode === mode
-                          ? "bg-foreground text-background"
-                          : "bg-transparent text-muted-foreground hover:text-foreground"
+                      key={opt.value}
+                      onClick={() => setSelectedModel(opt.value)}
+                      title={opt.desc}
+                      className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                        selectedModel === opt.value
+                          ? "bg-foreground text-background border-foreground"
+                          : "bg-transparent text-muted-foreground border-border/50 hover:border-foreground/40 hover:text-foreground"
                       }`}
-                      data-testid={`mode-init-${mode}`}
+                      data-testid={`model-select-init-${opt.value}`}
                     >
-                      {mode === "standard" ? "Standard" : "Factors"}
+                      {opt.label}
                     </button>
                   ))}
+                  {/* Schema mode selector */}
+                  <div className="flex items-center rounded border border-border/50 overflow-hidden">
+                    {(["standard", "factors"] as const).map(mode => (
+                      <button
+                        key={mode}
+                        onClick={() => switchSchemaMode(mode)}
+                        className={`px-2 py-0.5 text-[10px] font-medium transition-all ${
+                          schemaMode === mode
+                            ? "bg-foreground text-background"
+                            : "bg-transparent text-muted-foreground hover:text-foreground"
+                        }`}
+                        data-testid={`mode-init-${mode}`}
+                      >
+                        {mode === "standard" ? "Standard" : "Factors"}
+                      </button>
+                    ))}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => manualInsightsMutation.mutate()}
+                    disabled={insightsMutation.isPending || manualInsightsMutation.isPending}
+                    data-testid="button-generate-insights"
+                    className="gap-2 ml-auto"
+                  >
+                    {(insightsMutation.isPending || manualInsightsMutation.isPending)
+                      ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      : <Sparkles className="w-3.5 h-3.5" />}
+                    {(insightsMutation.isPending || manualInsightsMutation.isPending) ? "Analysing…" : "Generate Intelligence Report"}
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => manualInsightsMutation.mutate()}
-                  disabled={insightsMutation.isPending || manualInsightsMutation.isPending}
-                  data-testid="button-generate-insights"
-                  className="gap-2 ml-auto"
-                >
-                  {(insightsMutation.isPending || manualInsightsMutation.isPending)
-                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    : <Sparkles className="w-3.5 h-3.5" />}
-                  {(insightsMutation.isPending || manualInsightsMutation.isPending) ? "Analysing…" : "Generate Intelligence Report"}
-                </Button>
+
+                {/* Web search toggle */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setWebSearchEnabled(v => !v)}
+                    className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                      webSearchEnabled
+                        ? "bg-blue-500/15 text-blue-400 border-blue-500/40"
+                        : "bg-transparent text-muted-foreground border-border/50 hover:border-foreground/40 hover:text-foreground"
+                    }`}
+                    data-testid="button-toggle-web-search-init"
+                    title={selectedModel.startsWith("claude") ? "Enable Anthropic web search tool" : "Web search only available for Claude models"}
+                  >
+                    <Globe className="w-3 h-3" />
+                    Web Search
+                    {webSearchEnabled && !selectedModel.startsWith("claude") && (
+                      <span className="text-orange-400 ml-0.5">· Claude only</span>
+                    )}
+                  </button>
+                  <span className="text-[10px] text-muted-foreground/50">Claude uses live search; other models use training data</span>
+                </div>
+
+                {/* Prompt editor toggle */}
+                <div>
+                  <button
+                    onClick={() => setShowPromptEditor(v => !v)}
+                    className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                    data-testid="button-toggle-prompt-editor-init"
+                  >
+                    {showPromptEditor ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                    Edit prompt instructions
+                  </button>
+                  {showPromptEditor && (
+                    <div className="mt-2 space-y-1.5">
+                      <textarea
+                        value={customPrompt}
+                        onChange={e => setCustomPrompt(e.target.value)}
+                        className="w-full h-44 text-[10px] font-mono leading-relaxed bg-background border border-border/60 rounded-lg px-3 py-2 text-foreground resize-y outline-none focus:border-primary/50"
+                        data-testid="textarea-custom-prompt-init"
+                        spellCheck={false}
+                      />
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setCustomPrompt(DEFAULT_PROMPT_PREFIX)}
+                          className="text-[10px] text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                        >
+                          Reset to default
+                        </button>
+                        <span className="text-[10px] text-muted-foreground/40">· [BRAND A/B/C] are auto-filled · output schema + CSV appended automatically</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Output schema editor toggle */}
+                <div>
+                  <button
+                    onClick={() => setShowOutputEditor(v => !v)}
+                    className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                    data-testid="button-toggle-output-editor-init"
+                  >
+                    {showOutputEditor ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                    Edit output structure
+                  </button>
+                  {showOutputEditor && (
+                    <div className="mt-2 space-y-1.5">
+                      <textarea
+                        value={customOutputSchema}
+                        onChange={e => setCustomOutputSchema(e.target.value)}
+                        className="w-full h-64 text-[10px] font-mono leading-relaxed bg-background border border-border/60 rounded-lg px-3 py-2 text-foreground resize-y outline-none focus:border-primary/50"
+                        data-testid="textarea-output-schema-init"
+                        spellCheck={false}
+                      />
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setCustomOutputSchema(DEFAULT_OUTPUT_SCHEMA)}
+                          className="text-[10px] text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                        >
+                          Reset to default
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
