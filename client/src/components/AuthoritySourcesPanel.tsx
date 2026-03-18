@@ -118,6 +118,82 @@ Rules for content:
 
 const DEFAULT_PROMPT = DEFAULT_PROMPT_PREFIX;
 
+// ── Factor Mode (parallel simpler schema) ─────────────────────────────────────
+
+const FACTOR_PROMPT_PREFIX = `You are a GEO (Generative Engine Optimization) analyst. You have two sources of information: a CSV file showing every URL cited by AI engines in this market, and web search which you must use actively.
+
+The market is: [CATEGORY]
+The three brands to evaluate are: [BRAND A], [BRAND B], [BRAND C]
+
+Do these four things in order before writing any output:
+
+Step 1 — Read the CSV. Identify which domains, page types, and content formats are getting cited most. Note the top 10 most-cited URLs and their citation counts.
+
+Step 2 — Use web search to research what factors drive AI citation visibility in this specific market category. Search for how brands in this space earn mentions in ChatGPT and Gemini responses.
+
+Step 3 — Visit the top cited domains from the CSV using web search. Note what type of content they publish and why AI engines would cite them.
+
+Step 4 — Research each of the three brands using web search. Find what they publish, where they appear, and how they are described across the web.
+
+Then write the output below.`;
+
+const FACTOR_OUTPUT_SCHEMA = `OUTPUT
+Return ONLY a valid raw JSON object. No markdown fences. No text before or after. Just the JSON.
+
+{
+  "market": "category name",
+  "total_citations_analysed": 0,
+  "top_cited_domains": [
+    { "domain": "exact domain from CSV", "citations": 0, "why_cited": "one sentence" },
+    { "domain": "exact domain from CSV", "citations": 0, "why_cited": "one sentence" },
+    { "domain": "exact domain from CSV", "citations": 0, "why_cited": "one sentence" },
+    { "domain": "exact domain from CSV", "citations": 0, "why_cited": "one sentence" },
+    { "domain": "exact domain from CSV", "citations": 0, "why_cited": "one sentence" }
+  ],
+  "factors": [
+    {
+      "rank": 1,
+      "factor": "short name for this factor",
+      "why_it_matters": "one sentence on why this specific factor drives AI citations in this market",
+      "total_citations_supporting": 0,
+      "brands": [
+        {
+          "brand": "BRAND A name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence on what this brand does well or badly on this factor",
+          "example": "one specific URL or source with citation count if from CSV"
+        },
+        {
+          "brand": "BRAND B name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific URL or source with citation count if from CSV"
+        },
+        {
+          "brand": "BRAND C name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific URL or source with citation count if from CSV"
+        }
+      ]
+    }
+  ],
+  "biggest_gap": {
+    "brand": "brand with most to gain",
+    "gap": "what they are missing compared to the strongest brand",
+    "action": "single most impactful action they should take first"
+  },
+  "quick_win": "one action any brand can take this week grounded in the citation data with a specific domain or URL from the CSV"
+}
+
+OUTPUT RULES
+- factors must contain exactly 5 entries ranked by how strongly the citation data supports each one
+- total_citations_supporting must be a real number from the CSV — count the URLs in that factor category
+- rating meanings: Strong = actively doing this with clear evidence, Partial = doing it inconsistently, Weak = minimal effort, Missing = not doing this at all
+- example must be a specific URL or named source with citation count — never a vague reference
+- top_cited_domains must use real domains and real citation counts from the CSV
+- biggest_gap and quick_win are mandatory — do not end the output without them`;
+
 const MODEL_OPTIONS = [
   { value: "claude-haiku-3-5", label: "Claude Haiku", desc: "Fast · low cost" },
   { value: "claude-sonnet-4-5", label: "Claude Sonnet", desc: "Best quality · default" },
@@ -129,7 +205,7 @@ const CI_SETTINGS_KEY = "ci_last_settings_v2";
 function loadCISettings() {
   try { const s = localStorage.getItem(CI_SETTINGS_KEY); return s ? JSON.parse(s) : null; } catch { return null; }
 }
-function saveCISettings(s: { model: string; prompt: string; schema: string; webSearch: boolean }) {
+function saveCISettings(s: { model: string; prompt: string; schema: string; webSearch: boolean; schemaMode?: string }) {
   try { localStorage.setItem(CI_SETTINGS_KEY, JSON.stringify(s)); } catch {}
 }
 
@@ -995,6 +1071,126 @@ function ExpandableSourceRow({
   );
 }
 
+// ── FactorReport component (parallel simpler schema) ──────────────────────────
+
+const RATING_STYLES: Record<string, { bg: string; color: string; label: string }> = {
+  Strong:  { bg: "rgba(34,197,94,0.12)",  color: "#22c55e", label: "Strong" },
+  Partial: { bg: "rgba(245,158,11,0.12)", color: "#f59e0b", label: "Partial" },
+  Weak:    { bg: "rgba(239,68,68,0.12)",  color: "#ef4444", label: "Weak" },
+  Missing: { bg: "rgba(100,116,139,0.15)",color: "#64748b", label: "Missing" },
+};
+const FACTOR_RANK_COLORS = ["#f59e0b","#6366f1","#14b8a6","#64748b","#64748b"];
+
+function FactorReport({ data }: { data: any }) {
+  const factors: any[] = data.factors ?? [];
+  const domains: any[] = data.top_cited_domains ?? [];
+  const gap: any = data.biggest_gap;
+
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="rounded-xl overflow-hidden border border-border/40" style={{ background: "linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%)" }}>
+        <div className="px-5 py-4">
+          <div className="text-[10px] text-slate-400 tracking-widest mb-1 uppercase">GEO Factor Analysis</div>
+          <div className="text-white font-semibold text-sm mt-0.5">{data.market ?? "Market"}</div>
+          <div className="grid grid-cols-2 gap-4 mt-3">
+            <div>
+              <div className="text-white text-lg font-bold leading-tight">{(data.total_citations_analysed ?? 0).toLocaleString()}</div>
+              <div className="text-slate-400 text-[10px] mt-0.5">Citations Analysed</div>
+            </div>
+            <div>
+              <div className="text-white text-lg font-bold leading-tight">{factors.length}</div>
+              <div className="text-slate-400 text-[10px] mt-0.5">GEO Factors Identified</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Top cited domains */}
+      {domains.length > 0 && (
+        <div style={{ background: "#0a0f1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "14px 16px" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 10 }}>Top Cited Domains</div>
+          <div className="space-y-2">
+            {domains.map((d: any, i: number) => (
+              <div key={i} className="flex items-start gap-3">
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", minWidth: 16, paddingTop: 1 }}>#{i + 1}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#e2e8f0" }}>{d.domain}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#6366f1", background: "rgba(99,102,241,0.12)", borderRadius: 4, padding: "1px 6px" }}>{(d.citations ?? 0).toLocaleString()} citations</span>
+                  </div>
+                  <p style={{ fontSize: 11, color: "#64748b", margin: "2px 0 0", lineHeight: 1.5 }}>{d.why_cited}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Factor cards */}
+      {factors.map((f: any, fi: number) => {
+        const rankColor = FACTOR_RANK_COLORS[fi] ?? "#64748b";
+        const brands: any[] = f.brands ?? [];
+        return (
+          <div key={fi} style={{ background: "#0a0f1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, overflow: "hidden" }}>
+            {/* Factor header */}
+            <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span style={{ fontSize: 11, fontWeight: 800, color: rankColor, minWidth: 20 }}>#{f.rank ?? fi + 1}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>{f.factor}</span>
+                <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 700, color: "#64748b", background: "rgba(99,102,241,0.10)", borderRadius: 4, padding: "2px 7px", whiteSpace: "nowrap" }}>
+                  {(f.total_citations_supporting ?? 0).toLocaleString()} citations
+                </span>
+              </div>
+              {f.why_it_matters && (
+                <p style={{ fontSize: 11, color: "#64748b", margin: "6px 0 0", lineHeight: 1.5 }}>{f.why_it_matters}</p>
+              )}
+            </div>
+            {/* Brand rows */}
+            <div style={{ padding: "10px 16px 14px" }} className="space-y-3">
+              {brands.map((b: any, bi: number) => {
+                const rs = RATING_STYLES[b.rating] ?? RATING_STYLES["Missing"];
+                return (
+                  <div key={bi}>
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#e2e8f0" }}>{b.brand}</span>
+                      <span style={{ fontSize: 9, fontWeight: 700, color: rs.color, background: rs.bg, borderRadius: 4, padding: "2px 7px", textTransform: "uppercase", letterSpacing: 0.8 }}>{rs.label}</span>
+                    </div>
+                    {b.what_they_do && <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 2px", lineHeight: 1.5 }}>{b.what_they_do}</p>}
+                    {b.example && <p style={{ fontSize: 10, color: "#475569", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>eg. {b.example}</p>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Biggest gap */}
+      {gap && (
+        <div style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.22)", borderRadius: 12, padding: "14px 16px" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 8 }}>Biggest Gap</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#fcd34d", marginBottom: 4 }}>{gap.brand}</div>
+          {gap.gap && <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 6px", lineHeight: 1.5 }}>{gap.gap}</p>}
+          {gap.action && (
+            <div style={{ background: "rgba(245,158,11,0.10)", borderRadius: 8, padding: "8px 12px", fontSize: 11, color: "#fcd34d", lineHeight: 1.5 }}>
+              <span style={{ fontWeight: 700 }}>Action: </span>{gap.action}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Quick win */}
+      {data.quick_win && (
+        <div style={{ background: "rgba(20,184,166,0.07)", border: "1px solid rgba(20,184,166,0.22)", borderRadius: 12, padding: "14px 16px" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#14b8a6", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6 }}>Quick Win</div>
+          <p style={{ fontSize: 12, color: "#99f6e4", margin: 0, lineHeight: 1.6 }}>{data.quick_win}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StructuredReport({ data, sessionId }: { data: StructuredReportData; sessionId: number }) {
   const maxSourceApps = Math.max(...(data.sources?.map((s) => s.appearances) ?? [1]), 1);
   const maxChampTotal = Math.max(...(data.cross_engine_champions?.map((c) => c.total) ?? [1]), 1);
@@ -1555,12 +1751,19 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
 
   const _saved = loadCISettings();
   const [selectedModel, setSelectedModel] = useState<string>(_saved?.model ?? "claude-sonnet-4-5");
+  const [schemaMode, setSchemaMode] = useState<"standard" | "factors">(_saved?.schemaMode ?? "standard");
   const [customPrompt, setCustomPrompt] = useState<string>(_saved?.prompt ?? DEFAULT_PROMPT_PREFIX);
   const [customOutputSchema, setCustomOutputSchema] = useState<string>(_saved?.schema ?? DEFAULT_OUTPUT_SCHEMA);
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [showOutputEditor, setShowOutputEditor] = useState(false);
   const [webSearchEnabled, setWebSearchEnabled] = useState<boolean>(_saved?.webSearch ?? false);
   const [selectedInsightId, setSelectedInsightId] = useState<number | null>(null);
+
+  function switchSchemaMode(mode: "standard" | "factors") {
+    setSchemaMode(mode);
+    setCustomPrompt(mode === "factors" ? FACTOR_PROMPT_PREFIX : DEFAULT_PROMPT_PREFIX);
+    setCustomOutputSchema(mode === "factors" ? FACTOR_OUTPUT_SCHEMA : DEFAULT_OUTPUT_SCHEMA);
+  }
 
   // Gate check: rowCount + past insight runs
   const { data: insightsData, isLoading: insightsLoading } = useQuery<CitationInsightsData>({
@@ -1664,11 +1867,12 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
   // Manual insights mutation (uses selectedModel + customPrompt from UI state)
   const manualInsightsMutation = useMutation({
     mutationFn: async () => {
-      saveCISettings({ model: selectedModel, prompt: customPrompt, schema: customOutputSchema, webSearch: webSearchEnabled });
+      saveCISettings({ model: selectedModel, prompt: customPrompt, schema: customOutputSchema, webSearch: webSearchEnabled, schemaMode });
+      const promptToSend = customPrompt.replace(/\[CATEGORY\]/g, brandName);
       const res = await apiRequest(
         "POST",
         `/api/multi-segment-sessions/${sessionId}/citation-insights`,
-        { model: selectedModel, promptOverride: customPrompt, outputSchemaOverride: customOutputSchema, webSearch: webSearchEnabled }
+        { model: selectedModel, promptOverride: promptToSend, outputSchemaOverride: customOutputSchema, webSearch: webSearchEnabled }
       );
       return res.json();
     },
@@ -1783,6 +1987,23 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
                     {opt.label}
                   </button>
                 ))}
+                {/* Schema mode selector */}
+                <div className="flex items-center rounded border border-border/50 overflow-hidden">
+                  {(["standard", "factors"] as const).map(mode => (
+                    <button
+                      key={mode}
+                      onClick={() => switchSchemaMode(mode)}
+                      className={`px-2 py-0.5 text-[10px] font-medium transition-all ${
+                        schemaMode === mode
+                          ? "bg-foreground text-background"
+                          : "bg-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                      data-testid={`mode-init-${mode}`}
+                    >
+                      {mode === "standard" ? "Standard" : "Factors"}
+                    </button>
+                  ))}
+                </div>
                 <Button
                   size="sm"
                   onClick={() => manualInsightsMutation.mutate()}
@@ -1828,6 +2049,24 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
                         {opt.label}
                       </button>
                     ))}
+                    {/* Schema mode selector */}
+                    <div className="flex items-center rounded border border-border/50 overflow-hidden ml-1">
+                      {(["standard", "factors"] as const).map(mode => (
+                        <button
+                          key={mode}
+                          onClick={() => switchSchemaMode(mode)}
+                          title={mode === "standard" ? "Standard analysis schema" : "Simpler factor-based schema"}
+                          className={`px-2 py-0.5 text-[10px] font-medium transition-all ${
+                            schemaMode === mode
+                              ? "bg-foreground text-background"
+                              : "bg-transparent text-muted-foreground hover:text-foreground"
+                          }`}
+                          data-testid={`mode-rerun-${mode}`}
+                        >
+                          {mode === "standard" ? "Standard" : "Factors"}
+                        </button>
+                      ))}
+                    </div>
                     <button
                       onClick={() => manualInsightsMutation.mutate()}
                       disabled={manualInsightsMutation.isPending || insightsMutation.isPending}
@@ -1978,8 +2217,11 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
                     try {
                       const raw = displayedInsight.result_text.trim()
                         .replace(/^```json\n?/i, "").replace(/^```\n?/i, "").replace(/\n?```\s*$/, "");
-                      const parsed: StructuredReportData = JSON.parse(raw);
-                      if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && Object.keys(parsed).length > 0) return <StructuredReport data={parsed} sessionId={sessionId} />;
+                      const parsed = JSON.parse(raw);
+                      if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && Object.keys(parsed).length > 0) {
+                        if (parsed.factors) return <FactorReport data={parsed} />;
+                        return <StructuredReport data={parsed as StructuredReportData} sessionId={sessionId} />;
+                      }
                     } catch { /* fall through */ }
                     return <MarkdownReport text={displayedInsight.result_text} />;
                   })()}
