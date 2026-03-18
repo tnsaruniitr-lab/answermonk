@@ -137,11 +137,44 @@ Rules for scope: physical+1 city=city, multi-city=country; SaaS: regional TLD/VA
   return { result: extractJSON(tb.text, "{"), cost: calcCost(response.usage) };
 }
 
+function enforceFlrFormat(result: any): any {
+  const qualifiers = [
+    "most trusted", "most reliable", "most affordable", "highest rated",
+    "most experienced", "best reviewed", "most recommended", "top rated",
+  ];
+  const fix = (prompts: any[], subject: string) =>
+    (prompts || []).map((p: any, i: number) => {
+      let text: string = p.text || "";
+      if (!text.toLowerCase().startsWith("find, list and rank")) {
+        const q = qualifiers[i % qualifiers.length];
+        text = `Find, list and rank 10 ${q} ${subject}`;
+      }
+      return { verb: "Find, list and rank", text };
+    });
+  if (result.by_service) {
+    result.by_service = result.by_service.map((s: any) => ({
+      ...s,
+      prompts: fix(s.prompts, `${s.service} in ${s.location || ""}`),
+    }));
+  }
+  if (result.by_customer) {
+    result.by_customer = result.by_customer.map((c: any) => ({
+      ...c,
+      prompts: fix(c.prompts, `options for ${c.customer}`),
+    }));
+  }
+  return result;
+}
+
 export async function pncClassifyGenerate(services: string[], customers: string[], loc: string, url: string) {
   const sysP = `Search prompt strategist. Generate prompts using ONLY confirmed services and customers.
 Return ONLY raw valid JSON:
-{"business_name":"","by_service":[{"service":"","prompts":[{"verb":"Find","text":""},{"verb":"List","text":""},{"verb":"Rank","text":""}]}],"by_customer":[{"customer":"","prompts":[{"verb":"Find","text":""},{"verb":"List","text":""},{"verb":"Rank","text":""}]}]}
-Rules: 8 prompts per service, 8 per customer. Verbs: Find/List/Rank cycling evenly (e.g. Find/List/Rank/Find/List/Rank/Find/List). Qualifiers: most trusted/reliable/affordable/highest rated/most experienced/best reviewed/most recommended/top rated — vary, no repeats in group. Location: "${loc}". Natural language. ONLY use listed services and customers.`;
+{"business_name":"","by_service":[{"service":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [service] in ${loc}"}]}],"by_customer":[{"customer":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted options for [customer] in ${loc}"}]}]}
+Rules:
+- 8 prompts per service, 8 per customer
+- Every prompt MUST start with "Find, list and rank 10" followed by a qualifier
+- Qualifiers: most trusted, most reliable, most affordable, highest rated, most experienced, best reviewed, most recommended, top rated — vary, no repeats within a group
+- Location: "${loc}". Natural language. ONLY use listed services and customers.`;
 
   const userMsg = `Services confirmed: ${JSON.stringify(services)}\nCustomer types confirmed: ${JSON.stringify(customers)}\nLocation: "${loc}"\nURL: ${url}\nGenerate grouped prompts.`;
 
@@ -154,7 +187,7 @@ Rules: 8 prompts per service, 8 per customer. Verbs: Find/List/Rank cycling even
 
   const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
   if (!tb) throw new Error("No response from Claude");
-  return { result: extractJSON(tb.text, "{"), cost: calcCost(response.usage) };
+  return { result: enforceFlrFormat(extractJSON(tb.text, "{")), cost: calcCost(response.usage) };
 }
 
 export async function pncV2Generate(url: string, loc: string) {
@@ -170,9 +203,9 @@ Return ONLY raw valid JSON — no markdown, no backticks:
     {
       "service": "service name",
       "prompts": [
-        {"verb":"Find","text":"Find 10 most trusted X in Y"},
-        {"verb":"List","text":"List 10 most reliable X in Y"},
-        {"verb":"Rank","text":"Rank 10 most affordable X in Y"}
+        {"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted X in ${loc}"},
+        {"verb":"Find, list and rank","text":"Find, list and rank 10 most reliable X in ${loc}"},
+        {"verb":"Find, list and rank","text":"Find, list and rank 10 most affordable X in ${loc}"}
       ]
     }
   ],
@@ -180,9 +213,8 @@ Return ONLY raw valid JSON — no markdown, no backticks:
     {
       "customer": "customer type name",
       "prompts": [
-        {"verb":"Find","text":"Find 10 most trusted X for [customer] in Y"},
-        {"verb":"List","text":"..."},
-        {"verb":"Rank","text":"..."}
+        {"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted X for [customer] in ${loc}"},
+        {"verb":"Find, list and rank","text":"Find, list and rank 10 most reliable X for [customer] in ${loc}"}
       ]
     }
   ]
@@ -191,7 +223,8 @@ Return ONLY raw valid JSON — no markdown, no backticks:
 Rules:
 - Identify every service from the website
 - Identify 4-6 distinct customer types who use this business
-- Generate 8 prompts per service group, 8 prompts per customer group. Verbs: Find/List/Rank cycling evenly (e.g. Find/List/Rank/Find/List/Rank/Find/List). Only these three verbs.
+- Generate 8 prompts per service group, 8 prompts per customer group
+- Every prompt MUST start with "Find, list and rank 10" — no other verb format allowed
 - Qualifiers: most trusted, most reliable, most affordable, highest rated, most experienced, best reviewed, most recommended — vary, no repeats within a group
 - Location string for all prompts: "${loc}"
 - Make every prompt feel natural — like a real person typing to an AI assistant
@@ -208,5 +241,5 @@ Rules:
 
   const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
   if (!tb) throw new Error("No response from Claude");
-  return { result: extractJSON(tb.text, "{"), cost: calcCost(response.usage) };
+  return { result: enforceFlrFormat(extractJSON(tb.text, "{")), cost: calcCost(response.usage) };
 }
