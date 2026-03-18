@@ -794,10 +794,9 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
       {/* GEO Insights — primary section for the insights format */}
       {isInsightsFormat && (
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-1 h-5 rounded-full bg-gradient-to-b from-primary to-violet-500" />
-            <span className="text-sm font-bold" style={{ color: "#f1f5f9" }}>GEO Insights</span>
-            <span className="text-[10px] ml-1" style={{ color: "#64748b" }}>{insightsList.length} ranked findings</span>
+          <div style={{ padding: "10px 16px", borderRadius: 10, background: "linear-gradient(90deg, rgba(99,102,241,0.18) 0%, rgba(99,102,241,0.04) 100%)", border: "1px solid rgba(99,102,241,0.22)", marginBottom: 14 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", lineHeight: 1.3 }}>What matters in this category?</div>
+            <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>Learnings from the top appearances · {insightsList.length} findings</div>
           </div>
           <div className="space-y-3">
             {insightsList.map((insight: any, i: number) => (
@@ -857,10 +856,9 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
               ))}
             </div>
           )}
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-1 h-5 rounded-full bg-gradient-to-b from-orange-500 to-red-500" />
-            <span className="text-sm font-bold" style={{ color: "#f1f5f9" }}>Top GEO Tactics</span>
-            <span className="text-[10px] ml-1" style={{ color: "#64748b" }}>{topTacticsList.length} ranked tactics</span>
+          <div style={{ padding: "10px 16px", borderRadius: 10, background: "linear-gradient(90deg, rgba(99,102,241,0.18) 0%, rgba(99,102,241,0.04) 100%)", border: "1px solid rgba(99,102,241,0.22)", marginBottom: 14 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", lineHeight: 1.3 }}>What matters in this category?</div>
+            <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>Learnings from the top appearances · {topTacticsList.length} tactics</div>
           </div>
           <div className="space-y-3">
             {topTacticsList.map((t: any, i: number) => (
@@ -879,15 +877,17 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
                   </p>
                 )}
                 {t.brand_performance?.length > 0 && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 6 }}>
                     {t.brand_performance.map((bp: any) => (
-                      <div key={bp.brand} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "8px 10px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-                          <span style={{ color: "#f1f5f9", fontSize: 11, fontWeight: 600 }}>{bp.brand}</span>
-                          <span style={{ fontSize: 9, padding: "1px 5px", borderRadius: 3, background: bp.performance_rating === "Strong" ? "rgba(16,185,129,0.15)" : "rgba(251,191,36,0.12)", color: bp.performance_rating === "Strong" ? "#34d399" : "#fbbf24", fontWeight: 600 }}>{bp.performance_rating}</span>
-                          {bp.citation_count_for_tactic && <span style={{ fontSize: 9, color: "#64748b", marginLeft: "auto" }}>{bp.citation_count_for_tactic} citations</span>}
+                      <div key={bp.brand} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "10px 12px", border: "1px solid rgba(255,255,255,0.07)" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 8, padding: "3px 10px" }}>
+                            <span style={{ color: "#c7d2fe", fontSize: 12, fontWeight: 700 }}>{bp.brand}</span>
+                          </span>
+                          <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 5, background: bp.performance_rating === "Strong" ? "rgba(16,185,129,0.18)" : "rgba(251,191,36,0.14)", color: bp.performance_rating === "Strong" ? "#34d399" : "#fbbf24", fontWeight: 700, border: `1px solid ${bp.performance_rating === "Strong" ? "rgba(16,185,129,0.3)" : "rgba(251,191,36,0.25)"}` }}>{bp.performance_rating}</span>
+                          {bp.citation_count_for_tactic && <span style={{ fontSize: 10, color: "#475569", marginLeft: "auto", fontWeight: 600 }}>{bp.citation_count_for_tactic} cit.</span>}
                         </div>
-                        {bp.details && <p style={{ fontSize: 11, color: "#64748b", lineHeight: 1.5, margin: 0 }}>{bp.details}</p>}
+                        {bp.details && <p style={{ fontSize: 11, color: "#64748b", lineHeight: 1.55, margin: 0 }}>{bp.details}</p>}
                       </div>
                     ))}
                   </div>
@@ -963,10 +963,9 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
       {/* Tactics — collapsible cards */}
       {data.tactics?.length > 0 && (
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-1 h-5 rounded-full bg-gradient-to-b from-orange-500 to-red-500" />
-            <span className="text-sm font-bold text-foreground">What Top Brands Do Differently</span>
-            <span className="text-[10px] text-muted-foreground bg-secondary px-2 py-0.5 rounded ml-1">{data.tactics.length} tactics · ranked by citation evidence</span>
+          <div style={{ padding: "10px 16px", borderRadius: 10, background: "linear-gradient(90deg, rgba(99,102,241,0.18) 0%, rgba(99,102,241,0.04) 100%)", border: "1px solid rgba(99,102,241,0.22)", marginBottom: 14 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", lineHeight: 1.3 }}>What matters in this category?</div>
+            <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>Learnings from the top appearances · {data.tactics.length} tactics ranked by citation evidence</div>
           </div>
           <div className="space-y-2">
             {data.tactics.map((t) => <TacticCard key={t.rank} tactic={t} />)}
@@ -1198,10 +1197,9 @@ function MarkdownReport({ text }: { text: string }) {
       {/* What top brands do differently */}
       {(tacticItems.length > 0) && (
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-1 h-5 rounded-full" style={{ background: "linear-gradient(180deg, #f97316, #ef4444)" }} />
-            <span className="text-sm font-bold text-foreground">{tacticsHeader?.heading ?? "What Top Brands Are Doing Differently"}</span>
-            <span className="text-[10px] text-muted-foreground bg-secondary px-2 py-0.5 rounded ml-1">{tacticItems.length} tactics</span>
+          <div style={{ padding: "10px 16px", borderRadius: 10, background: "linear-gradient(90deg, rgba(99,102,241,0.18) 0%, rgba(99,102,241,0.04) 100%)", border: "1px solid rgba(99,102,241,0.22)", marginBottom: 14 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", lineHeight: 1.3 }}>What matters in this category?</div>
+            <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>Learnings from the top appearances · {tacticItems.length} tactics</div>
           </div>
           {tacticItems.map((s, i) => (
             <CollapsibleMdCard key={i} section={s} rank={i + 1} />

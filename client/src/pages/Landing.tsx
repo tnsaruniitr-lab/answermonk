@@ -674,6 +674,10 @@ function LandingInner() {
             {/* Citation Intelligence panel — revealed after button press */}
             {allSegmentsDone && showIntelligence && activeSessionId !== null && (
               <div className="mt-2">
+                <div style={{ padding: "12px 18px", borderRadius: 12, background: "linear-gradient(90deg, rgba(99,102,241,0.2) 0%, rgba(99,102,241,0.04) 100%)", border: "1px solid rgba(99,102,241,0.25)", marginBottom: 18 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#e2e8f0", lineHeight: 1.3 }}>What matters in this category?</div>
+                  <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>Learnings from the top appearances</div>
+                </div>
                 <AuthoritySourcesPanel
                   autoRun
                   sessionId={activeSessionId}
