@@ -142,42 +142,6 @@ export function MissionControlWithQuips() {
     }}>
       <div style={{ width: 600 }}>
 
-        {/* ── QUIPS BANNER ── */}
-        <div style={{
-          marginBottom: 12,
-          background: "rgba(255,255,255,0.025)",
-          border: "1px solid rgba(99,102,241,0.2)",
-          borderRadius: 10,
-          padding: "12px 18px",
-          backdropFilter: "blur(8px)",
-          minHeight: 52,
-          display: "flex",
-          alignItems: "center",
-          gap: 14,
-        }}>
-          <div style={{
-            width: 7,
-            height: 7,
-            borderRadius: "50%",
-            background: "#22d3ee",
-            boxShadow: "0 0 10px #22d3ee",
-            flexShrink: 0,
-            animation: "pulse 1.2s ease-in-out infinite",
-          }} />
-          <p style={{
-            margin: 0,
-            fontSize: 13,
-            color: "rgba(226,232,240,0.85)",
-            opacity,
-            fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-            letterSpacing: "0.01em",
-            lineHeight: 1.5,
-            fontStyle: QUIPS[quipIdx]?.startsWith("In my skin") || QUIPS[quipIdx]?.startsWith("Crawling in") ? "italic" : "normal",
-          }}>
-            {displayed}
-          </p>
-        </div>
-
         {/* ── TOP STATUS BAR ── */}
         <div style={{
           background: "#0a1628",
@@ -207,6 +171,41 @@ export function MissionControlWithQuips() {
           borderRadius: "0 0 12px 12px",
           padding: 24,
         }}>
+
+          {/* ── QUIPS — right below the CRAWLING status bar ── */}
+          <div style={{
+            marginBottom: 22,
+            background: "rgba(255,255,255,0.025)",
+            border: "1px solid rgba(30,58,95,0.8)",
+            borderRadius: 8,
+            padding: "10px 16px",
+            minHeight: 42,
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}>
+            <div style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: "#22d3ee",
+              boxShadow: "0 0 8px #22d3ee",
+              flexShrink: 0,
+              animation: "pulse 1.2s ease-in-out infinite",
+            }} />
+            <p style={{
+              margin: 0,
+              fontSize: 12,
+              color: "rgba(148,163,184,0.9)",
+              opacity,
+              fontFamily: "monospace",
+              letterSpacing: "0.01em",
+              lineHeight: 1.5,
+              fontStyle: QUIPS[quipIdx]?.startsWith("In my skin") || QUIPS[quipIdx]?.startsWith("Crawling in") ? "italic" : "normal",
+            }}>
+              {displayed}
+            </p>
+          </div>
 
           {/* Central circle */}
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
