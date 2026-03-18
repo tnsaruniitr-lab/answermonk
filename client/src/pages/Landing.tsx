@@ -659,7 +659,7 @@ function LandingInner() {
             )}
 
             {/* Citation sources preview — always visible once scoring completes */}
-            {allSegmentsDone && activeSessionId !== null && !showIntelligence && (
+            {allSegmentsDone && activeSessionId !== null && (
               <div className="mt-4">
                 <CitationSourcesPreview sessionId={activeSessionId} />
               </div>
