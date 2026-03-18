@@ -3864,6 +3864,51 @@ export async function registerRoutes(
       );
       const csvText = [csvHeader, ...csvRows].join("\n");
 
+      // ── Fetch top 3 ranked competitors from session scoring data ──────────────
+      let top3Brands: { name: string; appearances: number }[] = [];
+      try {
+        const sessionRow = await pool.query(
+          `SELECT brand_name, segments FROM multi_segment_sessions WHERE id = $1`,
+          [sessionId]
+        );
+        if (sessionRow.rows.length > 0) {
+          const { brand_name: clientBrand, segments } = sessionRow.rows[0];
+          const clientBrandLC = (clientBrand ?? "").toLowerCase();
+          const competitorMap = new Map<string, number>();
+
+          for (const seg of (segments ?? [])) {
+            const competitors: { name: string; appearances: number }[] =
+              seg?.scoringResult?.score?.competitors ?? [];
+            for (const comp of competitors) {
+              if (!comp.name) continue;
+              const nameLC = comp.name.toLowerCase();
+              if (nameLC.includes(clientBrandLC) || clientBrandLC.includes(nameLC)) continue;
+              competitorMap.set(comp.name, (competitorMap.get(comp.name) ?? 0) + (comp.appearances ?? 0));
+            }
+          }
+
+          top3Brands = Array.from(competitorMap.entries())
+            .map(([name, appearances]) => ({ name, appearances }))
+            .sort((a, b) => b.appearances - a.appearances)
+            .slice(0, 3);
+        }
+      } catch (e) {
+        console.warn("[citation-insights] Could not fetch top3 brands:", e);
+      }
+
+      // Replace [BRAND A/B/C] placeholders in prompt with actual top-ranked names
+      function injectTopBrands(prompt: string, brands: { name: string; appearances: number }[]): string {
+        let out = prompt;
+        const labels = ["[BRAND A]", "[BRAND B]", "[BRAND C]"];
+        for (let i = 0; i < labels.length; i++) {
+          const replacement = brands[i]
+            ? `${brands[i].name} (${brands[i].appearances} AI query appearances)`
+            : `[Brand ${String.fromCharCode(65 + i)} — not enough data]`;
+          out = out.split(labels[i]).join(replacement);
+        }
+        return out;
+      }
+
       const defaultPromptPrefix = `You are an AI search visibility analyst reviewing citation data from a GEO (Generative Engine Optimization) study.
 
 The CSV data below contains every URL cited by ChatGPT and Gemini when answering questions about this brand's market. Each row shows: which engine cited it, the page type (human-labelled as url_category and LLM-classified as llm_pagetype_classification), the domain, the brand, the URL, the page title, and how many times it was cited (citation_count).
@@ -3918,7 +3963,8 @@ Rules for content:
 - Be specific: "brand X does Y on page Z" not "brands should do Y"
 - For unusual_findings: include 3-5 genuinely surprising or counterintuitive patterns`;
 
-      const systemPrompt = (promptOverride ?? defaultPromptPrefix) + `\n\nCSV DATA:\n${csvText}`;
+      const promptPrefix = injectTopBrands(promptOverride ?? defaultPromptPrefix, top3Brands);
+      const systemPrompt = promptPrefix + `\n\nCSV DATA:\n${csvText}`;
 
       let resultText = "";
       let inputTokens: number | null = null;
