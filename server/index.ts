@@ -227,6 +227,14 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || "5000", 10);
+
+  // Pre-emptively free the port — prevents EADDRINUSE on rapid restarts
+  try {
+    const { execSync } = await import("child_process");
+    execSync(`fuser -k ${port}/tcp 2>/dev/null || true`, { stdio: "ignore" });
+    await new Promise(r => setTimeout(r, 300));
+  } catch {}
+
   httpServer.listen(
     {
       port,
