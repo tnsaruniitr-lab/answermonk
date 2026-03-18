@@ -589,6 +589,27 @@ const SOURCE_TYPE_COLORS: Record<string, string> = {
 
 function TacticCard({ tactic }: { tactic: Tactic }) {
   const [open, setOpen] = useState(false);
+  const anyT = tactic as any;
+
+  // Normalise field names — Claude varies them across runs
+  const rank = tactic.rank ?? anyT.tactic_number ?? 1;
+  const title = tactic.title ?? anyT.tactic_name ?? anyT.tactic_title ?? "Tactic";
+  const citations = tactic.citations ?? anyT.total_citations ?? anyT.citation_count ?? 0;
+  const mechanism = tactic.mechanism ?? anyT.why_it_works_summary ?? "";
+  const whyItWorks: string[] = Array.isArray(tactic.why_it_works)
+    ? tactic.why_it_works
+    : tactic.why_it_works
+      ? [tactic.why_it_works as unknown as string]
+      : [];
+  const rawExamples: { url: string; count?: number; citation_count?: number; description?: string }[] =
+    tactic.examples ?? anyT.top_sources ?? [];
+  const examples = rawExamples.map((ex: any) => ({
+    url: ex.url ?? "",
+    count: ex.count ?? ex.citation_count ?? 0,
+    description: ex.description ?? "",
+  }));
+  const brandPerf: any[] = anyT.brand_performance ?? [];
+
   const impactCls = IMPACT_COLORS[tactic.impact] ?? IMPACT_COLORS.LOW;
   const barCls = IMPACT_BAR_COLORS[tactic.impact] ?? "bg-slate-400";
 
@@ -599,29 +620,25 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
         className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/30 ${open ? "bg-secondary/20" : "bg-background"}`}
       >
         {/* Rank badge */}
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold border shrink-0 ${impactCls}`}>
-          #{tactic.rank}
+        <div style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, background: "rgba(251,146,60,0.15)", color: "#f97316", border: "1px solid rgba(251,146,60,0.3)", flexShrink: 0 }}>
+          #{rank}
         </div>
         {/* Title + meta */}
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-semibold text-foreground leading-tight truncate">{tactic.title}</div>
+          <div className="text-sm font-semibold text-foreground leading-tight truncate">{title}</div>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${impactCls}`}>{tactic.impact}</span>
-            <span className="text-[11px] text-muted-foreground">{tactic.citations} citations</span>
-            <span className="text-[10px] text-muted-foreground opacity-60">· {tactic.confidence} confidence</span>
+            {tactic.impact && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${impactCls}`}>{tactic.impact}</span>}
+            <span className="text-[11px] text-muted-foreground">{citations} citations</span>
+            {tactic.confidence && <span className="text-[10px] text-muted-foreground opacity-60">· {tactic.confidence} confidence</span>}
           </div>
-        </div>
-        {/* Mini bar */}
-        <div className="w-12 h-1.5 bg-secondary rounded-full overflow-hidden shrink-0 hidden sm:block">
-          <div className={`h-full rounded-full ${barCls}`} style={{ width: `${Math.min(100, (tactic.citations / 200) * 100)}%` }} />
         </div>
         <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
 
-      {/* Third-party source bubbles — always visible */}
-      {tactic.examples?.length > 0 && (
+      {/* Source domain pills — always visible */}
+      {examples.length > 0 && (
         <div className="px-4 pb-2 pt-1 flex flex-wrap gap-1.5">
-          {tactic.examples.map((ex, i) => {
+          {examples.map((ex, i) => {
             const domain = ex.url.replace(/^https?:\/\//, "").split("/")[0];
             return (
               <span key={i} style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 12, background: "rgba(99,102,241,0.13)", color: "#a5b4fc", border: "1px solid rgba(99,102,241,0.28)" }}>
@@ -640,43 +657,98 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 pt-3 bg-secondary/10 border-t border-border/40 space-y-4">
-              {/* Mechanism */}
-              <p className="text-xs text-muted-foreground leading-relaxed">{tactic.mechanism}</p>
+            <div className="px-4 pb-4 pt-3 border-t border-border/40 space-y-4" style={{ background: "#0a0f1e" }}>
+              {/* Mechanism / why it works string */}
+              {mechanism && <p className="text-xs leading-relaxed" style={{ color: "#94a3b8" }}>{mechanism}</p>}
 
-              {/* URL examples */}
-              {tactic.examples?.length > 0 && (
+              {/* Why it works — array bullets */}
+              {whyItWorks.length > 0 && (
+                <div className="space-y-1">
+                  {whyItWorks.map((w, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <span className="text-[11px] shrink-0 mt-0.5" style={{ color: "#6366f1" }}>✓</span>
+                      <span className="text-xs" style={{ color: "#94a3b8" }}>{w}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Source pages with descriptions */}
+              {examples.length > 0 && (
                 <div>
-                  <div className="text-[11px] font-semibold text-foreground mb-2">Top performing pages</div>
-                  <div className="space-y-1.5">
-                    {tactic.examples.map((ex, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <a
-                          href={ex.url.startsWith("http") ? ex.url : `https://${ex.url}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 min-w-0 text-[11px] text-blue-600 dark:text-blue-400 hover:underline font-mono bg-secondary/40 px-2 py-1 rounded truncate"
-                        >
-                          {ex.url}
-                        </a>
-                        <span className="text-[10px] text-muted-foreground shrink-0">{ex.count} cit.</span>
+                  <div className="text-[10px] font-bold mb-2" style={{ color: "#475569", letterSpacing: 1, textTransform: "uppercase" }}>What these sources look like</div>
+                  <div className="space-y-2">
+                    {examples.map((ex, i) => (
+                      <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 10px" }}>
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={ex.url.startsWith("http") ? ex.url : `https://${ex.url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 min-w-0 text-[11px] hover:underline font-mono truncate"
+                            style={{ color: "#818cf8" }}
+                          >
+                            {ex.url}
+                          </a>
+                          <span className="text-[10px] shrink-0 font-semibold" style={{ color: "#34d399" }}>{ex.count} cit.</span>
+                        </div>
+                        {ex.description && <p className="text-[11px] mt-1" style={{ color: "#64748b" }}>{ex.description}</p>}
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Why it works */}
-              {tactic.why_it_works?.length > 0 && (
+              {/* Brand performance */}
+              {brandPerf.length > 0 && (
                 <div>
-                  <div className="text-[11px] font-semibold text-foreground mb-2">Why it works</div>
-                  <div className="space-y-1">
-                    {tactic.why_it_works.map((w, i) => (
-                      <div key={i} className="flex items-start gap-2">
-                        <span className={`text-[11px] shrink-0 mt-0.5 ${IMPACT_BAR_COLORS[tactic.impact] ? "text-primary" : "text-muted-foreground"}`}>✓</span>
-                        <span className="text-xs text-muted-foreground">{w}</span>
-                      </div>
-                    ))}
+                  <div className="text-[10px] font-bold mb-2" style={{ color: "#475569", letterSpacing: 1, textTransform: "uppercase" }}>Brand performance</div>
+                  <div className="space-y-3">
+                    {brandPerf.map((bp: any) => {
+                      const bName = bp.brand ?? bp.brand_name ?? "";
+                      const bCount = bp.citation_count ?? bp.tactic_citations ?? bp.citations ?? 0;
+                      const bRating = bp.performance_rating ?? "";
+                      const bDo = bp.what_they_do ?? bp.details ?? bp.description ?? "";
+                      const bAppear = bp.how_they_appear ?? "";
+                      const bEvidence: any[] = bp.evidence_urls ?? bp.evidence ?? [];
+                      const ratingColor = bRating === "Strong" ? "#34d399" : bRating === "Partial" ? "#fbbf24" : "#f87171";
+                      const ratingBg = bRating === "Strong" ? "rgba(16,185,129,0.15)" : bRating === "Partial" ? "rgba(251,191,36,0.12)" : "rgba(248,113,113,0.12)";
+                      return (
+                        <div key={bName} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 10, padding: "10px 12px", border: "1px solid rgba(255,255,255,0.07)" }}>
+                          <div className="flex items-center gap-2 mb-3">
+                            <span style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 8, padding: "3px 10px", fontSize: 12, fontWeight: 700, color: "#c7d2fe" }}>{bName}</span>
+                            {bCount > 0 && <span style={{ fontSize: 10, color: "#94a3b8" }}>{bCount} citations</span>}
+                            {bRating && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5, background: ratingBg, color: ratingColor, marginLeft: "auto" }}>{bRating}</span>}
+                          </div>
+                          {bDo && (
+                            <div className="mb-2">
+                              <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5 }}>What they do: </span>
+                              <span style={{ fontSize: 11, color: "#94a3b8" }}>{bDo}</span>
+                            </div>
+                          )}
+                          {bAppear && bAppear !== "NOT FOUND - Web search not available" && (
+                            <div className="mb-2" style={{ background: "rgba(99,102,241,0.07)", borderRadius: 6, padding: "6px 8px", borderLeft: "2px solid rgba(99,102,241,0.4)" }}>
+                              <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5 }}>How they appear: </span>
+                              <span style={{ fontSize: 11, color: "#94a3b8", fontStyle: "italic" }}>{bAppear}</span>
+                            </div>
+                          )}
+                          {bEvidence.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-1">
+                              {bEvidence.map((ev: any, ei: number) => {
+                                const evUrl = ev.url ?? "";
+                                const evDomain = evUrl.replace(/^https?:\/\//, "").split("/")[0];
+                                const evCount = ev.citation_count ?? ev.count ?? 0;
+                                return (
+                                  <span key={ei} style={{ fontSize: 10, padding: "2px 7px", borderRadius: 10, background: "rgba(255,255,255,0.05)", color: "#64748b", border: "1px solid rgba(255,255,255,0.08)" }}>
+                                    <strong style={{ color: "#94a3b8" }}>{evDomain}</strong> · {evCount}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -968,7 +1040,7 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
             <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>Learnings from the top appearances · {data.tactics.length} tactics ranked by citation evidence</div>
           </div>
           <div className="space-y-2">
-            {data.tactics.map((t) => <TacticCard key={t.rank} tactic={t} />)}
+            {data.tactics.map((t, i) => <TacticCard key={t.rank ?? (t as any).tactic_number ?? i} tactic={t} />)}
           </div>
         </div>
       )}
