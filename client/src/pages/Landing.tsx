@@ -44,7 +44,11 @@ const RUN_STEPS = [
   { emoji: "📋", label: "Compiling your GEO Intelligence Report…" },
 ];
 
-function SegmentResultCard({ seg, brandName }: { seg: any; brandName: string }) {
+function stripPromptPrefix(text: string): string {
+  return text.replace(/^find,?\s*list\s*and\s*rank\s*\d+\s*\w+\s*/i, "").trim();
+}
+
+function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; brandName: string; selected?: boolean; onToggle?: () => void }) {
   const sr = seg.scoringResult;
   const score = sr?.score || {};
   const appearance = Math.round((score.appearance_rate ?? 0) * 100);
@@ -55,6 +59,12 @@ function SegmentResultCard({ seg, brandName }: { seg: any; brandName: string }) 
   const citationCount = rawRuns.reduce((s: number, r: any) => s + (r.citations?.length || 0), 0);
   const label = seg.persona || seg.serviceType || seg.customerType || seg.label || "Segment";
   const type = seg.seedType || seg.type || "service";
+
+  const firstPromptText = rawRuns[0]?.prompt_text || (seg.prompts?.[0]?.text ?? "");
+  const promptContext = firstPromptText ? stripPromptPrefix(firstPromptText) : "";
+
+  const isSelectable = onToggle !== undefined;
+  const isSelected = isSelectable ? (selected ?? true) : true;
 
   const rawCompetitors: { name: string; share: number; isBrand?: boolean }[] = (score.competitors || []).slice(0, 8);
   const brandAlreadyIn = rawCompetitors.some((c) => c.name?.toLowerCase() === brandName?.toLowerCase());
@@ -67,18 +77,54 @@ function SegmentResultCard({ seg, brandName }: { seg: any; brandName: string }) 
     .map((c) => ({ ...c, isBrand: c.isBrand || c.name?.toLowerCase() === brandName?.toLowerCase() }));
 
   return (
-    <div className="bg-[#111827]/80 border border-white/10 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div
+      onClick={isSelectable ? onToggle : undefined}
+      className="border rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 transition-all"
+      style={{
+        background: "#111827cc",
+        borderColor: isSelectable
+          ? isSelected ? "rgba(34,197,94,0.35)" : "rgba(255,255,255,0.06)"
+          : "rgba(255,255,255,0.10)",
+        opacity: isSelectable && !isSelected ? 0.5 : 1,
+        cursor: isSelectable ? "pointer" : "default",
+        boxShadow: isSelected && isSelectable ? "0 0 0 1px rgba(34,197,94,0.1) inset" : "none",
+      }}
+    >
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-white/5">
-        <div className="w-6 h-6 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center flex-shrink-0">
-          <span className="text-green-400 leading-none" style={{ fontSize: "10px" }}>✓</span>
-        </div>
+        {/* Checkbox or static checkmark */}
+        {isSelectable ? (
+          <div
+            className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all duration-200"
+            style={{
+              background: isSelected ? "#22c55e" : "transparent",
+              border: isSelected ? "2px solid #22c55e" : "2px solid rgba(255,255,255,0.18)",
+            }}
+          >
+            {isSelected && (
+              <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </div>
+        ) : (
+          <div className="w-6 h-6 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center flex-shrink-0">
+            <span className="text-green-400 leading-none" style={{ fontSize: "10px" }}>✓</span>
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <p className="text-white text-sm font-semibold truncate capitalize">{label}</p>
-          <span className="inline-block mt-0.5 text-[10px] font-semibold tracking-widest uppercase px-2 py-0.5 rounded-full"
-            style={{ background: type === "customer" ? "rgba(139,92,246,0.12)" : "rgba(59,130,246,0.12)", color: type === "customer" ? "#a78bfa" : "#60a5fa", border: `1px solid ${type === "customer" ? "rgba(139,92,246,0.25)" : "rgba(59,130,246,0.25)"}` }}>
-            {type === "customer" ? "Customer" : "Service"}
-          </span>
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            <span className="inline-block text-[10px] font-semibold tracking-widest uppercase px-2 py-0.5 rounded-full"
+              style={{ background: type === "customer" ? "rgba(139,92,246,0.12)" : "rgba(59,130,246,0.12)", color: type === "customer" ? "#a78bfa" : "#60a5fa", border: `1px solid ${type === "customer" ? "rgba(139,92,246,0.25)" : "rgba(59,130,246,0.25)"}` }}>
+              {type === "customer" ? "Customer" : "Service"}
+            </span>
+            {promptContext && (
+              <span className="text-[10px] text-slate-500 truncate font-mono max-w-[200px]" title={promptContext}>
+                {promptContext}
+              </span>
+            )}
+          </div>
         </div>
         <div className="text-right flex-shrink-0">
           <p className="text-2xl font-bold text-white">{appearance}%</p>
@@ -183,6 +229,7 @@ function LandingInner() {
   const [newCustomerInput, setNewCustomerInput] = useState("");
   const [showIntelligence, setShowIntelligence] = useState(false);
   const [activeTab, setActiveTab] = useState<"reports" | "directory" | "agents">("reports");
+  const [selectedSegmentIds, setSelectedSegmentIds] = useState<Set<string>>(new Set());
   const [customerLimitError, setCustomerLimitError] = useState(false);
   const [serviceLimitError, setServiceLimitError] = useState(false);
 
@@ -302,6 +349,21 @@ function LandingInner() {
     }, 1400);
     return () => clearInterval(iv);
   }, [isRunning]);
+
+  useEffect(() => {
+    if (scoredSegs.length > 0) {
+      setSelectedSegmentIds((prev) => {
+        const next = new Set(prev);
+        scoredSegs.forEach((s: any) => { if (s.id) next.add(s.id); });
+        return next;
+      });
+    }
+  }, [scoredSegs.length]);
+
+  useEffect(() => {
+    setSelectedSegmentIds(new Set());
+    setShowIntelligence(false);
+  }, [activeSessionId]);
 
   function handleTileSelect(sessionId: number) {
     setActiveSessionId(sessionId);
@@ -671,8 +733,23 @@ function LandingInner() {
             )}
 
             {/* Scored segment cards — appear one by one as they complete */}
+            {allSegmentsDone && scoredSegs.length > 0 && (
+              <p className="text-[10px] font-mono tracking-wider uppercase text-slate-500 px-1">
+                Unselect a segment if you think it's irrelevant to your brand
+              </p>
+            )}
             {scoredSegs.map((seg) => (
-              <SegmentResultCard key={seg.id} seg={seg} brandName={scoringSession?.brandName || ""} />
+              <SegmentResultCard
+                key={seg.id}
+                seg={seg}
+                brandName={scoringSession?.brandName || ""}
+                selected={allSegmentsDone ? selectedSegmentIds.has(seg.id) : undefined}
+                onToggle={allSegmentsDone ? () => setSelectedSegmentIds((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(seg.id)) next.delete(seg.id); else next.add(seg.id);
+                  return next;
+                }) : undefined}
+              />
             ))}
 
             {/* Live Dispatch Feed — shown while scoring is in progress */}
@@ -697,10 +774,14 @@ function LandingInner() {
               <div className="flex justify-center mt-4">
                 <button
                   onClick={() => setShowIntelligence(true)}
+                  disabled={selectedSegmentIds.size === 0}
                   data-testid="btn-analyse-intelligence"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-white text-black hover:bg-slate-100 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-white text-black hover:bg-slate-100 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.3)] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
                 >
                   Analyse Citation Intelligence
+                  {selectedSegmentIds.size < scoredSegs.length && selectedSegmentIds.size > 0 && (
+                    <span className="text-xs font-normal opacity-60">· {selectedSegmentIds.size} of {scoredSegs.length}</span>
+                  )}
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -713,14 +794,16 @@ function LandingInner() {
                   autoRun
                   sessionId={activeSessionId}
                   brandName={scoringSession?.brandName || ""}
-                  segments={scoredSegs.map((s: any, i: number) => ({
-                    id: s.id || `seg-${i}`,
-                    persona: s.persona || s.serviceType || s.label || `Segment ${i + 1}`,
-                    seedType: s.seedType || "",
-                    customerType: s.customerType || "",
-                    location: s.location || "",
-                    scoringResult: s.scoringResult,
-                  }))}
+                  segments={scoredSegs
+                    .filter((s: any) => selectedSegmentIds.has(s.id))
+                    .map((s: any, i: number) => ({
+                      id: s.id || `seg-${i}`,
+                      persona: s.persona || s.serviceType || s.label || `Segment ${i + 1}`,
+                      seedType: s.seedType || "",
+                      customerType: s.customerType || "",
+                      location: s.location || "",
+                      scoringResult: s.scoringResult,
+                    }))}
                 />
               </div>
             )}
