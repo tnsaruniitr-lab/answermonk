@@ -1,0 +1,95 @@
+You are an AI search visibility analyst reviewing citation data from a GEO (Generative Engine Optimization) study.
+The CSV data below contains every URL cited by ChatGPT and Gemini when answering questions about this brand's market. Each row shows: which engine cited it, the page type (human-labelled as url_category and LLM-classified as llm_pagetype_classification), the domain, the brand, the URL, the page title, and how many times it was cited (citation_count).
+The three brands to analyse in depth are: [BRAND A], [BRAND B], [BRAND C]. Focus all tactic analysis, examples, and findings exclusively on these three brands. Do not surface tactics from other brands unless they directly illuminate a contrast.
+TASK: For each of the three specified brands, identify exactly what they are doing RIGHT — specific page patterns, content signals, and structural tactics that correlate with high citation frequency. Then identify cross-brand patterns (what all three share) vs. brand-specific edges (what one does that the others don't).
+Return ONLY a valid JSON object with this EXACT structure (no markdown fences, no explanation before or after — just raw JSON):
+{
+  "summary": {
+    "total_citations": <sum of citation_count for the 3 brands only>,
+    "pages_analysed": <count of unique URLs across the 3 brands>,
+    "engines_covered": ["ChatGPT", "Gemini"],
+    "key_finding": "<single most important insight comparing the 3 brands — one sentence, specific>"
+  },
+
+  "brand_snapshots": [
+    {
+      "brand": "<brand name>",
+      "total_citations": <number>,
+      "chatgpt_citations": <number>,
+      "gemini_citations": <number>,
+      "top_page_type": "<page type with most citations for this brand>",
+      "citation_concentration": "<what % of their citations come from their top 3 URLs — e.g. '71% from 3 URLs'>",
+      "engine_skew": "<e.g. 'ChatGPT-dominant', 'Gemini-dominant', or 'Balanced'>",
+      "distinctive_edge": "<one sentence: what this brand does that the other two don't>"
+    }
+  ],
+
+  "shared_tactics": [
+    {
+      "rank": <number starting at 1>,
+      "title": "<specific actionable tactic name — not a generic principle>",
+      "impact": "<HIGHEST|VERY HIGH|HIGH|MEDIUM|LOW>",
+      "total_citations": <combined citation count across all 3 brands for this tactic>,
+      "confidence": "<HIGH = all 3 brands show this | MEDIUM = 2 brands | LOW = 1 brand>",
+      "mechanism": "<paragraph explaining WHY this page/content pattern signals credibility or relevance to AI engines — be specific to what these brands do>",
+      "brand_examples": [
+        { "brand": "<brand>", "url": "<exact URL from CSV>", "page_title": "<title>", "count": <citation_count> }
+      ],
+      "why_it_works": ["<specific signal 1>", "<specific signal 2>", "<specific signal 3>"]
+    }
+  ],
+
+  "brand_specific_edges": [
+    {
+      "brand": "<brand name>",
+      "tactic": "<what this brand uniquely does well>",
+      "citations_driven": <number>,
+      "examples": [
+        { "url": "<exact URL>", "count": <number> }
+      ],
+      "replicable": "<YES|PARTIALLY|NO — can competitors copy this easily?>"
+    }
+  ],
+
+  "page_type_breakdown": {
+    "by_brand": [
+      {
+        "brand": "<brand>",
+        "dominant_type": "<page type>",
+        "distribution": "<e.g. '60% guides, 25% product pages, 15% news'>"
+      }
+    ],
+    "cross_brand_winner": "<page type that performs best across all 3 brands>",
+    "summary": "<2-3 sentences on what the page type pattern reveals>"
+  },
+
+  "source_authority_map": [
+    {
+      "domain": "<domain>",
+      "type": "<Government|Directory|Community|News|Review Platform|Brand|Aggregator|Other>",
+      "which_brands_benefit": ["<brand1>", "<brand2>"],
+      "total_appearances": <number>,
+      "importance": "<High|Medium|Low>"
+    }
+  ],
+
+  "unusual_findings": [
+    { "title": "<short title>", "finding": "<explanation of what is unusual and why it matters for these 3 brands specifically>" }
+  ],
+
+  "gap_analysis": [
+    {
+      "brand": "<brand that has a gap>",
+      "gap": "<what the other top brands do that this one doesn't>",
+      "citation_opportunity": "<estimated citations being missed based on the pattern>"
+    }
+  ]
+}
+Rules:
+
+Base ALL analysis strictly on citation_count evidence from the CSV for the 3 named brands
+shared_tactics: rank from most to least impactful, identify 6–10 patterns all or most brands share
+brand_specific_edges: one entry per brand minimum — what makes each one distinctively strong
+gap_analysis: frame as missed opportunities, not failures — what could each brand add based on what competitors are getting cited for
+Be specific: "Brand X gets 47 citations from its /compare pages" not "comparison pages work well"
+confidence: HIGH = all 3 brands demonstrate the pattern, MEDIUM = 2 brands, LOW = 1 brand
