@@ -13,6 +13,7 @@ export const modules: ModuleMap = {
   "./components/mockups/bg-options/ScanlineGlitch.tsx": () => import("../components/mockups/bg-options/ScanlineGlitch.tsx"),
   "./components/mockups/bg-options/TopologyLines.tsx": () => import("../components/mockups/bg-options/TopologyLines.tsx"),
   "./components/mockups/button-preview/AnalyseButton.tsx": () => import("../components/mockups/button-preview/AnalyseButton.tsx"),
+  "./components/mockups/crawl-loading/CrawlingQuips.tsx": () => import("../components/mockups/crawl-loading/CrawlingQuips.tsx"),
   "./components/mockups/crawl-loading/GlassPulse.tsx": () => import("../components/mockups/crawl-loading/GlassPulse.tsx"),
   "./components/mockups/crawl-loading/MissionControl.tsx": () => import("../components/mockups/crawl-loading/MissionControl.tsx"),
   "./components/mockups/crawl-loading/TerminalDark.tsx": () => import("../components/mockups/crawl-loading/TerminalDark.tsx"),
