@@ -103,6 +103,31 @@ function saveCISettings(s: { model: string; prompt: string; schema: string; webS
   try { localStorage.setItem(CI_SETTINGS_KEY, JSON.stringify(s)); } catch {}
 }
 
+// Score a run by completeness: award points for real how_they_appear text and non-empty what_they_do
+function scoreInsightRun(run: InsightRun): number {
+  try {
+    const raw = run.result_text.trim()
+      .replace(/^```json\n?/i, "").replace(/^```\n?/i, "").replace(/\n?```\s*$/, "");
+    const parsed = JSON.parse(raw);
+    if (!parsed?.tactics) return 0;
+    let score = 0;
+    const PLACEHOLDERS = ["unattributed", "unverified", "not found", "web search not available", "web verification incomplete"];
+    for (const tactic of parsed.tactics) {
+      const bp = tactic.brand_performance ?? tactic.brands ?? tactic.brand_results ?? [];
+      for (const brand of bp) {
+        const appear: string = (brand.how_they_appear ?? "").toLowerCase();
+        const doStr: string = (brand.what_they_do ?? brand.details ?? "").toLowerCase();
+        const isPlaceholder = PLACEHOLDERS.some(p => appear.includes(p));
+        if (appear.length > 40 && !isPlaceholder) score += 3;
+        if (doStr.length > 20) score += 1;
+      }
+      // Bonus for having actions
+      if (tactic.actions) score += 2;
+    }
+    return score;
+  } catch { return 0; }
+}
+
 function formatTimeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60_000);
@@ -744,14 +769,22 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
                       const ratingColor = isStrong ? "#10b981" : isPartial ? "#f59e0b" : "#ef4444";
                       const ratingBg = isStrong ? "rgba(16,185,129,0.12)" : isPartial ? "rgba(245,158,11,0.12)" : "rgba(239,68,68,0.12)";
                       const ratingBorder = isStrong ? "rgba(16,185,129,0.3)" : isPartial ? "rgba(245,158,11,0.3)" : "rgba(239,68,68,0.3)";
-                      const bAppearClean = (
-                        bAppear === "NOT FOUND - Web search not available" ||
-                        bAppear.toLowerCase().includes("unattributed") ||
-                        bAppear.toLowerCase().includes("web verification") ||
-                        bAppear.toLowerCase().includes("web search not available") ||
-                        bAppear.toLowerCase().includes("could not be verified") ||
-                        bAppear.toLowerCase().includes("not found")
-                      ) ? "" : bAppear;
+                      // Only suppress exact placeholder strings — never broad keyword match
+                      const PURE_PLACEHOLDERS = [
+                        "UNATTRIBUTED - web verification incomplete.",
+                        "NOT FOUND - Web search not available",
+                        "UNATTRIBUTED",
+                        "unattributed",
+                      ];
+                      const isPlaceholder = PURE_PLACEHOLDERS.some(p => bAppear.trim() === p || bAppear.trim().toLowerCase() === p.toLowerCase());
+                      // Partial: has real content but also a qualification note — show with amber indicator
+                      const isPartiallyVerified = !isPlaceholder && bAppear.length > 0 && (
+                        bAppear.toLowerCase().includes("incomplete verification") ||
+                        bAppear.toLowerCase().includes("unavailable due to") ||
+                        bAppear.toLowerCase().includes("could not be fully verified") ||
+                        bAppear.toLowerCase().includes("unverified")
+                      );
+                      const bAppearClean = isPlaceholder ? "" : bAppear;
                       return (
                         <div key={bName || bpIdx} style={{ background: "rgba(99,102,241,0.06)", borderRadius: 12, border: "1px solid rgba(99,102,241,0.18)", overflow: "hidden" }}>
                           {/* Brand header row */}
@@ -778,9 +811,12 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
                               </div>
                             )}
                             {bAppearClean && (
-                              <div style={{ background: "rgba(99,102,241,0.1)", borderRadius: 8, padding: "10px 14px", borderLeft: "3px solid #6366f1" }}>
-                                <span style={{ fontSize: 10, fontWeight: 700, color: "#6366f1", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 6 }}>How they appear</span>
-                                <p style={{ fontSize: 13, color: "#a5b4fc", margin: 0, lineHeight: 1.65, fontStyle: "italic" }}>"{bAppearClean}"</p>
+                              <div style={{ background: isPartiallyVerified ? "rgba(245,158,11,0.08)" : "rgba(99,102,241,0.1)", borderRadius: 8, padding: "10px 14px", borderLeft: `3px solid ${isPartiallyVerified ? "#f59e0b" : "#6366f1"}` }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                                  <span style={{ fontSize: 10, fontWeight: 700, color: isPartiallyVerified ? "#f59e0b" : "#6366f1", textTransform: "uppercase", letterSpacing: 1 }}>How they appear</span>
+                                  {isPartiallyVerified && <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 4, background: "rgba(245,158,11,0.15)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.3)" }}>PARTIALLY VERIFIED</span>}
+                                </div>
+                                <p style={{ fontSize: 13, color: isPartiallyVerified ? "#fcd34d" : "#a5b4fc", margin: 0, lineHeight: 1.65, fontStyle: "italic" }}>"{bAppearClean}"</p>
                               </div>
                             )}
                             {bEvidence.length > 0 && (
@@ -809,6 +845,50 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
                   </div>
                 </div>
               )}
+
+              {/* Actions section — rendered when Claude returns tactic-level actions */}
+              {(() => {
+                const rawActions = anyT.actions ?? anyT.action ?? null;
+                if (!rawActions) return null;
+                const actionItems: { label: string; text: string }[] = [];
+                if (typeof rawActions === "string") {
+                  actionItems.push({ label: "Action", text: rawActions });
+                } else if (Array.isArray(rawActions)) {
+                  rawActions.forEach((a: any, i: number) => {
+                    if (typeof a === "string") actionItems.push({ label: `Action ${i + 1}`, text: a });
+                    else if (a?.action) actionItems.push({ label: a.priority ?? `Action ${i + 1}`, text: a.action });
+                    else if (a?.text) actionItems.push({ label: a.label ?? `Action ${i + 1}`, text: a.text });
+                  });
+                } else if (typeof rawActions === "object") {
+                  if (rawActions.primary) actionItems.push({ label: "Primary", text: rawActions.primary });
+                  if (rawActions.secondary) actionItems.push({ label: "Secondary", text: rawActions.secondary });
+                  if (rawActions.quick_win) actionItems.push({ label: "Quick win", text: rawActions.quick_win });
+                  if (rawActions.for_beco_capital || rawActions.for_client) actionItems.push({ label: "For you", text: rawActions.for_beco_capital ?? rawActions.for_client });
+                  // Generic key-value fallback
+                  if (!actionItems.length) {
+                    Object.entries(rawActions).forEach(([k, v]) => {
+                      if (typeof v === "string" && k !== "difficulty" && k !== "effort") actionItems.push({ label: k.replace(/_/g, " "), text: v as string });
+                    });
+                  }
+                }
+                if (!actionItems.length) return null;
+                return (
+                  <div style={{ marginTop: 14, background: "rgba(16,185,129,0.07)", borderRadius: 10, padding: "12px 14px", border: "1px solid rgba(16,185,129,0.2)" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#10b981", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+                      <span>↗</span> Actions for this tactic
+                      {rawActions?.difficulty && <span style={{ fontSize: 9, fontWeight: 600, padding: "1px 6px", borderRadius: 4, background: "rgba(16,185,129,0.15)", color: "#10b981", border: "1px solid rgba(16,185,129,0.3)", marginLeft: "auto" }}>{rawActions.difficulty}</span>}
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {actionItems.map((a, i) => (
+                        <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                          <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: "rgba(16,185,129,0.15)", color: "#34d399", border: "1px solid rgba(16,185,129,0.25)", flexShrink: 0, marginTop: 1, textTransform: "uppercase", letterSpacing: 0.5 }}>{a.label}</span>
+                          <p style={{ fontSize: 12, color: "#a7f3d0", margin: 0, lineHeight: 1.55, flex: 1 }}>{a.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </motion.div>
         )}
@@ -893,11 +973,23 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
   const topTacticsList: any[] = anyData.top_tactics ?? anyData.top_5_tactics ?? [];
   const biggestOpp: string | undefined = anyData.biggest_opportunity_missed;
   const analysisMeta: any = anyData.analysis_metadata;
+  const analysisNote: string | undefined = anyData.analysis_note ?? anyData.methodology_note ?? anyData.methodology_limitations ?? anyData.note;
   const isInsightsFormat = insightsList.length > 0 && !data.tactics && !data.summary;
   const isTopTacticsFormat = topTacticsList.length > 0 && !data.tactics && !data.summary;
 
   return (
     <div className="space-y-5">
+      {/* Analysis note / methodology limitations — show when Claude adds a caveat */}
+      {analysisNote && (
+        <div style={{ background: "rgba(245,158,11,0.07)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 10, padding: "10px 14px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <span style={{ fontSize: 15, flexShrink: 0, marginTop: 1 }}>⚠</span>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 4 }}>Analysis note</div>
+            <p style={{ fontSize: 12, color: "#fcd34d", margin: 0, lineHeight: 1.6 }}>{analysisNote}</p>
+          </div>
+        </div>
+      )}
+
       {/* Header card — only shown when we have real summary stats */}
       {data.summary && (
         <div className="rounded-xl overflow-hidden border border-border/40" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)" }}>
@@ -1404,6 +1496,20 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
   const rowCount = insightsData?.rowCount ?? 0;
   const pastInsights = insightsData?.insights ?? [];
   const latestInsight = pastInsights[0] ?? null;
+
+  // Auto-select the most complete run (highest completeness score) once on load
+  // Only fires when the user hasn't manually chosen a run yet
+  const autoSelectDone = useRef(false);
+  useEffect(() => {
+    if (autoSelectDone.current || !pastInsights.length || selectedInsightId !== null) return;
+    autoSelectDone.current = true;
+    if (pastInsights.length === 1) return; // Only one run — latestInsight is already shown
+    const scored = pastInsights.map(run => ({ id: run.id, score: scoreInsightRun(run) }));
+    scored.sort((a, b) => b.score - a.score);
+    const bestId = scored[0].id;
+    if (bestId !== latestInsight?.id) setSelectedInsightId(bestId);
+  }, [pastInsights]);
+
   const displayedInsight = selectedInsightId
     ? (pastInsights.find(i => i.id === selectedInsightId) ?? latestInsight)
     : latestInsight;

@@ -1,0 +1,82 @@
+Now I can see exactly what is happening. The code explains everything. Here is a precise diagnosis:
+Problem 1 — The How they appear line is being deliberately suppressed
+Find this block in your TacticCard component:
+javascriptconst bAppearClean = (
+  bAppear === "NOT FOUND - Web search not available" ||
+  bAppear.toLowerCase().includes("unattributed") ||
+  bAppear.toLowerCase().includes("web verification") ||
+  bAppear.toLowerCase().includes("web search not available") ||
+  bAppear.toLowerCase().includes("could not be verified") ||
+  bAppear.toLowerCase().includes("not found")
+) ? "" : bAppear;
+This is stripping out the How they appear line whenever it contains any qualification language. So when Claude returns partial content like the run 18 output for tactic 1 — which had real quoted language mixed with a caveat — your UI throws the whole thing away. The user sees nothing instead of seeing something imperfect.
+Problem 2 — The actions section is never rendered
+Search your entire StructuredReport component. There is no rendering logic for actions or gap_analysis anywhere in it. The component renders summary, tactics, sources, unusual_findings, cross_engine_champions — but the actions object Claude returns is silently dropped. It is in the JSON but your UI never displays it.
+Problem 3 — The new prompt format fields are not mapped
+Your TacticCard normalises field names with this logic:
+javascriptconst brandPerf: any[] = anyT.brand_performance ?? anyT.brands ?? anyT.brand_results ?? [];
+But the new prompt returns brand_performance as the field name inside each tactic which should match. The issue is the evidence field — your code does:
+javascriptconst rawEvidence: any[] = bp.evidence_urls ?? bp.evidence ?? [];
+The new prompt returns evidence_urls as an array of objects with url and count fields. But run 18 returned them as strings like "https://www.sadu.vc — 33" which your parser tries to handle with a regex match. That regex is:
+javascriptconst match = ev.match(/^(https?:\/\/[^\s]+)\s*-\s*(\d+)/);
+This only matches a single dash separator. The actual string uses — with em-dashes which the regex does not catch, so evidence URLs are silently dropped.
+
+The three fixes in order of impact:
+Fix 1 — Show How they appear even when partially verified
+Replace the suppression logic with a display that flags the limitation:
+javascriptconst bAppearIsPartial = bAppear.toLowerCase().includes("unattributed") ||
+  bAppear.toLowerCase().includes("could not be verified") ||
+  bAppear.toLowerCase().includes("web search not available");
+
+const bAppearClean = bAppear === "NOT FOUND - Web search not available" || 
+  bAppear.toLowerCase().includes("not found") ? "" : bAppear;
+Then in the render block change this:
+jsx{bAppearClean && (
+  <div style={{ background: "rgba(99,102,241,0.1)", borderRadius: 8, padding: "10px 14px", borderLeft: `3px solid ${bAppearIsPartial ? "#f59e0b" : "#6366f1"}` }}>
+    <span style={{ fontSize: 10, fontWeight: 700, color: bAppearIsPartial ? "#f59e0b" : "#6366f1", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 6 }}>
+      How they appear {bAppearIsPartial ? "· partial" : ""}
+    </span>
+    <p style={{ fontSize: 13, color: bAppearIsPartial ? "#fde68a" : "#a5b4fc", margin: 0, lineHeight: 1.65, fontStyle: "italic" }}>"{bAppearClean}"</p>
+  </div>
+)}
+This shows partial content in amber instead of hiding it.
+Fix 2 — Add actions rendering to StructuredReport
+Add this block inside StructuredReport after the tactics section:
+jsx{/* Actions section */}
+{(anyData.actions || anyData.gap_analysis) && (
+  <div>
+    <div style={{ padding: "10px 16px", borderRadius: 10, background: "linear-gradient(90deg, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0.04) 100%)", border: "1px solid rgba(16,185,129,0.22)", marginBottom: 14 }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0" }}>Priority Actions</div>
+      <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>One specific action per brand based on weakest tactic</div>
+    </div>
+    <div className="space-y-3">
+      {(Array.isArray(anyData.actions) ? anyData.actions : Object.values(anyData.actions?.brand_specific ?? anyData.actions ?? {})).map((action: any, i: number) => (
+        <div key={i} style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 12, padding: "14px 16px" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#34d399", marginBottom: 6 }}>
+            {action.brand ?? action.brand_name ?? `Brand ${i + 1}`}
+          </div>
+          <p style={{ fontSize: 13, color: "#94a3b8", margin: 0, lineHeight: 1.6 }}>
+            {action.action ?? action.specific_action ?? action.recommended_action ?? ""}
+          </p>
+          {action.weakest_tactic && (
+            <div style={{ fontSize: 11, color: "#475569", marginTop: 6 }}>
+              Weakest tactic: {action.weakest_tactic} · {action.weakest_tactic_citations ?? action.weakest_count ?? ""} citations
+            </div>
+          )}
+        </div>
+      ))}
+      {(anyData.actions?.quick_win_any_brand ?? anyData.quick_win) && (
+        <div style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.25)", borderRadius: 12, padding: "12px 16px" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#fbbf24", marginBottom: 4 }}>⚡ Quick Win</div>
+          <p style={{ fontSize: 13, color: "#fde68a", margin: 0, lineHeight: 1.6 }}>
+            {anyData.actions?.quick_win_any_brand ?? anyData.quick_win?.recommendation ?? anyData.quick_win}
+          </p>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+Fix 3 — Fix the em-dash evidence URL parser
+Replace the regex in your evidence parsing with one that handles both dash types:
+javascriptconst match = ev.match(/^(https?:\/\/[^\s]+)\s*[-–—]\s*(\d+)/);
+The [-–—] character class matches regular dash, en-dash, and em-dash, which covers every format Claude uses across runs.
