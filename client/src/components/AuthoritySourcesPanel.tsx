@@ -737,28 +737,87 @@ function ExpandableSourceRow({
 function StructuredReport({ data, sessionId }: { data: StructuredReportData; sessionId: number }) {
   const maxSourceApps = Math.max(...(data.sources?.map((s) => s.appearances) ?? [1]), 1);
   const maxChampTotal = Math.max(...(data.cross_engine_champions?.map((c) => c.total) ?? [1]), 1);
+  const anyData = data as any;
+  const insightsList: any[] = anyData.insights ?? [];
+  const biggestOpp: string | undefined = anyData.biggest_opportunity_missed;
+  const isInsightsFormat = insightsList.length > 0 && !data.tactics && !data.summary;
 
   return (
     <div className="space-y-5">
-      {/* Header card */}
-      <div className="rounded-xl overflow-hidden border border-border/40" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)" }}>
-        <div className="px-5 py-4">
-          <div className="text-[10px] text-slate-400 tracking-widest mb-1 uppercase">Citation Intelligence Report</div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-3">
-            {[
-              { label: "Total Citations", value: data.summary?.total_citations?.toLocaleString() ?? "—" },
-              { label: "Domains Analysed", value: data.summary?.domains_analysed?.toLocaleString() ?? "—" },
-              { label: "Cross-Engine Brands", value: data.summary?.cross_engine_brands?.toString() ?? "—" },
-              { label: "AI Tactics Found", value: data.tactics?.length?.toString() ?? "—" },
-            ].map((s) => (
-              <div key={s.label}>
-                <div className="text-white text-lg font-bold leading-tight">{s.value}</div>
-                <div className="text-slate-400 text-[10px] mt-0.5">{s.label}</div>
+      {/* Header card — only shown when we have real summary stats */}
+      {data.summary && (
+        <div className="rounded-xl overflow-hidden border border-border/40" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)" }}>
+          <div className="px-5 py-4">
+            <div className="text-[10px] text-slate-400 tracking-widest mb-1 uppercase">Citation Intelligence Report</div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-3">
+              {[
+                { label: "Total Citations", value: data.summary?.total_citations?.toLocaleString() ?? "—" },
+                { label: "Domains Analysed", value: data.summary?.domains_analysed?.toLocaleString() ?? "—" },
+                { label: "Cross-Engine Brands", value: data.summary?.cross_engine_brands?.toString() ?? "—" },
+                { label: "AI Tactics Found", value: data.tactics?.length?.toString() ?? "—" },
+              ].map((s) => (
+                <div key={s.label}>
+                  <div className="text-white text-lg font-bold leading-tight">{s.value}</div>
+                  <div className="text-slate-400 text-[10px] mt-0.5">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* GEO Insights — primary section for the insights format */}
+      {isInsightsFormat && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-1 h-5 rounded-full bg-gradient-to-b from-primary to-violet-500" />
+            <span className="text-sm font-bold" style={{ color: "#f1f5f9" }}>GEO Insights</span>
+            <span className="text-[10px] ml-1" style={{ color: "#64748b" }}>{insightsList.length} ranked findings</span>
+          </div>
+          <div className="space-y-3">
+            {insightsList.map((insight: any, i: number) => (
+              <div key={i} style={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "14px 16px" }} className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <span style={{ color: "#818cf8", fontSize: 11, fontWeight: 700, flexShrink: 0, marginTop: 2 }}>#{insight.rank ?? i + 1}</span>
+                  <span style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600, lineHeight: 1.4 }}>{insight.title}</span>
+                  {insight.evidence && (
+                    <span style={{ marginLeft: "auto", fontSize: 9, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: "rgba(99,102,241,0.15)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.3)", flexShrink: 0 }}>{insight.evidence}</span>
+                  )}
+                </div>
+                {insight.what_they_do && (
+                  <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6, margin: 0 }}>
+                    <span style={{ color: "#cbd5e1", fontWeight: 600 }}>What they do: </span>{insight.what_they_do}
+                  </p>
+                )}
+                {insight.why_it_works && (
+                  <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6, margin: 0 }}>
+                    <span style={{ color: "#cbd5e1", fontWeight: 600 }}>Why it works: </span>{insight.why_it_works}
+                  </p>
+                )}
+                {insight.who_does_it_best && (
+                  <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6, margin: 0 }}>
+                    <span style={{ color: "#cbd5e1", fontWeight: 600 }}>Who does it best: </span>{insight.who_does_it_best}
+                  </p>
+                )}
+                {insight.opportunity && (
+                  <p style={{ fontSize: 11, color: "#818cf8", lineHeight: 1.6, margin: 0, borderLeft: "2px solid rgba(129,140,248,0.4)", paddingLeft: 8, fontStyle: "italic" }}>{insight.opportunity}</p>
+                )}
               </div>
             ))}
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Biggest Opportunity Missed */}
+      {biggestOpp && (
+        <div style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.25)", borderRadius: 12, padding: "12px 16px" }} className="flex gap-3 items-start">
+          <span style={{ fontSize: 18, flexShrink: 0 }}>🎯</span>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#fbbf24", marginBottom: 4 }}>Biggest Opportunity Missed</div>
+            <p style={{ fontSize: 12, color: "#fde68a", lineHeight: 1.6, margin: 0 }}>{biggestOpp}</p>
+          </div>
+        </div>
+      )}
 
       {/* Key finding callout */}
       {data.summary?.key_finding && (
@@ -863,33 +922,6 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
         </div>
       )}
 
-      {/* Flexible insights format — handles any numbered insight schema */}
-      {!data.tactics && !data.summary && (data as any).insights?.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-1 h-5 rounded-full bg-gradient-to-b from-primary to-violet-500" />
-            <span className="text-sm font-bold text-foreground">GEO Insights</span>
-            <span className="text-[10px] text-muted-foreground ml-1">{(data as any).insights.length} findings</span>
-          </div>
-          <div className="space-y-3">
-            {(data as any).insights.map((insight: any, i: number) => (
-              <div key={i} className="rounded-xl border border-border/60 bg-secondary/10 px-4 py-3 space-y-2">
-                <div className="flex items-start gap-2">
-                  <span className="text-[11px] font-bold text-primary shrink-0 mt-0.5">#{insight.rank ?? i + 1}</span>
-                  <span className="text-xs font-semibold text-foreground leading-snug">{insight.title}</span>
-                  {insight.evidence && (
-                    <span className="ml-auto text-[9px] font-medium px-1.5 py-0.5 rounded bg-secondary/50 text-muted-foreground shrink-0">{insight.evidence}</span>
-                  )}
-                </div>
-                {insight.what_they_do && <p className="text-xs text-muted-foreground leading-relaxed"><span className="font-medium text-foreground">What they do: </span>{insight.what_they_do}</p>}
-                {insight.why_it_works && <p className="text-xs text-muted-foreground leading-relaxed"><span className="font-medium text-foreground">Why it works: </span>{insight.why_it_works}</p>}
-                {insight.who_does_it_best && <p className="text-xs text-muted-foreground leading-relaxed"><span className="font-medium text-foreground">Who does it best: </span>{insight.who_does_it_best}</p>}
-                {insight.opportunity && <p className="text-xs text-muted-foreground leading-relaxed italic border-l-2 border-primary/30 pl-2">{insight.opportunity}</p>}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -1532,7 +1564,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
                   {(() => {
                     try {
                       const raw = displayedInsight.result_text.trim()
-                        .replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/, "");
+                        .replace(/^```json\n?/i, "").replace(/^```\n?/i, "").replace(/\n?```\s*$/, "");
                       const parsed: StructuredReportData = JSON.parse(raw);
                       if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && Object.keys(parsed).length > 0) return <StructuredReport data={parsed} sessionId={sessionId} />;
                     } catch { /* fall through */ }
