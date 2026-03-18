@@ -288,8 +288,19 @@ export function CitationSourcesPreview({ sessionId }: Props) {
                       <EngineBadges gpt={s.inChatgpt} gem={s.inGemini} claude={s.inClaude} size="xs" />
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", width: 26, textAlign: "right", flexShrink: 0 }}>{s.appearances}</span>
-                    <span style={{ fontSize: 10, color: isExpanded ? "#6366f1" : "#334155", flexShrink: 0, width: 10 }}>
-                      {isLoadingThis ? "…" : isExpanded ? "▾" : "▸"}
+                    <span style={{
+                      flexShrink: 0,
+                      fontSize: 10,
+                      fontWeight: 600,
+                      color: isExpanded ? "#6366f1" : "#94a3b8",
+                      background: isExpanded ? "rgba(99,102,241,0.12)" : "rgba(255,255,255,0.06)",
+                      border: `1px solid ${isExpanded ? "rgba(99,102,241,0.35)" : "rgba(255,255,255,0.1)"}`,
+                      borderRadius: 5,
+                      padding: "2px 6px",
+                      whiteSpace: "nowrap",
+                      transition: "all 0.12s",
+                    }}>
+                      {isLoadingThis ? "…" : isExpanded ? "hide ▴" : "URLs ▾"}
                     </span>
                   </button>
                   {isExpanded && (
