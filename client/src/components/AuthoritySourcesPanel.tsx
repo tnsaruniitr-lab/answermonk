@@ -1786,10 +1786,6 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
         />
       )}
 
-      {/* Sources table — no redundant title */}
-      {data.sources?.length > 0 && (
-        <NewSourcesTable sources={data.sources} sessionId={sessionId} maxAppearances={maxSourceApps} />
-      )}
 
       {/* Unusual findings — collapsible */}
       {data.unusual_findings?.length > 0 && (
