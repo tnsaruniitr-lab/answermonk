@@ -1422,25 +1422,26 @@ const ACTION_TYPE_COLOR: Record<string, string> = {
 function ActionCollapseItem({
   num, summary, detail, weakest, gap, accent = "indigo",
 }: {
-  num: number | string; summary: string; detail: string; weakest?: string; gap?: string; accent?: "indigo" | "amber";
+  num: number | string; summary: string; detail: string; weakest?: string; gap?: string; accent?: "indigo" | "amber" | "violet";
 }) {
   const [open, setOpen] = useState(false);
   const ind = accent === "amber";
-  const borderCol = ind ? "rgba(251,191,36,0.3)" : "rgba(99,102,241,0.3)";
-  const bgCol = ind ? "rgba(251,191,36,0.12)" : "rgba(99,102,241,0.12)";
-  const textCol = ind ? "#fbbf24" : "#818cf8";
+  const vio = accent === "violet";
+  const borderCol = ind ? "rgba(251,191,36,0.3)" : vio ? "rgba(167,139,250,0.3)" : "rgba(99,102,241,0.3)";
+  const bgCol = ind ? "rgba(251,191,36,0.12)" : vio ? "rgba(167,139,250,0.12)" : "rgba(99,102,241,0.12)";
+  const textCol = ind ? "#fbbf24" : vio ? "#a78bfa" : "#818cf8";
   const chevBg = open ? bgCol : "rgba(255,255,255,0.05)";
   const chevBorder = open ? borderCol : "rgba(255,255,255,0.09)";
 
   return (
-    <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid ${open ? borderCol : "rgba(255,255,255,0.07)"}`, background: ind ? "rgba(251,191,36,0.03)" : "#0b1120", transition: "border-color 0.15s" }}>
+    <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid ${open ? borderCol : "rgba(255,255,255,0.07)"}`, background: ind ? "rgba(251,191,36,0.03)" : vio ? "rgba(167,139,250,0.03)" : "#0b1120", transition: "border-color 0.15s" }}>
       <button onClick={() => setOpen(o => !o)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
         <div style={{ width: 30, height: 30, borderRadius: 9, background: bgCol, border: `1px solid ${borderCol}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: ind ? 16 : 13, fontWeight: 900, color: textCol }}>
           {num}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           {ind && <div style={{ fontSize: 9, fontWeight: 700, color: textCol, letterSpacing: "0.09em", textTransform: "uppercase", marginBottom: 2 }}>Bonus · Quick Win</div>}
-          <span style={{ fontSize: 13, fontWeight: 600, color: ind ? "#fde68a" : "#e2e8f0", lineHeight: 1.4 }}>{summary}</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: ind ? "#fde68a" : vio ? "#ddd6fe" : "#e2e8f0", lineHeight: 1.4 }}>{summary}</span>
         </div>
         <div style={{ width: 26, height: 26, borderRadius: 7, background: chevBg, border: `1px solid ${chevBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
           <ChevronDown style={{ width: 15, height: 15, color: open ? textCol : "#64748b", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.18s, color 0.15s" }} />
@@ -1449,8 +1450,8 @@ function ActionCollapseItem({
       <AnimatePresence initial={false}>
         {open && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} style={{ overflow: "hidden" }}>
-            <div style={{ padding: "4px 16px 16px 58px", borderTop: `1px solid ${ind ? "rgba(251,191,36,0.1)" : "rgba(255,255,255,0.05)"}`, background: ind ? "rgba(251,191,36,0.02)" : "#080e1c" }}>
-              <p style={{ fontSize: 13, color: ind ? "#fde68a" : "#94a3b8", lineHeight: 1.65, margin: "12px 0 10px", opacity: ind ? 0.9 : 1 }}>{detail}</p>
+            <div style={{ padding: "4px 16px 16px 58px", borderTop: `1px solid ${ind ? "rgba(251,191,36,0.1)" : vio ? "rgba(167,139,250,0.1)" : "rgba(255,255,255,0.05)"}`, background: ind ? "rgba(251,191,36,0.02)" : vio ? "rgba(167,139,250,0.02)" : "#080e1c" }}>
+              <p style={{ fontSize: 13, color: ind ? "#fde68a" : vio ? "#c4b5fd" : "#94a3b8", lineHeight: 1.65, margin: "12px 0 10px", opacity: 0.95 }}>{detail}</p>
               {(weakest || gap) && (
                 <div style={{ fontSize: 10, color: "#475569", borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 8 }}>
                   {weakest && <span>Weakest tactic: <span style={{ color: "#64748b" }}>{weakest}</span></span>}
@@ -1790,19 +1791,25 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
         <NewSourcesTable sources={data.sources} sessionId={sessionId} maxAppearances={maxSourceApps} />
       )}
 
-      {/* Unusual findings */}
+      {/* Unusual findings — collapsible */}
       {data.unusual_findings?.length > 0 && (
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-1 h-5 rounded-full bg-gradient-to-b from-pink-500 to-violet-500" />
-            <span className="text-sm font-bold text-foreground">Unusual Findings</span>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(167,139,250,0.13)", border: "1px solid rgba(167,139,250,0.28)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>🔬</div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#a78bfa", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 3 }}>Anomaly detection</div>
+              <h4 style={{ fontSize: 15, fontWeight: 800, color: "#f1f5f9", lineHeight: 1.25, margin: 0 }}>Patterns the data didn't expect</h4>
+            </div>
           </div>
-          <div className="space-y-2">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {data.unusual_findings.map((f, i) => (
-              <div key={i} className="rounded-xl border border-border/50 bg-secondary/10 px-4 py-3">
-                <div className="text-xs font-semibold text-foreground mb-1">{f.title}</div>
-                <p className="text-xs text-muted-foreground leading-relaxed">{f.finding}</p>
-              </div>
+              <ActionCollapseItem
+                key={i}
+                num={i + 1}
+                summary={f.title}
+                detail={f.finding}
+                accent="violet"
+              />
             ))}
           </div>
         </div>
