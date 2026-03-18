@@ -6,13 +6,13 @@ import {
   ArrowRight, Sparkles, Globe, Activity, BarChart3, Code, Bot, Zap,
   Database, Loader2, AlertCircle, Plus, X, MapPin, CheckCircle2, Brain,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { AuthoritySourcesPanel } from "@/components/AuthoritySourcesPanel";
 import { CitationSourcesPreview } from "@/components/CitationSourcesPreview";
 import { DispatchFeedLive } from "@/components/DispatchFeedLive";
 import { RecentAnalysisTiles } from "@/components/RecentAnalysisTiles";
 import { SessionSummaryHero } from "@/components/SessionSummaryHero";
 import { HireAgentsPanel } from "@/components/HireAgentsPanel";
-import DirectoryListing from "@/pages/DirectoryListing";
 
 function normalizeDomain(url: string): string {
   try {
@@ -229,6 +229,7 @@ function LandingInner() {
   const [newCustomerInput, setNewCustomerInput] = useState("");
   const [showIntelligence, setShowIntelligence] = useState(false);
   const [activeTab, setActiveTab] = useState<"reports" | "directory" | "agents">("reports");
+  const { toast } = useToast();
   const [selectedSegmentIds, setSelectedSegmentIds] = useState<Set<string>>(new Set());
   const [customerLimitError, setCustomerLimitError] = useState(false);
   const [serviceLimitError, setServiceLimitError] = useState(false);
@@ -461,34 +462,6 @@ function LandingInner() {
             Nexalytics <span className="text-blue-400 font-light">GEO</span>
           </span>
         </div>
-        <div className="flex items-center gap-1" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "4px" }}>
-          {(["reports", "directory", "agents"] as const).map((tab) => {
-            const labels: Record<string, string> = { reports: "Reports", directory: "Directory", agents: "Hire Agents" };
-            const isActive = activeTab === tab;
-            return (
-              <button
-                key={tab}
-                data-testid={`tab-${tab}`}
-                onClick={() => setActiveTab(tab)}
-                style={{
-                  padding: "6px 16px",
-                  borderRadius: 8,
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  transition: "all 0.2s",
-                  background: isActive ? "rgba(59,130,246,0.15)" : "transparent",
-                  color: isActive ? "#93c5fd" : "#475569",
-                  boxShadow: isActive ? "inset 0 1px 0 rgba(255,255,255,0.06)" : "none",
-                  borderBottom: isActive ? "1px solid rgba(59,130,246,0.3)" : "1px solid transparent",
-                }}
-              >
-                {labels[tab]}
-              </button>
-            );
-          })}
-        </div>
       </nav>
 
       <main className="relative z-10 max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">
@@ -564,6 +537,60 @@ function LandingInner() {
               </div>
             )}
           </form>
+        )}
+
+        {/* ── Mode tab switcher ── */}
+        {!replayMode && (
+          <div className="flex justify-center mt-6 mb-2">
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.07)",
+                borderRadius: 12,
+                padding: "4px",
+              }}
+            >
+              {(["reports", "directory", "agents"] as const).map((tab) => {
+                const labels: Record<string, string> = { reports: "Reports", directory: "Directory", agents: "Hire Agents" };
+                const isActive = activeTab === tab;
+                return (
+                  <button
+                    key={tab}
+                    data-testid={`tab-${tab}`}
+                    onClick={() => {
+                      if (tab === "directory") {
+                        toast({
+                          title: "Coming soon",
+                          description: "The directory is on its way — stay tuned.",
+                          duration: 2500,
+                        });
+                        return;
+                      }
+                      setActiveTab(tab);
+                    }}
+                    style={{
+                      padding: "6px 18px",
+                      borderRadius: 8,
+                      border: "none",
+                      cursor: tab === "directory" ? "default" : "pointer",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      transition: "all 0.2s",
+                      background: isActive ? "rgba(59,130,246,0.15)" : "transparent",
+                      color: tab === "directory" ? "#334155" : isActive ? "#93c5fd" : "#475569",
+                      boxShadow: isActive ? "inset 0 1px 0 rgba(255,255,255,0.06)" : "none",
+                      borderBottom: isActive ? "1px solid rgba(59,130,246,0.3)" : "1px solid transparent",
+                    }}
+                  >
+                    {labels[tab]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         )}
 
         {/* ── Tab content ── */}
@@ -1010,13 +1037,6 @@ function LandingInner() {
           </div>
         )}
           </>
-        )}
-
-        {/* Directory tab */}
-        {activeTab === "directory" && (
-          <div className="mt-8 text-left -mx-6">
-            <DirectoryListing />
-          </div>
         )}
 
         {/* Hire Agents tab */}

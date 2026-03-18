@@ -39,6 +39,9 @@ import {
   type InsertDirectoryPage,
   type QueryPageVersion,
   type InsertQueryPageVersion,
+  agentInterest,
+  type AgentInterest,
+  type InsertAgentInterest,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -102,6 +105,7 @@ export interface IStorage {
   blockDirectoryPage(slug: string): Promise<DirectoryPage>;
   forcePublishDirectoryPage(slug: string, reason: string): Promise<DirectoryPage>;
   addQueryPageVersion(v: InsertQueryPageVersion): Promise<QueryPageVersion>;
+  createAgentInterest(data: InsertAgentInterest): Promise<AgentInterest>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -621,6 +625,11 @@ export class DatabaseStorage implements IStorage {
       .insert(queryPageVersions)
       .values(v)
       .returning();
+    return row;
+  }
+
+  async createAgentInterest(data: InsertAgentInterest): Promise<AgentInterest> {
+    const [row] = await db.insert(agentInterest).values(data).returning();
     return row;
   }
 }

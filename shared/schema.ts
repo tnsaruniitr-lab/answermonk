@@ -385,6 +385,17 @@ export const insertQueryPageVersionSchema = createInsertSchema(queryPageVersions
 export type QueryPageVersion = typeof queryPageVersions.$inferSelect;
 export type InsertQueryPageVersion = z.infer<typeof insertQueryPageVersionSchema>;
 
+export const agentInterest = pgTable("agent_interest", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  agentId: text("agent_id").notNull(),
+  agentName: text("agent_name").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export const insertAgentInterestSchema = createInsertSchema(agentInterest).omit({ id: true, createdAt: true });
+export type AgentInterest = typeof agentInterest.$inferSelect;
+export type InsertAgentInterest = z.infer<typeof insertAgentInterestSchema>;
+
 export const EvalResponseSchema = z.object({
   engine: EngineEnum,
   query: z.string(),

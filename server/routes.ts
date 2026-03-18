@@ -4311,5 +4311,25 @@ Rules for content:
     }
   });
 
+  app.post("/api/agents/interest", async (req, res) => {
+    try {
+      const schema = z.object({
+        email: z.string().email(),
+        agentId: z.string().min(1),
+        agentName: z.string().min(1),
+      });
+      const data = schema.parse(req.body);
+      const result = await storage.createAgentInterest(data);
+      res.status(201).json(result);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid email or agent data." });
+      } else {
+        console.error("[agents/interest]", err.message);
+        res.status(500).json({ message: "Failed to register interest." });
+      }
+    }
+  });
+
   return httpServer;
 }

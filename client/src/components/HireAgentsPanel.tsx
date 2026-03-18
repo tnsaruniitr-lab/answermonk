@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { apiRequest } from "@/lib/queryClient";
 
 const agents = [
   {
@@ -51,12 +52,46 @@ const STATUS_LABEL: Record<string, string> = {
   Soon: "Coming soon",
 };
 
+type CaptureState = "idle" | "capturing" | "submitting" | "submitted";
+
 export function HireAgentsPanel() {
   const [hovered, setHovered] = useState<string | null>(null);
+  const [captureState, setCaptureState] = useState<Record<string, CaptureState>>({});
+  const [emails, setEmails] = useState<Record<string, string>>({});
+  const [emailErrors, setEmailErrors] = useState<Record<string, string>>({});
+  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const getCapture = (id: string): CaptureState => captureState[id] ?? "idle";
+  const getEmail = (id: string) => emails[id] ?? "";
+
+  function openCapture(agentId: string) {
+    setCaptureState((prev) => ({ ...prev, [agentId]: "capturing" }));
+    setEmailErrors((prev) => ({ ...prev, [agentId]: "" }));
+    setTimeout(() => inputRefs.current[agentId]?.focus(), 60);
+  }
+
+  async function submitInterest(agent: (typeof agents)[0]) {
+    const email = getEmail(agent.id).trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailErrors((prev) => ({ ...prev, [agent.id]: "Please enter a valid email." }));
+      return;
+    }
+    setCaptureState((prev) => ({ ...prev, [agent.id]: "submitting" }));
+    try {
+      await apiRequest("POST", "/api/agents/interest", {
+        email,
+        agentId: agent.id,
+        agentName: agent.name,
+      });
+      setCaptureState((prev) => ({ ...prev, [agent.id]: "submitted" }));
+    } catch {
+      setCaptureState((prev) => ({ ...prev, [agent.id]: "capturing" }));
+      setEmailErrors((prev) => ({ ...prev, [agent.id]: "Something went wrong — please try again." }));
+    }
+  }
 
   return (
     <div className="mt-8 max-w-3xl mx-auto" data-testid="hire-agents-panel">
-      {/* Header */}
       <div className="mb-6 text-center">
         <p className="text-xs font-semibold tracking-[0.15em] uppercase mb-1" style={{ color: "#334155" }}>
           openclaw — AI Agent Platform
@@ -67,10 +102,11 @@ export function HireAgentsPanel() {
         </p>
       </div>
 
-      {/* Agent cards */}
       <div className="flex flex-col gap-3">
         {agents.map((agent) => {
           const isHovered = hovered === agent.id;
+          const capture = getCapture(agent.id);
+
           return (
             <div
               key={agent.id}
@@ -86,7 +122,6 @@ export function HireAgentsPanel() {
                 border: `1px solid ${isHovered ? agent.accentBorder : "rgba(255,255,255,0.07)"}`,
                 background: isHovered ? agent.accentDim : "rgba(17,24,39,0.6)",
                 transition: "all 0.2s",
-                cursor: "pointer",
                 backdropFilter: "blur(12px)",
               }}
             >
@@ -157,29 +192,83 @@ export function HireAgentsPanel() {
                     </span>
                   ))}
                 </div>
-              </div>
 
-              {/* CTA */}
-              <div style={{ flexShrink: 0, paddingTop: 4 }}>
-                {agent.status === "Soon" ? (
-                  <button
-                    data-testid={`button-notify-${agent.id}`}
+                {/* Email capture inline */}
+                {capture === "capturing" || capture === "submitting" ? (
+                  <div style={{ marginTop: 14 }}>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                      <input
+                        ref={(el) => { inputRefs.current[agent.id] = el; }}
+                        type="email"
+                        value={getEmail(agent.id)}
+                        onChange={(e) => {
+                          setEmails((prev) => ({ ...prev, [agent.id]: e.target.value }));
+                          setEmailErrors((prev) => ({ ...prev, [agent.id]: "" }));
+                        }}
+                        onKeyDown={(e) => { if (e.key === "Enter") submitInterest(agent); }}
+                        placeholder="your@email.com"
+                        data-testid={`input-email-${agent.id}`}
+                        disabled={capture === "submitting"}
+                        style={{
+                          flex: 1,
+                          background: "rgba(0,0,0,0.4)",
+                          border: `1px solid ${emailErrors[agent.id] ? "#ef4444" : agent.accentBorder}`,
+                          borderRadius: 8,
+                          padding: "7px 12px",
+                          color: "#f1f5f9",
+                          fontSize: 12,
+                          outline: "none",
+                        }}
+                      />
+                      <button
+                        data-testid={`button-submit-email-${agent.id}`}
+                        onClick={() => submitInterest(agent)}
+                        disabled={capture === "submitting"}
+                        style={{
+                          padding: "7px 16px",
+                          borderRadius: 8,
+                          border: `1px solid ${agent.accentBorder}`,
+                          background: agent.accent,
+                          color: "#0a0f1a",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: capture === "submitting" ? "not-allowed" : "pointer",
+                          opacity: capture === "submitting" ? 0.6 : 1,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {capture === "submitting" ? "Sending…" : "Notify me"}
+                      </button>
+                    </div>
+                    {emailErrors[agent.id] && (
+                      <p style={{ color: "#ef4444", fontSize: 11, marginTop: 4 }}>{emailErrors[agent.id]}</p>
+                    )}
+                  </div>
+                ) : capture === "submitted" ? (
+                  <div
+                    data-testid={`text-confirmation-${agent.id}`}
                     style={{
-                      padding: "8px 16px",
-                      borderRadius: 10,
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      background: "transparent",
-                      color: "#334155",
+                      marginTop: 14,
+                      padding: "8px 14px",
+                      borderRadius: 8,
+                      background: "rgba(34,197,94,0.08)",
+                      border: "1px solid rgba(34,197,94,0.2)",
+                      color: "#22c55e",
                       fontSize: 12,
-                      fontWeight: 600,
-                      cursor: "default",
+                      fontWeight: 500,
                     }}
                   >
-                    Notify me
-                  </button>
-                ) : (
+                    We'll contact you with further steps.
+                  </div>
+                ) : null}
+              </div>
+
+              {/* CTA — hidden once email capture is open or submitted */}
+              {capture === "idle" && (
+                <div style={{ flexShrink: 0, paddingTop: 4 }}>
                   <button
-                    data-testid={`button-activate-${agent.id}`}
+                    data-testid={`button-cta-${agent.id}`}
+                    onClick={() => openCapture(agent.id)}
                     style={{
                       padding: "8px 18px",
                       borderRadius: 10,
@@ -192,16 +281,15 @@ export function HireAgentsPanel() {
                       transition: "all 0.2s",
                     }}
                   >
-                    Activate
+                    {agent.status === "Soon" ? "Notify me" : "Activate"}
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           );
         })}
       </div>
 
-      {/* Footer note */}
       <div className="mt-8 text-center">
         <p style={{ color: "#1e3a8a", fontSize: 12 }}>
           Run an analysis above first — agents use your report data to get started.
