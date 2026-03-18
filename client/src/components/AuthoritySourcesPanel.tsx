@@ -761,7 +761,7 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
   const maxChampTotal = Math.max(...(data.cross_engine_champions?.map((c) => c.total) ?? [1]), 1);
   const anyData = data as any;
   const insightsList: any[] = anyData.insights ?? [];
-  const topTacticsList: any[] = anyData.top_tactics ?? [];
+  const topTacticsList: any[] = anyData.top_tactics ?? anyData.top_5_tactics ?? [];
   const biggestOpp: string | undefined = anyData.biggest_opportunity_missed;
   const analysisMeta: any = anyData.analysis_metadata;
   const isInsightsFormat = insightsList.length > 0 && !data.tactics && !data.summary;
@@ -851,7 +851,7 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
               {analysisMeta.brands_analyzed.map((b: any) => (
                 <span key={b.name} style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: "rgba(99,102,241,0.12)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.25)" }}>
-                  {b.name} · {b.ai_query_appearances} appearances
+                  {b.name} · {b.ai_query_appearances ?? b.total_ai_appearances} appearances
                 </span>
               ))}
             </div>
@@ -885,9 +885,9 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
                             <span style={{ color: "#c7d2fe", fontSize: 12, fontWeight: 700 }}>{bp.brand}</span>
                           </span>
                           <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 5, background: bp.performance_rating === "Strong" ? "rgba(16,185,129,0.18)" : "rgba(251,191,36,0.14)", color: bp.performance_rating === "Strong" ? "#34d399" : "#fbbf24", fontWeight: 700, border: `1px solid ${bp.performance_rating === "Strong" ? "rgba(16,185,129,0.3)" : "rgba(251,191,36,0.25)"}` }}>{bp.performance_rating}</span>
-                          {bp.citation_count_for_tactic && <span style={{ fontSize: 10, color: "#475569", marginLeft: "auto", fontWeight: 600 }}>{bp.citation_count_for_tactic} cit.</span>}
+                          {(bp.citation_count_for_tactic ?? bp.tactic_citations) && <span style={{ fontSize: 10, color: "#475569", marginLeft: "auto", fontWeight: 600 }}>{bp.citation_count_for_tactic ?? bp.tactic_citations} cit.</span>}
                         </div>
-                        {bp.details && <p style={{ fontSize: 11, color: "#64748b", lineHeight: 1.55, margin: 0 }}>{bp.details}</p>}
+                        {(bp.details ?? bp.description) && <p style={{ fontSize: 11, color: "#64748b", lineHeight: 1.55, margin: 0 }}>{bp.details ?? bp.description}</p>}
                       </div>
                     ))}
                   </div>
