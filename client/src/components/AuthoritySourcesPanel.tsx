@@ -73,7 +73,18 @@ const DEFAULT_OUTPUT_SCHEMA = `Return ONLY a valid JSON object with this EXACT s
   ],
   "unusual_findings": [
     { "title": "<short title>", "finding": "<explanation of what is unusual and why it matters>" }
-  ]
+  ],
+  "actions": [
+    {
+      "brand": "<brand name>",
+      "weakest_tactic": "<tactic title where this brand has the fewest citations>",
+      "weakest_tactic_citations": <number>,
+      "strongest_brand_on_tactic": "<which of the three brands leads on that tactic>",
+      "strongest_brand_citations": <number>,
+      "action": "<one specific action that replicates exactly what the stronger brand does — name the URL or platform>"
+    }
+  ],
+  "quick_win": "<one sentence naming a specific URL or platform from the CSV with its citation count and the exact step to take to get listed or cited there>"
 }
 
 Rules for content:
@@ -84,7 +95,9 @@ Rules for content:
 - For sources: include all notable domains that shape AI knowledge in this market (8-15 entries)
 - confidence: HIGH = 5+ brands show this pattern, MEDIUM = 3-4, LOW = 1-2
 - how_they_appear must contain specific verbatim language — not "they are mentioned" but the actual words the source uses
-- For unusual_findings: include 3-5 genuinely surprising or counterintuitive patterns`;
+- For unusual_findings: include 3-5 genuinely surprising or counterintuitive patterns
+- actions array MUST contain exactly one entry per brand (three total) — identify the single weakest tactic per brand and the most actionable replication step
+- quick_win must reference a specific domain and citation count from the CSV data`;
 
 const DEFAULT_PROMPT = DEFAULT_PROMPT_PREFIX;
 
