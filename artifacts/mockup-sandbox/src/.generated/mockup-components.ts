@@ -16,6 +16,7 @@ export const modules: ModuleMap = {
   "./components/mockups/crawl-loading/CrawlingQuips.tsx": () => import("../components/mockups/crawl-loading/CrawlingQuips.tsx"),
   "./components/mockups/crawl-loading/GlassPulse.tsx": () => import("../components/mockups/crawl-loading/GlassPulse.tsx"),
   "./components/mockups/crawl-loading/MissionControl.tsx": () => import("../components/mockups/crawl-loading/MissionControl.tsx"),
+  "./components/mockups/crawl-loading/MissionControlWithQuips.tsx": () => import("../components/mockups/crawl-loading/MissionControlWithQuips.tsx"),
   "./components/mockups/crawl-loading/TerminalDark.tsx": () => import("../components/mockups/crawl-loading/TerminalDark.tsx"),
   "./components/mockups/directory/DirectoryListing.tsx": () => import("../components/mockups/directory/DirectoryListing.tsx"),
   "./components/mockups/directory/QueryPage.tsx": () => import("../components/mockups/directory/QueryPage.tsx"),
