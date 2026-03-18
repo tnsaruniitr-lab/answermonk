@@ -1,0 +1,162 @@
+OUTPUT
+Return ONLY a valid raw JSON object. No markdown fences. No text before or after. Just the JSON.
+json{
+  "market": "category name",
+  "total_citations_analysed": 0,
+  "top_cited_domains": [
+    { "domain": "exact domain from CSV", "citations": 0, "why_cited": "one sentence" },
+    { "domain": "exact domain from CSV", "citations": 0, "why_cited": "one sentence" },
+    { "domain": "exact domain from CSV", "citations": 0, "why_cited": "one sentence" },
+    { "domain": "exact domain from CSV", "citations": 0, "why_cited": "one sentence" },
+    { "domain": "exact domain from CSV", "citations": 0, "why_cited": "one sentence" }
+  ],
+  "factors": [
+    {
+      "rank": 1,
+      "factor": "short name for this factor",
+      "why_it_matters": "one sentence on why this specific factor drives AI citations in this market",
+      "total_citations_supporting": 0,
+      "brands": [
+        {
+          "brand": "BRAND A name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence on what this brand does well or badly on this factor",
+          "example": "one specific URL or source with citation count if from CSV"
+        },
+        {
+          "brand": "BRAND B name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific URL or source with citation count if from CSV"
+        },
+        {
+          "brand": "BRAND C name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific URL or source with citation count if from CSV"
+        }
+      ]
+    },
+    {
+      "rank": 2,
+      "factor": "short name for this factor",
+      "why_it_matters": "one sentence",
+      "total_citations_supporting": 0,
+      "brands": [
+        {
+          "brand": "BRAND A name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific example"
+        },
+        {
+          "brand": "BRAND B name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific example"
+        },
+        {
+          "brand": "BRAND C name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific example"
+        }
+      ]
+    },
+    {
+      "rank": 3,
+      "factor": "short name for this factor",
+      "why_it_matters": "one sentence",
+      "total_citations_supporting": 0,
+      "brands": [
+        {
+          "brand": "BRAND A name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific example"
+        },
+        {
+          "brand": "BRAND B name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific example"
+        },
+        {
+          "brand": "BRAND C name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific example"
+        }
+      ]
+    },
+    {
+      "rank": 4,
+      "factor": "short name for this factor",
+      "why_it_matters": "one sentence",
+      "total_citations_supporting": 0,
+      "brands": [
+        {
+          "brand": "BRAND A name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific example"
+        },
+        {
+          "brand": "BRAND B name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific example"
+        },
+        {
+          "brand": "BRAND C name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific example"
+        }
+      ]
+    },
+    {
+      "rank": 5,
+      "factor": "short name for this factor",
+      "why_it_matters": "one sentence",
+      "total_citations_supporting": 0,
+      "brands": [
+        {
+          "brand": "BRAND A name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific example"
+        },
+        {
+          "brand": "BRAND B name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific example"
+        },
+        {
+          "brand": "BRAND C name",
+          "rating": "Strong | Partial | Weak | Missing",
+          "what_they_do": "one sentence",
+          "example": "one specific example"
+        }
+      ]
+    }
+  ],
+  "biggest_gap": {
+    "brand": "brand with most to gain",
+    "gap": "what they are missing compared to the strongest brand",
+    "action": "single most impactful action they should take first"
+  },
+  "quick_win": "one action any brand can take this week grounded in the citation data with a specific domain or URL from the CSV"
+}
+
+OUTPUT RULES
+
+factors must contain exactly 5 entries ranked by how strongly the citation data supports each one
+total_citations_supporting must be a real number from the CSV — count the URLs in that tactic category
+rating meanings: Strong = actively doing this with clear evidence, Partial = doing it inconsistently or partially, Weak = minimal effort, Missing = not doing this at all
+example must be a specific URL or named source — never a vague reference like "their website"
+top_cited_domains must use real domains and real counts from the CSV
+biggest_gap and quick_win are mandatory — do not end the output without them
+All examples grounded in CSV data should include the citation count from the CSV
+Web search findings should be clearly distinguishable by referencing specific URLs found during research
