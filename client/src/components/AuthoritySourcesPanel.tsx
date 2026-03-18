@@ -1403,6 +1403,145 @@ function KeyFindingCard({ text, brands }: { text: string; brands: string[] }) {
   );
 }
 
+const ACTION_TYPE_COLOR: Record<string, string> = {
+  Government: "#f59e0b",
+  "Government & Regulatory": "#f59e0b",
+  "News & Media": "#60a5fa",
+  News: "#60a5fa",
+  Brand: "#818cf8",
+  "Brand / Competitor": "#818cf8",
+  Community: "#34d399",
+  "Review Platforms": "#a78bfa",
+  "Review Platform": "#a78bfa",
+  Directories: "#fb923c",
+  "Social Media": "#38bdf8",
+  "Comparison & Research": "#f472b6",
+  "General Web": "#94a3b8",
+};
+
+function ActionCollapseItem({
+  num, summary, detail, weakest, gap, accent = "indigo",
+}: {
+  num: number | string; summary: string; detail: string; weakest?: string; gap?: string; accent?: "indigo" | "amber";
+}) {
+  const [open, setOpen] = useState(false);
+  const ind = accent === "amber";
+  const borderCol = ind ? "rgba(251,191,36,0.3)" : "rgba(99,102,241,0.3)";
+  const bgCol = ind ? "rgba(251,191,36,0.12)" : "rgba(99,102,241,0.12)";
+  const textCol = ind ? "#fbbf24" : "#818cf8";
+  const chevBg = open ? bgCol : "rgba(255,255,255,0.05)";
+  const chevBorder = open ? borderCol : "rgba(255,255,255,0.09)";
+
+  return (
+    <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid ${open ? borderCol : "rgba(255,255,255,0.07)"}`, background: ind ? "rgba(251,191,36,0.03)" : "#0b1120", transition: "border-color 0.15s" }}>
+      <button onClick={() => setOpen(o => !o)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
+        <div style={{ width: 30, height: 30, borderRadius: 9, background: bgCol, border: `1px solid ${borderCol}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: ind ? 16 : 13, fontWeight: 900, color: textCol }}>
+          {num}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {ind && <div style={{ fontSize: 9, fontWeight: 700, color: textCol, letterSpacing: "0.09em", textTransform: "uppercase", marginBottom: 2 }}>Bonus · Quick Win</div>}
+          <span style={{ fontSize: 13, fontWeight: 600, color: ind ? "#fde68a" : "#e2e8f0", lineHeight: 1.4 }}>{summary}</span>
+        </div>
+        <div style={{ width: 26, height: 26, borderRadius: 7, background: chevBg, border: `1px solid ${chevBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
+          <ChevronDown style={{ width: 15, height: 15, color: open ? textCol : "#64748b", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.18s, color 0.15s" }} />
+        </div>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} style={{ overflow: "hidden" }}>
+            <div style={{ padding: "4px 16px 16px 58px", borderTop: `1px solid ${ind ? "rgba(251,191,36,0.1)" : "rgba(255,255,255,0.05)"}`, background: ind ? "rgba(251,191,36,0.02)" : "#080e1c" }}>
+              <p style={{ fontSize: 13, color: ind ? "#fde68a" : "#94a3b8", lineHeight: 1.65, margin: "12px 0 10px", opacity: ind ? 0.9 : 1 }}>{detail}</p>
+              {(weakest || gap) && (
+                <div style={{ fontSize: 10, color: "#475569", borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 8 }}>
+                  {weakest && <span>Weakest tactic: <span style={{ color: "#64748b" }}>{weakest}</span></span>}
+                  {gap && <span style={{ color: "#334155" }}> · {gap} citations</span>}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function PriorityActionsBlock({ actionsData, quickWin }: { actionsData: any; quickWin?: string }) {
+  let brandActions: any[] = [];
+  if (Array.isArray(actionsData)) {
+    brandActions = actionsData;
+  } else if (actionsData?.brand_specific) {
+    brandActions = Array.isArray(actionsData.brand_specific) ? actionsData.brand_specific : Object.values(actionsData.brand_specific);
+  } else if (typeof actionsData === "object") {
+    const vals = Object.values(actionsData).filter(v => typeof v === "object" && v !== null && !Array.isArray(v));
+    if (vals.length > 0) brandActions = vals as any[];
+  }
+
+  const qw = quickWin ?? actionsData?.quick_win_any_brand ?? actionsData?.quick_win;
+
+  if (brandActions.length === 0 && !qw) return null;
+
+  return (
+    <div>
+      {/* Section header */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
+        <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(99,102,241,0.13)", border: "1px solid rgba(99,102,241,0.28)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>🎯</div>
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#6366f1", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 3 }}>Data-backed moves</div>
+          <h4 style={{ fontSize: 15, fontWeight: 800, color: "#f1f5f9", lineHeight: 1.25, margin: 0 }}>Quick actions to leapfrog the competition</h4>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {brandActions.map((action: any, i: number) => {
+          const fullText: string = action.action ?? action.specific_action ?? action.recommended_action ?? action.recommendation ?? "";
+          const firstSentence = fullText.split(/(?<=[.!?])\s+/)[0] ?? fullText;
+          const summary = firstSentence.length > 90 ? firstSentence.slice(0, 90).trimEnd() + "…" : firstSentence;
+          const weakest: string | undefined = action.weakest_tactic ?? action.gap;
+          const gap: string | number | undefined = action.weakest_tactic_citations ?? action.weakest_count;
+          return (
+            <ActionCollapseItem
+              key={i}
+              num={i + 1}
+              summary={summary}
+              detail={fullText}
+              weakest={weakest}
+              gap={gap !== undefined ? String(gap) : undefined}
+            />
+          );
+        })}
+
+        {qw && (
+          <ActionCollapseItem
+            num="⚡"
+            summary={typeof qw === "string" ? (qw.split(/(?<=[.!?])\s+/)[0]?.slice(0, 90) ?? qw.slice(0, 90)) + (qw.length > 90 ? "…" : "") : "Quick win opportunity"}
+            detail={typeof qw === "string" ? qw : qw?.recommendation ?? JSON.stringify(qw)}
+            accent="amber"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NewSourcesTable({ sources, sessionId, maxAppearances }: { sources: SourceEntry[]; sessionId: number; maxAppearances: number }) {
+  if (!sources?.length) return null;
+  return (
+    <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,0.07)", background: "#0d1526" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 130px auto 40px 26px", padding: "7px 16px", background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        {["Source", "Type", "Engines", "Apps.", ""].map(h => (
+          <span key={h} style={{ fontSize: 9, fontWeight: 700, color: "#334155", letterSpacing: "0.1em", textTransform: "uppercase" }}>{h}</span>
+        ))}
+      </div>
+      {sources.map((s) => (
+        <ExpandableSourceRow key={s.domain} source={s} sessionId={sessionId} maxAppearances={maxAppearances} />
+      ))}
+      <div style={{ padding: "6px 16px", borderTop: "1px solid rgba(255,255,255,0.04)", background: "rgba(0,0,0,0.1)" }}>
+        <span style={{ fontSize: 10, color: "#334155" }}>Click any source to expand its cited URLs</span>
+      </div>
+    </div>
+  );
+}
+
 function StructuredReport({ data, sessionId }: { data: StructuredReportData; sessionId: number }) {
   const maxSourceApps = Math.max(...(data.sources?.map((s) => s.appearances) ?? [1]), 1);
   const maxChampTotal = Math.max(...(data.cross_engine_champions?.map((c) => c.total) ?? [1]), 1);
@@ -1638,76 +1777,17 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
         </div>
       )}
 
-      {/* Global actions / gap_analysis section */}
-      {(anyData.actions || anyData.gap_analysis) && (() => {
-        const actionsData = anyData.actions ?? anyData.gap_analysis;
-        // Normalise to an array of brand action objects
-        let brandActions: any[] = [];
-        if (Array.isArray(actionsData)) {
-          brandActions = actionsData;
-        } else if (actionsData?.brand_specific) {
-          brandActions = Array.isArray(actionsData.brand_specific) ? actionsData.brand_specific : Object.values(actionsData.brand_specific);
-        } else if (typeof actionsData === "object") {
-          // Try to find brand-keyed entries
-          const vals = Object.values(actionsData).filter(v => typeof v === "object" && v !== null && !Array.isArray(v));
-          if (vals.length > 0) brandActions = vals as any[];
-        }
-        const quickWin = actionsData?.quick_win_any_brand ?? actionsData?.quick_win ?? anyData.quick_win;
-        return (
-          <div>
-            <div style={{ padding: "10px 16px", borderRadius: 10, background: "linear-gradient(90deg, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0.04) 100%)", border: "1px solid rgba(16,185,129,0.22)", marginBottom: 14 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0" }}>Priority Actions</div>
-              <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>One specific action per brand based on weakest tactic</div>
-            </div>
-            <div className="space-y-3">
-              {brandActions.map((action: any, i: number) => (
-                <div key={i} style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 12, padding: "14px 16px" }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#34d399", marginBottom: 6 }}>
-                    {action.brand ?? action.brand_name ?? action.for ?? `Brand ${i + 1}`}
-                  </div>
-                  <p style={{ fontSize: 13, color: "#94a3b8", margin: 0, lineHeight: 1.6 }}>
-                    {action.action ?? action.specific_action ?? action.recommended_action ?? action.recommendation ?? ""}
-                  </p>
-                  {(action.weakest_tactic ?? action.gap) && (
-                    <div style={{ fontSize: 11, color: "#475569", marginTop: 6 }}>
-                      {action.weakest_tactic ? `Weakest tactic: ${action.weakest_tactic}` : `Gap: ${action.gap}`}
-                      {(action.weakest_tactic_citations ?? action.weakest_count) && ` · ${action.weakest_tactic_citations ?? action.weakest_count} citations`}
-                    </div>
-                  )}
-                </div>
-              ))}
-              {quickWin && (
-                <div style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.25)", borderRadius: 12, padding: "12px 16px" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#fbbf24", marginBottom: 4 }}>⚡ Quick Win</div>
-                  <p style={{ fontSize: 13, color: "#fde68a", margin: 0, lineHeight: 1.6 }}>
-                    {typeof quickWin === "string" ? quickWin : quickWin?.recommendation ?? JSON.stringify(quickWin)}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      })()}
+      {/* Priority Actions — collapsible numbered design */}
+      {(anyData.actions || anyData.gap_analysis) && (
+        <PriorityActionsBlock
+          actionsData={anyData.actions ?? anyData.gap_analysis}
+          quickWin={anyData.quick_win}
+        />
+      )}
 
-      {/* Sources table */}
+      {/* Sources table — no redundant title */}
       {data.sources?.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-1 h-5 rounded-full bg-gradient-to-b from-green-500 to-blue-500" />
-            <span className="text-sm font-bold text-foreground">Sources Shaping AI Recommendations</span>
-          </div>
-          <div className="rounded-xl border border-border/50 overflow-hidden">
-            <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-0 px-4 py-2 bg-secondary/30 border-b border-border/40">
-              {["Source", "Type", "Weight", "Apps.", ""].map((h) => (
-                <span key={h} className="text-[10px] font-semibold text-muted-foreground tracking-wide">{h}</span>
-              ))}
-            </div>
-            {data.sources.map((s) => (
-              <ExpandableSourceRow key={s.domain} source={s} sessionId={sessionId} maxAppearances={maxSourceApps} />
-            ))}
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-1.5 px-1">Click any source to see all individual URLs — sorted by citation frequency</p>
-        </div>
+        <NewSourcesTable sources={data.sources} sessionId={sessionId} maxAppearances={maxSourceApps} />
       )}
 
       {/* Unusual findings */}
