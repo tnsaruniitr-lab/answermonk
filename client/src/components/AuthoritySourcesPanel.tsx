@@ -739,8 +739,11 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
   const maxChampTotal = Math.max(...(data.cross_engine_champions?.map((c) => c.total) ?? [1]), 1);
   const anyData = data as any;
   const insightsList: any[] = anyData.insights ?? [];
+  const topTacticsList: any[] = anyData.top_tactics ?? [];
   const biggestOpp: string | undefined = anyData.biggest_opportunity_missed;
+  const analysisMeta: any = anyData.analysis_metadata;
   const isInsightsFormat = insightsList.length > 0 && !data.tactics && !data.summary;
+  const isTopTacticsFormat = topTacticsList.length > 0 && !data.tactics && !data.summary;
 
   return (
     <div className="space-y-5">
@@ -815,6 +818,67 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, color: "#fbbf24", marginBottom: 4 }}>Biggest Opportunity Missed</div>
             <p style={{ fontSize: 12, color: "#fde68a", lineHeight: 1.6, margin: 0 }}>{biggestOpp}</p>
+          </div>
+        </div>
+      )}
+
+      {/* top_tactics format (run 14+) */}
+      {isTopTacticsFormat && (
+        <div>
+          {/* Brands analysed mini-header */}
+          {analysisMeta?.brands_analyzed?.length > 0 && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+              {analysisMeta.brands_analyzed.map((b: any) => (
+                <span key={b.name} style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: "rgba(99,102,241,0.12)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.25)" }}>
+                  {b.name} · {b.ai_query_appearances} appearances
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-1 h-5 rounded-full bg-gradient-to-b from-orange-500 to-red-500" />
+            <span className="text-sm font-bold" style={{ color: "#f1f5f9" }}>Top GEO Tactics</span>
+            <span className="text-[10px] ml-1" style={{ color: "#64748b" }}>{topTacticsList.length} ranked tactics</span>
+          </div>
+          <div className="space-y-3">
+            {topTacticsList.map((t: any, i: number) => (
+              <div key={i} style={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "14px 16px" }} className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <span style={{ color: "#f97316", fontSize: 11, fontWeight: 700, flexShrink: 0, marginTop: 2 }}>#{t.rank ?? i + 1}</span>
+                  <span style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600, lineHeight: 1.4, flex: 1 }}>{t.tactic_title ?? t.title}</span>
+                  <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                    {t.data_source && <span style={{ fontSize: 9, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: "rgba(99,102,241,0.15)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.3)" }}>{t.data_source}</span>}
+                    {t.total_citations && <span style={{ fontSize: 9, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: "rgba(16,185,129,0.12)", color: "#34d399", border: "1px solid rgba(16,185,129,0.25)" }}>{t.total_citations} citations</span>}
+                  </div>
+                </div>
+                {t.why_it_works && (
+                  <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6, margin: 0 }}>
+                    <span style={{ color: "#cbd5e1", fontWeight: 600 }}>Why it works: </span>{t.why_it_works}
+                  </p>
+                )}
+                {t.brand_performance?.length > 0 && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+                    {t.brand_performance.map((bp: any) => (
+                      <div key={bp.brand} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "8px 10px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                          <span style={{ color: "#f1f5f9", fontSize: 11, fontWeight: 600 }}>{bp.brand}</span>
+                          <span style={{ fontSize: 9, padding: "1px 5px", borderRadius: 3, background: bp.performance_rating === "Strong" ? "rgba(16,185,129,0.15)" : "rgba(251,191,36,0.12)", color: bp.performance_rating === "Strong" ? "#34d399" : "#fbbf24", fontWeight: 600 }}>{bp.performance_rating}</span>
+                          {bp.citation_count_for_tactic && <span style={{ fontSize: 9, color: "#64748b", marginLeft: "auto" }}>{bp.citation_count_for_tactic} citations</span>}
+                        </div>
+                        {bp.details && <p style={{ fontSize: 11, color: "#64748b", lineHeight: 1.5, margin: 0 }}>{bp.details}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {t.top_examples?.length > 0 && !t.brand_performance?.length && (
+                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
+                    {t.top_examples.map((ex: any, j: number) => (
+                      <span key={j} style={{ fontSize: 10, color: "#64748b", padding: "1px 6px", borderRadius: 4, background: "rgba(255,255,255,0.04)" }}>{ex.source ?? ex.url} · {ex.citation_count} cit.</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}
