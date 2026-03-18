@@ -82,6 +82,14 @@ const MODEL_OPTIONS = [
   { value: "gemini-2.5-flash", label: "Gemini 2.5", desc: "Google" },
 ] as const;
 
+const CI_SETTINGS_KEY = "ci_last_settings_v1";
+function loadCISettings() {
+  try { const s = localStorage.getItem(CI_SETTINGS_KEY); return s ? JSON.parse(s) : null; } catch { return null; }
+}
+function saveCISettings(s: { model: string; prompt: string; schema: string; webSearch: boolean }) {
+  try { localStorage.setItem(CI_SETTINGS_KEY, JSON.stringify(s)); } catch {}
+}
+
 function formatTimeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60_000);
@@ -610,6 +618,20 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
         <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
 
+      {/* Third-party source bubbles — always visible */}
+      {tactic.examples?.length > 0 && (
+        <div className="px-4 pb-2 pt-1 flex flex-wrap gap-1.5">
+          {tactic.examples.map((ex, i) => {
+            const domain = ex.url.replace(/^https?:\/\//, "").split("/")[0];
+            return (
+              <span key={i} style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 12, background: "rgba(99,102,241,0.13)", color: "#a5b4fc", border: "1px solid rgba(99,102,241,0.28)" }}>
+                <strong style={{ color: "#c7d2fe" }}>{domain}</strong> · {ex.count}
+              </span>
+            );
+          })}
+        </div>
+      )}
+
       <AnimatePresence>
         {open && (
           <motion.div
@@ -870,11 +892,16 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
                     ))}
                   </div>
                 )}
-                {t.top_examples?.length > 0 && !t.brand_performance?.length && (
-                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
-                    {t.top_examples.map((ex: any, j: number) => (
-                      <span key={j} style={{ fontSize: 10, color: "#64748b", padding: "1px 6px", borderRadius: 4, background: "rgba(255,255,255,0.04)" }}>{ex.source ?? ex.url} · {ex.citation_count} cit.</span>
-                    ))}
+                {t.top_examples?.length > 0 && (
+                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 8, marginTop: 4 }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: "#475569", letterSpacing: 1, marginBottom: 5, textTransform: "uppercase" }}>Third-party sources</div>
+                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                      {t.top_examples.map((ex: any, j: number) => (
+                        <span key={j} style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 12, background: "rgba(99,102,241,0.13)", color: "#a5b4fc", border: "1px solid rgba(99,102,241,0.28)" }}>
+                          <strong style={{ color: "#c7d2fe" }}>{ex.source ?? ex.url}</strong>{ex.citation_count ? ` · ${ex.citation_count}` : ""}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -1220,12 +1247,13 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
   const autoInsightsTriggered = useRef(false);
   const autoCrawlTriggered = useRef(false);
 
-  const [selectedModel, setSelectedModel] = useState<string>("claude-sonnet-4-5");
-  const [customPrompt, setCustomPrompt] = useState<string>(DEFAULT_PROMPT_PREFIX);
-  const [customOutputSchema, setCustomOutputSchema] = useState<string>(DEFAULT_OUTPUT_SCHEMA);
+  const _saved = loadCISettings();
+  const [selectedModel, setSelectedModel] = useState<string>(_saved?.model ?? "claude-sonnet-4-5");
+  const [customPrompt, setCustomPrompt] = useState<string>(_saved?.prompt ?? DEFAULT_PROMPT_PREFIX);
+  const [customOutputSchema, setCustomOutputSchema] = useState<string>(_saved?.schema ?? DEFAULT_OUTPUT_SCHEMA);
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [showOutputEditor, setShowOutputEditor] = useState(false);
-  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+  const [webSearchEnabled, setWebSearchEnabled] = useState<boolean>(_saved?.webSearch ?? false);
   const [selectedInsightId, setSelectedInsightId] = useState<number | null>(null);
 
   // Gate check: rowCount + past insight runs
@@ -1316,6 +1344,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
   // Manual insights mutation (uses selectedModel + customPrompt from UI state)
   const manualInsightsMutation = useMutation({
     mutationFn: async () => {
+      saveCISettings({ model: selectedModel, prompt: customPrompt, schema: customOutputSchema, webSearch: webSearchEnabled });
       const res = await apiRequest(
         "POST",
         `/api/multi-segment-sessions/${sessionId}/citation-insights`,
