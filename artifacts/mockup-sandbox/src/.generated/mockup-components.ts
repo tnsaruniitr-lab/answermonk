@@ -21,6 +21,7 @@ export const modules: ModuleMap = {
   "./components/mockups/directory/DirectoryListing.tsx": () => import("../components/mockups/directory/DirectoryListing.tsx"),
   "./components/mockups/directory/QueryPage.tsx": () => import("../components/mockups/directory/QueryPage.tsx"),
   "./components/mockups/geo-comparison/CrawlabilityTable.tsx": () => import("../components/mockups/geo-comparison/CrawlabilityTable.tsx"),
+  "./components/mockups/hire-agents/HireAgents.tsx": () => import("../components/mockups/hire-agents/HireAgents.tsx"),
   "./components/mockups/key-finding/DarkIntel.tsx": () => import("../components/mockups/key-finding/DarkIntel.tsx"),
   "./components/mockups/key-finding/Glassmorphic.tsx": () => import("../components/mockups/key-finding/Glassmorphic.tsx"),
   "./components/mockups/key-finding/SignalStrip.tsx": () => import("../components/mockups/key-finding/SignalStrip.tsx"),
