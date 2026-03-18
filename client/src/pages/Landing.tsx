@@ -423,8 +423,10 @@ function LandingInner() {
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-12 font-light leading-relaxed">
-              See which brands AI recommends in your category, why they win, and which sources shape those answers.
+            <p className="text-xl md:text-2xl max-w-2xl mx-auto mb-12 leading-relaxed font-light" style={{ color: "#94a3b8", letterSpacing: "-0.01em" }}>
+              When your customers ask AI,{" "}
+              <span style={{ color: "#e2e8f0", fontWeight: 500 }}>see which brands get recommended</span>
+              {" "}— and why.
             </p>
           </>
         )}

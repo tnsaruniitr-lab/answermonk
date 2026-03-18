@@ -5,6 +5,9 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 
+// Preserve original process.exit before it is overridden below — used by fatal handlers
+const origExit = process.exit.bind(process);
+
 process.on("SIGHUP", () => {});
 
 process.on("SIGTERM", () => {
@@ -25,15 +28,20 @@ process.on("SIGINT", () => {
   process.exit(0);
 });
 
-process.on("uncaughtException", (err) => {
+process.on("uncaughtException", (err: NodeJS.ErrnoException) => {
   console.error("[server] UNCAUGHT EXCEPTION:", err);
+  // Fatal network errors must exit — otherwise the process stays alive as a zombie
+  // with no bound port, making every subsequent restart fail with EADDRINUSE.
+  if (err.code === "EADDRINUSE" || err.code === "EACCES") {
+    console.error("[server] Fatal port error — exiting so the process can be restarted cleanly");
+    origExit(1);
+  }
 });
 
 process.on("unhandledRejection", (reason) => {
   console.error("[server] UNHANDLED REJECTION:", reason);
 });
 
-const origExit = process.exit.bind(process);
 process.exit = ((code?: number) => {
   if (code !== 0 && code !== undefined) {
     console.error(`[server] process.exit(${code}) intercepted — keeping server alive`);
