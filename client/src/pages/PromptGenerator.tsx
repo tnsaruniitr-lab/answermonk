@@ -1302,6 +1302,7 @@ export default function PromptGenerator() {
 
   const [v2Segments, setV2Segments] = useState<V2Segment[]>([makeSegment()]);
   const [v2ExpandedConfigs, setV2ExpandedConfigs] = useState<Record<string, boolean>>({});
+  const [v2ExpandedPrompts, setV2ExpandedPrompts] = useState<Record<string, boolean>>({});
   const [v2PromptsPerSegment, setV2PromptsPerSegment] = useState(3);
   const [v2IsAnalysing, setV2IsAnalysing] = useState(false);
   const [v2LoadedSessionId, setV2LoadedSessionId] = useState<number | null>(null);
@@ -3157,6 +3158,19 @@ export default function PromptGenerator() {
                                     Edit
                                   </Button>
                                 )}
+                                {seg.prompts && seg.prompts.length > 0 && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setV2ExpandedPrompts((prev) => ({ ...prev, [seg.id]: !prev[seg.id] }))}
+                                    className="text-muted-foreground hover:text-primary h-7 px-2 text-xs gap-1"
+                                    data-testid={`button-v2-show-prompts-${idx}`}
+                                  >
+                                    {v2ExpandedPrompts[seg.id] ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                                    {seg.prompts.length} prompts
+                                  </Button>
+                                )}
                                 {seg.location.trim() && !seg.isScoring && (
                                   <Button
                                     type="button"
@@ -3195,6 +3209,23 @@ export default function PromptGenerator() {
                                   segmentLabel={`${idx + 1}`}
                                   cost={seg.scoringResult.cost}
                                 />
+                              </div>
+                            )}
+
+                            {v2ExpandedPrompts[seg.id] && seg.prompts && seg.prompts.length > 0 && (
+                              <div className="mt-2 rounded-lg border border-border/50 bg-muted/30 overflow-hidden">
+                                <div className="px-3 py-2 border-b border-border/40 flex items-center gap-2">
+                                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Exact prompts sent to AI engines</span>
+                                  <span className="text-[10px] text-muted-foreground ml-auto">{seg.prompts.length} queries</span>
+                                </div>
+                                <div className="divide-y divide-border/30">
+                                  {(seg.prompts as { id: string; text: string }[]).map((p, pi) => (
+                                    <div key={p.id} className="flex items-start gap-3 px-3 py-2">
+                                      <span className="text-[10px] font-mono font-bold text-muted-foreground/60 mt-0.5 shrink-0 w-4 text-right">{pi + 1}</span>
+                                      <span className="text-xs text-foreground/80 leading-relaxed select-all">{p.text}</span>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             )}
 
