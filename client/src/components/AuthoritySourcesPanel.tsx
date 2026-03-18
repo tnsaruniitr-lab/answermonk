@@ -17,7 +17,80 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const DEFAULT_PROMPT = `You are an AI search visibility analyst reviewing citation data from a GEO (Generative Engine Optimization) study.
+
+The CSV data below contains every URL cited by ChatGPT and Gemini when answering questions about this brand's market. Each row shows: which engine cited it, the page type (human-labelled as url_category and LLM-classified as llm_pagetype_classification), the domain, the brand, the URL, the page title, and how many times it was cited (citation_count).
+
+TASK: Identify what the most-cited brands and pages are doing RIGHT — specific tactics, signals, and page patterns that correlate with high citation frequency.
+
+Return ONLY a valid JSON object with this EXACT structure (no markdown fences, no explanation before or after — just raw JSON):
+
+{
+  "summary": {
+    "total_citations": <number — sum of all citation_count values>,
+    "domains_analysed": <number — count of unique domains>,
+    "cross_engine_brands": <number — brands appearing in BOTH ChatGPT AND Gemini>,
+    "key_finding": "<single most important insight from this data — one sentence, specific>"
+  },
+  "page_type_distribution": {
+    "winner": "<page type with most citations>",
+    "winner_citations": <number>,
+    "summary": "<2-3 sentence explanation of the distribution pattern>"
+  },
+  "cross_engine_champions": [
+    { "brand": "<name>", "chatgpt": <citations in chatgpt>, "gemini": <citations in gemini>, "total": <combined total> }
+  ],
+  "tactics": [
+    {
+      "rank": <number starting at 1>,
+      "title": "<specific actionable tactic name — not a generic principle>",
+      "impact": "<HIGHEST|VERY HIGH|HIGH|MEDIUM|LOW>",
+      "citations": <total citation count supporting this tactic>,
+      "confidence": "<HIGH|MEDIUM|LOW>",
+      "mechanism": "<paragraph explaining WHY this factor signals credibility or relevance to AI training — be specific>",
+      "examples": [
+        { "url": "<exact URL from the CSV>", "brand": "<brand name>", "count": <citation_count number> }
+      ],
+      "why_it_works": ["<specific signal 1>", "<specific signal 2>", "<specific signal 3>"]
+    }
+  ],
+  "sources": [
+    { "domain": "<domain>", "type": "<Government|Directory|Community|News|Review Platform|Brand|Aggregator|Other>", "importance": "<High|Medium|Low>", "appearances": <number> }
+  ],
+  "unusual_findings": [
+    { "title": "<short title>", "finding": "<explanation of what is unusual and why it matters>" }
+  ]
+}
+
+Rules for content:
+- Base ALL rankings strictly on citation_count evidence from this CSV — no generic SEO advice
+- For tactics: rank from most to least impactful. Identify ALL meaningful tactics (typically 8-12), not just the top 4
+- For each tactic: provide 2-4 specific brand + URL examples directly from the CSV
+- For sources: include all notable domains that shape AI knowledge in this market (8-15 entries)
+- confidence: HIGH = 5+ brands show this pattern, MEDIUM = 3-4, LOW = 1-2
+- Be specific: "brand X does Y on page Z" not "brands should do Y"
+- For unusual_findings: include 3-5 genuinely surprising or counterintuitive patterns`;
+
+const MODEL_OPTIONS = [
+  { value: "claude-haiku-3-5", label: "Claude Haiku", desc: "Fast · low cost" },
+  { value: "claude-sonnet-4-5", label: "Claude Sonnet", desc: "Best quality · default" },
+  { value: "gpt-4o", label: "GPT-4o", desc: "OpenAI" },
+  { value: "gemini-2.5-flash", label: "Gemini 2.5", desc: "Google" },
+] as const;
+
+function formatTimeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface SegmentInput {
   id: string;
@@ -1021,6 +1094,11 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
   const autoInsightsTriggered = useRef(false);
   const autoCrawlTriggered = useRef(false);
 
+  const [selectedModel, setSelectedModel] = useState<string>("claude-sonnet-4-5");
+  const [customPrompt, setCustomPrompt] = useState<string>(DEFAULT_PROMPT);
+  const [showPromptEditor, setShowPromptEditor] = useState(false);
+  const [selectedInsightId, setSelectedInsightId] = useState<number | null>(null);
+
   // Gate check: rowCount + past insight runs
   const { data: insightsData, isLoading: insightsLoading } = useQuery<CitationInsightsData>({
     queryKey: ["/api/multi-segment-sessions", sessionId, "citation-insights"],
@@ -1036,6 +1114,9 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
   const rowCount = insightsData?.rowCount ?? 0;
   const pastInsights = insightsData?.insights ?? [];
   const latestInsight = pastInsights[0] ?? null;
+  const displayedInsight = selectedInsightId
+    ? (pastInsights.find(i => i.id === selectedInsightId) ?? latestInsight)
+    : latestInsight;
   const hasData = rowCount > 0;
 
   // Citation sources (enabled only when citation_urls is populated)
@@ -1086,7 +1167,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
     onError: (err: any) => setCrawlError(String(err)),
   });
 
-  // Claude Sonnet insights mutation
+  // Auto-run insights mutation (hardcoded claude-sonnet-4-5, used by the auto-run chain)
   const insightsMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest(
@@ -1100,6 +1181,24 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       qc.invalidateQueries({
         queryKey: ["/api/multi-segment-sessions", sessionId, "citation-insights"],
       });
+    },
+  });
+
+  // Manual insights mutation (uses selectedModel + customPrompt from UI state)
+  const manualInsightsMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest(
+        "POST",
+        `/api/multi-segment-sessions/${sessionId}/citation-insights`,
+        { model: selectedModel, promptOverride: customPrompt }
+      );
+      return res.json();
+    },
+    onSuccess: (data: any) => {
+      qc.invalidateQueries({
+        queryKey: ["/api/multi-segment-sessions", sessionId, "citation-insights"],
+      });
+      if (data?.id) setSelectedInsightId(data.id);
     },
   });
 
@@ -1177,76 +1276,182 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
 
           {/* Generate button — when no insight exists yet */}
           {!latestInsight && (!insightsMutation.isPending || !autoRun) && (
-            <div className="flex items-center gap-4 rounded-xl border border-dashed border-border/60 bg-secondary/10 px-5 py-4">
-              <div className="flex-1 min-w-0">
+            <div className="rounded-xl border border-dashed border-border/60 bg-secondary/10 px-5 py-4 space-y-3">
+              <div>
                 <p className="text-sm font-semibold text-foreground">Citation Intelligence Report</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Send {rowCount.toLocaleString()} citation rows to Claude Sonnet 4.5 to extract ranked GEO tactics and source patterns.
+                  Send {rowCount.toLocaleString()} citation rows to an AI model to extract ranked GEO tactics and source patterns.
                 </p>
-                {insightsMutation.isError && (
+                {(insightsMutation.isError || manualInsightsMutation.isError) && (
                   <div className="flex items-center gap-1.5 text-xs text-destructive mt-1.5">
                     <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                     Generation failed — try again.
                   </div>
                 )}
               </div>
-              <Button
-                size="sm"
-                onClick={() => insightsMutation.mutate()}
-                disabled={insightsMutation.isPending}
-                data-testid="button-generate-insights"
-                className="gap-2 shrink-0"
-              >
-                {insightsMutation.isPending
-                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  : <Sparkles className="w-3.5 h-3.5" />}
-                {insightsMutation.isPending ? "Analysing…" : "Generate Intelligence Report"}
-              </Button>
+              <div className="flex items-center gap-2 flex-wrap">
+                {MODEL_OPTIONS.map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSelectedModel(opt.value)}
+                    title={opt.desc}
+                    className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                      selectedModel === opt.value
+                        ? "bg-foreground text-background border-foreground"
+                        : "bg-transparent text-muted-foreground border-border/50 hover:border-foreground/40 hover:text-foreground"
+                    }`}
+                    data-testid={`model-select-init-${opt.value}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+                <Button
+                  size="sm"
+                  onClick={() => manualInsightsMutation.mutate()}
+                  disabled={insightsMutation.isPending || manualInsightsMutation.isPending}
+                  data-testid="button-generate-insights"
+                  className="gap-2 ml-auto"
+                >
+                  {(insightsMutation.isPending || manualInsightsMutation.isPending)
+                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    : <Sparkles className="w-3.5 h-3.5" />}
+                  {(insightsMutation.isPending || manualInsightsMutation.isPending) ? "Analysing…" : "Generate Intelligence Report"}
+                </Button>
+              </div>
             </div>
           )}
 
           {/* ── Format A: Intelligence Report — rendered directly ─────── */}
-          {latestInsight && (
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={latestInsight.id}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="space-y-1"
-              >
-                {/* Metadata + re-run row */}
-                <div className="flex items-center justify-between px-1 mb-2">
-                  <span className="text-[10px] text-muted-foreground">
-                    {latestInsight.row_count?.toLocaleString() ?? rowCount.toLocaleString()} rows analysed
-                    {latestInsight.input_tokens && (
-                      <> · {latestInsight.input_tokens.toLocaleString()} / {latestInsight.output_tokens?.toLocaleString() ?? "—"} tokens</>
+          {displayedInsight && (
+            <>
+              {/* Controls panel */}
+              <div className="rounded-xl border border-border/50 bg-secondary/10 px-4 py-3 space-y-3 mb-3">
+                {/* Row 1: metadata + model selector + run button */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] text-muted-foreground shrink-0">
+                    {displayedInsight.row_count?.toLocaleString() ?? rowCount.toLocaleString()} rows
+                    {displayedInsight.input_tokens && (
+                      <> · {displayedInsight.input_tokens.toLocaleString()} / {displayedInsight.output_tokens?.toLocaleString() ?? "—"} tk</>
                     )}
                   </span>
-                  <button
-                    onClick={() => insightsMutation.mutate()}
-                    disabled={insightsMutation.isPending}
-                    className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
-                    data-testid="button-rerun-insights"
-                  >
-                    <RefreshCw className="w-3 h-3" />
-                    Re-run Analysis
-                  </button>
+                  <div className="flex items-center gap-1 flex-wrap ml-auto">
+                    {MODEL_OPTIONS.map(opt => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setSelectedModel(opt.value)}
+                        title={opt.desc}
+                        className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                          selectedModel === opt.value
+                            ? "bg-foreground text-background border-foreground"
+                            : "bg-transparent text-muted-foreground border-border/50 hover:border-foreground/40 hover:text-foreground"
+                        }`}
+                        data-testid={`model-select-${opt.value}`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => manualInsightsMutation.mutate()}
+                      disabled={manualInsightsMutation.isPending || insightsMutation.isPending}
+                      className="flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 ml-1"
+                      data-testid="button-rerun-insights"
+                    >
+                      {manualInsightsMutation.isPending
+                        ? <Loader2 className="w-3 h-3 animate-spin" />
+                        : <RefreshCw className="w-3 h-3" />}
+                      {manualInsightsMutation.isPending ? "Analysing…" : "Re-run"}
+                    </button>
+                  </div>
                 </div>
 
-                {/* Report body — structured or markdown */}
-                {(() => {
-                  try {
-                    const raw = latestInsight.result_text.trim()
-                      .replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/, "");
-                    const parsed: StructuredReportData = JSON.parse(raw);
-                    if (parsed?.tactics) return <StructuredReport data={parsed} sessionId={sessionId} />;
-                  } catch { /* fall through */ }
-                  return <MarkdownReport text={latestInsight.result_text} />;
-                })()}
-              </motion.div>
-            </AnimatePresence>
+                {/* Row 2: prompt editor toggle */}
+                <div>
+                  <button
+                    onClick={() => setShowPromptEditor(v => !v)}
+                    className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                    data-testid="button-toggle-prompt-editor"
+                  >
+                    {showPromptEditor ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                    Edit prompt
+                  </button>
+                  {showPromptEditor && (
+                    <div className="mt-2 space-y-1.5">
+                      <textarea
+                        value={customPrompt}
+                        onChange={e => setCustomPrompt(e.target.value)}
+                        className="w-full h-52 text-[10px] font-mono leading-relaxed bg-background border border-border/60 rounded-lg px-3 py-2 text-foreground resize-y outline-none focus:border-primary/50"
+                        data-testid="textarea-custom-prompt"
+                        spellCheck={false}
+                      />
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setCustomPrompt(DEFAULT_PROMPT)}
+                          className="text-[10px] text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                        >
+                          Reset to default
+                        </button>
+                        <span className="text-[10px] text-muted-foreground/40">· CSV is always appended automatically</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Row 3: history (only when multiple runs exist) */}
+                {pastInsights.length > 1 && (
+                  <div className="border-t border-border/30 pt-2.5 space-y-1">
+                    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">
+                      Run History ({pastInsights.length})
+                    </span>
+                    <div className="space-y-0.5 mt-1">
+                      {pastInsights.map(run => {
+                        const isSelected = (selectedInsightId ?? latestInsight?.id) === run.id;
+                        const modelLabel = MODEL_OPTIONS.find(m => m.value === run.model)?.label ?? run.model;
+                        return (
+                          <button
+                            key={run.id}
+                            onClick={() => setSelectedInsightId(run.id)}
+                            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors ${
+                              isSelected ? "bg-primary/10 text-foreground" : "hover:bg-secondary/30 text-muted-foreground"
+                            }`}
+                            data-testid={`history-run-${run.id}`}
+                          >
+                            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${isSelected ? "bg-primary" : "bg-border"}`} />
+                            <span className="text-[10px] font-medium flex-1 truncate">{modelLabel}</span>
+                            <span className="text-[10px] opacity-60">{formatTimeAgo(run.created_at)}</span>
+                            {run.input_tokens && (
+                              <span className="text-[10px] opacity-50">
+                                {run.input_tokens.toLocaleString()} / {run.output_tokens?.toLocaleString() ?? "—"} tk
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Report body */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={displayedInsight.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {(() => {
+                    try {
+                      const raw = displayedInsight.result_text.trim()
+                        .replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/, "");
+                      const parsed: StructuredReportData = JSON.parse(raw);
+                      if (parsed?.tactics) return <StructuredReport data={parsed} sessionId={sessionId} />;
+                    } catch { /* fall through */ }
+                    return <MarkdownReport text={displayedInsight.result_text} />;
+                  })()}
+                </motion.div>
+              </AnimatePresence>
+            </>
           )}
 
           {/* ── Domain Intelligence Tabs (secondary, below report) ───── */}

@@ -3841,7 +3841,7 @@ export async function registerRoutes(
       const sessionId = parseInt(req.params.id, 10);
       if (isNaN(sessionId)) { res.status(400).json({ message: "Invalid session ID" }); return; }
 
-      const { model } = z.object({ model: z.string() }).parse(req.body);
+      const { model, promptOverride } = z.object({ model: z.string(), promptOverride: z.string().optional() }).parse(req.body);
       const { pool } = await import("./db");
 
       // Fetch all citation_urls for the session as CSV text
@@ -3864,7 +3864,7 @@ export async function registerRoutes(
       );
       const csvText = [csvHeader, ...csvRows].join("\n");
 
-      const systemPrompt = `You are an AI search visibility analyst reviewing citation data from a GEO (Generative Engine Optimization) study.
+      const defaultPromptPrefix = `You are an AI search visibility analyst reviewing citation data from a GEO (Generative Engine Optimization) study.
 
 The CSV data below contains every URL cited by ChatGPT and Gemini when answering questions about this brand's market. Each row shows: which engine cited it, the page type (human-labelled as url_category and LLM-classified as llm_pagetype_classification), the domain, the brand, the URL, the page title, and how many times it was cited (citation_count).
 
@@ -3916,10 +3916,9 @@ Rules for content:
 - For sources: include all notable domains that shape AI knowledge in this market (8-15 entries)
 - confidence: HIGH = 5+ brands show this pattern, MEDIUM = 3-4, LOW = 1-2
 - Be specific: "brand X does Y on page Z" not "brands should do Y"
-- For unusual_findings: include 3-5 genuinely surprising or counterintuitive patterns
+- For unusual_findings: include 3-5 genuinely surprising or counterintuitive patterns`;
 
-CSV DATA:
-${csvText}`;
+      const systemPrompt = (promptOverride ?? defaultPromptPrefix) + `\n\nCSV DATA:\n${csvText}`;
 
       let resultText = "";
       let inputTokens: number | null = null;
