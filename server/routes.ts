@@ -247,6 +247,81 @@ async function populateCitationUrls(sessionId: number): Promise<void> {
   `, [sessionId]);
 }
 
+async function tagMentionedBrands(sessionId: number, brandNames: string[]): Promise<void> {
+  if (!brandNames.length) return;
+  const { pool } = await import("./db");
+
+  // Ensure column exists
+  await pool.query(`ALTER TABLE citation_urls ADD COLUMN IF NOT EXISTS mentioned_brands TEXT`);
+
+  // Get un-tagged URLs for this session ordered by citation importance
+  const { rows } = await pool.query(
+    `SELECT id, url, title, citation_count FROM citation_urls
+     WHERE session_id = $1 AND mentioned_brands IS NULL
+     ORDER BY citation_count DESC`,
+    [sessionId]
+  );
+  if (!rows.length) return;
+
+  // Case-insensitive match of brand names in a text blob
+  function matchBrands(text: string): string {
+    const lower = text.toLowerCase();
+    return brandNames
+      .filter(b => lower.includes(b.toLowerCase()))
+      .join(", ");
+  }
+
+  const needsFetch: typeof rows = [];
+  const updates: { id: number; brands: string }[] = [];
+
+  // Pass 1: fast — check URL + title only (covers brand-owned pages and titled mentions)
+  for (const row of rows) {
+    const combined = `${row.url ?? ""} ${row.title ?? ""}`;
+    const matched = matchBrands(combined);
+    if (matched || (row.citation_count ?? 0) <= 2) {
+      updates.push({ id: row.id, brands: matched });
+    } else {
+      needsFetch.push(row);
+    }
+  }
+
+  for (const { id, brands } of updates) {
+    await pool.query(`UPDATE citation_urls SET mentioned_brands = $1 WHERE id = $2`, [brands, id]);
+  }
+
+  // Pass 2: fetch page body for top-citation unmatched URLs (max 50)
+  const toFetch = needsFetch.slice(0, 50);
+
+  async function fetchAndTag(row: any) {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 6000);
+      const resp = await fetch(row.url, {
+        signal: controller.signal,
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; NexalyticsBot/1.0)" },
+      });
+      clearTimeout(timer);
+      const html = await resp.text();
+      const text = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+      const matched = matchBrands(text);
+      await pool.query(`UPDATE citation_urls SET mentioned_brands = $1 WHERE id = $2`, [matched, row.id]);
+    } catch {
+      // Mark checked but unmatched — prevents re-fetching on subsequent runs
+      await pool.query(`UPDATE citation_urls SET mentioned_brands = '' WHERE id = $1`, [row.id]);
+    }
+  }
+
+  const CONCURRENCY = 5;
+  const queue = [...toFetch];
+  async function worker() {
+    while (queue.length > 0) {
+      const row = queue.shift();
+      if (row) await fetchAndTag(row);
+    }
+  }
+  await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+}
+
 function requireAdmin(req: any, res: any, next: any) {
   next();
 }
@@ -3849,27 +3924,10 @@ export async function registerRoutes(
       }).parse(req.body);
       const { pool } = await import("./db");
 
-      // Fetch all citation_urls for the session as CSV text
-      const { rows } = await pool.query(
-        `SELECT id, session_id, engine, prompt_text, segment_persona, url, title,
-                created_at, url_category, domain, brand, citation_count, llm_pagetype_classification
-         FROM citation_urls WHERE session_id = $1 ORDER BY citation_count DESC, id ASC`,
-        [sessionId]
-      );
-      if (!rows.length) { res.status(404).json({ message: "No citation data found for this session" }); return; }
+      // Ensure mentioned_brands column exists (safe to run multiple times)
+      await pool.query(`ALTER TABLE citation_urls ADD COLUMN IF NOT EXISTS mentioned_brands TEXT`);
 
-      // Build CSV string
-      const csvHeader = "id,session_id,engine,prompt_text,segment_persona,url,title,created_at,url_category,domain,brand,citation_count,llm_pagetype_classification";
-      const csvRows = rows.map(r =>
-        [r.id, r.session_id, r.engine, r.prompt_text ?? "", r.segment_persona ?? "",
-         r.url ?? "", `"${(r.title ?? "").replace(/"/g, '""')}"`, r.created_at, r.url_category ?? "",
-         r.domain ?? "", r.brand ?? "", r.citation_count ?? 0, r.llm_pagetype_classification ?? ""]
-        .map(v => `"${String(v).replace(/"/g, '""')}"`)
-        .join(",")
-      );
-      const csvText = [csvHeader, ...csvRows].join("\n");
-
-      // ── Fetch top 3 ranked competitors from session scoring data ──────────────
+      // ── Step 1: Identify top 3 ranked competitors from session scoring data ──
       let top3Brands: { name: string; appearances: number }[] = [];
       try {
         const sessionRow = await pool.query(
@@ -3901,6 +3959,37 @@ export async function registerRoutes(
         console.warn("[citation-insights] Could not fetch top3 brands:", e);
       }
 
+      // ── Step 2: Tag citation URLs with which brands appear in their content ──
+      const brandNamesToTag = top3Brands.map(b => b.name);
+      if (brandNamesToTag.length > 0) {
+        console.log(`[citation-insights] Tagging mentioned_brands for session ${sessionId} with brands:`, brandNamesToTag);
+        await tagMentionedBrands(sessionId, brandNamesToTag);
+        console.log(`[citation-insights] mentioned_brands tagging complete`);
+      }
+
+      // ── Step 3: Fetch citation_urls (now includes mentioned_brands) as CSV ──
+      const { rows } = await pool.query(
+        `SELECT id, session_id, engine, prompt_text, segment_persona, url, title,
+                created_at, url_category, domain, brand, citation_count,
+                llm_pagetype_classification,
+                COALESCE(mentioned_brands, '') AS mentioned_brands
+         FROM citation_urls WHERE session_id = $1 ORDER BY citation_count DESC, id ASC`,
+        [sessionId]
+      );
+      if (!rows.length) { res.status(404).json({ message: "No citation data found for this session" }); return; }
+
+      // Build CSV string
+      const csvHeader = "id,session_id,engine,prompt_text,segment_persona,url,title,created_at,url_category,domain,brand,citation_count,llm_pagetype_classification,mentioned_brands";
+      const csvRows = rows.map(r =>
+        [r.id, r.session_id, r.engine, r.prompt_text ?? "", r.segment_persona ?? "",
+         r.url ?? "", `"${(r.title ?? "").replace(/"/g, '""')}"`, r.created_at, r.url_category ?? "",
+         r.domain ?? "", r.brand ?? "", r.citation_count ?? 0, r.llm_pagetype_classification ?? "",
+         r.mentioned_brands ?? ""]
+        .map(v => `"${String(v).replace(/"/g, '""')}"`)
+        .join(",")
+      );
+      const csvText = [csvHeader, ...csvRows].join("\n");
+
       // Replace [BRAND A/B/C] placeholders in prompt with actual top-ranked names
       function injectTopBrands(prompt: string, brands: { name: string; appearances: number }[]): string {
         let out = prompt;
@@ -3916,7 +4005,13 @@ export async function registerRoutes(
 
       const defaultPromptPrefix = `You are an AI search visibility analyst reviewing citation data from a GEO (Generative Engine Optimization) study.
 
-The CSV data below contains every URL cited by ChatGPT and Gemini when answering questions about this brand's market. Each row shows: which engine cited it, the page type (human-labelled as url_category and LLM-classified as llm_pagetype_classification), the domain, the brand, the URL, the page title, and how many times it was cited (citation_count).
+The CSV data below contains every URL cited by ChatGPT and Gemini when answering questions about this brand's market. Each row shows: which engine cited it, the page type (human-labelled as url_category and LLM-classified as llm_pagetype_classification), the domain, the URL, the page title, how many times it was cited (citation_count), and — most importantly — the mentioned_brands column.
+
+CRITICAL — BRAND ATTRIBUTION RULES:
+- The mentioned_brands column is your ONLY source of truth for which brands appear in each URL. It was generated by fetching each page and scanning its content for the brand names.
+- A single URL can mention multiple brands (comma-separated). Sum citation_count for each brand across all rows where that brand appears in mentioned_brands.
+- Do NOT use the "brand" column for brand attribution — it contains the publishing domain name, not the brand being analysed.
+- Rows with an empty mentioned_brands column are third-party pages that mention none of the target brands — still use them for tactic and source analysis, but do not attribute their citations to any specific brand.
 
 TASK: Identify what the most-cited brands and pages are doing RIGHT — specific tactics, signals, and page patterns that correlate with high citation frequency.`;
 

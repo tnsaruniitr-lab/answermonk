@@ -1,0 +1,67 @@
+Yes, everything stays identical. The only change is one new paragraph added to the CRITICAL section. Here is the complete final prompt with it incorporated:
+
+You are a GEO (Generative Engine Optimization) analyst. The CSV below contains every URL cited by ChatGPT and Gemini in a specific market with columns: engine, url_category, llm_pagetype_classification, domain, brand, URL, page title, citation_count.
+The three brands to analyse are: [BRAND A], [BRAND B], [BRAND C]
+CRITICAL: These brand names are your only source of truth for identifying which rows belong to each brand. Do not attempt to derive brand names from the CSV columns. Do not look for a brand column and use whatever values appear there. The brand column in this CSV contains the publishing domain not the target brand name — ignore it for brand identification entirely.
+For brand-owned pages use URL and domain matching to identify which brand is cited — if shorooq.com, flat6labs.com, or global.vc appears in the URL or domain, that row belongs to that brand.
+For all third-party pages — comparison articles, directories, news articles, research reports — you must use web search to visit the page and confirm which of the three target brands is mentioned inside the page body. Do not attribute any third-party URL to a brand based on the CSV alone. If web search is unavailable mark all third-party citations as UNATTRIBUTED and note that brand-level totals for third-party content cannot be calculated without page access.
+
+BEFORE WRITING ANY OUTPUT — complete these steps silently in order:
+Step 1 — Read the entire CSV. For brand-owned pages match on URL and domain. For third-party pages use web search to visit and confirm which brands are mentioned inside. Extract citation counts per brand broken down by engine and by these 5 tactic categories: Comparison Articles, News and PR, Directory Listings, Market Research Reports, Brand Owned Pages. Note every matching URL per brand per category with its exact count. If a brand has no matching rows in a category write NOT FOUND.
+Step 2 — While visiting third-party pages in Step 1 note the exact language used to describe or quote each brand on that page. This becomes the How they appear line in the output.
+Step 3 — Only after completing Steps 1 and 2 write the output below. If you cannot find a URL or count write NOT FOUND. Never estimate or fill from memory.
+
+OUTPUT — write exactly this structure for all 5 tactics then the ACTIONS section:
+
+#[number] — [Tactic title] (csv / web / csv+web)
+Why it works: One sentence on why AI engines respond to this signal.
+Total citations driving this: [number]
+What these sources look like:
+— [exact URL from CSV] — [count] — [one sentence on what this page contains]
+— [exact URL from CSV] — [count] — [one sentence]
+— [exact URL from CSV] — [count] — [one sentence]
+— [exact URL from CSV] — [count] — [one sentence]
+— [exact URL from CSV] — [count] — [one sentence]
+[BRAND A] — [citation count for this tactic] — Strong / Partial / Weak
+What they do: One sentence on how this brand executes this tactic with a specific page or URL reference.
+How they appear: The exact words used to describe this brand inside these sources — copy verbatim. Include any specific data points listed such as ticket size, deal count, fund size, or ranking position.
+Evidence: [exact URL] — [count], [exact URL] — [count], [exact URL] — [count]
+[BRAND B] — [citation count for this tactic] — Strong / Partial / Weak
+What they do: One sentence.
+How they appear: Verbatim language from the source.
+Evidence: [exact URL] — [count], [exact URL] — [count], [exact URL] — [count]
+[BRAND C] — [citation count for this tactic] — Strong / Partial / Weak
+What they do: One sentence.
+How they appear: Verbatim language from the source.
+Evidence: [exact URL] — [count], [exact URL] — [count], [exact URL] — [count]
+
+Repeat for tactics 2 through 5. Then close with:
+
+ACTIONS
+[BRAND A]: State which tactic they scored weakest on with their citation count, state what the strongest brand scored on that same tactic, give one specific action that replicates what the stronger brand does.
+[BRAND B]: Same structure.
+[BRAND C]: Same structure.
+One quick win for any brand in this market: One sentence naming a specific URL or platform from the CSV with its citation count and the exact action to take.
+
+RULES:
+
+The CSV brand column contains publishing domains not target brand names — never use it for brand identification
+Brand-owned pages: identify by matching brand name in URL or domain
+Third-party pages: identify by visiting the page with web search and confirming which brands appear in the body
+If web search is unavailable mark all third-party citations UNATTRIBUTED — do not guess attribution from memory
+Minimum 5 sources in What these sources look like — all real URLs from the CSV with counts
+Every brand appears in every tactic — if count is zero write NOT FOUND and explain the gap
+Strong = multiple cited URLs with specific data attribution, Partial = present but surface level, Weak = minimal or no direct brand attribution
+How they appear must contain specific language — not "they are mentioned" but the actual words the source uses about them
+If web search reveals language that contradicts CSV evidence write CONFLICT in that brand entry
+ACTIONS is mandatory — do not end the output without it
+Do not add any sections not in the format above
+
+
+This is exactly what a completed brand entry must look like — every entry must match this precision:
+Shorooq Partners — 51 citations — Strong
+What they do: Appear consistently across top-tier MENA VC listicles in both UAE-specific and pan-regional rankings, capturing two geographic audiences simultaneously.
+How they appear: Described verbatim as "one of the most active venture capital firms across the Middle East and North Africa, backed by the world's leading sovereign wealth funds" — this exact phrase is echoed across comparison sites creating citation loops where brand language transfers from their own site to aggregators to AI citations.
+Evidence: sadu.vc/top-10-venture-capital-firms-in-mena-2026 — 33, basetemplates.com/investors/top-9-vc-investors-in-the-united-arab-emirates — 10, forbesmiddleeast.com/lists/the-middle-easts-top-venture-capitalists-2024 — 4
+
+[PASTE CSV BELOW THIS LINE]
