@@ -7,6 +7,7 @@ import {
   Database, Loader2, AlertCircle, Plus, X, MapPin, CheckCircle2, Brain,
 } from "lucide-react";
 import { AuthoritySourcesPanel } from "@/components/AuthoritySourcesPanel";
+import { CitationSourcesPreview } from "@/components/CitationSourcesPreview";
 import { DispatchFeedLive } from "@/components/DispatchFeedLive";
 import { RecentAnalysisTiles } from "@/components/RecentAnalysisTiles";
 import { SessionSummaryHero } from "@/components/SessionSummaryHero";
@@ -657,9 +658,16 @@ function LandingInner() {
               />
             )}
 
+            {/* Citation sources preview — always visible once scoring completes */}
+            {allSegmentsDone && activeSessionId !== null && !showIntelligence && (
+              <div className="mt-4">
+                <CitationSourcesPreview sessionId={activeSessionId} />
+              </div>
+            )}
+
             {/* All done — single CTA button */}
             {allSegmentsDone && !showIntelligence && (
-              <div className="flex justify-center">
+              <div className="flex justify-center mt-4">
                 <button
                   onClick={() => setShowIntelligence(true)}
                   data-testid="btn-analyse-intelligence"
