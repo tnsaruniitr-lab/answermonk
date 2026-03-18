@@ -2,17 +2,20 @@ import { useEffect, useState, useRef } from "react";
 
 const QUIPS = [
   "In my skin, these wounds they will not heal...",
-  "Crawling through URLs so you don't have to",
+  "Crawling through 47,329 URLs so you don't have to",
   "I've become so numb... wait, that's a different Linkin Park song",
+  "Crawling in the dark, collecting your citations one by one",
   "There's something inside me that PULLS these redirects apart",
   "Status 429: even the internet needs a moment",
+  "Finding your 404s so you look busy doing something important",
   "Crawling back to you... and to this VertexAI redirect URL",
   "When progress says 23% and it's been 4 minutes: totally normal",
-  "The walls are closing in — also the rate limits",
-  "Minor setback: website requires cookie consent in 11 languages",
   "Sending GET requests like a robot fully possessed",
+  "The walls are closing in — also the rate limits",
   "I am so afraid of... timeouts. Many timeouts.",
-  "Finding your 404s so you look busy doing something important",
+  "Crawling has always been with me — since the first npm install",
+  "Every URL we touch is a URL we trust (until it 403s us)",
+  "Minor setback: website requires cookie consent in 11 languages",
 ];
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#";
@@ -161,34 +164,35 @@ export function CrawlMissionControl({ progress }: Props) {
           padding: 22,
         }}>
 
-          {/* Quips strip */}
+          {/* Quips — prominent decode-animation card */}
           <div style={{
-            marginBottom: 20,
-            background: "rgba(255,255,255,0.025)",
-            border: "1px solid rgba(30,58,95,0.8)",
-            borderRadius: 8,
-            padding: "9px 14px",
-            minHeight: 40,
+            marginBottom: 22,
+            background: "rgba(34,211,238,0.04)",
+            border: "1px solid rgba(34,211,238,0.18)",
+            borderRadius: 12,
+            padding: "20px 22px",
+            minHeight: 72,
             display: "flex",
             alignItems: "center",
-            gap: 10,
+            gap: 14,
           }}>
             <div style={{
-              width: 6, height: 6, borderRadius: "50%",
-              background: "#22d3ee", boxShadow: "0 0 8px #22d3ee",
+              width: 8, height: 8, borderRadius: "50%",
+              background: "#22d3ee", boxShadow: "0 0 12px #22d3ee",
               flexShrink: 0,
               animation: "cmcPulse 1.2s ease-in-out infinite",
             }} />
             <p style={{
-              margin: 0, fontSize: 12,
-              color: "rgba(148,163,184,0.9)",
+              margin: 0,
+              fontSize: 14,
+              color: "#e2e8f0",
               opacity,
-              fontFamily: "monospace",
-              letterSpacing: "0.01em",
-              lineHeight: 1.5,
-              fontStyle: QUIPS[quipIdx]?.startsWith("In my skin") ? "italic" : "normal",
+              fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
+              letterSpacing: "0.02em",
+              lineHeight: 1.6,
+              fontStyle: ["In my skin", "Crawling in", "I've become", "I am so afraid"].some(p => QUIPS[quipIdx]?.startsWith(p)) ? "italic" : "normal",
             }}>
-              {displayed}
+              {displayed || <span style={{ opacity: 0.2 }}>decoding...</span>}
             </p>
           </div>
 
