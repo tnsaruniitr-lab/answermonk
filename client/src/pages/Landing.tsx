@@ -222,6 +222,7 @@ function LandingInner() {
 
   const [services, setServices] = useState<string[]>([]);
   const [customers, setCustomers] = useState<string[]>([]);
+  const [competitors, setCompetitors] = useState<{name: string; location: string; known_for: string}[]>([]);
   const [selectedServices, setSelectedServices] = useState<Set<string>>(new Set());
   const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
   const [city, setCity] = useState("");
@@ -280,8 +281,15 @@ function LandingInner() {
       const svcs: string[] = submission.pncResult.service_types || submission.pncResult.serviceTypes || [];
       const custs: string[] = submission.pncResult.customer_types || submission.pncResult.customerTypes || [];
       const ct: string = submission.pncResult.city || "";
+      const comps: {name: string; location: string; known_for: string}[] =
+        (submission.pncResult.competitors || []).map((c: any) => ({
+          name: c.name || "",
+          location: c.location || "",
+          known_for: c.known_for || "",
+        }));
       setServices(svcs);
       setCustomers(custs);
+      setCompetitors(comps);
       setSelectedServices(new Set(svcs.slice(0, MAX_SELECTED)));
       setSelectedCustomers(new Set(custs.slice(0, MAX_SELECTED)));
       setCity(ct);
@@ -862,7 +870,7 @@ function LandingInner() {
               <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
               <div>
                 <p className="text-white font-semibold">Signals detected for {normalizeDomain(url)}</p>
-                <p className="text-slate-400 text-xs mt-0.5">Confirm your services and customer types, then generate your report.</p>
+                <p className="text-slate-400 text-xs mt-0.5">Confirm your services, customer types and competitor landscape, then generate your report.</p>
               </div>
             </div>
 
@@ -981,6 +989,39 @@ function LandingInner() {
                 </button>
               </div>
             </div>
+
+            {/* Competitor Landscape */}
+            {competitors.length > 0 && (
+              <div className="bg-[#111827]/60 border border-white/10 rounded-2xl p-5 mb-4">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+                  Competitor Landscape &mdash; <span className="text-amber-400">{competitors.length} detected</span>
+                </p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {competitors.map((comp) => (
+                    <div key={comp.name} className="group relative">
+                      <div
+                        data-testid={`chip-competitor-${comp.name}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border bg-amber-500/10 border-amber-500/25 text-amber-300 select-none cursor-default"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400/70 flex-shrink-0" />
+                        {comp.name}
+                        {comp.location && (
+                          <span className="text-amber-500/50 text-xs font-normal">{comp.location}</span>
+                        )}
+                      </div>
+                      {comp.known_for && (
+                        <div className="absolute bottom-full left-0 mb-1.5 hidden group-hover:block z-20 pointer-events-none">
+                          <div className="bg-[#0f172a] border border-white/10 rounded-lg px-3 py-2 text-xs text-slate-300 max-w-[220px] shadow-xl whitespace-normal leading-relaxed">
+                            {comp.known_for}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-600">These brands may appear in AI responses for your target prompts. Hover a chip to see what they're known for.</p>
+              </div>
+            )}
 
             {/* City */}
             <div className="bg-[#111827]/60 border border-white/10 rounded-2xl p-5 mb-5">
