@@ -251,51 +251,75 @@ async function tagMentionedBrands(sessionId: number, brandNames: string[]): Prom
   if (!brandNames.length) return;
   const { pool } = await import("./db");
 
-  // Ensure column exists
+  // Ensure columns exist
   await pool.query(`ALTER TABLE citation_urls ADD COLUMN IF NOT EXISTS mentioned_brands TEXT`);
+  await pool.query(`ALTER TABLE citation_urls ADD COLUMN IF NOT EXISTS brand_context JSONB`);
 
-  // Get un-tagged URLs for this session ordered by citation importance
-  const { rows } = await pool.query(
+  // Case-insensitive brand name match across a text blob → comma-separated list
+  function matchBrands(text: string): string {
+    const lower = text.toLowerCase();
+    return brandNames.filter(b => lower.includes(b.toLowerCase())).join(", ");
+  }
+
+  // For each brand found in page text, extract ~400 chars of surrounding prose
+  // This becomes the "How they appear" verbatim language sent to Claude
+  function extractBrandContext(text: string): Record<string, string> {
+    const context: Record<string, string> = {};
+    for (const brand of brandNames) {
+      const idx = text.toLowerCase().indexOf(brand.toLowerCase());
+      if (idx === -1) continue;
+      // Expand to sentence boundaries within ±350 chars
+      const start = Math.max(0, idx - 280);
+      const end = Math.min(text.length, idx + brand.length + 280);
+      let snippet = text.slice(start, end).replace(/\s+/g, " ").trim();
+      // Trim to nearest sentence start/end if possible
+      const sentStart = snippet.indexOf(". ");
+      if (sentStart > 0 && sentStart < 80) snippet = snippet.slice(sentStart + 2);
+      const sentEnd = snippet.lastIndexOf(". ");
+      if (sentEnd > snippet.length - 80 && sentEnd > 0) snippet = snippet.slice(0, sentEnd + 1);
+      if (snippet.length > 30) context[brand] = snippet.trim();
+    }
+    return context;
+  }
+
+  // ── Pass 1: fast URL+title check (no fetch needed) ─────────────────────────
+  const { rows: untagged } = await pool.query(
     `SELECT id, url, title, citation_count FROM citation_urls
      WHERE session_id = $1 AND mentioned_brands IS NULL
      ORDER BY citation_count DESC`,
     [sessionId]
   );
-  if (!rows.length) return;
 
-  // Case-insensitive match of brand names in a text blob
-  function matchBrands(text: string): string {
-    const lower = text.toLowerCase();
-    return brandNames
-      .filter(b => lower.includes(b.toLowerCase()))
-      .join(", ");
-  }
+  const needsFetch: typeof untagged = [];
 
-  const needsFetch: typeof rows = [];
-  const updates: { id: number; brands: string }[] = [];
-
-  // Pass 1: fast — check URL + title only (covers brand-owned pages and titled mentions)
-  for (const row of rows) {
+  for (const row of untagged) {
     const combined = `${row.url ?? ""} ${row.title ?? ""}`;
     const matched = matchBrands(combined);
     if (matched || (row.citation_count ?? 0) <= 2) {
-      updates.push({ id: row.id, brands: matched });
+      await pool.query(`UPDATE citation_urls SET mentioned_brands = $1 WHERE id = $2`, [matched, row.id]);
     } else {
       needsFetch.push(row);
     }
   }
 
-  for (const { id, brands } of updates) {
-    await pool.query(`UPDATE citation_urls SET mentioned_brands = $1 WHERE id = $2`, [brands, id]);
-  }
+  // ── Pass 2: context-backfill for rows tagged in a prior run but missing context
+  const { rows: needsContext } = await pool.query(
+    `SELECT id, url, title, citation_count FROM citation_urls
+     WHERE session_id = $1
+       AND mentioned_brands IS NOT NULL AND mentioned_brands != ''
+       AND brand_context IS NULL
+     ORDER BY citation_count DESC
+     LIMIT 60`,
+    [sessionId]
+  );
 
-  // Pass 2: fetch page body for top-citation unmatched URLs (max 50)
-  const toFetch = needsFetch.slice(0, 50);
+  // ── Pass 3: fetch page body — both new unmatched URLs and context-backfill ──
+  const toFetch = [...needsFetch.slice(0, 50), ...needsContext];
 
-  async function fetchAndTag(row: any) {
+  async function fetchAndTag(row: any, contextOnly = false) {
     try {
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 6000);
+      const timer = setTimeout(() => controller.abort(), 7000);
       const resp = await fetch(row.url, {
         signal: controller.signal,
         headers: { "User-Agent": "Mozilla/5.0 (compatible; NexalyticsBot/1.0)" },
@@ -303,20 +327,36 @@ async function tagMentionedBrands(sessionId: number, brandNames: string[]): Prom
       clearTimeout(timer);
       const html = await resp.text();
       const text = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
-      const matched = matchBrands(text);
-      await pool.query(`UPDATE citation_urls SET mentioned_brands = $1 WHERE id = $2`, [matched, row.id]);
+      const matched = contextOnly ? undefined : matchBrands(text);
+      const context = extractBrandContext(text);
+      const contextJson = Object.keys(context).length > 0 ? context : null;
+
+      if (contextOnly) {
+        await pool.query(
+          `UPDATE citation_urls SET brand_context = $1 WHERE id = $2`,
+          [contextJson, row.id]
+        );
+      } else {
+        await pool.query(
+          `UPDATE citation_urls SET mentioned_brands = $1, brand_context = $2 WHERE id = $3`,
+          [matched ?? "", contextJson, row.id]
+        );
+      }
     } catch {
-      // Mark checked but unmatched — prevents re-fetching on subsequent runs
-      await pool.query(`UPDATE citation_urls SET mentioned_brands = '' WHERE id = $1`, [row.id]);
+      if (!contextOnly) {
+        await pool.query(`UPDATE citation_urls SET mentioned_brands = '' WHERE id = $1`, [row.id]);
+      }
     }
   }
 
   const CONCURRENCY = 5;
-  const queue = [...toFetch];
+  // Mark which rows are context-only (already had mentioned_brands from a prior run)
+  const contextOnlyIds = new Set(needsContext.map((r: any) => r.id));
+  const queue = [...needsFetch.slice(0, 50), ...needsContext];
   async function worker() {
     while (queue.length > 0) {
       const row = queue.shift();
-      if (row) await fetchAndTag(row);
+      if (row) await fetchAndTag(row, contextOnlyIds.has(row.id));
     }
   }
   await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
@@ -3967,27 +4007,31 @@ export async function registerRoutes(
         console.log(`[citation-insights] mentioned_brands tagging complete`);
       }
 
-      // ── Step 3: Fetch citation_urls (now includes mentioned_brands) as CSV ──
+      // ── Step 3: Fetch citation_urls (now includes mentioned_brands + brand_context) as CSV ──
+      await pool.query(`ALTER TABLE citation_urls ADD COLUMN IF NOT EXISTS brand_context JSONB`);
       const { rows } = await pool.query(
         `SELECT id, session_id, engine, prompt_text, segment_persona, url, title,
                 created_at, url_category, domain, brand, citation_count,
                 llm_pagetype_classification,
-                COALESCE(mentioned_brands, '') AS mentioned_brands
+                COALESCE(mentioned_brands, '') AS mentioned_brands,
+                brand_context
          FROM citation_urls WHERE session_id = $1 ORDER BY citation_count DESC, id ASC`,
         [sessionId]
       );
       if (!rows.length) { res.status(404).json({ message: "No citation data found for this session" }); return; }
 
       // Build CSV string
-      const csvHeader = "id,session_id,engine,prompt_text,segment_persona,url,title,created_at,url_category,domain,brand,citation_count,llm_pagetype_classification,mentioned_brands";
-      const csvRows = rows.map(r =>
-        [r.id, r.session_id, r.engine, r.prompt_text ?? "", r.segment_persona ?? "",
+      const csvHeader = "id,session_id,engine,prompt_text,segment_persona,url,title,created_at,url_category,domain,brand,citation_count,llm_pagetype_classification,mentioned_brands,brand_context";
+      const csvRows = rows.map(r => {
+        // brand_context comes back as a JS object from JSONB — serialize it for CSV
+        const contextStr = r.brand_context ? JSON.stringify(r.brand_context) : "";
+        return [r.id, r.session_id, r.engine, r.prompt_text ?? "", r.segment_persona ?? "",
          r.url ?? "", `"${(r.title ?? "").replace(/"/g, '""')}"`, r.created_at, r.url_category ?? "",
          r.domain ?? "", r.brand ?? "", r.citation_count ?? 0, r.llm_pagetype_classification ?? "",
-         r.mentioned_brands ?? ""]
+         r.mentioned_brands ?? "", contextStr]
         .map(v => `"${String(v).replace(/"/g, '""')}"`)
-        .join(",")
-      );
+        .join(",");
+      });
       const csvText = [csvHeader, ...csvRows].join("\n");
 
       // Replace [BRAND A/B/C] placeholders in prompt with actual top-ranked names
@@ -4005,13 +4049,23 @@ export async function registerRoutes(
 
       const defaultPromptPrefix = `You are an AI search visibility analyst reviewing citation data from a GEO (Generative Engine Optimization) study.
 
-The CSV data below contains every URL cited by ChatGPT and Gemini when answering questions about this brand's market. Each row shows: which engine cited it, the page type (human-labelled as url_category and LLM-classified as llm_pagetype_classification), the domain, the URL, the page title, how many times it was cited (citation_count), and — most importantly — the mentioned_brands column.
+The CSV data below contains every URL cited by ChatGPT and Gemini when answering questions about this brand's market. Key columns:
+- url_category / llm_pagetype_classification: page type (comparison article, directory, news, etc.)
+- citation_count: how many times this URL was cited by AI engines
+- mentioned_brands: brands confirmed to appear on this page (fetched and scanned — your ONLY attribution source)
+- brand_context: JSON object mapping brand name → verbatim text snippet extracted from that page around the brand mention. This is the exact language the page uses to describe each brand.
 
 CRITICAL — BRAND ATTRIBUTION RULES:
-- The mentioned_brands column is your ONLY source of truth for which brands appear in each URL. It was generated by fetching each page and scanning its content for the brand names.
+- Use mentioned_brands as your ONLY source of truth for which brands appear in each URL.
 - A single URL can mention multiple brands (comma-separated). Sum citation_count for each brand across all rows where that brand appears in mentioned_brands.
-- Do NOT use the "brand" column for brand attribution — it contains the publishing domain name, not the brand being analysed.
-- Rows with an empty mentioned_brands column are third-party pages that mention none of the target brands — still use them for tactic and source analysis, but do not attribute their citations to any specific brand.
+- Do NOT use the "brand" column for brand attribution — it is the publishing domain, not the analysed brand.
+- Rows with an empty mentioned_brands column are third-party pages that mention none of the target brands — use them for tactic and source analysis but do not attribute citations to any brand.
+
+CRITICAL — HOW THEY APPEAR RULES:
+- The brand_context column is your PRIMARY source for the how_they_appear field. It contains verbatim text scraped directly from the citing page showing exactly how each brand is described.
+- Copy the most representative sentence or phrase from brand_context as the how_they_appear value. Do NOT paraphrase — use the actual extracted language.
+- Only if brand_context is empty or absent for a brand on a given row should you synthesise your own description based on the page title and URL pattern.
+- A how_they_appear value must NEVER say "UNATTRIBUTED", "unverified", or any placeholder — if you have no real language, omit the field entirely.
 
 TASK: Identify what the most-cited brands and pages are doing RIGHT — specific tactics, signals, and page patterns that correlate with high citation frequency.`;
 

@@ -1,0 +1,29 @@
+ooking at this carefully, the data Claude is returning is actually more complete than what your UI is displaying. Here is the full breakdown:
+What Claude returned that your UI IS showing correctly:
+
+Tactic titles and citation totals
+What these sources look like — all 5 URLs with counts and descriptions per tactic
+What they do — present for every brand every tactic
+How they appear — present for tactics 1 and 5 (partially)
+Evidence URLs — present throughout
+Strong/Partial/Weak ratings
+
+What Claude returned that your UI IS NOT showing:
+
+The How they appear line for Global Ventures in tactic 1 is completely missing from the rendered output — Claude returned nothing for it
+The actions section — entirely absent from what you shared, which means either Claude did not produce it or your UI is not rendering it
+The methodology limitations note Claude added at the bottom
+
+The bigger issue visible in this data:
+Tactics 2, 3, and 4 are essentially broken for all three brands. Every brand shows Weak with either "No verified citations available — 0" or a single unverified URL. This is run 18's web search capacity problem — Claude ran out of page visits after tactic 1 and tactic 5, leaving the middle three tactics unattributed.
+What your UI is specifically not surfacing:
+The How they appear field in tactic 1 for Shorooq returned this:
+
+"In verified sources described as seed-stage focused investor. Specific language: one of the most active venture capital firms across the Middle East and North Africa (from sadu.vc). Full verbatim quotes from all sources unavailable due to incomplete verification."
+
+That is there in the raw data but your UI appears to be hiding or truncating it. Check whether your rendering logic is suppressing How they appear when it contains the word "unavailable" or "incomplete" — that would explain why it shows for tactic 5 where the language is clean but disappears for tactic 1 where Claude flagged the limitation inline.
+The three things to fix in order:
+First — the actions section is missing entirely. Add this to your UI rendering: if the actions object exists in the JSON, always render it regardless of whether brand citation counts are UNATTRIBUTED. The actions section in run 18 had useful content for Global Ventures even though the analysis was partial.
+Second — your UI is suppressing How they appear when it contains qualification language. Either render it with a visual flag showing it is partially verified, or strip the qualification text and show just the quoted language. Either is better than hiding it.
+Third — run 18 is the wrong run to be displaying. Run 15 is your best data. The fact that your selector shows run 18 as the current view means you are showing users the weakest output. Switch the default to run 15 until the pipeline fix is in place.
+The raw data Claude is returning is actually richer than what users are seeing — the UI is filtering out the imperfect parts instead of surfacing them with appropriate labels.
