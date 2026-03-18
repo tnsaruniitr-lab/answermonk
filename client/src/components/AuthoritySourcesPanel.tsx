@@ -1466,7 +1466,81 @@ function ActionCollapseItem({
   );
 }
 
-function PriorityActionsBlock({ actionsData, quickWin }: { actionsData: any; quickWin?: string }) {
+const AUDIT_TYPE_HEX: Record<string, { bg: string; text: string }> = {
+  Government: { bg: "rgba(59,130,246,0.15)", text: "#60a5fa" },
+  News: { bg: "rgba(34,197,94,0.15)", text: "#4ade80" },
+  Brand: { bg: "rgba(236,72,153,0.15)", text: "#f472b6" },
+  Directory: { bg: "rgba(99,102,241,0.15)", text: "#818cf8" },
+  Community: { bg: "rgba(249,115,22,0.15)", text: "#fb923c" },
+  "Review Platform": { bg: "rgba(167,139,250,0.15)", text: "#a78bfa" },
+  Aggregator: { bg: "rgba(100,116,139,0.15)", text: "#94a3b8" },
+  Other: { bg: "rgba(100,116,139,0.15)", text: "#94a3b8" },
+};
+
+function AuditDefaultItem({ topSources }: { topSources: SourceEntry[] }) {
+  const [open, setOpen] = useState(false);
+  const borderCol = "rgba(20,184,166,0.3)";
+  const bgCol = "rgba(20,184,166,0.12)";
+  const textCol = "#2dd4bf";
+  const chevBg = open ? bgCol : "rgba(255,255,255,0.05)";
+  const chevBorder = open ? borderCol : "rgba(255,255,255,0.09)";
+  const top10 = topSources.slice(0, 10);
+  const maxApps = Math.max(...top10.map(s => s.appearances), 1);
+
+  return (
+    <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid ${open ? borderCol : "rgba(255,255,255,0.07)"}`, background: "rgba(20,184,166,0.03)", transition: "border-color 0.15s" }}>
+      <button onClick={() => setOpen(o => !o)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
+        <div style={{ width: 30, height: 30, borderRadius: 9, background: bgCol, border: `1px solid ${borderCol}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 13, fontWeight: 900, color: textCol }}>
+          1
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 9, fontWeight: 700, color: textCol, letterSpacing: "0.09em", textTransform: "uppercase", marginBottom: 2 }}>Standing Action · Always On</div>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0", lineHeight: 1.4 }}>Audit the authority sources shaping your AI results — then enhance and monitor your presence across them continuously</span>
+        </div>
+        <div style={{ width: 26, height: 26, borderRadius: 7, background: chevBg, border: `1px solid ${chevBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
+          <ChevronDown style={{ width: 15, height: 15, color: open ? textCol : "#64748b", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.18s, color 0.15s" }} />
+        </div>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} style={{ overflow: "hidden" }}>
+            <div style={{ padding: "4px 16px 16px 58px", borderTop: "1px solid rgba(20,184,166,0.1)", background: "rgba(20,184,166,0.02)" }}>
+              <p style={{ fontSize: 12, color: "#5eead4", lineHeight: 1.6, margin: "12px 0 14px", opacity: 0.9 }}>
+                These are the top authority sources currently shaping AI recommendations in your market. Audit your presence on each — contribute content, get cited, or build relationships with publishers — then track how your citation share shifts over time.
+              </p>
+              {top10.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 1, borderRadius: 10, overflow: "hidden", border: "1px solid rgba(20,184,166,0.12)" }}>
+                  {top10.map((s, idx) => {
+                    const typeStyle = AUDIT_TYPE_HEX[s.type] ?? AUDIT_TYPE_HEX.Other;
+                    const pct = Math.round((s.appearances / maxApps) * 100);
+                    return (
+                      <div key={s.domain} style={{ display: "grid", gridTemplateColumns: "22px 1fr auto auto", alignItems: "center", gap: 10, padding: "9px 14px", background: idx % 2 === 0 ? "rgba(20,184,166,0.04)" : "rgba(0,0,0,0.15)", borderBottom: idx < top10.length - 1 ? "1px solid rgba(20,184,166,0.06)" : "none" }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", textAlign: "right" }}>{idx + 1}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: "#cbd5e1", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.domain}</span>
+                          <span style={{ fontSize: 9, fontWeight: 700, color: typeStyle.text, background: typeStyle.bg, padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{s.type}</span>
+                        </div>
+                        <div style={{ width: 50, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden", flexShrink: 0 }}>
+                          <div style={{ width: `${pct}%`, height: "100%", borderRadius: 2, background: "rgba(20,184,166,0.55)" }} />
+                        </div>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: "#2dd4bf", minWidth: 20, textAlign: "right" }}>{s.appearances}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ fontSize: 12, color: "#475569", fontStyle: "italic" }}>No source data available for this session.</div>
+              )}
+              <div style={{ fontSize: 10, color: "#334155", marginTop: 10 }}>Sorted by citation frequency across all AI engines in this session</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function PriorityActionsBlock({ actionsData, quickWin, topSources = [] }: { actionsData: any; quickWin?: string; topSources?: SourceEntry[] }) {
   let brandActions: any[] = [];
   if (Array.isArray(actionsData)) {
     brandActions = actionsData;
@@ -1478,8 +1552,6 @@ function PriorityActionsBlock({ actionsData, quickWin }: { actionsData: any; qui
   }
 
   const qw = quickWin ?? actionsData?.quick_win_any_brand ?? actionsData?.quick_win;
-
-  if (brandActions.length === 0 && !qw) return null;
 
   return (
     <div>
@@ -1493,6 +1565,9 @@ function PriorityActionsBlock({ actionsData, quickWin }: { actionsData: any; qui
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {/* Always-on standing action */}
+        <AuditDefaultItem topSources={topSources} />
+
         {brandActions.map((action: any, i: number) => {
           const fullText: string = action.action ?? action.specific_action ?? action.recommended_action ?? action.recommendation ?? "";
           const firstSentence = fullText.split(/(?<=[.!?])\s+/)[0] ?? fullText;
@@ -1502,7 +1577,7 @@ function PriorityActionsBlock({ actionsData, quickWin }: { actionsData: any; qui
           return (
             <ActionCollapseItem
               key={i}
-              num={i + 1}
+              num={i + 2}
               summary={summary}
               detail={fullText}
               weakest={weakest}
@@ -1778,13 +1853,12 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
         </div>
       )}
 
-      {/* Priority Actions — collapsible numbered design */}
-      {(anyData.actions || anyData.gap_analysis) && (
-        <PriorityActionsBlock
-          actionsData={anyData.actions ?? anyData.gap_analysis}
-          quickWin={anyData.quick_win}
-        />
-      )}
+      {/* Priority Actions — collapsible numbered design; action 1 always present */}
+      <PriorityActionsBlock
+        actionsData={anyData.actions ?? anyData.gap_analysis ?? null}
+        quickWin={anyData.quick_win}
+        topSources={data.sources ?? []}
+      />
 
 
       {/* Unusual findings — collapsible */}
