@@ -822,7 +822,7 @@ const RANK_ACCENT: Record<number, { border: string; badge: string; badgeBg: stri
 const DEFAULT_RANK_ACCENT = { border: "#475569", badge: "rgba(71,85,105,0.18)", badgeBg: "rgba(71,85,105,0.15)", badgeText: "#94a3b8" };
 
 function TacticCard({ tactic }: { tactic: Tactic }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const anyT = tactic as any;
 
   // Normalise field names — Claude varies them across runs
@@ -865,7 +865,9 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
             {tactic.confidence && <span style={{ fontSize: 10, color: "#475569" }}>· {tactic.confidence} confidence</span>}
           </div>
         </div>
-        <ChevronDown style={{ width: 16, height: 16, color: "#475569", flexShrink: 0, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: open ? "rgba(99,102,241,0.15)" : "rgba(255,255,255,0.06)", border: `1px solid ${open ? "rgba(99,102,241,0.35)" : "rgba(255,255,255,0.1)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.2s" }}>
+          <ChevronDown style={{ width: 18, height: 18, color: open ? "#818cf8" : "#94a3b8", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s, color 0.2s" }} />
+        </div>
       </button>
 
       {/* Source domain pills — always visible below header */}
