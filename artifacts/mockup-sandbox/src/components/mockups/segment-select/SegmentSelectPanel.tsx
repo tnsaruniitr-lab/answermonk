@@ -48,7 +48,7 @@ const SEGMENTS = [
     id: "cust-0",
     label: "Financial Services Organizations",
     type: "customer",
-    promptContext: "options for Financial Services Organizations in Dubai",
+    promptContext: "finance expense tools for Financial Services Organizations in Dubai",
     promptCount: 8,
     appearance: 44,
     top3: 19,
@@ -87,8 +87,8 @@ export function SegmentSelectPanel() {
 
   return (
     <div className="min-h-screen bg-[#060c18] p-6 pt-8">
-      <p className="text-[10px] font-mono font-semibold tracking-widest uppercase text-slate-500 mb-3 px-1">
-        Select Segments to Analyse
+      <p className="text-[11px] font-mono font-semibold tracking-wider uppercase text-slate-500 mb-3 px-1">
+        Unselect a segment if you think it's irrelevant to your brand
       </p>
 
       <div className="grid grid-cols-2 gap-3 mb-4">
