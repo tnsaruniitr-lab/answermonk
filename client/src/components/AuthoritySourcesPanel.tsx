@@ -1477,15 +1477,80 @@ const AUDIT_TYPE_HEX: Record<string, { bg: string; text: string }> = {
   Other: { bg: "rgba(100,116,139,0.15)", text: "#94a3b8" },
 };
 
-function AuditDefaultItem({ topSources }: { topSources: SourceEntry[] }) {
+function AuditExpandableRow({ entry, sessionId, rank, maxApps }: {
+  entry: DomainEntry;
+  sessionId: number;
+  rank: number;
+  maxApps: number;
+}) {
   const [open, setOpen] = useState(false);
+  const { data, isFetching } = useQuery<{ urls: DomainUrl[] }>({
+    queryKey: ["/api/multi-segment-sessions", sessionId, "citation-domains", entry.domain],
+    queryFn: async () => {
+      const res = await fetch(`/api/multi-segment-sessions/${sessionId}/citation-domains/${encodeURIComponent(entry.domain)}`);
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    enabled: open,
+    staleTime: 5 * 60 * 1000,
+  });
+  const pct = maxApps > 0 ? Math.round((entry.appearances / maxApps) * 100) : 0;
+  return (
+    <div style={{ borderBottom: "1px solid rgba(20,184,166,0.06)" }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{ width: "100%", display: "grid", gridTemplateColumns: "22px 1fr auto auto 14px", alignItems: "center", gap: 10, padding: "9px 14px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}
+      >
+        <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", textAlign: "right" }}>{rank}</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: "#cbd5e1", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{entry.domain}</span>
+        <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
+          {entry.inChatgpt && <span style={{ fontSize: 9, fontWeight: 700, color: "#4ade80", background: "rgba(74,222,128,0.1)", padding: "1px 5px", borderRadius: 4 }}>GPT</span>}
+          {entry.inGemini && <span style={{ fontSize: 9, fontWeight: 700, color: "#60a5fa", background: "rgba(96,165,250,0.1)", padding: "1px 5px", borderRadius: 4 }}>Gem</span>}
+          {entry.inClaude && <span style={{ fontSize: 9, fontWeight: 700, color: "#fb923c", background: "rgba(251,146,60,0.1)", padding: "1px 5px", borderRadius: 4 }}>Cla</span>}
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#2dd4bf", minWidth: 20, textAlign: "right" }}>{entry.appearances}</span>
+        </div>
+        <div style={{ width: 44, height: 3, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden", flexShrink: 0 }}>
+          <div style={{ width: `${pct}%`, height: "100%", borderRadius: 2, background: "rgba(20,184,166,0.55)" }} />
+        </div>
+        <ChevronDown style={{ width: 11, height: 11, color: "#475569", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s", flexShrink: 0 }} />
+      </button>
+      {open && (
+        <div style={{ padding: "6px 14px 10px 44px", background: "rgba(0,0,0,0.18)", borderTop: "1px solid rgba(20,184,166,0.04)" }}>
+          {isFetching ? (
+            <p style={{ fontSize: 11, color: "#475569", margin: 0 }}>Loading URLs…</p>
+          ) : (data?.urls ?? []).length === 0 ? (
+            <p style={{ fontSize: 11, color: "#475569", margin: 0 }}>No URLs found</p>
+          ) : (data?.urls ?? []).map((u, i) => (
+            <a key={i} href={u.url} target="_blank" rel="noopener noreferrer"
+              style={{ display: "flex", alignItems: "flex-start", gap: 6, marginBottom: 5, textDecoration: "none" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: "#2dd4bf", flexShrink: 0, marginTop: 1 }}>{u.citation_count}×</span>
+              <span style={{ fontSize: 11, color: "#60a5fa", lineHeight: 1.4, wordBreak: "break-all" }}>{u.title || u.url}</span>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AuditDefaultItem({ topSources, realSources = [], brandSources = [], sessionId }: {
+  topSources: SourceEntry[];
+  realSources?: DomainEntry[];
+  brandSources?: DomainEntry[];
+  sessionId: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const borderCol = "rgba(20,184,166,0.3)";
   const bgCol = "rgba(20,184,166,0.12)";
   const textCol = "#2dd4bf";
   const chevBg = open ? bgCol : "rgba(255,255,255,0.05)";
   const chevBorder = open ? borderCol : "rgba(255,255,255,0.09)";
-  const top10 = topSources.slice(0, 10);
-  const maxApps = Math.max(...top10.map(s => s.appearances), 1);
+
+  const sources = realSources.length > 0 ? realSources : [];
+  const visible = showAll ? sources : sources.slice(0, 10);
+  const maxApps = Math.max(...sources.map(s => s.appearances), 1);
+  const brandMaxApps = Math.max(...brandSources.map(s => s.appearances), 1);
 
   return (
     <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid ${open ? borderCol : "rgba(255,255,255,0.07)"}`, background: "rgba(20,184,166,0.03)", transition: "border-color 0.15s" }}>
@@ -1497,40 +1562,82 @@ function AuditDefaultItem({ topSources }: { topSources: SourceEntry[] }) {
           <div style={{ fontSize: 9, fontWeight: 700, color: textCol, letterSpacing: "0.09em", textTransform: "uppercase", marginBottom: 2 }}>Standing Action · Always On</div>
           <span style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0", lineHeight: 1.4 }}>Audit the authority sources shaping your AI results — then enhance and monitor your presence across them continuously</span>
         </div>
-        <div style={{ width: 26, height: 26, borderRadius: 7, background: chevBg, border: `1px solid ${chevBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
-          <ChevronDown style={{ width: 15, height: 15, color: open ? textCol : "#64748b", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.18s, color 0.15s" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          {sources.length > 0 && (
+            <span style={{ fontSize: 10, fontWeight: 600, color: "#475569" }}>{sources.length} sources</span>
+          )}
+          <div style={{ width: 26, height: 26, borderRadius: 7, background: chevBg, border: `1px solid ${chevBorder}`, display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s" }}>
+            <ChevronDown style={{ width: 15, height: 15, color: open ? textCol : "#64748b", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.18s, color 0.15s" }} />
+          </div>
         </div>
       </button>
       <AnimatePresence initial={false}>
         {open && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} style={{ overflow: "hidden" }}>
-            <div style={{ padding: "4px 16px 16px 58px", borderTop: "1px solid rgba(20,184,166,0.1)", background: "rgba(20,184,166,0.02)" }}>
+            <div style={{ padding: "4px 16px 16px 16px", borderTop: "1px solid rgba(20,184,166,0.1)", background: "rgba(20,184,166,0.02)" }}>
               <p style={{ fontSize: 12, color: "#5eead4", lineHeight: 1.6, margin: "12px 0 14px", opacity: 0.9 }}>
-                These are the top authority sources currently shaping AI recommendations in your market. Audit your presence on each — contribute content, get cited, or build relationships with publishers — then track how your citation share shifts over time.
+                These are the authority sources currently shaping AI recommendations in your market — ranked by how often they are cited. Audit your presence on each, contribute content, get cited, or build relationships with publishers.
               </p>
-              {top10.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 1, borderRadius: 10, overflow: "hidden", border: "1px solid rgba(20,184,166,0.12)" }}>
-                  {top10.map((s, idx) => {
-                    const typeStyle = AUDIT_TYPE_HEX[s.type] ?? AUDIT_TYPE_HEX.Other;
-                    const pct = Math.round((s.appearances / maxApps) * 100);
-                    return (
-                      <div key={s.domain} style={{ display: "grid", gridTemplateColumns: "22px 1fr auto auto", alignItems: "center", gap: 10, padding: "9px 14px", background: idx % 2 === 0 ? "rgba(20,184,166,0.04)" : "rgba(0,0,0,0.15)", borderBottom: idx < top10.length - 1 ? "1px solid rgba(20,184,166,0.06)" : "none" }}>
-                        <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", textAlign: "right" }}>{idx + 1}</span>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: "#cbd5e1", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.domain}</span>
-                          <span style={{ fontSize: 9, fontWeight: 700, color: typeStyle.text, background: typeStyle.bg, padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{s.type}</span>
-                        </div>
-                        <div style={{ width: 50, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden", flexShrink: 0 }}>
-                          <div style={{ width: `${pct}%`, height: "100%", borderRadius: 2, background: "rgba(20,184,166,0.55)" }} />
-                        </div>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: "#2dd4bf", minWidth: 20, textAlign: "right" }}>{s.appearances}</span>
-                      </div>
-                    );
-                  })}
+
+              {/* Real authority sources table */}
+              {visible.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", borderRadius: 10, overflow: "hidden", border: "1px solid rgba(20,184,166,0.12)" }}>
+                  {/* Header */}
+                  <div style={{ display: "grid", gridTemplateColumns: "22px 1fr auto auto 14px", gap: 10, padding: "6px 14px", background: "rgba(0,0,0,0.3)", borderBottom: "1px solid rgba(20,184,166,0.1)" }}>
+                    {["#", "Domain", "Engines · Citations", "Bar", ""].map((h, hi) => (
+                      <span key={hi} style={{ fontSize: 9, fontWeight: 700, color: "#334155", letterSpacing: 1, textTransform: "uppercase" }}>{h}</span>
+                    ))}
+                  </div>
+                  {visible.map((s, idx) => (
+                    <AuditExpandableRow key={s.domain} entry={s} sessionId={sessionId} rank={idx + 1} maxApps={maxApps} />
+                  ))}
                 </div>
               ) : (
                 <div style={{ fontSize: 12, color: "#475569", fontStyle: "italic" }}>No source data available for this session.</div>
               )}
+
+              {/* Show more / show less */}
+              {sources.length > 10 && (
+                <button
+                  onClick={() => setShowAll(a => !a)}
+                  style={{ marginTop: 8, fontSize: 11, color: "#2dd4bf", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}
+                >
+                  {showAll ? "Show less" : `Show ${sources.length - 10} more sources`}
+                </button>
+              )}
+
+              {/* Brand & competitor domains block */}
+              {brandSources.length > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: "#fb7185", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+                    Brand &amp; Competitor Domains · cited by AI engines
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", borderRadius: 10, overflow: "hidden", border: "1px solid rgba(251,113,133,0.18)" }}>
+                    {brandSources.map((s, idx) => {
+                      const bPct = Math.round((s.appearances / brandMaxApps) * 100);
+                      return (
+                        <div key={s.domain} style={{ display: "grid", gridTemplateColumns: "22px 1fr auto auto", alignItems: "center", gap: 10, padding: "9px 14px", background: idx % 2 === 0 ? "rgba(251,113,133,0.04)" : "rgba(0,0,0,0.15)", borderBottom: idx < brandSources.length - 1 ? "1px solid rgba(251,113,133,0.08)" : "none" }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", textAlign: "right" }}>{idx + 1}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: "#cbd5e1", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.domain}</span>
+                            <span style={{ fontSize: 9, fontWeight: 700, color: "#fb7185", background: "rgba(251,113,133,0.12)", padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>Brand</span>
+                          </div>
+                          <div style={{ display: "flex", gap: 3 }}>
+                            {s.inChatgpt && <span style={{ fontSize: 9, fontWeight: 700, color: "#4ade80", background: "rgba(74,222,128,0.1)", padding: "1px 5px", borderRadius: 4 }}>GPT</span>}
+                            {s.inGemini && <span style={{ fontSize: 9, fontWeight: 700, color: "#60a5fa", background: "rgba(96,165,250,0.1)", padding: "1px 5px", borderRadius: 4 }}>Gem</span>}
+                            {s.inClaude && <span style={{ fontSize: 9, fontWeight: 700, color: "#fb923c", background: "rgba(251,146,60,0.1)", padding: "1px 5px", borderRadius: 4 }}>Cla</span>}
+                            <span style={{ fontSize: 11, fontWeight: 700, color: "#fb7185", minWidth: 20, textAlign: "right" }}>{s.appearances}</span>
+                          </div>
+                          <div style={{ width: 44, height: 3, borderRadius: 2, background: "rgba(251,113,133,0.1)", overflow: "hidden" }}>
+                            <div style={{ width: `${bPct}%`, height: "100%", borderRadius: 2, background: "rgba(251,113,133,0.5)" }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div style={{ fontSize: 10, color: "#334155", marginTop: 10 }}>Sorted by citation frequency across all AI engines in this session</div>
             </div>
           </motion.div>
@@ -1540,7 +1647,7 @@ function AuditDefaultItem({ topSources }: { topSources: SourceEntry[] }) {
   );
 }
 
-function PriorityActionsBlock({ actionsData, quickWin, topSources = [] }: { actionsData: any; quickWin?: string; topSources?: SourceEntry[] }) {
+function PriorityActionsBlock({ actionsData, quickWin, topSources = [], realSources = [], brandSources = [], sessionId }: { actionsData: any; quickWin?: string; topSources?: SourceEntry[]; realSources?: DomainEntry[]; brandSources?: DomainEntry[]; sessionId: number }) {
   let brandActions: any[] = [];
   if (Array.isArray(actionsData)) {
     brandActions = actionsData;
@@ -1566,7 +1673,7 @@ function PriorityActionsBlock({ actionsData, quickWin, topSources = [] }: { acti
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {/* Always-on standing action */}
-        <AuditDefaultItem topSources={topSources} />
+        <AuditDefaultItem topSources={topSources} realSources={realSources} brandSources={brandSources} sessionId={sessionId} />
 
         {brandActions.map((action: any, i: number) => {
           const fullText: string = action.action ?? action.specific_action ?? action.recommended_action ?? action.recommendation ?? "";
@@ -1618,7 +1725,7 @@ function NewSourcesTable({ sources, sessionId, maxAppearances }: { sources: Sour
   );
 }
 
-function StructuredReport({ data, sessionId }: { data: StructuredReportData; sessionId: number }) {
+function StructuredReport({ data, sessionId, authoritySources = [], brandMentions = [] }: { data: StructuredReportData; sessionId: number; authoritySources?: DomainEntry[]; brandMentions?: DomainEntry[] }) {
   const maxSourceApps = Math.max(...(data.sources?.map((s) => s.appearances) ?? [1]), 1);
   const maxChampTotal = Math.max(...(data.cross_engine_champions?.map((c) => c.total) ?? [1]), 1);
   const anyData = data as any;
@@ -1858,6 +1965,9 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
         actionsData={anyData.actions ?? anyData.gap_analysis ?? null}
         quickWin={anyData.quick_win}
         topSources={data.sources ?? []}
+        realSources={authoritySources}
+        brandSources={brandMentions}
+        sessionId={sessionId}
       />
 
 
@@ -2494,7 +2604,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
                       const parsed = JSON.parse(raw);
                       if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && Object.keys(parsed).length > 0) {
                         if (parsed.factors) return <FactorReport data={parsed} />;
-                        return <StructuredReport data={parsed as StructuredReportData} sessionId={sessionId} />;
+                        return <StructuredReport data={parsed as StructuredReportData} sessionId={sessionId} authoritySources={authoritySources} brandMentions={brandMentions} />;
                       }
                     } catch { /* fall through */ }
                     return <MarkdownReport text={displayedInsight.result_text} />;
