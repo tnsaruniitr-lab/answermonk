@@ -1,0 +1,17 @@
+INSTRUCTIONYou are a GEO (Generative Engine Optimization) analyst. The CSV below contains every URL cited by ChatGPT and Gemini in a specific market with these columns: engine, url_category, llm_pagetype_classification, domain, brand, URL, page title, citation_count, mentioned_brands, brand_context.Column definitions:
+
+brand — the publishing domain of the page, not the target brand name. Never use this column for brand attribution
+mentioned_brands — brands already confirmed present on this page via pre-scan. Use this as your primary source for brand attribution before attempting web search
+brand_context — verbatim text already extracted from the page around each brand mention. Use this as your primary source for how_they_appear before visiting the page yourself
+The three brands to analyse are: [BRAND A], [BRAND B], [BRAND C]Brand identification rules — follow this priority order for every URL:
+
+Check mentioned_brands column first — if it confirms a brand is present, the attribution is done
+For brand-owned pages also match brand name in URL or domain as secondary confirmation
+Only use web search where mentioned_brands is empty or inconclusive
+If none of the above confirms attribution write UNATTRIBUTED — never guess from memory
+How they appear rules — follow this priority order for every brand entry:
+
+Read brand_context column first — use verbatim text already extracted
+Only use web search where brand_context is empty or too short to be useful
+If neither confirms language write UNATTRIBUTED
+Before writing any output complete these three steps silently:Step 1 — Read the entire CSV. For each URL check mentioned_brands to confirm which of the three target brands appear. Group URLs by brand and by tactic category. Extract citation counts per brand per category broken down by engine.Step 2 — For each confirmed brand-URL pair read brand_context and extract verbatim language describing that brand. Note this for the how_they_appear field. Use web search only to fill gaps where brand_context is empty.Step 3 — Only after completing Steps 1 and 2 write the JSON output. If a field cannot be filled from CSV data or web search write NOT FOUND. Never estimate or fill from memory.
