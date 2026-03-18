@@ -94,7 +94,7 @@ export function HireAgentsPanel() {
     <div className="mt-8 max-w-3xl mx-auto" data-testid="hire-agents-panel">
       <div className="mb-6 text-center">
         <p className="text-xs font-semibold tracking-[0.15em] uppercase mb-1" style={{ color: "#334155" }}>
-          openclaw — AI Agent Platform
+          Specialist agents that run autonomously on your brand — on openclaw
         </p>
         <h2 className="text-2xl font-bold text-white mb-1">Hire an Agent</h2>
         <p style={{ color: "#64748b" }} className="text-sm">
