@@ -1,0 +1,193 @@
+OUTPUT STRUCTURE:
+json{
+  "summary": {
+    "total_citations": 0,
+    "domains_analysed": 0,
+    "cross_engine_brands": 0,
+    "key_finding": "single most important insight grounded in citation data — one specific sentence"
+  },
+
+  "tactics": [
+    {
+      "rank": 1,
+      "title": "Action verb phrase describing what winning brands DO — e.g. Dominate MENA VC comparison listicles — never a category label like Comparison Articles",
+      "impact": "HIGHEST | VERY HIGH | HIGH | MEDIUM | LOW",
+      "citations": 0,
+      "confidence": "HIGH | MEDIUM | LOW",
+      "mechanism": "one sentence on why AI engines respond to this specific signal",
+      "examples": [
+        {
+          "url": "exact URL from CSV",
+          "brand": "publishing domain",
+          "count": 0,
+          "description": "one sentence on what this page contains and why it earns citations"
+        },
+        {
+          "url": "exact URL from CSV",
+          "brand": "publishing domain",
+          "count": 0,
+          "description": "one sentence"
+        },
+        {
+          "url": "exact URL from CSV",
+          "brand": "publishing domain",
+          "count": 0,
+          "description": "one sentence"
+        },
+        {
+          "url": "exact URL from CSV",
+          "brand": "publishing domain",
+          "count": 0,
+          "description": "one sentence"
+        },
+        {
+          "url": "exact URL from CSV",
+          "brand": "publishing domain",
+          "count": 0,
+          "description": "one sentence"
+        }
+      ],
+      "why_it_works": [
+        "specific signal 1",
+        "specific signal 2",
+        "specific signal 3"
+      ],
+      "brand_performance": [
+        {
+          "brand": "BRAND A name",
+          "citation_count": 0,
+          "performance_rating": "Strong | Partial | Weak",
+          "what_they_do": "one sentence on how this brand specifically executes this tactic with a URL or page type reference",
+          "how_they_appear": "verbatim language from the source — copy the exact words used to describe this brand including any data points such as ticket size, deal count, fund size, ranking position. If web search unavailable write UNATTRIBUTED. If brand not found in source write NOT FOUND and explain gap.",
+          "evidence_urls": [
+            { "url": "exact URL from CSV", "count": 0 },
+            { "url": "exact URL from CSV", "count": 0 },
+            { "url": "exact URL from CSV", "count": 0 }
+          ]
+        },
+        {
+          "brand": "BRAND B name",
+          "citation_count": 0,
+          "performance_rating": "Strong | Partial | Weak",
+          "what_they_do": "one sentence",
+          "how_they_appear": "verbatim language from source",
+          "evidence_urls": [
+            { "url": "exact URL from CSV", "count": 0 },
+            { "url": "exact URL from CSV", "count": 0 },
+            { "url": "exact URL from CSV", "count": 0 }
+          ]
+        },
+        {
+          "brand": "BRAND C name",
+          "citation_count": 0,
+          "performance_rating": "Strong | Partial | Weak",
+          "what_they_do": "one sentence",
+          "how_they_appear": "verbatim language from source",
+          "evidence_urls": [
+            { "url": "exact URL from CSV", "count": 0 },
+            { "url": "exact URL from CSV", "count": 0 },
+            { "url": "exact URL from CSV", "count": 0 }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "sources": [
+    {
+      "domain": "domain",
+      "type": "Government | Directory | Community | News | Review Platform | Brand | Aggregator | Other",
+      "importance": "High | Medium | Low",
+      "appearances": 0
+    }
+  ],
+
+  "unusual_findings": [
+    {
+      "title": "short title",
+      "finding": "explanation of what is unusual and why it matters for these three brands"
+    }
+  ],
+
+  "actions": [
+    {
+      "brand": "BRAND A name",
+      "weakest_tactic": "tactic title where this brand scored lowest",
+      "weakest_tactic_citations": 0,
+      "strongest_brand_on_tactic": "brand name that scored highest on same tactic",
+      "strongest_brand_citations": 0,
+      "action": "one specific action that replicates what the stronger brand does — name the tactic, the citation gap, and the exact step"
+    },
+    {
+      "brand": "BRAND B name",
+      "weakest_tactic": "tactic title",
+      "weakest_tactic_citations": 0,
+      "strongest_brand_on_tactic": "brand name",
+      "strongest_brand_citations": 0,
+      "action": "one specific action"
+    },
+    {
+      "brand": "BRAND C name",
+      "weakest_tactic": "tactic title",
+      "weakest_tactic_citations": 0,
+      "strongest_brand_on_tactic": "brand name",
+      "strongest_brand_citations": 0,
+      "action": "one specific action"
+    }
+  ],
+
+  "quick_win": "one sentence naming a specific URL or platform from the CSV with its exact citation count and the single most actionable step any brand can take this week"
+}
+
+Rules:
+
+tactics array must contain exactly 5 entries ranked by total citation count highest to lowest
+examples array inside each tactic must contain minimum 5 real URLs from the CSV with real counts — no invented URLs
+brand_performance array inside each tactic must contain all three brands — if a brand has zero citations for that tactic explain the gap in what_they_do and write NOT FOUND in how_they_appear
+how_they_appear must be verbatim language — not a summary of what the source says but the actual words used. If web search is active copy quoted phrases directly from the page
+tactic titles must be action verb phrases — never category labels. Write what brands DO not what the content type is
+Strong = multiple cited URLs with specific brand attribution and data points, Partial = present but surface level or inconsistent, Weak = minimal citations or no direct brand attribution
+actions array must contain exactly one entry per brand — mandatory, do not end without it
+quick_win must reference a real domain and real citation count from the CSV
+If web search finds language contradicting CSV evidence write CONFLICT at the start of how_they_appear and explain both findings
+sources array should include 8 to 15 domains that shape AI knowledge in this market
+
+
+This is exactly what one completed brand_performance entry must look like — match this precision for every entry:
+json{
+  "brand": "Shorooq Partners",
+  "citation_count": 51,
+  "performance_rating": "Strong",
+  "what_they_do": "Appear consistently across top-tier MENA VC listicles in both UAE-specific and pan-regional rankings, capturing two geographic audiences simultaneously.",
+  "how_they_appear": "Described verbatim as 'one of the most active venture capital firms across the Middle East and North Africa, backed by the world's leading sovereign wealth funds' — this exact phrase is echoed across comparison sites creating citation loops where brand language transfers from their own site to aggregators to AI citations.",
+  "evidence_urls": [
+    { "url": "https://www.sadu.vc/top-10-venture-capital-firms-in-mena-2026", "count": 33 },
+    { "url": "https://www.basetemplates.com/investors/top-9-vc-investors-in-the-united-arab-emirates", "count": 10 },
+    { "url": "https://www.forbesmiddleeast.com/lists/the-middle-easts-top-venture-capitalists-2024", "count": 4 }
+  ]
+}
+
+[PASTE CSV BELOW THIS LINE]
+
+What to update in your frontend before running:
+In your DEFAULT_OUTPUT_SCHEMA constant replace the entire contents with the JSON structure above so the output editor shows the correct template.
+Add these two types to your TypeScript interfaces:
+typescriptinterface ActionEntry {
+  brand: string;
+  weakest_tactic: string;
+  weakest_tactic_citations: number;
+  strongest_brand_on_tactic: string;
+  strongest_brand_citations: number;
+  action: string;
+}
+
+interface StructuredReportData {
+  summary: ReportSummary;
+  tactics: Tactic[];
+  sources: SourceEntry[];
+  unusual_findings: UnusualFinding[];
+  actions: ActionEntry[];
+  quick_win: string;
+  page_type_distribution?: PageTypeDistribution;
+  cross_engine_champions?: CrossEngineChampion[];
+}
