@@ -592,7 +592,7 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
   const anyT = tactic as any;
 
   // Normalise field names — Claude varies them across runs
-  const rank = tactic.rank ?? anyT.tactic_number ?? 1;
+  const rank = tactic.rank ?? anyT.tactic_number ?? anyT.number ?? 1;
   const title = tactic.title ?? anyT.tactic_name ?? anyT.tactic_title ?? "Tactic";
   const citations = tactic.citations ?? anyT.total_citations ?? anyT.citation_count ?? 0;
   const mechanism = tactic.mechanism ?? anyT.why_it_works_summary ?? "";
@@ -602,13 +602,14 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
       ? [tactic.why_it_works as unknown as string]
       : [];
   const rawExamples: { url: string; count?: number; citation_count?: number; description?: string }[] =
-    tactic.examples ?? anyT.top_sources ?? [];
+    tactic.examples ?? anyT.top_sources ?? anyT.sources ?? [];
   const examples = rawExamples.map((ex: any) => ({
     url: ex.url ?? "",
     count: ex.count ?? ex.citation_count ?? 0,
     description: ex.description ?? "",
   }));
-  const brandPerf: any[] = anyT.brand_performance ?? [];
+  // Brand performance — handle multiple key name variants
+  const brandPerf: any[] = anyT.brand_performance ?? anyT.brands ?? anyT.brand_results ?? [];
 
   const impactCls = IMPACT_COLORS[tactic.impact] ?? IMPACT_COLORS.LOW;
   const barCls = IMPACT_BAR_COLORS[tactic.impact] ?? "bg-slate-400";
@@ -705,12 +706,21 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
                   <div className="text-[10px] font-bold mb-2" style={{ color: "#475569", letterSpacing: 1, textTransform: "uppercase" }}>Brand performance</div>
                   <div className="space-y-3">
                     {brandPerf.map((bp: any) => {
-                      const bName = bp.brand ?? bp.brand_name ?? "";
-                      const bCount = bp.citation_count ?? bp.tactic_citations ?? bp.citations ?? 0;
-                      const bRating = bp.performance_rating ?? "";
+                      const bName = bp.brand ?? bp.brand_name ?? bp.name ?? "";
+                      const rawCount = bp.citation_count ?? bp.tactic_citations ?? bp.citations ?? bp.appearances ?? 0;
+                      const bCount = typeof rawCount === "number" ? rawCount : (parseInt(String(rawCount)) || 0);
+                      const bRating = bp.performance_rating ?? bp.strength ?? bp.rating ?? "";
                       const bDo = bp.what_they_do ?? bp.details ?? bp.description ?? "";
                       const bAppear = bp.how_they_appear ?? "";
-                      const bEvidence: any[] = bp.evidence_urls ?? bp.evidence ?? [];
+                      // Evidence can be object array {url,count} or string array "url - count"
+                      const rawEvidence: any[] = bp.evidence_urls ?? bp.evidence ?? [];
+                      const bEvidence = rawEvidence.map((ev: any) => {
+                        if (typeof ev === "string") {
+                          const match = ev.match(/^(https?:\/\/[^\s]+)\s*-\s*(\d+)/);
+                          return match ? { url: match[1], count: parseInt(match[2]) } : { url: ev, count: 0 };
+                        }
+                        return ev;
+                      });
                       const ratingColor = bRating === "Strong" ? "#34d399" : bRating === "Partial" ? "#fbbf24" : "#f87171";
                       const ratingBg = bRating === "Strong" ? "rgba(16,185,129,0.15)" : bRating === "Partial" ? "rgba(251,191,36,0.12)" : "rgba(248,113,113,0.12)";
                       return (
@@ -936,41 +946,47 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
             {topTacticsList.map((t: any, i: number) => (
               <div key={i} style={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "14px 16px" }} className="space-y-2">
                 <div className="flex items-start gap-2">
-                  <span style={{ color: "#f97316", fontSize: 11, fontWeight: 700, flexShrink: 0, marginTop: 2 }}>#{t.rank ?? i + 1}</span>
+                  <span style={{ color: "#f97316", fontSize: 11, fontWeight: 700, flexShrink: 0, marginTop: 2 }}>#{t.rank ?? t.number ?? i + 1}</span>
                   <span style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600, lineHeight: 1.4, flex: 1 }}>{t.tactic_title ?? t.title}</span>
                   <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
                     {t.data_source && <span style={{ fontSize: 9, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: "rgba(99,102,241,0.15)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.3)" }}>{t.data_source}</span>}
-                    {t.total_citations && <span style={{ fontSize: 9, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: "rgba(16,185,129,0.12)", color: "#34d399", border: "1px solid rgba(16,185,129,0.25)" }}>{t.total_citations} citations</span>}
+                    {(t.total_citations ?? t.citations) && <span style={{ fontSize: 9, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: "rgba(16,185,129,0.12)", color: "#34d399", border: "1px solid rgba(16,185,129,0.25)" }}>{t.total_citations ?? t.citations} citations</span>}
                   </div>
                 </div>
                 {t.why_it_works && (
                   <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6, margin: 0 }}>
-                    <span style={{ color: "#cbd5e1", fontWeight: 600 }}>Why it works: </span>{t.why_it_works}
+                    <span style={{ color: "#cbd5e1", fontWeight: 600 }}>Why it works: </span>{Array.isArray(t.why_it_works) ? t.why_it_works.join(" ") : t.why_it_works}
                   </p>
                 )}
-                {t.brand_performance?.length > 0 && (
+                {(t.brand_performance ?? t.brands ?? []).length > 0 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 6 }}>
-                    {t.brand_performance.map((bp: any) => (
-                      <div key={bp.brand} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "10px 12px", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    {(t.brand_performance ?? t.brands ?? []).map((bp: any, bpi: number) => {
+                      const cBrand = bp.brand ?? bp.brand_name ?? bp.name ?? "";
+                      const cRating = bp.performance_rating ?? bp.strength ?? bp.rating ?? "";
+                      const cCount = bp.citation_count_for_tactic ?? bp.tactic_citations ?? bp.appearances ?? "";
+                      const cDesc = bp.what_they_do ?? bp.details ?? bp.description ?? "";
+                      return (
+                      <div key={cBrand || bpi} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "10px 12px", border: "1px solid rgba(255,255,255,0.07)" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 8, padding: "3px 10px" }}>
-                            <span style={{ color: "#c7d2fe", fontSize: 12, fontWeight: 700 }}>{bp.brand}</span>
+                            <span style={{ color: "#c7d2fe", fontSize: 12, fontWeight: 700 }}>{cBrand}</span>
                           </span>
-                          <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 5, background: bp.performance_rating === "Strong" ? "rgba(16,185,129,0.18)" : "rgba(251,191,36,0.14)", color: bp.performance_rating === "Strong" ? "#34d399" : "#fbbf24", fontWeight: 700, border: `1px solid ${bp.performance_rating === "Strong" ? "rgba(16,185,129,0.3)" : "rgba(251,191,36,0.25)"}` }}>{bp.performance_rating}</span>
-                          {(bp.citation_count_for_tactic ?? bp.tactic_citations) && <span style={{ fontSize: 10, color: "#475569", marginLeft: "auto", fontWeight: 600 }}>{bp.citation_count_for_tactic ?? bp.tactic_citations} cit.</span>}
+                          <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 5, background: cRating === "Strong" ? "rgba(16,185,129,0.18)" : "rgba(251,191,36,0.14)", color: cRating === "Strong" ? "#34d399" : "#fbbf24", fontWeight: 700, border: `1px solid ${cRating === "Strong" ? "rgba(16,185,129,0.3)" : "rgba(251,191,36,0.25)"}` }}>{cRating}</span>
+                          {cCount && <span style={{ fontSize: 10, color: "#475569", marginLeft: "auto", fontWeight: 600 }}>{cCount} cit.</span>}
                         </div>
-                        {(bp.details ?? bp.description) && <p style={{ fontSize: 11, color: "#64748b", lineHeight: 1.55, margin: 0 }}>{bp.details ?? bp.description}</p>}
+                        {cDesc && <p style={{ fontSize: 11, color: "#64748b", lineHeight: 1.55, margin: 0 }}>{cDesc}</p>}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
-                {t.top_examples?.length > 0 && (
+                {(t.top_examples ?? t.sources ?? t.examples ?? []).length > 0 && (
                   <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 8, marginTop: 4 }}>
                     <div style={{ fontSize: 9, fontWeight: 700, color: "#475569", letterSpacing: 1, marginBottom: 5, textTransform: "uppercase" }}>Third-party sources</div>
                     <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                      {t.top_examples.map((ex: any, j: number) => (
+                      {(t.top_examples ?? t.sources ?? t.examples ?? []).map((ex: any, j: number) => (
                         <span key={j} style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 12, background: "rgba(99,102,241,0.13)", color: "#a5b4fc", border: "1px solid rgba(99,102,241,0.28)" }}>
-                          <strong style={{ color: "#c7d2fe" }}>{ex.source ?? ex.url}</strong>{ex.citation_count ? ` · ${ex.citation_count}` : ""}
+                          <strong style={{ color: "#c7d2fe" }}>{ex.source ?? ex.url}</strong>{(ex.citation_count ?? ex.count) ? ` · ${ex.citation_count ?? ex.count}` : ""}
                         </span>
                       ))}
                     </div>
@@ -1040,7 +1056,7 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
             <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>Learnings from the top appearances · {data.tactics.length} tactics ranked by citation evidence</div>
           </div>
           <div className="space-y-2">
-            {data.tactics.map((t, i) => <TacticCard key={t.rank ?? (t as any).tactic_number ?? i} tactic={t} />)}
+            {data.tactics.map((t, i) => <TacticCard key={t.rank ?? (t as any).tactic_number ?? (t as any).number ?? i} tactic={t} />)}
           </div>
         </div>
       )}
