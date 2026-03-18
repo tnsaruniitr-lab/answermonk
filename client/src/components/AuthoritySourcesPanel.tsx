@@ -19,28 +19,37 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const DEFAULT_PROMPT_PREFIX = `You are an AI search visibility analyst reviewing citation data from a GEO (Generative Engine Optimization) study.
+const DEFAULT_PROMPT_PREFIX = `INSTRUCTION
+You are a GEO (Generative Engine Optimization) analyst. The CSV below contains every URL cited by ChatGPT and Gemini in a specific market with these columns: engine, url_category, llm_pagetype_classification, domain, brand, URL, page title, citation_count, mentioned_brands, brand_context.
 
-The CSV data below contains every URL cited by ChatGPT and Gemini when answering questions about this brand's market. Key columns:
-- engine: which AI engine cited this URL
-- url_category / llm_pagetype_classification: page type (comparison article, directory, news, brand homepage, etc.)
-- citation_count: how many times this URL was cited by AI engines
-- mentioned_brands: brands confirmed to appear on this page — pre-scanned by fetching the page content. This is your ONLY reliable source for brand attribution on third-party pages.
-- brand_context: JSON object mapping brand name → verbatim text snippet extracted from that page around the brand mention. This is the exact language the page uses to describe each brand.
+Column definitions:
 
-CRITICAL — BRAND ATTRIBUTION RULES:
-- Use the mentioned_brands column as your ONLY source of truth for which brands appear on each URL.
-- A single URL can mention multiple brands (comma-separated in mentioned_brands). Sum citation_count for each brand across all rows where that brand appears in mentioned_brands.
-- Do NOT use the "brand" column for brand attribution — it contains the publishing domain name, not the analysed brand.
-- Rows with an empty mentioned_brands column are third-party pages that confirmed none of the target brands — still use them for tactic and source analysis but do not attribute their citations to any specific brand.
+brand — the publishing domain of the page, not the target brand name. Never use this column for brand attribution
+mentioned_brands — brands already confirmed present on this page via pre-scan. Use this as your primary source for brand attribution before attempting web search
+brand_context — verbatim text already extracted from the page around each brand mention. Use this as your primary source for how_they_appear before visiting the page yourself
 
-CRITICAL — HOW THEY APPEAR RULES:
-- The brand_context column is your PRIMARY source for the how_they_appear field. It contains verbatim text scraped directly from the citing page showing exactly how each brand is described there.
-- Copy the most representative sentence or phrase from brand_context as the how_they_appear value. Do NOT paraphrase — use the actual extracted language from the page.
-- Only if brand_context is empty or absent for a brand on a given row should you synthesise a description based on the page title, URL pattern, or your own knowledge.
-- A how_they_appear value must NEVER say "UNATTRIBUTED", "unverified", or any placeholder — if you have no real language, omit the field or write what the page title implies.
+The three brands to analyse are: [BRAND A], [BRAND B], [BRAND C]
 
-TASK: Identify what the most-cited brands and pages are doing RIGHT — the specific tactics, content signals, and page patterns that correlate with high AI citation frequency. Rank by citation evidence only.`;
+Brand identification rules — follow this priority order for every URL:
+
+Check mentioned_brands column first — if it confirms a brand is present, the attribution is done
+For brand-owned pages also match brand name in URL or domain as secondary confirmation
+Only use web search where mentioned_brands is empty or inconclusive
+If none of the above confirms attribution write UNATTRIBUTED — never guess from memory
+
+How they appear rules — follow this priority order for every brand entry:
+
+Read brand_context column first — use verbatim text already extracted
+Only use web search where brand_context is empty or too short to be useful
+If neither confirms language write UNATTRIBUTED
+
+Before writing any output complete these three steps silently:
+
+Step 1 — Read the entire CSV. For each URL check mentioned_brands to confirm which of the three target brands appear. Group URLs by brand and by tactic category. Extract citation counts per brand per category broken down by engine.
+
+Step 2 — For each confirmed brand-URL pair read brand_context and extract verbatim language describing that brand. Note this for the how_they_appear field. Use web search only to fill gaps where brand_context is empty.
+
+Step 3 — Only after completing Steps 1 and 2 write the JSON output. If a field cannot be filled from CSV data or web search write NOT FOUND. Never estimate or fill from memory.`;
 
 const DEFAULT_OUTPUT_SCHEMA = `OUTPUT
 Return ONLY a valid raw JSON object. No markdown fences. No text before or after. Just the JSON.
