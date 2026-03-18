@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CrawlMissionControl } from "@/components/CrawlMissionControl";
 import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,
@@ -554,47 +555,18 @@ export function SegmentCitationAnalyzer({ brandName, sessionId, groupKey, segmen
     const stepLabel = progress ? (stepLabels[progress.step] || progress.step) : "Starting...";
     const isLost = progress?.step === "lost";
     const isError = progress?.step === "error";
-    return (
-      <Card className={`p-6 mt-4 ${isLost || isError ? "border-destructive/50" : ""}`}>
-        <div className="flex flex-col py-6 gap-4">
-          <div className="flex items-center gap-3">
-            {isLost || isError ? (
-              <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0" />
-            ) : (
-              <Loader2 className="w-5 h-5 animate-spin text-primary flex-shrink-0" />
-            )}
-            <div className="flex-1">
-              <div className="text-sm font-medium" data-testid="text-analysis-step">{stepLabel}</div>
-              {progress?.step === "crawling" && progress.crawlTotal ? (
-                <div className="flex items-center gap-3 mt-1" data-testid="crawl-live-counter">
-                  <span className="text-xs font-mono font-semibold text-primary" data-testid="crawl-done-total">
-                    {progress.crawlDone} / {progress.crawlTotal}
-                  </span>
-                  <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-0.5" data-testid="crawl-success-count">
-                    <CheckCircle2 className="w-3 h-3" />{progress.crawlSuccess} ok
-                  </span>
-                  {(progress.crawlFailed ?? 0) > 0 && (
-                    <span className="text-xs text-orange-500 flex items-center gap-0.5" data-testid="crawl-failed-count">
-                      <AlertTriangle className="w-3 h-3" />{progress.crawlFailed} failed
-                    </span>
-                  )}
-                </div>
-              ) : progress?.detail ? (
-                <div className="text-xs text-muted-foreground mt-0.5" data-testid="text-analysis-detail">{progress.detail}</div>
-              ) : null}
-            </div>
-            <div className="text-xs font-mono text-muted-foreground" data-testid="text-analysis-pct">{pct}%</div>
+    if (isLost || isError) {
+      return (
+        <Card className="p-6 mt-4 border-destructive/50">
+          <div className="flex items-center gap-3 py-4">
+            <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0" />
+            <div className="text-sm font-medium" data-testid="text-analysis-step">{stepLabel}</div>
           </div>
-          <div className="w-full h-2 bg-muted rounded-full overflow-hidden" data-testid="progress-bar-container">
-            <div
-              className="h-full bg-primary rounded-full transition-all duration-700 ease-out"
-              style={{ width: `${pct}%` }}
-              data-testid="progress-bar-fill"
-            />
-          </div>
-        </div>
-      </Card>
-    );
+        </Card>
+      );
+    }
+
+    return <CrawlMissionControl progress={progress} />;
   }
 
   if (error) {
