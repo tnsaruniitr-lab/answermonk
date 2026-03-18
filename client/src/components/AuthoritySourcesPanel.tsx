@@ -42,79 +42,153 @@ CRITICAL — HOW THEY APPEAR RULES:
 
 TASK: Identify what the most-cited brands and pages are doing RIGHT — the specific tactics, content signals, and page patterns that correlate with high AI citation frequency. Rank by citation evidence only.`;
 
-const DEFAULT_OUTPUT_SCHEMA = `Return ONLY a valid JSON object with this EXACT structure (no markdown fences, no explanation before or after — just raw JSON):
+const DEFAULT_OUTPUT_SCHEMA = `OUTPUT
+Return ONLY a valid raw JSON object. No markdown fences. No text before or after. Just the JSON.
 
 {
   "summary": {
-    "total_citations": <number — sum of all citation_count values>,
-    "domains_analysed": <number — count of unique domains>,
-    "cross_engine_brands": <number — brands appearing in BOTH ChatGPT AND Gemini>,
-    "key_finding": "<single most important insight from this data — one sentence, specific>"
+    "total_citations": 0,
+    "domains_analysed": 0,
+    "cross_engine_brands": 0,
+    "key_finding": "single most important insight grounded in citation data — one specific sentence"
   },
-  "page_type_distribution": {
-    "winner": "<page type with most citations>",
-    "winner_citations": <number>,
-    "summary": "<2-3 sentence explanation of the distribution pattern>"
-  },
-  "cross_engine_champions": [
-    { "brand": "<name>", "chatgpt": <citations in chatgpt>, "gemini": <citations in gemini>, "total": <combined total> }
-  ],
+
   "tactics": [
     {
-      "rank": <number starting at 1>,
-      "title": "<CRITICAL: write as an ACTION VERB PHRASE describing what winning brands DO — e.g. 'Dominate 10 major MENA VC comparison listicles', 'Secure mentions in high-authority startup media', 'Build exhaustive directory presence across VC databases' — NEVER use category labels like 'Comparison Articles' or 'News and PR' as the title>",
-      "impact": "<HIGHEST|VERY HIGH|HIGH|MEDIUM|LOW>",
-      "citations": <total citation count supporting this tactic>,
-      "confidence": "<HIGH|MEDIUM|LOW>",
-      "mechanism": "<paragraph explaining WHY this factor signals credibility or relevance to AI training — be specific>",
+      "rank": 1,
+      "title": "Action verb phrase describing what winning brands DO — e.g. Dominate MENA VC comparison listicles — never a category label like Comparison Articles",
+      "impact": "HIGHEST | VERY HIGH | HIGH | MEDIUM | LOW",
+      "citations": 0,
+      "confidence": "HIGH | MEDIUM | LOW",
+      "mechanism": "one sentence on why AI engines respond to this specific signal",
       "examples": [
-        { "url": "<exact URL from the CSV>", "brand": "<brand name>", "count": <citation_count number>, "description": "<one sentence on what this page contains>" }
+        { "url": "exact URL from CSV", "brand": "publishing domain", "count": 0, "description": "one sentence on what this page contains and why it earns citations" },
+        { "url": "exact URL from CSV", "brand": "publishing domain", "count": 0, "description": "one sentence" },
+        { "url": "exact URL from CSV", "brand": "publishing domain", "count": 0, "description": "one sentence" },
+        { "url": "exact URL from CSV", "brand": "publishing domain", "count": 0, "description": "one sentence" },
+        { "url": "exact URL from CSV", "brand": "publishing domain", "count": 0, "description": "one sentence" }
       ],
-      "why_it_works": ["<specific signal 1>", "<specific signal 2>", "<specific signal 3>"],
+      "why_it_works": [
+        "specific signal 1",
+        "specific signal 2",
+        "specific signal 3"
+      ],
       "brand_performance": [
         {
-          "brand": "<brand name>",
-          "citation_count": <number of citations for this tactic>,
-          "performance_rating": "<Strong|Partial|Weak>",
-          "what_they_do": "<one sentence describing exactly how this brand executes this tactic, with URL reference>",
-          "how_they_appear": "<verbatim language from the source pages describing this brand — copy exact quotes including any data points>",
+          "brand": "BRAND A name",
+          "citation_count": 0,
+          "performance_rating": "Strong | Partial | Weak",
+          "what_they_do": "one sentence on how this brand specifically executes this tactic with a URL or page type reference",
+          "how_they_appear": "verbatim language from brand_context column or web search — copy exact words including any data points such as ticket size, deal count, fund size, ranking position. Write UNATTRIBUTED if neither brand_context nor web search confirms presence. Write NOT FOUND and explain gap if brand has zero citations for this tactic.",
           "evidence_urls": [
-            { "url": "<exact URL from the CSV>", "count": <citation_count> }
+            { "url": "exact URL from CSV", "count": 0 },
+            { "url": "exact URL from CSV", "count": 0 },
+            { "url": "exact URL from CSV", "count": 0 }
+          ]
+        },
+        {
+          "brand": "BRAND B name",
+          "citation_count": 0,
+          "performance_rating": "Strong | Partial | Weak",
+          "what_they_do": "one sentence",
+          "how_they_appear": "verbatim language from brand_context or web search",
+          "evidence_urls": [
+            { "url": "exact URL from CSV", "count": 0 },
+            { "url": "exact URL from CSV", "count": 0 },
+            { "url": "exact URL from CSV", "count": 0 }
+          ]
+        },
+        {
+          "brand": "BRAND C name",
+          "citation_count": 0,
+          "performance_rating": "Strong | Partial | Weak",
+          "what_they_do": "one sentence",
+          "how_they_appear": "verbatim language from brand_context or web search",
+          "evidence_urls": [
+            { "url": "exact URL from CSV", "count": 0 },
+            { "url": "exact URL from CSV", "count": 0 },
+            { "url": "exact URL from CSV", "count": 0 }
           ]
         }
       ]
     }
   ],
+
   "sources": [
-    { "domain": "<domain>", "type": "<Government|Directory|Community|News|Review Platform|Brand|Aggregator|Other>", "importance": "<High|Medium|Low>", "appearances": <number> }
-  ],
-  "unusual_findings": [
-    { "title": "<short title>", "finding": "<explanation of what is unusual and why it matters>" }
-  ],
-  "actions": [
     {
-      "brand": "<brand name>",
-      "weakest_tactic": "<tactic title where this brand has the fewest citations>",
-      "weakest_tactic_citations": <number>,
-      "strongest_brand_on_tactic": "<which of the three brands leads on that tactic>",
-      "strongest_brand_citations": <number>,
-      "action": "<one specific action that replicates exactly what the stronger brand does — name the URL or platform>"
+      "domain": "domain",
+      "type": "Government | Directory | Community | News | Review Platform | Brand | Aggregator | Other",
+      "importance": "High | Medium | Low",
+      "appearances": 0
     }
   ],
-  "quick_win": "<one sentence naming a specific URL or platform from the CSV with its citation count and the exact step to take to get listed or cited there>"
+
+  "unusual_findings": [
+    {
+      "title": "short title",
+      "finding": "explanation of what is unusual and why it matters for these three brands"
+    }
+  ],
+
+  "actions": [
+    {
+      "brand": "BRAND A name",
+      "weakest_tactic": "tactic title where this brand scored lowest",
+      "weakest_tactic_citations": 0,
+      "strongest_brand_on_tactic": "brand name that scored highest on same tactic",
+      "strongest_brand_citations": 0,
+      "action": "one specific action that replicates what the stronger brand does — name the tactic, the citation gap, and the exact step"
+    },
+    {
+      "brand": "BRAND B name",
+      "weakest_tactic": "tactic title",
+      "weakest_tactic_citations": 0,
+      "strongest_brand_on_tactic": "brand name",
+      "strongest_brand_citations": 0,
+      "action": "one specific action"
+    },
+    {
+      "brand": "BRAND C name",
+      "weakest_tactic": "tactic title",
+      "weakest_tactic_citations": 0,
+      "strongest_brand_on_tactic": "brand name",
+      "strongest_brand_citations": 0,
+      "action": "one specific action"
+    }
+  ],
+
+  "quick_win": "one sentence naming a specific URL or platform from the CSV with its exact citation count and the single most actionable step any brand can take this week"
 }
 
-Rules for content:
-- Tactic titles MUST be action verb phrases (e.g. "Dominate MENA VC comparison articles") — never category labels
-- Base ALL rankings strictly on citation_count evidence from this CSV — no generic SEO advice
-- For tactics: rank from most to least impactful. Identify ALL meaningful tactics (typically 8-12), not just the top 4
-- Every tactic MUST have a brand_performance array with ALL three target brands, even if count is 0
-- For sources: include all notable domains that shape AI knowledge in this market (8-15 entries)
-- confidence: HIGH = 5+ brands show this pattern, MEDIUM = 3-4, LOW = 1-2
-- how_they_appear must contain specific verbatim language — not "they are mentioned" but the actual words the source uses
-- For unusual_findings: include 3-5 genuinely surprising or counterintuitive patterns
-- actions array MUST contain exactly one entry per brand (three total) — identify the single weakest tactic per brand and the most actionable replication step
-- quick_win must reference a specific domain and citation count from the CSV data`;
+OUTPUT RULES
+
+- tactics must contain exactly 5 entries ranked by total citation count highest to lowest
+- examples inside each tactic must contain minimum 5 real URLs from the CSV with real counts — no invented URLs
+- brand_performance inside each tactic must contain all three brands — if a brand has zero citations for that tactic explain the gap in what_they_do and write NOT FOUND in how_they_appear
+- how_they_appear priority: brand_context column first, web search second, UNATTRIBUTED if neither confirms presence
+- title must be an action verb phrase — never a category label. Write what brands DO not what the content type is
+- performance_rating: Strong = multiple cited URLs with specific brand attribution and data points, Partial = present but surface level, Weak = minimal citations or no direct brand attribution
+- actions must contain exactly one entry per brand — this field is mandatory, do not end output without it
+- quick_win must reference a real domain and real citation count from the CSV
+- If web search finds language contradicting brand_context write CONFLICT at the start of how_they_appear and show both versions
+- sources should include 8 to 15 domains that shape AI knowledge in this market
+
+EXAMPLE — match this precision for every brand_performance entry
+
+{
+  "brand": "Shorooq Partners",
+  "citation_count": 51,
+  "performance_rating": "Strong",
+  "what_they_do": "Appear consistently across top-tier MENA VC listicles in both UAE-specific and pan-regional rankings, capturing two geographic audiences simultaneously.",
+  "how_they_appear": "Described verbatim as 'one of the most active venture capital firms across the Middle East and North Africa, backed by the world's leading sovereign wealth funds' — this exact phrase is echoed across comparison sites creating citation loops where brand language transfers from their own site to aggregators to AI citations.",
+  "evidence_urls": [
+    { "url": "https://www.sadu.vc/top-10-venture-capital-firms-in-mena-2026", "count": 33 },
+    { "url": "https://www.basetemplates.com/investors/top-9-vc-investors-in-the-united-arab-emirates", "count": 10 },
+    { "url": "https://www.forbesmiddleeast.com/lists/the-middle-easts-top-venture-capitalists-2024", "count": 4 }
+  ]
+}
+
+[PASTE CSV BELOW THIS LINE]`;
 
 const DEFAULT_PROMPT = DEFAULT_PROMPT_PREFIX;
 
@@ -201,7 +275,7 @@ const MODEL_OPTIONS = [
   { value: "gemini-2.5-flash", label: "Gemini 2.5", desc: "Google" },
 ] as const;
 
-const CI_SETTINGS_KEY = "ci_last_settings_v2";
+const CI_SETTINGS_KEY = "ci_last_settings_v3";
 function loadCISettings() {
   try { const s = localStorage.getItem(CI_SETTINGS_KEY); return s ? JSON.parse(s) : null; } catch { return null; }
 }
