@@ -21,9 +21,26 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const DEFAULT_PROMPT_PREFIX = `You are an AI search visibility analyst reviewing citation data from a GEO (Generative Engine Optimization) study.
 
-The CSV data below contains every URL cited by ChatGPT and Gemini when answering questions about this brand's market. Each row shows: which engine cited it, the page type (human-labelled as url_category and LLM-classified as llm_pagetype_classification), the domain, the brand, the URL, the page title, and how many times it was cited (citation_count).
+The CSV data below contains every URL cited by ChatGPT and Gemini when answering questions about this brand's market. Key columns:
+- engine: which AI engine cited this URL
+- url_category / llm_pagetype_classification: page type (comparison article, directory, news, brand homepage, etc.)
+- citation_count: how many times this URL was cited by AI engines
+- mentioned_brands: brands confirmed to appear on this page — pre-scanned by fetching the page content. This is your ONLY reliable source for brand attribution on third-party pages.
+- brand_context: JSON object mapping brand name → verbatim text snippet extracted from that page around the brand mention. This is the exact language the page uses to describe each brand.
 
-TASK: Identify what the most-cited brands and pages are doing RIGHT — specific tactics, signals, and page patterns that correlate with high citation frequency.`;
+CRITICAL — BRAND ATTRIBUTION RULES:
+- Use the mentioned_brands column as your ONLY source of truth for which brands appear on each URL.
+- A single URL can mention multiple brands (comma-separated in mentioned_brands). Sum citation_count for each brand across all rows where that brand appears in mentioned_brands.
+- Do NOT use the "brand" column for brand attribution — it contains the publishing domain name, not the analysed brand.
+- Rows with an empty mentioned_brands column are third-party pages that confirmed none of the target brands — still use them for tactic and source analysis but do not attribute their citations to any specific brand.
+
+CRITICAL — HOW THEY APPEAR RULES:
+- The brand_context column is your PRIMARY source for the how_they_appear field. It contains verbatim text scraped directly from the citing page showing exactly how each brand is described there.
+- Copy the most representative sentence or phrase from brand_context as the how_they_appear value. Do NOT paraphrase — use the actual extracted language from the page.
+- Only if brand_context is empty or absent for a brand on a given row should you synthesise a description based on the page title, URL pattern, or your own knowledge.
+- A how_they_appear value must NEVER say "UNATTRIBUTED", "unverified", or any placeholder — if you have no real language, omit the field or write what the page title implies.
+
+TASK: Identify what the most-cited brands and pages are doing RIGHT — the specific tactics, content signals, and page patterns that correlate with high AI citation frequency. Rank by citation evidence only.`;
 
 const DEFAULT_OUTPUT_SCHEMA = `Return ONLY a valid JSON object with this EXACT structure (no markdown fences, no explanation before or after — just raw JSON):
 
@@ -108,7 +125,7 @@ const MODEL_OPTIONS = [
   { value: "gemini-2.5-flash", label: "Gemini 2.5", desc: "Google" },
 ] as const;
 
-const CI_SETTINGS_KEY = "ci_last_settings_v1";
+const CI_SETTINGS_KEY = "ci_last_settings_v2";
 function loadCISettings() {
   try { const s = localStorage.getItem(CI_SETTINGS_KEY); return s ? JSON.parse(s) : null; } catch { return null; }
 }
