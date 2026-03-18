@@ -173,15 +173,28 @@ export function CitationSourcesPreview({ sessionId }: Props) {
                   onClick={() => toggleDomain(s.domain)}
                   style={{
                     width: "100%",
+                    position: "relative",
                     background: isExpanded ? PODIUM_BG[i].replace("0.08", "0.14").replace("0.05", "0.1").replace("0.06", "0.1") : PODIUM_BG[i],
                     border: `1px solid ${isExpanded ? PODIUM_COLOR[i] : PODIUM_BORDER[i]}`,
                     borderRadius: 14,
-                    padding: "12px 10px",
+                    padding: "12px 10px 10px",
                     textAlign: "center",
                     cursor: "pointer",
                     transition: "all 0.15s",
                   }}
                 >
+                  {/* Top-right expand arrow */}
+                  <div style={{
+                    position: "absolute",
+                    top: 8,
+                    right: 10,
+                    fontSize: 14,
+                    color: isExpanded ? PODIUM_COLOR[i] : "rgba(255,255,255,0.45)",
+                    lineHeight: 1,
+                    transition: "transform 0.15s, color 0.15s",
+                    transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                  }}>›</div>
+
                   <div style={{ fontSize: 16, fontWeight: 900, color: PODIUM_COLOR[i], lineHeight: 1 }}>#{i + 1}</div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: "#e2e8f0", marginTop: 5, lineHeight: 1.3, wordBreak: "break-all" }}>{s.domain}</div>
                   <div style={{ fontSize: 22, fontWeight: 800, color: PODIUM_COLOR[i], marginTop: 6 }}>{s.appearances}</div>
@@ -189,8 +202,23 @@ export function CitationSourcesPreview({ sessionId }: Props) {
                   <div style={{ display: "flex", justifyContent: "center", marginTop: 8 }}>
                     <EngineBadges gpt={s.inChatgpt} gem={s.inGemini} claude={s.inClaude} />
                   </div>
-                  <div style={{ fontSize: 9, color: isExpanded ? PODIUM_COLOR[i] : "#475569", marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
-                    {isLoading ? "loading…" : isExpanded ? "▾ hide URLs" : "▸ show URLs"}
+                  {/* Show URLs CTA — white, clearly visible */}
+                  <div style={{
+                    marginTop: 10,
+                    padding: "4px 8px",
+                    borderRadius: 6,
+                    background: isExpanded ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: isExpanded ? "#f1f5f9" : "#cbd5e1",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 4,
+                  }}>
+                    <span style={{ fontSize: 11 }}>{isExpanded ? "▾" : "▸"}</span>
+                    {isLoading ? "loading…" : isExpanded ? "hide URLs" : "show URLs"}
                   </div>
                 </button>
               </div>
