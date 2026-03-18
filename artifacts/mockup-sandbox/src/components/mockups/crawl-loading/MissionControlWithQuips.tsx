@@ -150,17 +150,10 @@ export function MissionControlWithQuips() {
           padding: "10px 20px",
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          gap: 8,
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ color: "#3b82f6", fontSize: 10, fontFamily: "monospace", letterSpacing: 2 }}>NEXALYTICS GEO</span>
-            <span style={{ color: "#1e3a5f", fontSize: 10 }}>·</span>
-            <span style={{ color: "#64748b", fontSize: 10, fontFamily: "monospace" }}>CITATION INTELLIGENCE</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#ef4444", animation: "blink 0.8s infinite" }} />
-            <span style={{ color: "#ef4444", fontSize: 10, fontFamily: "monospace", letterSpacing: 1 }}>{phaseLabel}</span>
-          </div>
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#ef4444", flexShrink: 0, animation: "blink 0.8s infinite" }} />
+          <span style={{ color: "#ef4444", fontSize: 10, fontFamily: "monospace", letterSpacing: 2 }}>{phaseLabel}</span>
         </div>
 
         {/* ── MAIN PANEL ── */}
