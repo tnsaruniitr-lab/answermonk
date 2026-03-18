@@ -4020,19 +4020,22 @@ export async function registerRoutes(
       );
       if (!rows.length) { res.status(404).json({ message: "No citation data found for this session" }); return; }
 
-      // Build CSV string
-      const csvHeader = "id,session_id,engine,prompt_text,segment_persona,url,title,created_at,url_category,domain,brand,citation_count,llm_pagetype_classification,mentioned_brands,brand_context";
-      const csvRows = rows.map(r => {
-        // brand_context comes back as a JS object from JSONB — serialize it for CSV
+      // Build CSV string — cap at 800 rows (already sorted by citation_count DESC so top rows are most valuable)
+      const MAX_CSV_ROWS = 800;
+      const rowsForCsv = rows.length > MAX_CSV_ROWS ? rows.slice(0, MAX_CSV_ROWS) : rows;
+      const truncated = rows.length > MAX_CSV_ROWS;
+      const csvHeader = "engine,url_category,llm_pagetype_classification,domain,brand,url,title,citation_count,mentioned_brands,brand_context";
+      const csvRows = rowsForCsv.map(r => {
         const contextStr = r.brand_context ? JSON.stringify(r.brand_context) : "";
-        return [r.id, r.session_id, r.engine, r.prompt_text ?? "", r.segment_persona ?? "",
-         r.url ?? "", `"${(r.title ?? "").replace(/"/g, '""')}"`, r.created_at, r.url_category ?? "",
-         r.domain ?? "", r.brand ?? "", r.citation_count ?? 0, r.llm_pagetype_classification ?? "",
-         r.mentioned_brands ?? "", contextStr]
+        return [r.engine ?? "", r.url_category ?? "", r.llm_pagetype_classification ?? "",
+         r.domain ?? "", r.brand ?? "", r.url ?? "",
+         `"${(r.title ?? "").replace(/"/g, '""')}"`,
+         r.citation_count ?? 0, r.mentioned_brands ?? "", contextStr]
         .map(v => `"${String(v).replace(/"/g, '""')}"`)
         .join(",");
       });
-      const csvText = [csvHeader, ...csvRows].join("\n");
+      const truncationNote = truncated ? `\n\nNOTE: CSV truncated to top ${MAX_CSV_ROWS} rows by citation_count (${rows.length} total). All highest-cited URLs are included.` : "";
+      const csvText = [csvHeader, ...csvRows].join("\n") + truncationNote;
 
       // Replace [BRAND A/B/C] placeholders in prompt with actual top-ranked names
       function injectTopBrands(prompt: string, brands: { name: string; appearances: number }[]): string {
