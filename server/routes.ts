@@ -4021,6 +4021,32 @@ Rules for content:
             }
           }
 
+          // If Claude returned prose instead of JSON, nudge it back to JSON output
+          const looksLikeJson = resultText.trim().startsWith("{") || resultText.trim().startsWith("[");
+          if (!looksLikeJson && messages.length > 1) {
+            try {
+              messages.push({ role: "assistant", content: resultText || "Research complete." });
+              messages.push({
+                role: "user",
+                content: "Your research is complete. Now output your final analysis as a raw JSON object exactly matching the output structure specified in your original instructions. Return ONLY the JSON — no prose, no markdown fences, no explanation before or after.",
+              });
+              const finalResponse = await anthropic.messages.create({
+                model: claudeModel,
+                max_tokens: 8192,
+                messages,
+              });
+              totalInput += finalResponse.usage?.input_tokens ?? 0;
+              totalOutput += finalResponse.usage?.output_tokens ?? 0;
+              const finalText = finalResponse.content
+                .filter((b: any) => b.type === "text")
+                .map((b: any) => b.text)
+                .join("");
+              if (finalText) resultText = finalText;
+            } catch (e) {
+              console.warn("[citation-insights] JSON nudge failed:", e);
+            }
+          }
+
           inputTokens = totalInput || null;
           outputTokens = totalOutput || null;
         } else {
