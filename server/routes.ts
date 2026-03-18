@@ -4171,7 +4171,7 @@ Rules for content:
           while (maxIter-- > 0) {
             const response = await anthropic.messages.create({
               model: claudeModel,
-              max_tokens: 8192,
+              max_tokens: 16000,
               tools: [webSearchTool],
               messages,
             });
@@ -4183,6 +4183,10 @@ Rules for content:
             const textBlocks = response.content.filter((b: any) => b.type === "text");
             if (textBlocks.length > 0) resultText = textBlocks.map((b: any) => b.text).join("");
 
+            if (response.stop_reason === "max_tokens") {
+              console.warn("[citation-insights] Response truncated by max_tokens limit — output may be incomplete");
+              break;
+            }
             if (response.stop_reason === "end_turn") break;
 
             if (response.stop_reason === "tool_use") {
@@ -4207,7 +4211,7 @@ Rules for content:
               });
               const finalResponse = await anthropic.messages.create({
                 model: claudeModel,
-                max_tokens: 8192,
+                max_tokens: 16000,
                 messages,
               });
               totalInput += finalResponse.usage?.input_tokens ?? 0;
@@ -4227,7 +4231,7 @@ Rules for content:
         } else {
           const response = await anthropic.messages.create({
             model: claudeModel,
-            max_tokens: 4096,
+            max_tokens: 16000,
             messages: [{ role: "user", content: systemPrompt }],
           });
           resultText = response.content[0].type === "text" ? response.content[0].text : "";
