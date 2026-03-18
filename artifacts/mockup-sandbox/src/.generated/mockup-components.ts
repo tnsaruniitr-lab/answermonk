@@ -15,6 +15,7 @@ export const modules: ModuleMap = {
   "./components/mockups/key-finding/Glassmorphic.tsx": () => import("../components/mockups/key-finding/Glassmorphic.tsx"),
   "./components/mockups/key-finding/SignalStrip.tsx": () => import("../components/mockups/key-finding/SignalStrip.tsx"),
   "./components/mockups/landing/GeoLanding.tsx": () => import("../components/mockups/landing/GeoLanding.tsx"),
+  "./components/mockups/priority-actions/PriorityActionsDesign.tsx": () => import("../components/mockups/priority-actions/PriorityActionsDesign.tsx"),
   "./components/mockups/recent-tiles/DetailCards.tsx": () => import("../components/mockups/recent-tiles/DetailCards.tsx"),
   "./components/mockups/recent-tiles/GridCards.tsx": () => import("../components/mockups/recent-tiles/GridCards.tsx"),
   "./components/mockups/recent-tiles/ScrollStrip.tsx": () => import("../components/mockups/recent-tiles/ScrollStrip.tsx"),

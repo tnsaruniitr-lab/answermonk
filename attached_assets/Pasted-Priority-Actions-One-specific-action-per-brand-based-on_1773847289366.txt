@@ -1,0 +1,17 @@
+Priority Actions
+One specific action per brand based on weakest tactic
+Binance
+Create or commission a dedicated Wikipedia article for 'Binance FZE' or 'Binance UAE operations' with structured infobox containing VARA license VL/24/04/001, ADGM global license details, and comparison table positioning Binance.ae alongside global Binance entity — cite the gap (Rain 6 citations, Binance 4 citations) and replicate Rain's strategy of maintaining separate regional entity documentation that AI models treat as authoritative reference anchors distinct from parent company pages.
+
+Weakest tactic: Secure Wikipedia and directory listing citations as evergreen knowledge base anchors · 4 citations
+BitOasis
+Pursue joint case study publication with Fireblocks (who already lists BitOasis as customer) emphasizing specific compliance features or AED settlement infrastructure — cite the 2-citation gap (Binance 8, BitOasis 6) and replicate Binance's presence in payment gateway guides by positioning BitOasis custody/settlement tech as merchant services enabler, generating distributed citations across fintech vendor blogs beyond just exchange comparison articles.
+
+Weakest tactic: Embed into third-party infrastructure provider case studies as customer proof points · 6 citations
+Rain
+Partner with custody providers (Liminal, Copper, Fireblocks) to publish joint 'Sharia-compliant custody' or 'ADGM-licensed infrastructure' case study — close the 8-citation gap by converting Rain's regulatory differentiator (only Sharia-compliant UAE platform) into vendor co-marketing content that generates third-party citations, replicating how Binance appears in Fireblocks and payment integration guides as proof of ecosystem maturity.
+
+Weakest tactic: Embed into third-party infrastructure provider case studies as customer proof points0
+⚡ Quick Win
+Secure a case study mention in Fireblocks' UAE digital assets blog (currently 6 citations, highest in infrastructure category) by emphasizing Sharia-compliant custody integration or ADGM regulatory alignment — Rain or BitOasis can replicate Binance's strategy of appearing in this exact URL by pitching compliance differentiation narrative to Fireblocks marketing team this week, immediately capturing high-authority fintech citations.
+
