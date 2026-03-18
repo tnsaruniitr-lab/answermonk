@@ -1,0 +1,257 @@
+393 rows analysed · 43,042 / 3,569 tokens
+Re-run Analysis
+Citation Intelligence Report
+GEO Citation Analysis: MENA Venture Capital Market
+⚡
+Key Finding
+This data reveals a list-driven citation economy: AI engines overwhelmingly cite comparison articles and directories over service pages or brand homepages. The top-cited brand (Sadu) achieves 33 citations with a single "Top 10 VC firms" article—more than most individual VC firms' homepages combined. Cross-engine visibility is rare, suggesting fragmented training data.
+High-Impact Tactics (Ranked by Citation Evidence)
+16 tactics
+
+#1
+Publish Numbered "Top X" Investor Comparison Lists
+HIGHEST
+
+#2
+Create Annual/Quarterly Market Research Reports (Especially PDFs)
+VERY HIGH
+
+#3
+Build Searchable Funding/Investor Directories with Structured Data
+HIGH
+
+#4
+Publish "Active Investors in [Year]" Time-Stamped Content
+MEDIUM
+
+#5
+Embed Regional + Sector Specificity in URLs
+LOW
+
+#6
+Get Cited by LinkedIn Posts with Engagement Metrics
+LOW
+
+#7
+Leverage Wikipedia Entity Pages (for Established Brands)
+LOW
+
+#8
+Domain TLD Signals:
+LOW
+
+#9
+Geographic Naming:
+LOW
+
+#10
+Sadu.vc (33 citations)
+LOW
+
+#11
+Menagrid.co (17+5+3 = 25 total)
+LOW
+
+#12
+Founderfirst.org (16+7 = 23 total)
+LOW
+
+#13
+Magnitt.com (15+ across URLs)
+LOW
+
+#14
+For New Brands:
+LOW
+
+#15
+For Established Brands:
+LOW
+
+#16
+For Media/Research Orgs:
+LOW
+Page Type Dominance Analysis
+| Page Type | Citations | % of Total | |-----------|-----------|------------| | Comparison Article | ~180 | 38% | | Directory Listing | ~90 | 19% | | News/PR | ~110 | 23% | | Market Research | ~45 | 9% | | Brand Blog/Article | ~50 | 11% | | Brand Homepage | ~30 | 6% | | Service Pages | <10 | <2% |
+
+Key Insight: Service pages (product descriptions, "About Us") get <2% of citations. AI treats them as promotional, not informational.
+
+Cross-Engine Brand Visibility (ChatGPT AND Gemini)
+Brands cited by BOTH engines: 1. Founderfirst (16 Gemini + 7 ChatGPT = 23 total) 2. Magnitt (multiple URLs, ~15 Gemini + ~10 ChatGPT) 3. Wamda (~8 Gemini + ~6 ChatGPT) 4. Wikipedia (Gemini + ChatGPT for entity pages) 5. Enterpriseam (~6 ChatGPT across news articles)
+
+Single-engine skew: - Sadu (33), Menagrid (17), Failory (14) = Gemini-only - JETRO (7), Berkeley Haas (4) = ChatGPT-only
+
+Implication: Cross-training signals require institutional backing (universities, established media) OR multi-format content (PDF reports + comparison articles).
+
+Domain/Regional Patterns
+Why Certain Brands Dominate
+Unusual Findings
+•
+LinkedIn beats VC homepages: 6 citations from LinkedIn posts vs. 1-2 for most VC .com sites
+•
+Foreign government reports cited: JETRO (Japan) gets 7 citations for MENA data—institutional domain authority transcends geography
+•
+PDF format bias: 9 of top 30 citations are PDFs—file type signals "research"
+•
+Wikipedia as VC validator: 13 total Wikipedia citations across entities—no VC firm without a page gets cited for brand queries
+•
+Reddit/Quora cited (1-2 each): Community threads appear for "most active investors" queries—UGC matters
+•
+Single-article brands: Sadu (33), Vilcap (14), Newsandviews (14) = one URL drives all traffic
+•
+.me TLD works: Thestartupscene.me gets 12 citations—nontraditional TLDs acceptable if content strong
+What Doesn't Work (Anti-Patterns)
+•
+Brand homepages without context: Most VC firm domain.com/ pages get 0-1 citations
+•
+"About Us" pages: Zero citations despite 50+ brands having them
+•
+Press releases on brand domains: 1-2 citations max (Globenewswire beats self-hosted PR)
+•
+Social profiles (Twitter/X): Zero citations—only LinkedIn works
+•
+Paywalled content without summaries: Magnitt's premium reports cited via metadata, not full text
+Actionable GEO Playbook
+Final Insight
+Citation success = being the answer, not the asker. Sadu doesn't ask "who are the top VCs?"—it *declares* the answer in a 2026-timestamped URL. Menagrid doesn't pitch investors—it catalogs them in a searchable database. The brands winning GEO are building reference material, not marketing sites.
+
+Authority Sources
+(25)
+Competitor Brands
+(25)
+
+1
+menagrid.co
+GPT
+Gem
+33
+
+2
+wamda.com
+GPT
+Gem
+25
+
+3
+sadu.vc
+GPT
+Gem
+34
+
+4
+founderconnects.com
+GPT
+Gem
+32
+
+5
+thestartupscene.me
+GPT
+Gem
+20
+
+6
+magnitt.com
+Gem
+32
+
+7
+blog.founderfirst.org
+GPT
+Gem
+24
+
+8
+enterpriseam.com
+GPT
+24
+
+9
+shizune.co
+Gem
+28
+
+10
+fintechnews.ae
+Gem
+24
+
+11
+linkedin.com
+GPT
+24
+
+12
+newsandviews.vilcap.com
+GPT
+Gem
+16
+
+13
+tracxn.com
+Gem
+19
+
+14
+en.wikipedia.org
+GPT
+17
+
+15
+pitchbook.com
+Gem
+17
+
+16
+rasmal.com
+GPT
+Gem
+9
+
+17
+forbesmiddleeast.com
+GPT
+Gem
+12
+
+18
+failory.com
+Gem
+16
+
+19
+basetemplates.com
+Gem
+10
+
+20
+ent.news
+GPT
+9
+
+21
+hkdca.com
+Gem
+9
+
+22
+sme10x.com
+Gem
+6
+
+23
+economymiddleeast.com
+Gem
+6
+
+24
+vestbee.com
+Gem
+8
+
+25
+jetro.go.jp
+GPT
+7
+393 citation rows indexed
+Re-run Crawl
