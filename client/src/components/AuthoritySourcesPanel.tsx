@@ -284,7 +284,7 @@ const MODEL_OPTIONS = [
   { value: "gemini-2.5-flash", label: "Gemini 2.5", desc: "Google" },
 ] as const;
 
-const CI_SETTINGS_KEY = "ci_last_settings_v3";
+const CI_SETTINGS_KEY = "ci_last_settings_v4";
 function loadCISettings() {
   try { const s = localStorage.getItem(CI_SETTINGS_KEY); return s ? JSON.parse(s) : null; } catch { return null; }
 }
