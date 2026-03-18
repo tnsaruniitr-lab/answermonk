@@ -1150,51 +1150,156 @@ function LandingInner() {
         </dl>
       </section>
 
-      {/* FAQ */}
+      {/* Intelligence Brief / FAQ */}
       <section
         id="faq"
         aria-labelledby="faq-heading"
         className="relative z-10 max-w-3xl mx-auto px-6 py-16"
       >
-        <h2 id="faq-heading" className="text-2xl font-semibold text-white text-center mb-10">
-          Common questions about GEO and AI search
+        {/* Section header */}
+        <div className="flex items-center gap-3 justify-center mb-2">
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22d3ee", boxShadow: "0 0 10px #22d3ee" }} className="animate-pulse" />
+          <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.2em", color: "#22d3ee" }}>
+            AGENT INTELLIGENCE BRIEF
+          </span>
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22d3ee", boxShadow: "0 0 10px #22d3ee" }} className="animate-pulse" />
+        </div>
+        <h2 id="faq-heading" className="text-2xl font-bold text-white text-center mb-1">
+          How the agents work
         </h2>
-        <div className="space-y-6">
+        <p className="text-center text-sm mb-10" style={{ color: "#475569" }}>
+          Everything you need to brief your team before the first run.
+        </p>
+
+        <div className="space-y-4">
           {[
             {
-              q: "What is GEO (Generative Engine Optimization)?",
-              a: "GEO is the practice of optimizing a brand's presence in AI-generated search results from engines like ChatGPT, Claude, Gemini, and Perplexity. Unlike traditional SEO — which targets ranked URL lists — GEO focuses on how often and how prominently a brand is mentioned within the AI-generated answer text itself.",
+              id: "Q-001",
+              tag: "GEO",
+              color: "#6366f1",
+              q: "What does the GEO agent actually measure?",
+              a: "The GEO agent fires natural-language prompts at ChatGPT, Claude, Gemini, and Perplexity — the same way a real customer would ask. It records every brand mentioned in every response, scores their rank position and frequency, and computes an authority score for your brand against every competitor in the category. Not ranked URLs. Actual AI answer text.",
             },
             {
-              q: "How does the Prompt Network Creator (PNC) work?",
-              a: "The PNC analyzes your website to extract service types and customer segments. It then auto-generates 25–30 natural-language search prompts that a real customer might ask an AI engine — for example: \"Find the 10 most trusted [service] providers in [city]\". These prompts run against multiple AI engines and results are scored for presence, rank position, and share of voice.",
+              id: "Q-002",
+              tag: "PNC",
+              color: "#8b5cf6",
+              q: "How does the Prompt Network agent generate its queries?",
+              a: "Drop in a URL. The PNC agent reads your site, extracts your service types and customer segments, then auto-generates 25–30 real-world prompts a buyer would actually type — e.g. \"Find the 10 most trusted [service] providers in [city]\". No manual configuration. The agent builds the full prompt network before the first query fires.",
             },
             {
-              q: "What is a share-of-voice score in AI search?",
-              a: "Share of voice in AI search measures how often your brand appears in AI engine responses relative to competitors, weighted by rank position and engine importance. A score of 100 means your brand is the top-cited answer across all tested prompts and engines. A score of 0 means your brand does not appear.",
+              id: "Q-003",
+              tag: "SCORE",
+              color: "#10b981",
+              q: "What does a share-of-voice score of 100 mean?",
+              a: "100 means your brand is the top-cited answer across every prompt, every engine, every run. 0 means the AI doesn't mention you at all. Everything in between is weighted by rank position and engine importance. The score updates every time an agent run completes — it's a live signal, not a snapshot.",
             },
             {
-              q: "What are citation sources in AI search results?",
-              a: "AI engines cite external sources when generating answers. These may include review platforms (G2, Trustpilot), directories (Clutch, Yelp), industry publications, and brand websites. Nexalytics crawls and classifies these citation sources to show which third-party sites drive AI visibility for your brand and competitors.",
+              id: "Q-004",
+              tag: "CITATION",
+              color: "#f59e0b",
+              q: "What does the citation intelligence agent crawl?",
+              a: "When AI engines generate answers, they pull from external sources — Trustpilot, Clutch, G2, industry publications, directories, brand sites. The citation agent crawls every URL cited in your results, classifies the source type, and tells you which third-party platforms are deciding your AI visibility. Fix those sources, move the score.",
             },
             {
-              q: "How long does a GEO analysis take?",
-              a: "A full analysis — website extraction, prompt generation, cross-engine scoring, and report generation — typically completes in 3 to 8 minutes depending on the number of service segments and AI engine response times.",
+              id: "Q-005",
+              tag: "RUNTIME",
+              color: "#3b82f6",
+              q: "How long does a full agent run take?",
+              a: "Typically 3 to 8 minutes end-to-end — from URL drop to full scored report. That covers site extraction, prompt network generation, multi-engine firing, citation crawling, source classification, and authority scoring across all segments. The crawl phase is the variable; the agents run in parallel to keep it tight.",
             },
-          ].map(({ q, a }) => (
+          ].map(({ id, tag, color, q, a }) => (
             <article
-              key={q}
-              className="bg-[#111827]/50 border border-white/8 rounded-xl p-6 hover:border-white/15 transition-colors"
+              key={id}
+              style={{
+                background: "#060f1e",
+                border: "1px solid #1e3a5f",
+                borderRadius: 12,
+                overflow: "hidden",
+              }}
             >
-              <h3 className="text-white font-medium mb-2">{q}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">{a}</p>
+              {/* Query bar */}
+              <div style={{
+                background: "#0a1628",
+                borderBottom: "1px solid #1e3a5f",
+                padding: "8px 16px",
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+              }}>
+                <span style={{
+                  fontFamily: "monospace",
+                  fontSize: 9,
+                  color: "#334155",
+                  letterSpacing: "0.1em",
+                }}>
+                  {id}
+                </span>
+                <span style={{
+                  background: `${color}18`,
+                  border: `1px solid ${color}40`,
+                  color,
+                  fontSize: 8,
+                  fontFamily: "monospace",
+                  letterSpacing: "0.15em",
+                  padding: "2px 7px",
+                  borderRadius: 4,
+                  fontWeight: 700,
+                }}>
+                  {tag}
+                </span>
+                <span style={{ fontFamily: "monospace", fontSize: 10, color: "#334155", marginLeft: "auto" }}>
+                  RESOLVED
+                </span>
+              </div>
+
+              {/* Body */}
+              <div style={{ padding: "14px 16px" }}>
+                <h3 style={{
+                  fontFamily: "monospace",
+                  fontSize: 12,
+                  color: "#94a3b8",
+                  marginBottom: 10,
+                  letterSpacing: "0.01em",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 8,
+                }}>
+                  <span style={{ color, flexShrink: 0 }}>›</span>
+                  {q}
+                </h3>
+                <p style={{
+                  fontSize: 13,
+                  color: "#cbd5e1",
+                  lineHeight: 1.65,
+                  margin: 0,
+                  paddingLeft: 16,
+                }}>
+                  {a}
+                </p>
+              </div>
             </article>
           ))}
         </div>
       </section>
 
-      <footer className="relative z-10 border-t border-white/5 py-8 text-center text-sm text-slate-500">
-        <p>© 2026 Nexalytics GEO. All rights reserved.</p>
+      <footer style={{ borderTop: "1px solid #1e3a5f" }} className="relative z-10 py-8 text-center">
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.15em", color: "#334155" }}>
+            NEXALYTICS GEO
+          </span>
+          <span style={{ color: "#1e3a5f", fontSize: 10 }}>·</span>
+          <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.15em", color: "#334155" }}>
+            CITATION INTELLIGENCE
+          </span>
+          <span style={{ color: "#1e3a5f", fontSize: 10 }}>·</span>
+          <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.15em", color: "#334155" }}>
+            GEO SCORING
+          </span>
+        </div>
+        <p style={{ fontFamily: "monospace", fontSize: 9, color: "#1e3a5f", letterSpacing: "0.1em" }}>
+          © 2026 NEXALYTICS. ALL RIGHTS RESERVED.
+        </p>
       </footer>
     </div>
   );
