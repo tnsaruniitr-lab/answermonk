@@ -4035,15 +4035,27 @@ TASK: Identify what the most-cited brands and pages are doing RIGHT — specific
   "tactics": [
     {
       "rank": <number starting at 1>,
-      "title": "<specific actionable tactic name — not a generic principle>",
+      "title": "<CRITICAL: write as an ACTION VERB PHRASE describing what winning brands DO — e.g. 'Dominate 10 major MENA VC comparison listicles', 'Secure mentions in high-authority startup media', 'Build exhaustive directory presence across VC databases' — NEVER use category labels like 'Comparison Articles' or 'News and PR' as the title>",
       "impact": "<HIGHEST|VERY HIGH|HIGH|MEDIUM|LOW>",
       "citations": <total citation count supporting this tactic>,
       "confidence": "<HIGH|MEDIUM|LOW>",
       "mechanism": "<paragraph explaining WHY this factor signals credibility or relevance to AI training — be specific>",
       "examples": [
-        { "url": "<exact URL from the CSV>", "brand": "<brand name>", "count": <citation_count number> }
+        { "url": "<exact URL from the CSV>", "brand": "<brand name>", "count": <citation_count number>, "description": "<one sentence on what this page contains>" }
       ],
-      "why_it_works": ["<specific signal 1>", "<specific signal 2>", "<specific signal 3>"]
+      "why_it_works": ["<specific signal 1>", "<specific signal 2>", "<specific signal 3>"],
+      "brand_performance": [
+        {
+          "brand": "<brand name>",
+          "citation_count": <number of citations for this tactic>,
+          "performance_rating": "<Strong|Partial|Weak>",
+          "what_they_do": "<one sentence describing exactly how this brand executes this tactic, with URL reference>",
+          "how_they_appear": "<verbatim language from the source pages describing this brand — copy exact quotes including any data points>",
+          "evidence_urls": [
+            { "url": "<exact URL from the CSV>", "count": <citation_count> }
+          ]
+        }
+      ]
     }
   ],
   "sources": [
@@ -4055,12 +4067,13 @@ TASK: Identify what the most-cited brands and pages are doing RIGHT — specific
 }
 
 Rules for content:
+- Tactic titles MUST be action verb phrases (e.g. "Dominate MENA VC comparison articles") — never category labels
 - Base ALL rankings strictly on citation_count evidence from this CSV — no generic SEO advice
 - For tactics: rank from most to least impactful. Identify ALL meaningful tactics (typically 8-12), not just the top 4
-- For each tactic: provide 2-4 specific brand + URL examples directly from the CSV
+- Every tactic MUST have a brand_performance array with ALL three target brands, even if count is 0
 - For sources: include all notable domains that shape AI knowledge in this market (8-15 entries)
 - confidence: HIGH = 5+ brands show this pattern, MEDIUM = 3-4, LOW = 1-2
-- Be specific: "brand X does Y on page Z" not "brands should do Y"
+- how_they_appear must contain specific verbatim language — not "they are mentioned" but the actual words the source uses
 - For unusual_findings: include 3-5 genuinely surprising or counterintuitive patterns`;
 
       const instructionsText = promptOverride ?? defaultPromptPrefix;

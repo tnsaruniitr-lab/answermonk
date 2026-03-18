@@ -45,15 +45,27 @@ const DEFAULT_OUTPUT_SCHEMA = `Return ONLY a valid JSON object with this EXACT s
   "tactics": [
     {
       "rank": <number starting at 1>,
-      "title": "<specific actionable tactic name — not a generic principle>",
+      "title": "<CRITICAL: write as an ACTION VERB PHRASE describing what winning brands DO — e.g. 'Dominate 10 major MENA VC comparison listicles', 'Secure mentions in high-authority startup media', 'Build exhaustive directory presence across VC databases' — NEVER use category labels like 'Comparison Articles' or 'News and PR' as the title>",
       "impact": "<HIGHEST|VERY HIGH|HIGH|MEDIUM|LOW>",
       "citations": <total citation count supporting this tactic>,
       "confidence": "<HIGH|MEDIUM|LOW>",
       "mechanism": "<paragraph explaining WHY this factor signals credibility or relevance to AI training — be specific>",
       "examples": [
-        { "url": "<exact URL from the CSV>", "brand": "<brand name>", "count": <citation_count number> }
+        { "url": "<exact URL from the CSV>", "brand": "<brand name>", "count": <citation_count number>, "description": "<one sentence on what this page contains>" }
       ],
-      "why_it_works": ["<specific signal 1>", "<specific signal 2>", "<specific signal 3>"]
+      "why_it_works": ["<specific signal 1>", "<specific signal 2>", "<specific signal 3>"],
+      "brand_performance": [
+        {
+          "brand": "<brand name>",
+          "citation_count": <number of citations for this tactic>,
+          "performance_rating": "<Strong|Partial|Weak>",
+          "what_they_do": "<one sentence describing exactly how this brand executes this tactic, with URL reference>",
+          "how_they_appear": "<verbatim language from the source pages describing this brand — copy exact quotes including any data points>",
+          "evidence_urls": [
+            { "url": "<exact URL from the CSV>", "count": <citation_count> }
+          ]
+        }
+      ]
     }
   ],
   "sources": [
@@ -65,12 +77,13 @@ const DEFAULT_OUTPUT_SCHEMA = `Return ONLY a valid JSON object with this EXACT s
 }
 
 Rules for content:
+- Tactic titles MUST be action verb phrases (e.g. "Dominate MENA VC comparison articles") — never category labels
 - Base ALL rankings strictly on citation_count evidence from this CSV — no generic SEO advice
 - For tactics: rank from most to least impactful. Identify ALL meaningful tactics (typically 8-12), not just the top 4
-- For each tactic: provide 2-4 specific brand + URL examples directly from the CSV
+- Every tactic MUST have a brand_performance array with ALL three target brands, even if count is 0
 - For sources: include all notable domains that shape AI knowledge in this market (8-15 entries)
 - confidence: HIGH = 5+ brands show this pattern, MEDIUM = 3-4, LOW = 1-2
-- Be specific: "brand X does Y on page Z" not "brands should do Y"
+- how_they_appear must contain specific verbatim language — not "they are mentioned" but the actual words the source uses
 - For unusual_findings: include 3-5 genuinely surprising or counterintuitive patterns`;
 
 const DEFAULT_PROMPT = DEFAULT_PROMPT_PREFIX;
@@ -587,8 +600,15 @@ const SOURCE_TYPE_COLORS: Record<string, string> = {
   Other: "text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/40",
 };
 
+const RANK_ACCENT: Record<number, { border: string; badge: string; badgeBg: string; badgeText: string }> = {
+  1: { border: "#f59e0b", badge: "rgba(245,158,11,0.18)", badgeBg: "rgba(245,158,11,0.15)", badgeText: "#fbbf24" },
+  2: { border: "#6366f1", badge: "rgba(99,102,241,0.18)", badgeBg: "rgba(99,102,241,0.15)", badgeText: "#818cf8" },
+  3: { border: "#0d9488", badge: "rgba(13,148,136,0.18)", badgeBg: "rgba(13,148,136,0.15)", badgeText: "#2dd4bf" },
+};
+const DEFAULT_RANK_ACCENT = { border: "#475569", badge: "rgba(71,85,105,0.18)", badgeBg: "rgba(71,85,105,0.15)", badgeText: "#94a3b8" };
+
 function TacticCard({ tactic }: { tactic: Tactic }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const anyT = tactic as any;
 
   // Normalise field names — Claude varies them across runs
@@ -608,111 +628,109 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
     count: ex.count ?? ex.citation_count ?? 0,
     description: ex.description ?? "",
   }));
-  // Brand performance — handle multiple key name variants
   const brandPerf: any[] = anyT.brand_performance ?? anyT.brands ?? anyT.brand_results ?? [];
 
-  const impactCls = IMPACT_COLORS[tactic.impact] ?? IMPACT_COLORS.LOW;
-  const barCls = IMPACT_BAR_COLORS[tactic.impact] ?? "bg-slate-400";
+  const accent = RANK_ACCENT[rank] ?? DEFAULT_RANK_ACCENT;
 
   return (
-    <div className="border border-border/60 rounded-xl overflow-hidden">
+    <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid rgba(255,255,255,0.08)`, background: "#0b1120", borderLeft: `3px solid ${accent.border}` }}>
+      {/* Header — always visible, clickable to collapse */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/30 ${open ? "bg-secondary/20" : "bg-background"}`}
+        style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", textAlign: "left", background: "transparent", border: "none", cursor: "pointer" }}
       >
-        {/* Rank badge */}
-        <div style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, background: "rgba(251,146,60,0.15)", color: "#f97316", border: "1px solid rgba(251,146,60,0.3)", flexShrink: 0 }}>
+        <div style={{ width: 34, height: 34, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, background: accent.badgeBg, color: accent.badgeText, border: `1px solid ${accent.border}40`, flexShrink: 0 }}>
           #{rank}
         </div>
-        {/* Title + meta */}
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-semibold text-foreground leading-tight truncate">{title}</div>
-          <div className="flex items-center gap-2 mt-0.5">
-            {tactic.impact && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${impactCls}`}>{tactic.impact}</span>}
-            <span className="text-[11px] text-muted-foreground">{citations} citations</span>
-            {tactic.confidence && <span className="text-[10px] text-muted-foreground opacity-60">· {tactic.confidence} confidence</span>}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#f1f5f9", lineHeight: 1.3, marginBottom: 4 }}>{title}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: accent.badgeText }}>{citations.toLocaleString()}</span>
+            <span style={{ fontSize: 11, color: "#64748b" }}>citations</span>
+            {tactic.impact && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5, background: accent.badgeBg, color: accent.badgeText, border: `1px solid ${accent.border}40` }}>{tactic.impact}</span>}
+            {tactic.confidence && <span style={{ fontSize: 10, color: "#475569" }}>· {tactic.confidence} confidence</span>}
           </div>
         </div>
-        <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        <ChevronDown style={{ width: 16, height: 16, color: "#475569", flexShrink: 0, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
       </button>
 
-      {/* Source domain pills — always visible */}
+      {/* Source domain pills — always visible below header */}
       {examples.length > 0 && (
-        <div className="px-4 pb-2 pt-1 flex flex-wrap gap-1.5">
+        <div style={{ padding: "0 16px 12px", display: "flex", flexWrap: "wrap", gap: 6 }}>
           {examples.map((ex, i) => {
             const domain = ex.url.replace(/^https?:\/\//, "").split("/")[0];
             return (
-              <span key={i} style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 12, background: "rgba(99,102,241,0.13)", color: "#a5b4fc", border: "1px solid rgba(99,102,241,0.28)" }}>
-                <strong style={{ color: "#c7d2fe" }}>{domain}</strong> · {ex.count}
+              <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, background: "rgba(255,255,255,0.05)", color: "#94a3b8", border: "1px solid rgba(255,255,255,0.1)" }}>
+                <strong style={{ color: "#e2e8f0" }}>{domain}</strong>
+                <span style={{ color: "#475569", margin: "0 3px" }}>·</span>
+                <span style={{ color: accent.badgeText, fontWeight: 700 }}>{ex.count}</span>
               </span>
             );
           })}
         </div>
       )}
 
-      <AnimatePresence>
+      {/* Expandable body */}
+      <AnimatePresence initial={false}>
         {open && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
+            style={{ overflow: "hidden" }}
           >
-            <div className="px-4 pb-4 pt-3 border-t border-border/40 space-y-4" style={{ background: "#0a0f1e" }}>
-              {/* Mechanism / why it works string */}
-              {mechanism && <p className="text-xs leading-relaxed" style={{ color: "#94a3b8" }}>{mechanism}</p>}
+            <div style={{ padding: "16px 16px 20px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "#080e1c" }}>
 
-              {/* Why it works — array bullets */}
-              {whyItWorks.length > 0 && (
-                <div className="space-y-1">
-                  {whyItWorks.map((w, i) => (
-                    <div key={i} className="flex items-start gap-2">
-                      <span className="text-[11px] shrink-0 mt-0.5" style={{ color: "#6366f1" }}>✓</span>
-                      <span className="text-xs" style={{ color: "#94a3b8" }}>{w}</span>
+              {/* Mechanism text */}
+              {(mechanism || whyItWorks.length > 0) && (
+                <div style={{ marginBottom: 18 }}>
+                  {mechanism && <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.65, margin: "0 0 8px" }}>{mechanism}</p>}
+                  {whyItWorks.length > 0 && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                      {whyItWorks.map((w, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                          <span style={{ fontSize: 12, color: accent.badgeText, flexShrink: 0, marginTop: 2 }}>✓</span>
+                          <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5 }}>{w}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
 
               {/* Source pages with descriptions */}
-              {examples.length > 0 && (
-                <div>
-                  <div className="text-[10px] font-bold mb-2" style={{ color: "#475569", letterSpacing: 1, textTransform: "uppercase" }}>What these sources look like</div>
-                  <div className="space-y-2">
-                    {examples.map((ex, i) => (
-                      <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 10px" }}>
-                        <div className="flex items-center gap-2">
-                          <a
-                            href={ex.url.startsWith("http") ? ex.url : `https://${ex.url}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-1 min-w-0 text-[11px] hover:underline font-mono truncate"
-                            style={{ color: "#818cf8" }}
-                          >
+              {examples.some(e => e.description) && (
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#334155", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>What these sources look like</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {examples.filter(e => e.description).map((ex, i) => (
+                      <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 12px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+                        <span style={{ color: accent.badgeText, fontWeight: 700, fontSize: 12, flexShrink: 0, minWidth: 28 }}>{ex.count}</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <a href={ex.url.startsWith("http") ? ex.url : `https://${ex.url}`} target="_blank" rel="noopener noreferrer"
+                            style={{ fontSize: 11, color: "#818cf8", fontFamily: "monospace", display: "block", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {ex.url}
                           </a>
-                          <span className="text-[10px] shrink-0 font-semibold" style={{ color: "#34d399" }}>{ex.count} cit.</span>
+                          {ex.description && <p style={{ fontSize: 12, color: "#64748b", margin: 0, lineHeight: 1.5 }}>{ex.description}</p>}
                         </div>
-                        {ex.description && <p className="text-[11px] mt-1" style={{ color: "#64748b" }}>{ex.description}</p>}
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Brand performance */}
+              {/* Brand performance — the main section */}
               {brandPerf.length > 0 && (
                 <div>
-                  <div className="text-[10px] font-bold mb-2" style={{ color: "#475569", letterSpacing: 1, textTransform: "uppercase" }}>Brand performance</div>
-                  <div className="space-y-3">
-                    {brandPerf.map((bp: any) => {
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#334155", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Brand performance on this tactic</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    {brandPerf.map((bp: any, bpIdx: number) => {
                       const bName = bp.brand ?? bp.brand_name ?? bp.name ?? "";
                       const rawCount = bp.citation_count ?? bp.tactic_citations ?? bp.citations ?? bp.appearances ?? 0;
                       const bCount = typeof rawCount === "number" ? rawCount : (parseInt(String(rawCount)) || 0);
                       const bRating = bp.performance_rating ?? bp.strength ?? bp.rating ?? "";
                       const bDo = bp.what_they_do ?? bp.details ?? bp.description ?? "";
                       const bAppear = bp.how_they_appear ?? "";
-                      // Evidence can be object array {url,count} or string array "url - count"
                       const rawEvidence: any[] = bp.evidence_urls ?? bp.evidence ?? [];
                       const bEvidence = rawEvidence.map((ev: any) => {
                         if (typeof ev === "string") {
@@ -721,41 +739,63 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
                         }
                         return ev;
                       });
-                      const ratingColor = bRating === "Strong" ? "#34d399" : bRating === "Partial" ? "#fbbf24" : "#f87171";
-                      const ratingBg = bRating === "Strong" ? "rgba(16,185,129,0.15)" : bRating === "Partial" ? "rgba(251,191,36,0.12)" : "rgba(248,113,113,0.12)";
+                      const isStrong = bRating === "Strong";
+                      const isPartial = bRating === "Partial";
+                      const ratingColor = isStrong ? "#10b981" : isPartial ? "#f59e0b" : "#ef4444";
+                      const ratingBg = isStrong ? "rgba(16,185,129,0.12)" : isPartial ? "rgba(245,158,11,0.12)" : "rgba(239,68,68,0.12)";
+                      const ratingBorder = isStrong ? "rgba(16,185,129,0.3)" : isPartial ? "rgba(245,158,11,0.3)" : "rgba(239,68,68,0.3)";
+                      const bAppearClean = bAppear === "NOT FOUND - Web search not available" ? "" : bAppear;
                       return (
-                        <div key={bName} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 10, padding: "10px 12px", border: "1px solid rgba(255,255,255,0.07)" }}>
-                          <div className="flex items-center gap-2 mb-3">
-                            <span style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 8, padding: "3px 10px", fontSize: 12, fontWeight: 700, color: "#c7d2fe" }}>{bName}</span>
-                            {bCount > 0 && <span style={{ fontSize: 10, color: "#94a3b8" }}>{bCount} citations</span>}
-                            {bRating && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5, background: ratingBg, color: ratingColor, marginLeft: "auto" }}>{bRating}</span>}
+                        <div key={bName || bpIdx} style={{ background: "rgba(99,102,241,0.06)", borderRadius: 12, border: "1px solid rgba(99,102,241,0.18)", overflow: "hidden" }}>
+                          {/* Brand header row */}
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", background: "rgba(99,102,241,0.1)", borderBottom: "1px solid rgba(99,102,241,0.15)" }}>
+                            <Building2 style={{ width: 16, height: 16, color: "#818cf8", flexShrink: 0 }} />
+                            <span style={{ fontSize: 15, fontWeight: 800, color: "#c7d2fe", flex: 1, letterSpacing: 0.1 }}>{bName}</span>
+                            {bCount > 0 && (
+                              <span style={{ fontSize: 12, fontWeight: 700, color: accent.badgeText, background: accent.badgeBg, padding: "3px 10px", borderRadius: 20, border: `1px solid ${accent.border}40` }}>
+                                {bCount} citations
+                              </span>
+                            )}
+                            {bRating && (
+                              <span style={{ fontSize: 11, fontWeight: 800, padding: "4px 12px", borderRadius: 20, background: ratingBg, color: ratingColor, border: `1px solid ${ratingBorder}` }}>
+                                {bRating}
+                              </span>
+                            )}
                           </div>
-                          {bDo && (
-                            <div className="mb-2">
-                              <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5 }}>What they do: </span>
-                              <span style={{ fontSize: 11, color: "#94a3b8" }}>{bDo}</span>
-                            </div>
-                          )}
-                          {bAppear && bAppear !== "NOT FOUND - Web search not available" && (
-                            <div className="mb-2" style={{ background: "rgba(99,102,241,0.07)", borderRadius: 6, padding: "6px 8px", borderLeft: "2px solid rgba(99,102,241,0.4)" }}>
-                              <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5 }}>How they appear: </span>
-                              <span style={{ fontSize: 11, color: "#94a3b8", fontStyle: "italic" }}>{bAppear}</span>
-                            </div>
-                          )}
-                          {bEvidence.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mt-1">
-                              {bEvidence.map((ev: any, ei: number) => {
-                                const evUrl = ev.url ?? "";
-                                const evDomain = evUrl.replace(/^https?:\/\//, "").split("/")[0];
-                                const evCount = ev.citation_count ?? ev.count ?? 0;
-                                return (
-                                  <span key={ei} style={{ fontSize: 10, padding: "2px 7px", borderRadius: 10, background: "rgba(255,255,255,0.05)", color: "#64748b", border: "1px solid rgba(255,255,255,0.08)" }}>
-                                    <strong style={{ color: "#94a3b8" }}>{evDomain}</strong> · {evCount}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          )}
+                          {/* Brand body */}
+                          <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+                            {bDo && (
+                              <div>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 4 }}>What they do</span>
+                                <p style={{ fontSize: 13, color: "#cbd5e1", margin: 0, lineHeight: 1.6 }}>{bDo}</p>
+                              </div>
+                            )}
+                            {bAppearClean && (
+                              <div style={{ background: "rgba(99,102,241,0.1)", borderRadius: 8, padding: "10px 14px", borderLeft: "3px solid #6366f1" }}>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: "#6366f1", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 6 }}>How they appear</span>
+                                <p style={{ fontSize: 13, color: "#a5b4fc", margin: 0, lineHeight: 1.65, fontStyle: "italic" }}>"{bAppearClean}"</p>
+                              </div>
+                            )}
+                            {bEvidence.length > 0 && (
+                              <div>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 6 }}>Evidence</span>
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                  {bEvidence.map((ev: any, ei: number) => {
+                                    const evUrl = ev.url ?? "";
+                                    const evDomain = evUrl.replace(/^https?:\/\//, "").split("/")[0];
+                                    const evCount = ev.citation_count ?? ev.count ?? 0;
+                                    return (
+                                      <a key={ei} href={evUrl.startsWith("http") ? evUrl : `https://${evUrl}`} target="_blank" rel="noopener noreferrer"
+                                        style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, background: "rgba(255,255,255,0.05)", color: "#64748b", border: "1px solid rgba(255,255,255,0.1)", textDecoration: "none", display: "flex", alignItems: "center", gap: 5 }}>
+                                        <strong style={{ color: "#94a3b8" }}>{evDomain}</strong>
+                                        <span style={{ color: accent.badgeText, fontWeight: 700 }}>·{evCount}</span>
+                                      </a>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
