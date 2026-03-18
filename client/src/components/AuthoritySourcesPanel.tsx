@@ -759,7 +759,7 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
                       const rawEvidence: any[] = bp.evidence_urls ?? bp.evidence ?? [];
                       const bEvidence = rawEvidence.map((ev: any) => {
                         if (typeof ev === "string") {
-                          const match = ev.match(/^(https?:\/\/[^\s]+)\s*-\s*(\d+)/);
+                          const match = ev.match(/^(https?:\/\/[^\s]+)\s*[-–—]\s*(\d+)/);
                           return match ? { url: match[1], count: parseInt(match[2]) } : { url: ev, count: 0 };
                         }
                         return ev;
@@ -1199,6 +1199,57 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
           </div>
         </div>
       )}
+
+      {/* Global actions / gap_analysis section */}
+      {(anyData.actions || anyData.gap_analysis) && (() => {
+        const actionsData = anyData.actions ?? anyData.gap_analysis;
+        // Normalise to an array of brand action objects
+        let brandActions: any[] = [];
+        if (Array.isArray(actionsData)) {
+          brandActions = actionsData;
+        } else if (actionsData?.brand_specific) {
+          brandActions = Array.isArray(actionsData.brand_specific) ? actionsData.brand_specific : Object.values(actionsData.brand_specific);
+        } else if (typeof actionsData === "object") {
+          // Try to find brand-keyed entries
+          const vals = Object.values(actionsData).filter(v => typeof v === "object" && v !== null && !Array.isArray(v));
+          if (vals.length > 0) brandActions = vals as any[];
+        }
+        const quickWin = actionsData?.quick_win_any_brand ?? actionsData?.quick_win ?? anyData.quick_win;
+        return (
+          <div>
+            <div style={{ padding: "10px 16px", borderRadius: 10, background: "linear-gradient(90deg, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0.04) 100%)", border: "1px solid rgba(16,185,129,0.22)", marginBottom: 14 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0" }}>Priority Actions</div>
+              <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>One specific action per brand based on weakest tactic</div>
+            </div>
+            <div className="space-y-3">
+              {brandActions.map((action: any, i: number) => (
+                <div key={i} style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 12, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#34d399", marginBottom: 6 }}>
+                    {action.brand ?? action.brand_name ?? action.for ?? `Brand ${i + 1}`}
+                  </div>
+                  <p style={{ fontSize: 13, color: "#94a3b8", margin: 0, lineHeight: 1.6 }}>
+                    {action.action ?? action.specific_action ?? action.recommended_action ?? action.recommendation ?? ""}
+                  </p>
+                  {(action.weakest_tactic ?? action.gap) && (
+                    <div style={{ fontSize: 11, color: "#475569", marginTop: 6 }}>
+                      {action.weakest_tactic ? `Weakest tactic: ${action.weakest_tactic}` : `Gap: ${action.gap}`}
+                      {(action.weakest_tactic_citations ?? action.weakest_count) && ` · ${action.weakest_tactic_citations ?? action.weakest_count} citations`}
+                    </div>
+                  )}
+                </div>
+              ))}
+              {quickWin && (
+                <div style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.25)", borderRadius: 12, padding: "12px 16px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#fbbf24", marginBottom: 4 }}>⚡ Quick Win</div>
+                  <p style={{ fontSize: 13, color: "#fde68a", margin: 0, lineHeight: 1.6 }}>
+                    {typeof quickWin === "string" ? quickWin : quickWin?.recommendation ?? JSON.stringify(quickWin)}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Sources table */}
       {data.sources?.length > 0 && (
