@@ -1,0 +1,50 @@
+OUTPUT — write exactly this structure for all 5 tactics, then the ACTIONS section:
+
+#[number] — [Tactic title] (csv / web / csv+web)
+Why it works: One sentence on why AI engines respond to this signal.
+Total citations driving this: [number]
+What these sources look like:
+— [exact URL from CSV] — [count] — [one sentence on what this page contains]
+— [exact URL from CSV] — [count] — [one sentence]
+— [exact URL from CSV] — [count] — [one sentence]
+— [exact URL from CSV] — [count] — [one sentence]
+— [exact URL from CSV] — [count] — [one sentence]
+[BRAND A] — [citation count for this tactic] — Strong / Partial / Weak
+What they do: One sentence on how this brand executes this tactic with a specific page or URL reference.
+How they appear: The exact words used to describe this brand inside these sources — copy verbatim. Include any specific data points listed such as ticket size, deal count, fund size, or ranking position.
+Evidence: [exact URL] — [count], [exact URL] — [count], [exact URL] — [count]
+[BRAND B] — [citation count for this tactic] — Strong / Partial / Weak
+What they do: One sentence.
+How they appear: Verbatim language from the source.
+Evidence: [exact URL] — [count], [exact URL] — [count], [exact URL] — [count]
+[BRAND C] — [citation count for this tactic] — Strong / Partial / Weak
+What they do: One sentence.
+How they appear: Verbatim language from the source.
+Evidence: [exact URL] — [count], [exact URL] — [count], [exact URL] — [count]
+
+Repeat for tactics 2 through 5. Then close with:
+
+ACTIONS
+[BRAND A]: State which tactic they scored weakest on with their citation count, state what the strongest brand scored on that same tactic, give one specific action that replicates what the stronger brand does.
+[BRAND B]: Same structure.
+[BRAND C]: Same structure.
+One quick win for any brand in this market: One sentence naming a specific URL or platform from the CSV with its citation count and the exact action to take.
+
+RULES:
+
+Minimum 5 sources in What these sources look like — all real URLs from the CSV with counts
+Every brand appears in every tactic — if count is zero write NOT FOUND and explain the gap
+Strong = multiple cited URLs with specific data attribution, Partial = present but surface level, Weak = minimal or no direct brand attribution
+How they appear must contain specific language — not "they are mentioned" but the actual words the source uses about them
+If web search reveals language that contradicts CSV evidence write CONFLICT in that brand entry
+ACTIONS is mandatory — do not end the output without it
+Do not add any sections not in the format above
+
+
+This is exactly what a completed brand entry must look like — every entry must match this precision:
+Shorooq Partners — 51 citations — Strong
+What they do: Appear consistently across top-tier MENA VC listicles in both UAE-specific and pan-regional rankings, capturing two geographic audiences simultaneously.
+How they appear: Described verbatim as "one of the most active venture capital firms across the Middle East and North Africa, backed by the world's leading sovereign wealth funds" — this exact phrase is echoed across comparison sites creating citation loops where brand language transfers from their own site to aggregators to AI citations.
+Evidence: sadu.vc/top-10-venture-capital-firms-in-mena-2026 — 33, basetemplates.com/investors/top-9-vc-investors-in-the-united-arab-emirates — 10, forbesmiddleeast.com/lists/the-middle-easts-top-venture-capitalists-2024 — 4
+
+[PASTE CSV BELOW THIS LINE]
