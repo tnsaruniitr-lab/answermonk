@@ -1506,7 +1506,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
                       const raw = displayedInsight.result_text.trim()
                         .replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/, "");
                       const parsed: StructuredReportData = JSON.parse(raw);
-                      if (parsed?.tactics) return <StructuredReport data={parsed} sessionId={sessionId} />;
+                      if (parsed?.tactics || parsed?.shared_tactics || parsed?.summary) return <StructuredReport data={parsed} sessionId={sessionId} />;
                     } catch { /* fall through */ }
                     return <MarkdownReport text={displayedInsight.result_text} />;
                   })()}

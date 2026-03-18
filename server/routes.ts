@@ -4023,7 +4023,7 @@ Rules for content:
 
           // If Claude returned prose instead of JSON, nudge it back to JSON output
           const looksLikeJson = resultText.trim().startsWith("{") || resultText.trim().startsWith("[");
-          if (!looksLikeJson && messages.length > 1) {
+          if (!looksLikeJson) {
             try {
               messages.push({ role: "assistant", content: resultText || "Research complete." });
               messages.push({
