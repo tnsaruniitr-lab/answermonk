@@ -862,6 +862,34 @@ function StructuredReport({ data, sessionId }: { data: StructuredReportData; ses
           </div>
         </div>
       )}
+
+      {/* Flexible insights format — handles any numbered insight schema */}
+      {!data.tactics && !data.summary && (data as any).insights?.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-1 h-5 rounded-full bg-gradient-to-b from-primary to-violet-500" />
+            <span className="text-sm font-bold text-foreground">GEO Insights</span>
+            <span className="text-[10px] text-muted-foreground ml-1">{(data as any).insights.length} findings</span>
+          </div>
+          <div className="space-y-3">
+            {(data as any).insights.map((insight: any, i: number) => (
+              <div key={i} className="rounded-xl border border-border/60 bg-secondary/10 px-4 py-3 space-y-2">
+                <div className="flex items-start gap-2">
+                  <span className="text-[11px] font-bold text-primary shrink-0 mt-0.5">#{insight.rank ?? i + 1}</span>
+                  <span className="text-xs font-semibold text-foreground leading-snug">{insight.title}</span>
+                  {insight.evidence && (
+                    <span className="ml-auto text-[9px] font-medium px-1.5 py-0.5 rounded bg-secondary/50 text-muted-foreground shrink-0">{insight.evidence}</span>
+                  )}
+                </div>
+                {insight.what_they_do && <p className="text-xs text-muted-foreground leading-relaxed"><span className="font-medium text-foreground">What they do: </span>{insight.what_they_do}</p>}
+                {insight.why_it_works && <p className="text-xs text-muted-foreground leading-relaxed"><span className="font-medium text-foreground">Why it works: </span>{insight.why_it_works}</p>}
+                {insight.who_does_it_best && <p className="text-xs text-muted-foreground leading-relaxed"><span className="font-medium text-foreground">Who does it best: </span>{insight.who_does_it_best}</p>}
+                {insight.opportunity && <p className="text-xs text-muted-foreground leading-relaxed italic border-l-2 border-primary/30 pl-2">{insight.opportunity}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1506,7 +1534,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
                       const raw = displayedInsight.result_text.trim()
                         .replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/, "");
                       const parsed: StructuredReportData = JSON.parse(raw);
-                      if (parsed?.tactics || parsed?.shared_tactics || parsed?.summary) return <StructuredReport data={parsed} sessionId={sessionId} />;
+                      if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && Object.keys(parsed).length > 0) return <StructuredReport data={parsed} sessionId={sessionId} />;
                     } catch { /* fall through */ }
                     return <MarkdownReport text={displayedInsight.result_text} />;
                   })()}
