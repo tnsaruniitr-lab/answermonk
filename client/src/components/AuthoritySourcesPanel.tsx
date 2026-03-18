@@ -19,13 +19,13 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const DEFAULT_PROMPT = `You are an AI search visibility analyst reviewing citation data from a GEO (Generative Engine Optimization) study.
+const DEFAULT_PROMPT_PREFIX = `You are an AI search visibility analyst reviewing citation data from a GEO (Generative Engine Optimization) study.
 
 The CSV data below contains every URL cited by ChatGPT and Gemini when answering questions about this brand's market. Each row shows: which engine cited it, the page type (human-labelled as url_category and LLM-classified as llm_pagetype_classification), the domain, the brand, the URL, the page title, and how many times it was cited (citation_count).
 
-TASK: Identify what the most-cited brands and pages are doing RIGHT — specific tactics, signals, and page patterns that correlate with high citation frequency.
+TASK: Identify what the most-cited brands and pages are doing RIGHT — specific tactics, signals, and page patterns that correlate with high citation frequency.`;
 
-Return ONLY a valid JSON object with this EXACT structure (no markdown fences, no explanation before or after — just raw JSON):
+const DEFAULT_OUTPUT_SCHEMA = `Return ONLY a valid JSON object with this EXACT structure (no markdown fences, no explanation before or after — just raw JSON):
 
 {
   "summary": {
@@ -72,6 +72,8 @@ Rules for content:
 - confidence: HIGH = 5+ brands show this pattern, MEDIUM = 3-4, LOW = 1-2
 - Be specific: "brand X does Y on page Z" not "brands should do Y"
 - For unusual_findings: include 3-5 genuinely surprising or counterintuitive patterns`;
+
+const DEFAULT_PROMPT = DEFAULT_PROMPT_PREFIX;
 
 const MODEL_OPTIONS = [
   { value: "claude-haiku-3-5", label: "Claude Haiku", desc: "Fast · low cost" },
@@ -1095,8 +1097,11 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
   const autoCrawlTriggered = useRef(false);
 
   const [selectedModel, setSelectedModel] = useState<string>("claude-sonnet-4-5");
-  const [customPrompt, setCustomPrompt] = useState<string>(DEFAULT_PROMPT);
+  const [customPrompt, setCustomPrompt] = useState<string>(DEFAULT_PROMPT_PREFIX);
+  const [customOutputSchema, setCustomOutputSchema] = useState<string>(DEFAULT_OUTPUT_SCHEMA);
   const [showPromptEditor, setShowPromptEditor] = useState(false);
+  const [showOutputEditor, setShowOutputEditor] = useState(false);
+  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
   const [selectedInsightId, setSelectedInsightId] = useState<number | null>(null);
 
   // Gate check: rowCount + past insight runs
@@ -1190,7 +1195,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       const res = await apiRequest(
         "POST",
         `/api/multi-segment-sessions/${sessionId}/citation-insights`,
-        { model: selectedModel, promptOverride: customPrompt }
+        { model: selectedModel, promptOverride: customPrompt, outputSchemaOverride: customOutputSchema, webSearch: webSearchEnabled }
       );
       return res.json();
     },
@@ -1364,36 +1369,92 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
                   </div>
                 </div>
 
-                {/* Row 2: prompt editor toggle */}
-                <div>
-                  <button
-                    onClick={() => setShowPromptEditor(v => !v)}
-                    className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-                    data-testid="button-toggle-prompt-editor"
-                  >
-                    {showPromptEditor ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                    Edit prompt
-                  </button>
-                  {showPromptEditor && (
-                    <div className="mt-2 space-y-1.5">
-                      <textarea
-                        value={customPrompt}
-                        onChange={e => setCustomPrompt(e.target.value)}
-                        className="w-full h-52 text-[10px] font-mono leading-relaxed bg-background border border-border/60 rounded-lg px-3 py-2 text-foreground resize-y outline-none focus:border-primary/50"
-                        data-testid="textarea-custom-prompt"
-                        spellCheck={false}
-                      />
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setCustomPrompt(DEFAULT_PROMPT)}
-                          className="text-[10px] text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
-                        >
-                          Reset to default
-                        </button>
-                        <span className="text-[10px] text-muted-foreground/40">· CSV is always appended automatically</span>
+                {/* Row 2: prompt editor + output schema editor + web search toggle */}
+                <div className="space-y-2">
+                  {/* Web search toggle */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setWebSearchEnabled(v => !v)}
+                      className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                        webSearchEnabled
+                          ? "bg-blue-500/15 text-blue-400 border-blue-500/40"
+                          : "bg-transparent text-muted-foreground border-border/50 hover:border-foreground/40 hover:text-foreground"
+                      }`}
+                      data-testid="button-toggle-web-search"
+                      title={selectedModel.startsWith("claude") ? "Enable Anthropic web search tool" : "Web search only available for Claude models"}
+                    >
+                      <Globe className="w-3 h-3" />
+                      Web Search
+                      {webSearchEnabled && !selectedModel.startsWith("claude") && (
+                        <span className="text-orange-400 ml-0.5">· Claude only</span>
+                      )}
+                    </button>
+                    <span className="text-[10px] text-muted-foreground/50">Claude uses live search; other models use training data</span>
+                  </div>
+
+                  {/* Prompt editor toggle */}
+                  <div>
+                    <button
+                      onClick={() => setShowPromptEditor(v => !v)}
+                      className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                      data-testid="button-toggle-prompt-editor"
+                    >
+                      {showPromptEditor ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                      Edit prompt instructions
+                    </button>
+                    {showPromptEditor && (
+                      <div className="mt-2 space-y-1.5">
+                        <textarea
+                          value={customPrompt}
+                          onChange={e => setCustomPrompt(e.target.value)}
+                          className="w-full h-44 text-[10px] font-mono leading-relaxed bg-background border border-border/60 rounded-lg px-3 py-2 text-foreground resize-y outline-none focus:border-primary/50"
+                          data-testid="textarea-custom-prompt"
+                          spellCheck={false}
+                        />
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setCustomPrompt(DEFAULT_PROMPT_PREFIX)}
+                            className="text-[10px] text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                          >
+                            Reset to default
+                          </button>
+                          <span className="text-[10px] text-muted-foreground/40">· [BRAND A/B/C] are auto-filled · output schema + CSV appended automatically</span>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+
+                  {/* Output schema editor toggle */}
+                  <div>
+                    <button
+                      onClick={() => setShowOutputEditor(v => !v)}
+                      className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                      data-testid="button-toggle-output-editor"
+                    >
+                      {showOutputEditor ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                      Edit output structure
+                    </button>
+                    {showOutputEditor && (
+                      <div className="mt-2 space-y-1.5">
+                        <textarea
+                          value={customOutputSchema}
+                          onChange={e => setCustomOutputSchema(e.target.value)}
+                          className="w-full h-64 text-[10px] font-mono leading-relaxed bg-background border border-border/60 rounded-lg px-3 py-2 text-foreground resize-y outline-none focus:border-primary/50"
+                          data-testid="textarea-output-schema"
+                          spellCheck={false}
+                        />
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setCustomOutputSchema(DEFAULT_OUTPUT_SCHEMA)}
+                            className="text-[10px] text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                          >
+                            Reset to default
+                          </button>
+                          <span className="text-[10px] text-muted-foreground/40">· Defines the JSON structure returned by the AI</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Row 3: history (only when multiple runs exist) */}

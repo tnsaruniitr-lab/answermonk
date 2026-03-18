@@ -3841,7 +3841,12 @@ export async function registerRoutes(
       const sessionId = parseInt(req.params.id, 10);
       if (isNaN(sessionId)) { res.status(400).json({ message: "Invalid session ID" }); return; }
 
-      const { model, promptOverride } = z.object({ model: z.string(), promptOverride: z.string().optional() }).parse(req.body);
+      const { model, promptOverride, outputSchemaOverride, webSearch } = z.object({
+        model: z.string(),
+        promptOverride: z.string().optional(),
+        outputSchemaOverride: z.string().optional(),
+        webSearch: z.boolean().optional(),
+      }).parse(req.body);
       const { pool } = await import("./db");
 
       // Fetch all citation_urls for the session as CSV text
@@ -3913,9 +3918,9 @@ export async function registerRoutes(
 
 The CSV data below contains every URL cited by ChatGPT and Gemini when answering questions about this brand's market. Each row shows: which engine cited it, the page type (human-labelled as url_category and LLM-classified as llm_pagetype_classification), the domain, the brand, the URL, the page title, and how many times it was cited (citation_count).
 
-TASK: Identify what the most-cited brands and pages are doing RIGHT — specific tactics, signals, and page patterns that correlate with high citation frequency.
+TASK: Identify what the most-cited brands and pages are doing RIGHT — specific tactics, signals, and page patterns that correlate with high citation frequency.`;
 
-Return ONLY a valid JSON object with this EXACT structure (no markdown fences, no explanation before or after — just raw JSON):
+      const defaultOutputSchema = `Return ONLY a valid JSON object with this EXACT structure (no markdown fences, no explanation before or after — just raw JSON):
 
 {
   "summary": {
@@ -3963,8 +3968,10 @@ Rules for content:
 - Be specific: "brand X does Y on page Z" not "brands should do Y"
 - For unusual_findings: include 3-5 genuinely surprising or counterintuitive patterns`;
 
-      const promptPrefix = injectTopBrands(promptOverride ?? defaultPromptPrefix, top3Brands);
-      const systemPrompt = promptPrefix + `\n\nCSV DATA:\n${csvText}`;
+      const instructionsText = promptOverride ?? defaultPromptPrefix;
+      const schemaText = outputSchemaOverride ?? defaultOutputSchema;
+      const combined = injectTopBrands(instructionsText + "\n\n" + schemaText, top3Brands);
+      const systemPrompt = combined + `\n\nCSV DATA:\n${csvText}`;
 
       let resultText = "";
       let inputTokens: number | null = null;
@@ -3976,14 +3983,56 @@ Rules for content:
           apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY,
           baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
         });
-        const response = await anthropic.messages.create({
-          model: model === "claude-haiku-3-5" ? "claude-haiku-3-5" : "claude-sonnet-4-5",
-          max_tokens: 4096,
-          messages: [{ role: "user", content: systemPrompt }],
-        });
-        resultText = response.content[0].type === "text" ? response.content[0].text : "";
-        inputTokens = response.usage?.input_tokens ?? null;
-        outputTokens = response.usage?.output_tokens ?? null;
+        const claudeModel = model === "claude-haiku-3-5" ? "claude-haiku-3-5" : "claude-sonnet-4-5";
+
+        if (webSearch) {
+          // Multi-turn loop with Anthropic web_search tool
+          const webSearchTool = { type: "web_search_20250305" as const, name: "web_search" };
+          let messages: any[] = [{ role: "user", content: systemPrompt }];
+          let totalInput = 0;
+          let totalOutput = 0;
+          let maxIter = 12;
+
+          while (maxIter-- > 0) {
+            const response = await anthropic.messages.create({
+              model: claudeModel,
+              max_tokens: 8192,
+              tools: [webSearchTool],
+              messages,
+            });
+
+            totalInput += response.usage?.input_tokens ?? 0;
+            totalOutput += response.usage?.output_tokens ?? 0;
+
+            // Collect any text blocks in this turn
+            const textBlocks = response.content.filter((b: any) => b.type === "text");
+            if (textBlocks.length > 0) resultText = textBlocks.map((b: any) => b.text).join("");
+
+            if (response.stop_reason === "end_turn") break;
+
+            if (response.stop_reason === "tool_use") {
+              messages.push({ role: "assistant", content: response.content });
+              const toolResults = response.content
+                .filter((b: any) => b.type === "tool_use")
+                .map((b: any) => ({ type: "tool_result", tool_use_id: b.id, content: "" }));
+              messages.push({ role: "user", content: toolResults });
+            } else {
+              break;
+            }
+          }
+
+          inputTokens = totalInput || null;
+          outputTokens = totalOutput || null;
+        } else {
+          const response = await anthropic.messages.create({
+            model: claudeModel,
+            max_tokens: 4096,
+            messages: [{ role: "user", content: systemPrompt }],
+          });
+          resultText = response.content[0].type === "text" ? response.content[0].text : "";
+          inputTokens = response.usage?.input_tokens ?? null;
+          outputTokens = response.usage?.output_tokens ?? null;
+        }
       } else if (model.startsWith("gpt") || model === "gpt-4o" || model === "gpt-5.2") {
         const OpenAI = (await import("openai")).default;
         const openai = new OpenAI({
