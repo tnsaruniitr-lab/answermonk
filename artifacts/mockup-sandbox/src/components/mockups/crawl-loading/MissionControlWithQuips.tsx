@@ -153,7 +153,7 @@ export function MissionControlWithQuips() {
           gap: 8,
         }}>
           <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#ef4444", flexShrink: 0, animation: "blink 0.8s infinite" }} />
-          <span style={{ color: "#ef4444", fontSize: 10, fontFamily: "monospace", letterSpacing: 2 }}>{phaseLabel}</span>
+          <span style={{ color: "#ef4444", fontSize: 10, fontFamily: "monospace", letterSpacing: 2 }}>CRAWLING</span>
         </div>
 
         {/* ── MAIN PANEL ── */}
