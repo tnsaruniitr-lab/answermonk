@@ -42,3 +42,9 @@ id = "tk8Dj8ilSUumm5jnxqahn"
 uri = "file://citation_data_session_129.csv"
 type = "table"
 title = "Citation Data — Valeo Health Session 129 (with AI response)"
+
+[[outputs]]
+id = "_ReSPzWDQYaxh28FadQMg"
+uri = "file://citation_insights_raw.json"
+type = "unspecified"
+title = "Citation Insights — Raw Claude Output (runs 14–18)"

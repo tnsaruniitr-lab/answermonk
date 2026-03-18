@@ -744,7 +744,14 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
                       const ratingColor = isStrong ? "#10b981" : isPartial ? "#f59e0b" : "#ef4444";
                       const ratingBg = isStrong ? "rgba(16,185,129,0.12)" : isPartial ? "rgba(245,158,11,0.12)" : "rgba(239,68,68,0.12)";
                       const ratingBorder = isStrong ? "rgba(16,185,129,0.3)" : isPartial ? "rgba(245,158,11,0.3)" : "rgba(239,68,68,0.3)";
-                      const bAppearClean = bAppear === "NOT FOUND - Web search not available" ? "" : bAppear;
+                      const bAppearClean = (
+                        bAppear === "NOT FOUND - Web search not available" ||
+                        bAppear.toLowerCase().includes("unattributed") ||
+                        bAppear.toLowerCase().includes("web verification") ||
+                        bAppear.toLowerCase().includes("web search not available") ||
+                        bAppear.toLowerCase().includes("could not be verified") ||
+                        bAppear.toLowerCase().includes("not found")
+                      ) ? "" : bAppear;
                       return (
                         <div key={bName || bpIdx} style={{ background: "rgba(99,102,241,0.06)", borderRadius: 12, border: "1px solid rgba(99,102,241,0.18)", overflow: "hidden" }}>
                           {/* Brand header row */}
