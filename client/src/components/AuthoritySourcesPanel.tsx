@@ -1727,7 +1727,6 @@ function NewSourcesTable({ sources, sessionId, maxAppearances }: { sources: Sour
 
 function StructuredReport({ data, sessionId, authoritySources = [], brandMentions = [] }: { data: StructuredReportData; sessionId: number; authoritySources?: DomainEntry[]; brandMentions?: DomainEntry[] }) {
   const maxSourceApps = Math.max(...(data.sources?.map((s) => s.appearances) ?? [1]), 1);
-  const maxChampTotal = Math.max(...(data.cross_engine_champions?.map((c) => c.total) ?? [1]), 1);
   const anyData = data as any;
   const insightsList: any[] = anyData.insights ?? [];
   const topTacticsList: any[] = anyData.top_tactics ?? anyData.top_5_tactics ?? [];
@@ -1908,38 +1907,73 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
         />
       )}
 
-      {/* Page type distribution */}
-      {data.page_type_distribution?.summary && (
-        <div className="rounded-xl border border-border/50 bg-secondary/10 px-4 py-3">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-            <span className="text-[11px] font-semibold text-foreground">Page Type Distribution</span>
-            <span className="ml-auto text-[10px] text-muted-foreground">{data.page_type_distribution.winner} leads with {data.page_type_distribution.winner_citations} citations</span>
-          </div>
-          <p className="text-xs text-muted-foreground leading-relaxed">{data.page_type_distribution.summary}</p>
-        </div>
-      )}
-
-      {/* Cross-engine champions */}
-      {data.cross_engine_champions?.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-1 h-5 rounded-full bg-gradient-to-b from-primary to-violet-500" />
-            <span className="text-sm font-bold text-foreground">Cross-Engine Champions</span>
-            <span className="text-[10px] text-muted-foreground ml-1">Appear in both ChatGPT + Gemini</span>
-          </div>
-          <div className="space-y-2">
-            {data.cross_engine_champions.slice(0, 8).map((c) => (
-              <div key={c.brand} className="flex items-center gap-3">
-                <span className="text-xs font-medium text-foreground w-24 shrink-0 truncate">{c.brand}</span>
-                <div className="flex-1 flex gap-0.5 h-3 rounded-full overflow-hidden">
-                  <div className="bg-blue-500/80 rounded-l-full" style={{ width: `${(c.chatgpt / maxChampTotal) * 60}%` }} title={`ChatGPT: ${c.chatgpt}`} />
-                  <div className="bg-indigo-500/80 rounded-r-full" style={{ width: `${(c.gemini / maxChampTotal) * 60}%` }} title={`Gemini: ${c.gemini}`} />
+      {/* ── Variant B: Citation Distribution (stacked proportion bar) ── */}
+      {data.tactics?.length > 0 && (() => {
+        const TACTIC_COLORS = ["#818cf8", "#60a5fa", "#34d399", "#fbbf24", "#f87171", "#475569"];
+        const totalCitations = data.tactics.reduce((s, t) => s + (t.citations ?? 0), 0);
+        const bars = data.tactics.map((t, i) => ({
+          label: t.title ?? (t as any).tactic_name ?? `Tactic ${i + 1}`,
+          pct: totalCitations > 0 ? Math.round(((t.citations ?? 0) / totalCitations) * 100) : 0,
+          color: TACTIC_COLORS[i % TACTIC_COLORS.length],
+        })).filter((b) => b.pct > 0);
+        return (
+          <div style={{ borderRadius: 14, padding: "16px 18px", background: "#0d1526", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div style={{ display: "flex", alignItems: "center", marginBottom: 10 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", letterSpacing: "0.1em", textTransform: "uppercase" }}>Citation Distribution</span>
+              {totalCitations > 0 && (
+                <span style={{ marginLeft: "auto", fontSize: 10, color: "#475569" }}>{totalCitations.toLocaleString()} total citations</span>
+              )}
+            </div>
+            <div style={{ height: 12, borderRadius: 100, overflow: "hidden", display: "flex", gap: 2, marginBottom: 12 }}>
+              {bars.map((b) => (
+                <div key={b.label} title={`${b.label}: ${b.pct}%`} style={{ width: `${b.pct}%`, background: b.color, minWidth: 4, borderRadius: 4 }} />
+              ))}
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 18px", marginBottom: data.page_type_distribution?.summary ? 12 : 0 }}>
+              {bars.map((b) => (
+                <div key={b.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 2, background: b.color, flexShrink: 0 }} />
+                  <span style={{ fontSize: 10, color: "#94a3b8", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.label}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: "#fff" }}>{b.pct}%</span>
                 </div>
-                <span className="text-[10px] text-muted-foreground shrink-0 tabular-nums">{c.total} total</span>
-                <div className="flex gap-1 shrink-0">
-                  <span className="text-[9px] px-1 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">GPT {c.chatgpt}</span>
-                  <span className="text-[9px] px-1 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">Gem {c.gemini}</span>
+              ))}
+            </div>
+            {data.page_type_distribution?.summary && (
+              <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.65, borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 12, margin: 0 }}>
+                {data.page_type_distribution.summary}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Variant B: Cross-Engine Champions — 2×2 card grid ── */}
+      {data.cross_engine_champions?.length > 0 && (
+        <div style={{ borderRadius: 14, padding: "16px 18px", background: "#0d1526", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <div style={{ height: 4, width: 24, borderRadius: 100, background: "#3b82f6" }} />
+              <div style={{ height: 4, width: 16, borderRadius: 100, background: "#818cf8" }} />
+            </div>
+            <div>
+              <span style={{ fontSize: 16, fontWeight: 700, color: "#fff", display: "block", lineHeight: 1.25 }}>Cross-Engine Champions</span>
+              <span style={{ fontSize: 11, color: "#64748b" }}>Brands appearing in both ChatGPT + Gemini</span>
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {data.cross_engine_champions.slice(0, 4).map((c, i) => (
+              <div key={c.brand} style={{ borderRadius: 10, padding: "12px 14px", background: i === 0 ? "rgba(99,102,241,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${i === 0 ? "rgba(99,102,241,0.25)" : "rgba(255,255,255,0.07)"}` }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#f1f5f9", maxWidth: "60%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.brand}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#cbd5e1", fontVariantNumeric: "tabular-nums" }}>{c.total}</span>
+                </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, fontWeight: 600, background: "rgba(59,130,246,0.2)", color: "#93c5fd", border: "1px solid rgba(59,130,246,0.3)", display: "flex", alignItems: "center", gap: 4 }}>
+                    <span style={{ fontSize: 9, opacity: 0.7 }}>GPT</span> {c.chatgpt}
+                  </span>
+                  <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, fontWeight: 600, background: "rgba(99,102,241,0.2)", color: "#a5b4fc", border: "1px solid rgba(99,102,241,0.3)", display: "flex", alignItems: "center", gap: 4 }}>
+                    <span style={{ fontSize: 9, opacity: 0.7 }}>Gem</span> {c.gemini}
+                  </span>
                 </div>
               </div>
             ))}
@@ -1947,14 +1981,20 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
         </div>
       )}
 
-      {/* Tactics — collapsible cards */}
+      {/* ── Variant B: What matters — indigo gradient banner + expandable TacticCards ── */}
       {data.tactics?.length > 0 && (
-        <div>
-          <div style={{ padding: "10px 16px", borderRadius: 10, background: "linear-gradient(90deg, rgba(99,102,241,0.18) 0%, rgba(99,102,241,0.04) 100%)", border: "1px solid rgba(99,102,241,0.22)", marginBottom: 14 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", lineHeight: 1.3 }}>What matters in this category?</div>
-            <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>Learnings from the top appearances · {data.tactics.length} tactics ranked by citation evidence</div>
+        <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(99,102,241,0.35)" }}>
+          <div style={{ padding: "20px 22px", background: "linear-gradient(135deg,#1e1b4b 0%,#0f0c2e 100%)", display: "flex", alignItems: "center", gap: 18 }}>
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(99,102,241,0.2)", border: "1px solid rgba(99,102,241,0.35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
+              🎯
+            </div>
+            <div>
+              <p style={{ fontSize: 10, fontFamily: "monospace", letterSpacing: "0.12em", textTransform: "uppercase", color: "#818cf8", margin: "0 0 2px" }}>Ranked by citation evidence</p>
+              <h3 style={{ fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2, letterSpacing: "-0.02em", margin: 0 }}>What matters in this category?</h3>
+              <p style={{ fontSize: 12, color: "rgba(165,180,252,0.7)", marginTop: 4, marginBottom: 0 }}>{data.tactics.length} proven tactics from top-appearing brands</p>
+            </div>
           </div>
-          <div className="space-y-2">
+          <div style={{ background: "#09071f" }}>
             {data.tactics.map((t, i) => <TacticCard key={t.rank ?? (t as any).tactic_number ?? (t as any).number ?? i} tactic={t} />)}
           </div>
         </div>
