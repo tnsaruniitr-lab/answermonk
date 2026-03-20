@@ -319,10 +319,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
     <div style={{ fontFamily: "system-ui, sans-serif", marginTop: 56 }}>
       {/* Section header */}
       <div style={{ textAlign: "center", marginBottom: 24, position: "relative" }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "#8b5cf6", textTransform: "uppercase", marginBottom: 6 }}>
-          AI Directory
-        </div>
-        <h2 style={{ color: "#1e1b4b", fontSize: 20, fontWeight: 700, margin: 0 }}>
+        <h2 style={{ color: "#111827", fontSize: 24, fontWeight: 700, margin: 0 }}>
           Recent reports on most cited businesses
         </h2>
         {!isLoading && tiles.length > INITIAL_COUNT && !expanded && (
