@@ -162,7 +162,7 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
         {/* Category + time */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}>
           <span style={{
-            fontSize: 9.5, fontWeight: 700, letterSpacing: "0.06em",
+            fontSize: 10, fontWeight: 700, letterSpacing: "0.06em",
             color: accent, background: `${accent}14`,
             padding: "2px 8px", borderRadius: 4,
             maxWidth: 135, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
@@ -176,7 +176,7 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
 
         {/* Query headline */}
         <p style={{
-          color: "#111827", fontSize: 13.5, fontWeight: 700,
+          color: "#111827", fontSize: 13, fontWeight: 700,
           margin: "0 0 10px", lineHeight: 1.35,
           display: "-webkit-box", WebkitLineClamp: 2,
           WebkitBoxOrient: "vertical", overflow: "hidden",
@@ -199,7 +199,7 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
                   background: accent, borderRadius: 3, padding: "1px 5px", flexShrink: 0,
                 }}>#1</span>
                 <span style={{
-                  color: "#111827", fontSize: 13.5, fontWeight: 800,
+                  color: "#111827", fontSize: 13, fontWeight: 800,
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                 }}>
                   {displayBrand}
@@ -318,24 +318,23 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", marginTop: 56 }}>
       {/* Section header */}
-      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 20 }}>
-        <div>
-          <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", color: "#8b5cf6", textTransform: "uppercase", marginBottom: 5 }}>
-            AI Directory
-          </div>
-          <h2 style={{ color: "#1e1b4b", fontSize: 16, fontWeight: 700, margin: 0 }}>
-            Recent reports on most cited businesses
-          </h2>
+      <div style={{ textAlign: "center", marginBottom: 24, position: "relative" }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "#8b5cf6", textTransform: "uppercase", marginBottom: 6 }}>
+          AI Directory
         </div>
+        <h2 style={{ color: "#1e1b4b", fontSize: 20, fontWeight: 700, margin: 0 }}>
+          Recent reports on most cited businesses
+        </h2>
         {!isLoading && tiles.length > INITIAL_COUNT && !expanded && (
           <button
             onClick={() => setExpanded(true)}
             data-testid="button-directory-view-all"
             style={{
+              position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)",
               color: "#6366f1", fontSize: 12, fontWeight: 600,
               background: "rgba(99,102,241,0.08)",
               border: "1px solid rgba(99,102,241,0.2)",
-              borderRadius: 8, padding: "5px 14px", cursor: "pointer", flexShrink: 0,
+              borderRadius: 8, padding: "5px 14px", cursor: "pointer",
             }}
           >
             View all {tiles.length}
