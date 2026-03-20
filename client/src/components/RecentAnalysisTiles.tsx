@@ -319,9 +319,6 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
     <div style={{ fontFamily: "system-ui, sans-serif", marginTop: 56 }}>
       {/* Section header */}
       <div style={{ textAlign: "center", marginBottom: 24, position: "relative" }}>
-        <h2 style={{ color: "#111827", fontSize: 24, fontWeight: 700, margin: 0 }}>
-          Recent reports on most cited businesses
-        </h2>
         {!isLoading && tiles.length > INITIAL_COUNT && !expanded && (
           <button
             onClick={() => setExpanded(true)}

@@ -98,10 +98,6 @@ export function HireAgentsPanel() {
 
   return (
     <div className="mt-8 max-w-3xl mx-auto" data-testid="hire-agents-panel">
-      <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold mb-1" style={{ color: "#111827" }}>Hire agents to fix your brand's AI search visibility</h2>
-      </div>
-
       <div className="flex flex-col gap-3">
         {agents.map((agent) => {
           const isHovered = hovered === agent.id;
