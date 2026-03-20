@@ -458,19 +458,10 @@ function LandingInner() {
       style={{ background: "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)" }}
       data-testid="landing-page"
     >
-      {/* Aurora orbs — exact positions + colours from AuroraDrift.tsx, sizes in vw so they scale */}
-      <div
-        className="absolute top-[-10%] left-[-5%] w-[39vw] h-[39vw] pointer-events-none"
-        style={{ background: '#fbcfe8', borderRadius: '50%', filter: 'blur(100px)', opacity: 0.35 }}
-      />
-      <div
-        className="absolute top-[10%] right-[-10%] w-[47vw] h-[47vw] pointer-events-none"
-        style={{ background: '#c4b5fd', borderRadius: '50%', filter: 'blur(120px)', opacity: 0.35 }}
-      />
-      <div
-        className="absolute bottom-[-10%] left-[20%] w-[39vw] h-[39vw] pointer-events-none"
-        style={{ background: '#a7f3d0', borderRadius: '50%', filter: 'blur(100px)', opacity: 0.35 }}
-      />
+      {/* Aurora orbs — vh-based positions so they stay in the hero viewport regardless of doc height */}
+      <div style={{ position: 'absolute', top: '-10vh', left: '-5vw', width: '39vw', height: '39vw', background: '#fbcfe8', borderRadius: '50%', filter: 'blur(100px)', opacity: 0.35, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: '10vh', right: '-10vw', width: '47vw', height: '47vw', background: '#c4b5fd', borderRadius: '50%', filter: 'blur(120px)', opacity: 0.35, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: '44vh', left: '20vw', width: '39vw', height: '39vw', background: '#a7f3d0', borderRadius: '50%', filter: 'blur(100px)', opacity: 0.35, pointerEvents: 'none' }} />
 
       {/* Nav — matches mockup exactly */}
       <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between relative z-10">
