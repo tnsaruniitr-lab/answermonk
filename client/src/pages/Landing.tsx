@@ -80,29 +80,31 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
   return (
     <div
       onClick={isSelectable ? onToggle : undefined}
-      className="border rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 transition-all"
+      className="rounded-2xl border overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 transition-all"
       style={{
-        background: "rgba(255,255,255,0.88)",
-        backdropFilter: "blur(12px)",
         borderColor: isSelectable
-          ? isSelected ? "rgba(22,163,74,0.4)" : "rgba(0,0,0,0.08)"
-          : "rgba(0,0,0,0.08)",
+          ? isSelected ? "rgba(34,197,94,0.4)" : "rgba(255,255,255,0.06)"
+          : "rgba(255,255,255,0.08)",
+        background: isSelectable
+          ? isSelected
+            ? "linear-gradient(135deg,rgba(17,24,39,0.97) 0%,rgba(20,40,20,0.3) 100%)"
+            : "rgba(17,24,39,0.5)"
+          : "rgba(17,24,39,0.95)",
+        boxShadow: isSelected && isSelectable
+          ? "0 0 0 1px rgba(34,197,94,0.12) inset, 0 4px 24px rgba(0,0,0,0.35)"
+          : "0 4px 24px rgba(0,0,0,0.3)",
         opacity: isSelectable && !isSelected ? 0.55 : 1,
         cursor: isSelectable ? "pointer" : "default",
-        boxShadow: isSelected && isSelectable
-          ? "0 0 0 3px rgba(22,163,74,0.08) inset, 0 2px 16px rgba(99,102,241,0.07)"
-          : "0 2px 16px rgba(99,102,241,0.07)",
       }}
     >
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b border-gray-100">
-        {/* Checkbox or static checkmark */}
+      <div className="flex items-start gap-3 p-4 pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
         {isSelectable ? (
           <div
-            className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all duration-200"
+            className="mt-0.5 w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all duration-200"
             style={{
-              background: isSelected ? "#16a34a" : "transparent",
-              border: isSelected ? "2px solid #16a34a" : "2px solid rgba(0,0,0,0.18)",
+              background: isSelected ? "#22c55e" : "transparent",
+              border: isSelected ? "2px solid #22c55e" : "2px solid rgba(255,255,255,0.2)",
             }}
           >
             {isSelected && (
@@ -112,61 +114,65 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
             )}
           </div>
         ) : (
-          <div className="w-6 h-6 rounded-full bg-green-50 border border-green-300 flex items-center justify-center flex-shrink-0">
-            <span className="text-green-600 leading-none" style={{ fontSize: "10px" }}>✓</span>
+          <div className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: "rgba(34,197,94,0.15)", border: "1.5px solid rgba(34,197,94,0.4)" }}>
+            <svg width="9" height="7" viewBox="0 0 10 8" fill="none">
+              <path d="M1 4L3.5 6.5L9 1" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-gray-900 text-sm font-semibold truncate capitalize">{label}</p>
-          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+          <p className="text-white text-sm font-semibold leading-snug capitalize">{label}</p>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className="inline-block text-[10px] font-semibold tracking-widest uppercase px-2 py-0.5 rounded-full"
-              style={{ background: type === "customer" ? "rgba(139,92,246,0.08)" : "rgba(59,130,246,0.08)", color: type === "customer" ? "#7c3aed" : "#2563eb", border: `1px solid ${type === "customer" ? "rgba(139,92,246,0.2)" : "rgba(59,130,246,0.2)"}` }}>
+              style={{
+                background: type === "customer" ? "rgba(139,92,246,0.18)" : "rgba(236,72,153,0.18)",
+                color: type === "customer" ? "#a78bfa" : "#f472b6",
+              }}>
               {type === "customer" ? "Customer" : "Service"}
             </span>
             {promptContext && (
-              <span className="text-[10px] text-gray-400 truncate font-mono max-w-[200px]" title={promptContext}>
+              <span className="text-[10px] truncate font-mono max-w-[180px]" style={{ color: "rgba(255,255,255,0.35)" }} title={promptContext}>
                 {promptContext}
               </span>
             )}
           </div>
         </div>
         <div className="text-right flex-shrink-0">
-          <p className="text-2xl font-bold text-gray-900">{appearance}%</p>
-          <p className="text-gray-400 text-xs">Appearance</p>
+          <p className="text-2xl font-bold text-white">{appearance}%</p>
+          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>Appearance</p>
         </div>
       </div>
 
       {/* Metrics row */}
-      <div className="grid grid-cols-3 divide-x divide-gray-100 border-b border-gray-100">
-        <div className="p-3 text-center">
-          <p className="text-lg font-bold text-gray-900">{primary}%</p>
-          <p className="text-gray-400 text-xs">Top 3</p>
-        </div>
-        <div className="p-3 text-center">
-          <p className="text-lg font-bold text-gray-900">{avgRank}</p>
-          <p className="text-gray-400 text-xs">Avg Rank</p>
-        </div>
-        <div className="p-3 text-center">
-          <p className="text-lg font-bold text-gray-900">{citationCount}</p>
-          <p className="text-gray-400 text-xs">Citations</p>
-        </div>
+      <div className="grid grid-cols-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        {[
+          { label: "Top 3", value: `${primary}%` },
+          { label: "Avg Rank", value: avgRank },
+          { label: "Citations", value: citationCount },
+        ].map(({ label: lbl, value }, i) => (
+          <div key={lbl} className="p-3 text-center" style={{ borderRight: i < 2 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
+            <p className="text-base font-bold text-white">{value}</p>
+            <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{lbl}</p>
+          </div>
+        ))}
       </div>
 
-      {/* Engine breakdown */}
+      {/* Engine breakdown — 3 colored boxes */}
       {Object.keys(engines).length > 0 && (
-        <div className="divide-y divide-gray-100 border-b border-gray-100">
-          {Object.entries(engines).map(([eng, data]: [string, any]) => {
+        <div className="p-3 grid grid-cols-3 gap-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+          {(["claude", "gemini", "chatgpt"] as const).map((eng) => {
+            const data = engines[eng];
+            if (!data) return null;
             const engLabel = eng === "chatgpt" ? "ChatGPT" : eng === "gemini" ? "Gemini" : "Claude";
-            const engColor = eng === "chatgpt" ? "#10b981" : eng === "gemini" ? "#3b82f6" : "#f59e0b";
+            const engColor = eng === "chatgpt" ? "#22c55e" : eng === "gemini" ? "#3b82f6" : "#f59e0b";
             const pct = Math.round((data.appearance_rate ?? 0) * 100);
             const top3pct = Math.round((data.primary_rate ?? 0) * 100);
             return (
-              <div key={eng} className="flex items-center gap-3 px-4 py-2">
-                <span className="text-xs text-gray-500 w-16">{engLabel}</span>
-                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: engColor }} />
-                </div>
-                <span className="text-xs text-gray-400 w-20 text-right">{pct}% · Top3: {top3pct}%</span>
+              <div key={eng} className="rounded-lg p-2.5" style={{ border: `1px solid ${engColor}30`, background: `${engColor}08` }}>
+                <p className="text-[10px] mb-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{engLabel}</p>
+                <p className="text-base font-bold" style={{ color: engColor }}>{pct}%</p>
+                <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.3)" }}>Top 3: {top3pct}%</p>
               </div>
             );
           })}
@@ -175,29 +181,33 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
 
       {/* Rankings */}
       {allRankings.length > 0 && (
-        <div className="p-4">
-          <p className="text-xs text-gray-400 mb-3 font-mono uppercase tracking-wider">Rankings</p>
-          <div className="space-y-2.5">
+        <div className="px-3 pb-3 pt-2">
+          <p className="text-[9px] font-mono tracking-widest uppercase mb-2" style={{ color: "rgba(255,255,255,0.2)" }}>Rankings</p>
+          <div className="space-y-1.5">
             {allRankings.map((c, idx) => {
               const pct = Math.round((c.share ?? 0) * 100);
               const maxPct = Math.round((allRankings[0]?.share ?? 1) * 100) || 1;
               const barWidth = Math.round((pct / maxPct) * 100);
               return (
-                <div key={c.name} className="flex items-center gap-2.5">
-                  <span className={`text-[10px] font-mono w-4 text-right flex-shrink-0 ${c.isBrand ? "text-blue-600 font-bold" : "text-gray-400"}`}>
+                <div key={c.name} className="flex items-center gap-2">
+                  <span className="text-[9px] font-mono w-3 text-right flex-shrink-0"
+                    style={{ color: c.isBrand ? "#818cf8" : "rgba(255,255,255,0.2)" }}>
                     {idx + 1}
                   </span>
-                  <span className={`text-xs w-32 truncate flex-shrink-0 ${c.isBrand ? "text-blue-700 font-semibold" : "text-gray-600"}`}>
+                  <span className="text-[11px] flex-1 truncate"
+                    style={{ color: c.isBrand ? "#a5b4fc" : "rgba(255,255,255,0.45)" }}>
                     {c.name}
-                    {c.isBrand && <span className="ml-1 text-[9px] text-blue-500 font-mono uppercase">you</span>}
+                    {c.isBrand && <span className="ml-1 text-[8px] font-mono uppercase" style={{ color: "#6366f1" }}>you</span>}
                   </span>
-                  <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-700 ${c.isBrand ? "bg-gradient-to-r from-blue-500 to-violet-500" : "bg-gray-300"}`}
-                      style={{ width: `${barWidth}%` }}
-                    />
+                  <div className="w-16 h-1 rounded-full overflow-hidden flex-shrink-0" style={{ background: "rgba(255,255,255,0.06)" }}>
+                    <div className="h-full rounded-full transition-all duration-700"
+                      style={{
+                        width: `${barWidth}%`,
+                        background: c.isBrand ? "linear-gradient(90deg,#6366f1,#8b5cf6)" : "rgba(255,255,255,0.18)",
+                      }} />
                   </div>
-                  <span className={`text-xs w-8 text-right flex-shrink-0 tabular-nums ${c.isBrand ? "text-blue-600 font-semibold" : "text-gray-400"}`}>
+                  <span className="text-[10px] w-7 text-right tabular-nums flex-shrink-0"
+                    style={{ color: c.isBrand ? "#a5b4fc" : "rgba(255,255,255,0.3)" }}>
                     {pct}%
                   </span>
                 </div>
