@@ -21,7 +21,7 @@ interface DirectoryTile {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const ACCENT_PALETTE = [
-  "#3b82f6", "#6366f1", "#10b981", "#f59e0b",
+  "#6366f1", "#3b82f6", "#10b981", "#f59e0b",
   "#8b5cf6", "#ec4899", "#14b8a6", "#f97316",
 ];
 
@@ -45,27 +45,27 @@ function timeAgo(dateStr: string): string {
 }
 
 const ENGINES = [
-  { key: "chatgpt" as const, label: "ChatGPT", color: "#10b981" },
-  { key: "gemini"  as const, label: "Gemini",  color: "#3b82f6" },
-  { key: "claude"  as const, label: "Claude",  color: "#f59e0b" },
+  { key: "chatgpt" as const, short: "CHA" },
+  { key: "gemini"  as const, short: "GEM" },
+  { key: "claude"  as const, short: "CLA" },
 ];
 
 // ── Score Ring ────────────────────────────────────────────────────────────────
 
 function ScoreRing({ score, accent }: { score: number; accent: string }) {
-  const r = 20;
+  const r = 18;
   const circ = 2 * Math.PI * r;
   return (
-    <div style={{ position: "relative", width: 48, height: 48, flexShrink: 0 }}>
-      <svg viewBox="0 0 48 48" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
-        <circle cx="24" cy="24" r={r} fill="none" stroke="#0a1628" strokeWidth="4" />
+    <div style={{ position: "relative", width: 44, height: 44, flexShrink: 0 }}>
+      <svg viewBox="0 0 44 44" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
+        <circle cx="22" cy="22" r={r} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="3.5" />
         <circle
-          cx="24" cy="24" r={r} fill="none"
-          stroke={accent} strokeWidth="4"
+          cx="22" cy="22" r={r} fill="none"
+          stroke={accent} strokeWidth="3.5"
           strokeDasharray={circ}
           strokeDashoffset={circ * (1 - score / 100)}
           strokeLinecap="round"
-          style={{ filter: `drop-shadow(0 0 4px ${accent})`, transition: "stroke-dashoffset 0.6s ease" }}
+          style={{ filter: `drop-shadow(0 0 3px ${accent}66)`, transition: "stroke-dashoffset 0.6s ease" }}
         />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -79,22 +79,34 @@ function ScoreRing({ score, accent }: { score: number; accent: string }) {
 
 function SkeletonTile() {
   return (
-    <div style={{ background: "#060f1e", border: "1px solid #1e3a5f", borderRadius: 14, overflow: "hidden" }}>
-      <div style={{ height: 3, background: "#1e3a5f" }} />
-      <div style={{ padding: "16px 18px" }}>
-        <div style={{ height: 10, width: 60, background: "#1e3a5f", borderRadius: 4, marginBottom: 12 }} />
-        <div style={{ height: 14, width: "85%", background: "#0f1e35", borderRadius: 4, marginBottom: 6 }} />
-        <div style={{ height: 14, width: "65%", background: "#0f1e35", borderRadius: 4, marginBottom: 16 }} />
-        <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 14 }}>
-          <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#1e3a5f" }} />
+    <div style={{
+      background: "rgba(255,255,255,0.7)",
+      border: "1px solid rgba(255,255,255,0.9)",
+      backdropFilter: "blur(12px)",
+      borderRadius: 16,
+      overflow: "hidden",
+      boxShadow: "0 2px 16px rgba(99,102,241,0.07), 0 1px 3px rgba(0,0,0,0.04)",
+    }}>
+      <div style={{ height: 3, background: "rgba(99,102,241,0.15)" }} />
+      <div style={{ padding: "14px 16px" }}>
+        <div style={{ height: 9, width: 70, background: "rgba(0,0,0,0.06)", borderRadius: 4, marginBottom: 10 }} />
+        <div style={{ height: 13, width: "85%", background: "rgba(0,0,0,0.05)", borderRadius: 4, marginBottom: 5 }} />
+        <div style={{ height: 13, width: "60%", background: "rgba(0,0,0,0.04)", borderRadius: 4, marginBottom: 14 }} />
+        <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 12 }}>
+          <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(0,0,0,0.06)" }} />
           <div>
-            <div style={{ height: 11, width: 80, background: "#1e3a5f", borderRadius: 3, marginBottom: 6 }} />
-            <div style={{ height: 9,  width: 55, background: "#0f1e35", borderRadius: 3 }} />
+            <div style={{ height: 10, width: 80, background: "rgba(0,0,0,0.06)", borderRadius: 3, marginBottom: 5 }} />
+            <div style={{ height: 9, width: 55, background: "rgba(0,0,0,0.04)", borderRadius: 3 }} />
           </div>
         </div>
-        <div style={{ display: "flex", gap: 6 }}>
+        <div style={{ display: "flex", gap: 4, marginBottom: 10 }}>
+          {[70, 55].map((w, i) => (
+            <div key={i} style={{ height: 18, width: w, background: "rgba(0,0,0,0.04)", borderRadius: 4 }} />
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 5 }}>
           {[1, 2, 3].map(i => (
-            <div key={i} style={{ flex: 1, height: 24, background: "#0f1e35", borderRadius: 5 }} />
+            <div key={i} style={{ flex: 1, height: 22, background: "rgba(0,0,0,0.04)", borderRadius: 5 }} />
           ))}
         </div>
       </div>
@@ -111,74 +123,76 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
       onClick={onClick}
       data-testid={`card-directory-tile-${tile.id}`}
       style={{
-        background: "#060f1e",
-        border: "1px solid #1e3a5f",
-        borderRadius: 14,
+        background: "rgba(255,255,255,0.75)",
+        border: "1px solid rgba(255,255,255,0.9)",
+        backdropFilter: "blur(12px)",
+        borderRadius: 16,
         overflow: "hidden",
         cursor: "pointer",
-        transition: "border-color 0.2s, box-shadow 0.2s",
+        boxShadow: "0 2px 16px rgba(99,102,241,0.07), 0 1px 3px rgba(0,0,0,0.04)",
+        transition: "box-shadow 0.2s, border-color 0.2s",
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}55`;
-        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 0 20px ${accent}18`;
+        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 4px 24px ${accent}1e, 0 1px 3px rgba(0,0,0,0.06)`;
+        (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}44`;
       }}
       onMouseLeave={e => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = "#1e3a5f";
-        (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
+        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 16px rgba(99,102,241,0.07), 0 1px 3px rgba(0,0,0,0.04)";
+        (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.9)";
       }}
     >
       {/* Accent top bar */}
       <div style={{ height: 3, background: `linear-gradient(90deg, ${accent}, ${accent}44)` }} />
 
-      <div style={{ padding: "16px 18px" }}>
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+      <div style={{ padding: "14px 16px" }}>
+        {/* Category + time */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
           <span style={{
-            fontSize: 9, fontWeight: 700, letterSpacing: 1,
-            color: accent, background: `${accent}15`,
-            padding: "2px 8px", borderRadius: 4,
-            maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            fontSize: 9, fontWeight: 700, letterSpacing: 0.8,
+            color: accent, background: `${accent}12`,
+            padding: "2px 7px", borderRadius: 4,
+            maxWidth: 130, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>
             {tile.category.toUpperCase()}
           </span>
-          <span style={{ color: "#1e3a5f", fontSize: 9, flexShrink: 0, marginLeft: 8 }}>
+          <span style={{ color: "#9ca3af", fontSize: 9, flexShrink: 0, marginLeft: 6 }}>
             {timeAgo(tile.createdAt)}
           </span>
         </div>
 
         {/* Query headline */}
         <p style={{
-          color: "#e2e8f0", fontSize: 13, fontWeight: 700,
-          margin: "0 0 14px", lineHeight: 1.35,
+          color: "#1e1b4b", fontSize: 13, fontWeight: 600,
+          margin: "0 0 12px", lineHeight: 1.35,
           display: "-webkit-box", WebkitLineClamp: 2,
           WebkitBoxOrient: "vertical", overflow: "hidden",
-        }}>
+        } as React.CSSProperties}>
           {tile.query.replace(/^best\s+/i, "")}
         </p>
 
         {/* Score ring + top brand */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
           <ScoreRing score={tile.topScore} accent={accent} />
           <div style={{ minWidth: 0 }}>
             <div style={{
-              color: tile.topBrand ? "#94a3b8" : "#334155",
-              fontSize: 11, fontFamily: "monospace",
+              color: "#374151", fontSize: 11, fontWeight: 600,
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
             }}>
               {tile.topBrand || tile.brandDomain || tile.brandName}
             </div>
-            <div style={{ color: "#334155", fontSize: 10, marginTop: 2 }}>Top ranked</div>
+            <div style={{ color: "#9ca3af", fontSize: 10, marginTop: 2 }}>Top ranked</div>
           </div>
         </div>
 
         {/* Rivals */}
         {tile.rivals.length > 0 && (
-          <div style={{ display: "flex", gap: 5, marginBottom: 14, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 5, marginBottom: 10, flexWrap: "wrap" }}>
             {tile.rivals.map((r, i) => (
               <span key={r} style={{
-                fontSize: 9, color: "#475569",
-                background: "#0a1628", border: "1px solid #1e3a5f",
-                borderRadius: 4, padding: "2px 7px", fontFamily: "monospace",
+                fontSize: 9, color: "#6b7280",
+                background: "rgba(0,0,0,0.04)",
+                border: "1px solid rgba(0,0,0,0.07)",
+                borderRadius: 4, padding: "2px 7px",
                 overflow: "hidden", textOverflow: "ellipsis", maxWidth: 100, whiteSpace: "nowrap",
               }}>
                 #{i + 2} {r}
@@ -186,23 +200,23 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
             ))}
           </div>
         )}
-        {tile.rivals.length === 0 && <div style={{ marginBottom: 14 }} />}
+        {tile.rivals.length === 0 && <div style={{ marginBottom: 10 }} />}
 
         {/* Engine badges */}
-        <div style={{ display: "flex", gap: 6 }}>
+        <div style={{ display: "flex", gap: 5 }}>
           {ENGINES.map(e => (
             <div key={e.key} style={{
-              flex: 1, height: 24, borderRadius: 5,
-              background: tile.engines[e.key] ? `${e.color}15` : "#0a1628",
-              border: `1px solid ${tile.engines[e.key] ? e.color + "33" : "#0f1e35"}`,
+              flex: 1, height: 22, borderRadius: 5,
+              background: tile.engines[e.key] ? `${accent}12` : "rgba(0,0,0,0.03)",
+              border: `1px solid ${tile.engines[e.key] ? accent + "33" : "rgba(0,0,0,0.06)"}`,
               display: "flex", alignItems: "center", justifyContent: "center",
               opacity: tile.engines[e.key] ? 1 : 0.4,
             }}>
               <span style={{
-                color: tile.engines[e.key] ? e.color : "#334155",
-                fontSize: 8, fontWeight: 600,
+                color: tile.engines[e.key] ? accent : "#9ca3af",
+                fontSize: 8, fontWeight: 700,
               }}>
-                {e.label.slice(0, 3).toUpperCase()}
+                {e.short}
               </span>
             </div>
           ))}
@@ -238,19 +252,18 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
     <div style={{ fontFamily: "system-ui, sans-serif", marginTop: 56 }}>
       {/* Section header */}
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 20 }}>
-        <div>
-          <h2 style={{ color: "#e2e8f0", fontSize: 16, fontWeight: 700, margin: 0 }}>
-            Recent reports on most cited businesses
-          </h2>
-        </div>
+        <h2 style={{ color: "#1e1b4b", fontSize: 16, fontWeight: 700, margin: 0 }}>
+          Recent reports on most cited businesses
+        </h2>
         {!isLoading && tiles.length > INITIAL_COUNT && !expanded && (
           <button
             onClick={() => setExpanded(true)}
             data-testid="button-directory-view-all"
             style={{
-              color: "#3b82f6", fontSize: 12, background: "none",
-              border: "1px solid #1e3a5f", borderRadius: 7,
-              padding: "5px 12px", cursor: "pointer", flexShrink: 0,
+              color: "#6366f1", fontSize: 12, fontWeight: 600,
+              background: "rgba(99,102,241,0.08)",
+              border: "1px solid rgba(99,102,241,0.2)",
+              borderRadius: 8, padding: "5px 14px", cursor: "pointer", flexShrink: 0,
             }}
           >
             View all {tiles.length}
@@ -278,10 +291,10 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
             onClick={() => setExpanded(x => !x)}
             data-testid="button-directory-expand"
             style={{
-              background: "linear-gradient(135deg, #0f172a, #1e293b)",
-              border: "1px solid #334155",
-              color: "#64748b", fontSize: 12,
-              padding: "10px 32px", borderRadius: 10, cursor: "pointer",
+              background: "rgba(255,255,255,0.7)",
+              border: "1px solid rgba(99,102,241,0.2)",
+              color: "#6b7280", fontSize: 12,
+              padding: "9px 28px", borderRadius: 10, cursor: "pointer",
             }}
           >
             {expanded
