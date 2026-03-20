@@ -491,24 +491,7 @@ function LandingInner() {
 
       {/* Nav — matches mockup exactly */}
       <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between relative z-10">
-        <div className="flex items-center gap-2.5">
-          {/* AnswerMonk logo mark — speech bubble with pulse dots */}
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="am-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#6366f1" />
-                <stop offset="100%" stopColor="#8b5cf6" />
-              </linearGradient>
-            </defs>
-            {/* Bubble body */}
-            <rect x="1" y="1" width="26" height="20" rx="6" fill="url(#am-grad)" />
-            {/* Tail */}
-            <path d="M7 21 L4 28 L13 21Z" fill="url(#am-grad)" />
-            {/* Three dots */}
-            <circle cx="9" cy="11" r="2.2" fill="white" fillOpacity="0.95" />
-            <circle cx="14" cy="11" r="2.2" fill="white" fillOpacity="0.95" />
-            <circle cx="19" cy="11" r="2.2" fill="white" fillOpacity="0.95" />
-          </svg>
+        <div className="flex items-center">
           <span className="text-xl font-bold tracking-tight" style={{ color: "#1e1b4b" }}>
             Answer<span style={{ color: "#6366f1" }}>Monk</span>
           </span>
@@ -532,7 +515,7 @@ function LandingInner() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
                   </span>
-                  Intelligence Engine v2.0 — Live
+                  Intelligence Engine v2.0 - Live
                 </div>
 
                 {/* Heading */}
@@ -548,7 +531,7 @@ function LandingInner() {
 
                 {/* Subtext */}
                 <p className="text-lg md:text-xl max-w-xl mx-auto leading-relaxed" style={{ color: "#374151" }}>
-                  When customers ask AI — are you the answer?{" "}
+                  When customers ask AI - are you the answer?{" "}
                   <span style={{ color: "#1e1b4b", fontWeight: 600 }}>AnswerMonk makes sure you are.</span>
                 </p>
               </>
@@ -600,25 +583,13 @@ function LandingInner() {
               </form>
             )}
 
-            {/* Example chip */}
-            {!isComplete && !isError && !isProcessing && !replayMode && (
-              <div
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium cursor-default transition-colors hover:bg-white/80"
-                style={{ background: "rgba(255,255,255,0.6)", border: "1px solid rgba(209,213,219,0.5)", color: "#4b5563", backdropFilter: "blur(8px)" }}
-              >
-                Try: <span style={{ color: "#111827", fontWeight: 600 }}>warbyparker.com</span>
-                <span className="flex items-center gap-1 ml-1" style={{ color: "#7c3aed" }}>
-                  View free example <span className="text-xs">&rarr;</span>
-                </span>
-              </div>
-            )}
-
+  
           </div>
         </div>
 
         {/* ── Mode tab switcher ── */}
         {!replayMode && (
-          <div className="flex justify-center mt-6 mb-2">
+          <div className="w-full max-w-7xl mx-auto px-6 flex justify-center mt-6 mb-2">
             <div
               style={{
                 display: "inline-flex",
@@ -650,17 +621,18 @@ function LandingInner() {
                       setActiveTab(tab);
                     }}
                     style={{
-                      padding: "6px 18px",
+                      padding: "6px 16px",
                       borderRadius: 8,
                       border: "none",
                       cursor: tab === "directory" ? "default" : "pointer",
-                      fontSize: 13,
-                      fontWeight: 600,
+                      fontSize: 12,
+                      fontWeight: isActive ? 600 : 500,
+                      letterSpacing: "0.01em",
                       transition: "all 0.2s",
-                      background: isActive ? "rgba(124,58,237,0.12)" : "transparent",
+                      background: isActive ? "rgba(124,58,237,0.10)" : "transparent",
                       color: tab === "directory" ? "#94a3b8" : isActive ? "#6d28d9" : "#64748b",
-                      boxShadow: isActive ? "inset 0 1px 0 rgba(124,58,237,0.08)" : "none",
-                      borderBottom: isActive ? "1px solid rgba(124,58,237,0.25)" : "1px solid transparent",
+                      boxShadow: "none",
+                      borderBottom: isActive ? "1px solid rgba(124,58,237,0.22)" : "1px solid transparent",
                     }}
                   >
                     {labels[tab]}
@@ -677,7 +649,9 @@ function LandingInner() {
 
         {/* Recent Analyses directory — visible when idle */}
         {!isProcessing && !isRunning && activeSessionId === null && (
-          <RecentAnalysisTiles onSelect={handleTileSelect} />
+          <div className="w-full max-w-7xl mx-auto px-6">
+            <RecentAnalysisTiles onSelect={handleTileSelect} />
+          </div>
         )}
 
         {/* Processing — PNC extracting */}

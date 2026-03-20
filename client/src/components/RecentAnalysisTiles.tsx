@@ -58,18 +58,18 @@ function ScoreRing({ score, accent }: { score: number; accent: string }) {
   return (
     <div style={{ position: "relative", width: 44, height: 44, flexShrink: 0 }}>
       <svg viewBox="0 0 44 44" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
-        <circle cx="22" cy="22" r={r} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="3.5" />
+        <circle cx="22" cy="22" r={r} fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="3.5" />
         <circle
           cx="22" cy="22" r={r} fill="none"
           stroke={accent} strokeWidth="3.5"
           strokeDasharray={circ}
           strokeDashoffset={circ * (1 - score / 100)}
           strokeLinecap="round"
-          style={{ filter: `drop-shadow(0 0 3px ${accent}66)`, transition: "stroke-dashoffset 0.6s ease" }}
+          style={{ filter: `drop-shadow(0 0 4px ${accent}80)`, transition: "stroke-dashoffset 0.6s ease" }}
         />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ color: accent, fontSize: 11, fontWeight: 800, lineHeight: 1 }}>{score}</span>
+        <span style={{ color: accent, fontSize: 12, fontWeight: 900, lineHeight: 1 }}>{score}</span>
       </div>
     </div>
   );
@@ -148,22 +148,22 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
         {/* Category + time */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
           <span style={{
-            fontSize: 9, fontWeight: 700, letterSpacing: 0.8,
-            color: accent, background: `${accent}12`,
-            padding: "2px 7px", borderRadius: 4,
-            maxWidth: 130, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            fontSize: 10, fontWeight: 700, letterSpacing: "0.05em",
+            color: accent, background: `${accent}14`,
+            padding: "3px 8px", borderRadius: 5,
+            maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>
             {tile.category.toUpperCase()}
           </span>
-          <span style={{ color: "#9ca3af", fontSize: 9, flexShrink: 0, marginLeft: 6 }}>
+          <span style={{ color: "#9ca3af", fontSize: 10, flexShrink: 0, marginLeft: 6 }}>
             {timeAgo(tile.createdAt)}
           </span>
         </div>
 
         {/* Query headline */}
         <p style={{
-          color: "#1e1b4b", fontSize: 13, fontWeight: 600,
-          margin: "0 0 12px", lineHeight: 1.35,
+          color: "#111827", fontSize: 14, fontWeight: 700,
+          margin: "0 0 12px", lineHeight: 1.4,
           display: "-webkit-box", WebkitLineClamp: 2,
           WebkitBoxOrient: "vertical", overflow: "hidden",
         } as React.CSSProperties}>
@@ -175,12 +175,12 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
           <ScoreRing score={tile.topScore} accent={accent} />
           <div style={{ minWidth: 0 }}>
             <div style={{
-              color: "#374151", fontSize: 11, fontWeight: 600,
+              color: "#111827", fontSize: 13, fontWeight: 700,
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
             }}>
               {tile.topBrand || tile.brandDomain || tile.brandName}
             </div>
-            <div style={{ color: "#9ca3af", fontSize: 10, marginTop: 2 }}>Top ranked</div>
+            <div style={{ color: "#6b7280", fontSize: 11, marginTop: 2 }}>Top ranked</div>
           </div>
         </div>
 
@@ -189,11 +189,11 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
           <div style={{ display: "flex", gap: 5, marginBottom: 10, flexWrap: "wrap" }}>
             {tile.rivals.map((r, i) => (
               <span key={r} style={{
-                fontSize: 9, color: "#6b7280",
-                background: "rgba(0,0,0,0.04)",
-                border: "1px solid rgba(0,0,0,0.07)",
-                borderRadius: 4, padding: "2px 7px",
-                overflow: "hidden", textOverflow: "ellipsis", maxWidth: 100, whiteSpace: "nowrap",
+                fontSize: 10, color: "#4b5563",
+                background: "rgba(0,0,0,0.05)",
+                border: "1px solid rgba(0,0,0,0.08)",
+                borderRadius: 4, padding: "2px 8px",
+                overflow: "hidden", textOverflow: "ellipsis", maxWidth: 110, whiteSpace: "nowrap",
               }}>
                 #{i + 2} {r}
               </span>
@@ -206,15 +206,15 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
         <div style={{ display: "flex", gap: 5 }}>
           {ENGINES.map(e => (
             <div key={e.key} style={{
-              flex: 1, height: 22, borderRadius: 5,
-              background: tile.engines[e.key] ? `${accent}12` : "rgba(0,0,0,0.03)",
-              border: `1px solid ${tile.engines[e.key] ? accent + "33" : "rgba(0,0,0,0.06)"}`,
+              flex: 1, height: 24, borderRadius: 6,
+              background: tile.engines[e.key] ? `${accent}14` : "rgba(0,0,0,0.03)",
+              border: `1px solid ${tile.engines[e.key] ? accent + "40" : "rgba(0,0,0,0.07)"}`,
               display: "flex", alignItems: "center", justifyContent: "center",
-              opacity: tile.engines[e.key] ? 1 : 0.4,
+              opacity: tile.engines[e.key] ? 1 : 0.35,
             }}>
               <span style={{
                 color: tile.engines[e.key] ? accent : "#9ca3af",
-                fontSize: 8, fontWeight: 700,
+                fontSize: 9, fontWeight: 700, letterSpacing: "0.04em",
               }}>
                 {e.short}
               </span>
