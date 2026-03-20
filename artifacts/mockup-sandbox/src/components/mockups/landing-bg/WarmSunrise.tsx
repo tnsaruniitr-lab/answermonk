@@ -21,19 +21,26 @@ export function WarmSunrise() {
       {/* Hero Content */}
       <main className="flex-1 flex flex-col items-center justify-center text-center px-4 relative z-10 -mt-16">
         {/* Eyebrow */}
-        <div className="bg-[#fffbf5] border border-orange-200 text-[#ea580c] px-4 py-1.5 rounded-full text-sm font-medium mb-8 shadow-sm">
-          GEO Intelligence Platform
+        <div className="flex items-center gap-2 bg-[#fffbf5] border border-orange-200 text-[#ea580c] px-4 py-1.5 rounded-full text-sm font-medium mb-8 shadow-sm">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+          </span>
+          Intelligence Engine v2.0 — Live
         </div>
 
         {/* Headline */}
         <h1 className="text-5xl md:text-6xl font-extrabold text-[#1c1917] tracking-tight mb-6 leading-tight">
-          When customers ask AI —<br />
-          are you the answer?
+          Dominate{" "}
+          <span style={{ background: "linear-gradient(to right, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+            AI search results
+          </span>
         </h1>
 
         {/* Subtext */}
         <p className="text-lg md:text-xl text-[#57534e] max-w-lg mb-10 leading-relaxed">
-          See which brands get recommended, why they win, and how to beat them.
+          When customers ask AI,{" "}
+          <span className="text-[#1c1917] font-medium">see which brands get recommended, why they win, and how to beat them.</span>
         </p>
 
         {/* Search Input Area */}

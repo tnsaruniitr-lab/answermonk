@@ -50,8 +50,12 @@ export function AuroraDrift() {
         <div className="space-y-8 max-w-3xl flex flex-col items-center">
           
           {/* Eyebrow */}
-          <div className="inline-flex items-center px-3 py-1 bg-white border border-violet-200 text-violet-700 rounded-full text-sm font-medium shadow-sm">
-            GEO Intelligence Platform
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-violet-200 text-violet-700 rounded-full text-sm font-medium shadow-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+            </span>
+            Intelligence Engine v2.0 — Live
           </div>
 
           {/* Heading */}
@@ -59,8 +63,10 @@ export function AuroraDrift() {
             className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight"
             style={{ color: '#1e1b4b' }}
           >
-            When customers ask AI —<br />
-            are you the answer?
+            Dominate{" "}
+            <span style={{ background: "linear-gradient(to right, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              AI search results
+            </span>
           </h1>
 
           {/* Subtext */}
@@ -68,7 +74,8 @@ export function AuroraDrift() {
             className="text-lg md:text-xl max-w-xl mx-auto"
             style={{ color: '#374151' }}
           >
-            See which brands get recommended, why they win, and how to beat them.
+            When customers ask AI,{" "}
+            <span style={{ color: '#1e1b4b', fontWeight: 500 }}>see which brands get recommended, why they win, and how to beat them.</span>
           </p>
 
           {/* Search Row */}

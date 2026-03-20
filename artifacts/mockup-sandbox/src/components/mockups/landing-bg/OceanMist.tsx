@@ -43,8 +43,12 @@ export function OceanMist() {
       <main className="flex-1 flex flex-col items-center justify-center w-full max-w-[1280px] mx-auto px-6 relative z-10 -mt-16">
         
         {/* Eyebrow Pill */}
-        <div className="bg-white border border-blue-200 text-blue-700 rounded-full px-4 py-1.5 text-sm font-medium mb-8 shadow-sm">
-          GEO Intelligence Platform
+        <div className="flex items-center gap-2 bg-white border border-blue-200 text-blue-700 rounded-full px-4 py-1.5 text-sm font-medium mb-8 shadow-sm">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+          </span>
+          Intelligence Engine v2.0 — Live
         </div>
 
         {/* H1 */}
@@ -52,8 +56,10 @@ export function OceanMist() {
           className="text-5xl md:text-6xl font-extrabold text-center tracking-tight leading-[1.15] mb-6"
           style={{ color: "#0c1445" }}
         >
-          When customers ask AI —<br />
-          are you the answer?
+          Dominate{" "}
+          <span style={{ background: "linear-gradient(to right, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+            AI search results
+          </span>
         </h1>
 
         {/* Subtext */}
@@ -61,7 +67,8 @@ export function OceanMist() {
           className="text-lg md:text-xl text-center max-w-lg mb-10"
           style={{ color: "#1e3a5f" }}
         >
-          See which brands get recommended, why they win, and how to beat them.
+          When customers ask AI,{" "}
+          <span style={{ color: "#0c1445", fontWeight: 500 }}>see which brands get recommended, why they win, and how to beat them.</span>
         </p>
 
         {/* Search Row */}
