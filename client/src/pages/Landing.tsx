@@ -485,16 +485,16 @@ function LandingInner() {
               Intelligence Engine v2.0 — Live
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.1]" style={{ color: "#1e1b4b", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight mb-6 leading-[1.1]" style={{ color: "#1e1b4b", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Dominate{" "}
               <span style={{background: "linear-gradient(to right, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text"}}>
                 AI search results
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl max-w-2xl mx-auto mb-12 leading-relaxed font-light" style={{ color: "#6b7280", letterSpacing: "-0.01em" }}>
+            <p className="text-lg md:text-xl max-w-xl mx-auto mb-10 leading-relaxed" style={{ color: "#6b7280", letterSpacing: "-0.01em" }}>
               When customers ask AI,{" "}
-              <span style={{ color: "#1e1b4b", fontWeight: 500 }}>see which brands get recommended, why they win, and how to beat them.</span>
+              <span style={{ color: "#1e1b4b", fontWeight: 600 }}>see which brands get recommended, why they win, and how to beat them.</span>
             </p>
           </>
         )}
@@ -547,6 +547,16 @@ function LandingInner() {
               </div>
             )}
           </form>
+        )}
+
+        {/* Example chip — shown only on idle hero */}
+        {!isComplete && !isError && !isProcessing && !replayMode && (
+          <div className="flex justify-center mt-4 mb-2">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border cursor-default" style={{ background: "rgba(255,255,255,0.65)", borderColor: "rgba(0,0,0,0.08)", color: "#374151", backdropFilter: "blur(8px)" }}>
+              Try: <span className="font-semibold text-gray-900">warbyparker.com</span>
+              <span className="text-violet-600 flex items-center gap-1">View free example <ArrowRight className="w-3 h-3" /></span>
+            </div>
+          </div>
         )}
 
         {/* ── Mode tab switcher ── */}
