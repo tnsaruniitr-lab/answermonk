@@ -5,6 +5,7 @@ import { apiRequest } from "@/lib/queryClient";
 import {
   ArrowRight, Sparkles, Globe, Activity, BarChart3, Code, Bot, Zap,
   Database, Loader2, AlertCircle, Plus, X, MapPin, CheckCircle2, Brain,
+  Search, TrendingUp, Rocket,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AuthoritySourcesPanel } from "@/components/AuthoritySourcesPanel";
@@ -479,10 +480,10 @@ function LandingInner() {
   const canRun = selectedServices.size > 0 && selectedCustomers.size > 0 && city.trim().length > 0;
 
   const steps = [
-    { title: "Website Ingestion", desc: "Deep crawl of domain architecture", icon: Globe },
-    { title: "Signal Discovery", desc: "Entity & service extraction via PNC", icon: Activity },
-    { title: "Prompt Execution", desc: "Cross-engine query runs", icon: Code },
-    { title: "Insight Report", desc: "Visibility & gap analysis", icon: BarChart3 },
+    { title: "Business Understanding", desc: "Web ingestion and brand understanding", icon: Brain },
+    { title: "Detailed Audit", desc: "Collect authority domains for your sector, scan LLMs for the answers they give customers", icon: Search },
+    { title: "Comp Analysis", desc: "Discover what competitors do better and extract their strategy", icon: TrendingUp },
+    { title: "Agents Deployed", desc: "AI agents activated to improve your AI search rank", icon: Rocket },
   ];
 
   return (
