@@ -311,7 +311,10 @@ function LandingInner() {
   }, [submissionId, isProcessing]);
 
   useEffect(() => {
-    if (isComplete) setAgentStep(AGENT_STEPS.length);
+    if (isComplete) {
+      setAgentStep(AGENT_STEPS.length);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   }, [isComplete]);
 
   const runMutation = useMutation({
@@ -647,8 +650,8 @@ function LandingInner() {
         {activeTab === "reports" && (
           <>
 
-        {/* Recent Analyses directory — visible when idle */}
-        {!isProcessing && !isRunning && activeSessionId === null && (
+        {/* Recent Analyses directory — visible only when truly idle (no submission in flight) */}
+        {!isProcessing && !isRunning && !isComplete && !isError && activeSessionId === null && !replayMode && (
           <div className="w-full max-w-7xl mx-auto px-6">
             <RecentAnalysisTiles onSelect={handleTileSelect} />
           </div>
@@ -1019,10 +1022,10 @@ function LandingInner() {
 
             {/* Header */}
             <div className="flex items-center gap-3 mb-5">
-              <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
+              <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-white font-semibold">Signals detected for {normalizeDomain(url)}</p>
-                <p className="text-slate-400 text-xs mt-0.5">Confirm your services, customer types and competitor landscape, then generate your report.</p>
+                <p className="text-gray-900 font-semibold">Signals detected for {normalizeDomain(url)}</p>
+                <p className="text-gray-500 text-xs mt-0.5">Confirm your services, customer types and competitor landscape, then generate your report.</p>
               </div>
               <button
                 onClick={() => {
@@ -1032,16 +1035,16 @@ function LandingInner() {
                   runMutation.reset();
                 }}
                 data-testid="button-reset-analysis"
-                className="flex-shrink-0 text-xs text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1"
+                className="flex-shrink-0 text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1"
               >
                 ← New URL
               </button>
             </div>
 
             {/* Services */}
-            <div className="bg-[#111827]/60 border border-white/10 rounded-2xl p-5 mb-4">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-                Services &mdash; <span className="text-blue-400">{selectedServices.size} selected</span>
+            <div className="bg-white/80 border border-gray-200 rounded-2xl p-5 mb-4 shadow-sm">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                Services &mdash; <span className="text-blue-600">{selectedServices.size} selected</span>
               </p>
               <div className="flex flex-wrap gap-2 mb-2">
                 {services.map((s) => {
@@ -1055,13 +1058,13 @@ function LandingInner() {
                       data-testid={`chip-service-${s}`}
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 select-none ${
                         on
-                          ? "bg-blue-500/20 border-blue-500/50 text-blue-300 cursor-pointer"
+                          ? "bg-blue-50 border-blue-300 text-blue-700 cursor-pointer"
                           : locked
-                          ? "bg-white/3 border-white/5 text-slate-600 cursor-not-allowed opacity-50"
-                          : "bg-white/5 border-white/10 text-slate-500 hover:border-white/20 hover:text-slate-400 cursor-pointer"
+                          ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed opacity-50"
+                          : "bg-gray-50 border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700 cursor-pointer"
                       }`}
                     >
-                      {on && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />}
+                      {on && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />}
                       {s}
                       {on && <X className="w-3 h-3 opacity-50 flex-shrink-0" />}
                     </button>
@@ -1069,8 +1072,8 @@ function LandingInner() {
                 })}
               </div>
               {serviceLimitError && (
-                <p className="text-xs text-amber-400/90 mb-2 flex items-center gap-1.5">
-                  <span className="inline-block w-3.5 h-3.5 rounded-full border border-amber-400/70 text-center leading-none" style={{fontSize:"9px"}}>!</span>
+                <p className="text-xs text-amber-600 mb-2 flex items-center gap-1.5">
+                  <span className="inline-block w-3.5 h-3.5 rounded-full border border-amber-500 text-center leading-none" style={{fontSize:"9px"}}>!</span>
                   Max 4 segments on the free scan — unlock more in the full audit.
                 </p>
               )}
@@ -1081,14 +1084,14 @@ function LandingInner() {
                   onChange={(e) => setNewServiceInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addService(); } }}
                   placeholder="Add a service…"
-                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-slate-600 outline-none focus:border-blue-500/40 transition-colors"
+                  className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-800 placeholder:text-gray-400 outline-none focus:border-blue-300 transition-colors"
                   data-testid="input-add-service"
                 />
                 <button
                   type="button"
                   onClick={addService}
                   disabled={!newServiceInput.trim()}
-                  className="p-1.5 rounded-lg bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  className="p-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                   data-testid="button-add-service"
                 >
                   <Plus className="w-4 h-4" />
@@ -1097,9 +1100,9 @@ function LandingInner() {
             </div>
 
             {/* Customer Types */}
-            <div className="bg-[#111827]/60 border border-white/10 rounded-2xl p-5 mb-4">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-                Customer Types &mdash; <span className="text-violet-400">{selectedCustomers.size} selected</span>
+            <div className="bg-white/80 border border-gray-200 rounded-2xl p-5 mb-4 shadow-sm">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                Customer Types &mdash; <span className="text-violet-600">{selectedCustomers.size} selected</span>
               </p>
               <div className="flex flex-wrap gap-2 mb-2">
                 {customers.map((c) => {
@@ -1113,13 +1116,13 @@ function LandingInner() {
                       data-testid={`chip-customer-${c}`}
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 select-none ${
                         on
-                          ? "bg-violet-500/20 border-violet-500/50 text-violet-300 cursor-pointer"
+                          ? "bg-violet-50 border-violet-300 text-violet-700 cursor-pointer"
                           : locked
-                          ? "bg-white/3 border-white/5 text-slate-600 cursor-not-allowed opacity-50"
-                          : "bg-white/5 border-white/10 text-slate-500 hover:border-white/20 hover:text-slate-400 cursor-pointer"
+                          ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed opacity-50"
+                          : "bg-gray-50 border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700 cursor-pointer"
                       }`}
                     >
-                      {on && <span className="w-1.5 h-1.5 rounded-full bg-violet-400 flex-shrink-0" />}
+                      {on && <span className="w-1.5 h-1.5 rounded-full bg-violet-500 flex-shrink-0" />}
                       {c}
                       {on && <X className="w-3 h-3 opacity-50 flex-shrink-0" />}
                     </button>
@@ -1127,8 +1130,8 @@ function LandingInner() {
                 })}
               </div>
               {customerLimitError && (
-                <p className="text-xs text-amber-400/90 mb-2 flex items-center gap-1.5">
-                  <span className="inline-block w-3.5 h-3.5 rounded-full border border-amber-400/70 text-center leading-none" style={{fontSize:"9px"}}>!</span>
+                <p className="text-xs text-amber-600 mb-2 flex items-center gap-1.5">
+                  <span className="inline-block w-3.5 h-3.5 rounded-full border border-amber-500 text-center leading-none" style={{fontSize:"9px"}}>!</span>
                   Max 4 segments on the free scan — unlock more in the full audit.
                 </p>
               )}
@@ -1139,14 +1142,14 @@ function LandingInner() {
                   onChange={(e) => setNewCustomerInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomer(); } }}
                   placeholder="Add a customer type…"
-                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-slate-600 outline-none focus:border-violet-500/40 transition-colors"
+                  className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-800 placeholder:text-gray-400 outline-none focus:border-violet-300 transition-colors"
                   data-testid="input-add-customer"
                 />
                 <button
                   type="button"
                   onClick={addCustomer}
                   disabled={!newCustomerInput.trim()}
-                  className="p-1.5 rounded-lg bg-violet-500/20 border border-violet-500/30 text-violet-400 hover:bg-violet-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  className="p-1.5 rounded-lg bg-violet-50 border border-violet-200 text-violet-600 hover:bg-violet-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                   data-testid="button-add-customer"
                 >
                   <Plus className="w-4 h-4" />
@@ -1156,26 +1159,26 @@ function LandingInner() {
 
             {/* Competitor Landscape */}
             {competitors.length > 0 && (
-              <div className="bg-[#111827]/60 border border-white/10 rounded-2xl p-5 mb-4">
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-                  Competitor Landscape &mdash; <span className="text-amber-400">{competitors.length} detected</span>
+              <div className="bg-white/80 border border-gray-200 rounded-2xl p-5 mb-4 shadow-sm">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  Competitor Landscape &mdash; <span className="text-amber-600">{competitors.length} detected</span>
                 </p>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {competitors.map((comp) => (
                     <div key={comp.name} className="group relative">
                       <div
                         data-testid={`chip-competitor-${comp.name}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border bg-amber-500/10 border-amber-500/25 text-amber-300 select-none cursor-default"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border bg-amber-50 border-amber-200 text-amber-700 select-none cursor-default"
                       >
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400/70 flex-shrink-0" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
                         {comp.name}
                         {comp.location && (
-                          <span className="text-amber-500/50 text-xs font-normal">{comp.location}</span>
+                          <span className="text-amber-500 text-xs font-normal">{comp.location}</span>
                         )}
                       </div>
                       {comp.known_for && (
                         <div className="absolute bottom-full left-0 mb-1.5 hidden group-hover:block z-20 pointer-events-none">
-                          <div className="bg-[#0f172a] border border-white/10 rounded-lg px-3 py-2 text-xs text-slate-300 max-w-[220px] shadow-xl whitespace-normal leading-relaxed">
+                          <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-600 max-w-[220px] shadow-xl whitespace-normal leading-relaxed">
                             {comp.known_for}
                           </div>
                         </div>
@@ -1183,21 +1186,21 @@ function LandingInner() {
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-slate-600">These brands may appear in AI responses for your target prompts. Hover a chip to see what they're known for.</p>
+                <p className="text-xs text-gray-400">These brands may appear in AI responses for your target prompts. Hover a chip to see what they're known for.</p>
               </div>
             )}
 
             {/* City */}
-            <div className="bg-[#111827]/60 border border-white/10 rounded-2xl p-5 mb-5">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Location</p>
+            <div className="bg-white/80 border border-gray-200 rounded-2xl p-5 mb-5 shadow-sm">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Location</p>
               <div className="flex items-center gap-3">
-                <MapPin className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 <input
                   type="text"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder="e.g. Dubai, New York, London"
-                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 outline-none focus:border-white/25 transition-colors"
+                  className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 outline-none focus:border-violet-300 transition-colors"
                   data-testid="input-city"
                 />
               </div>
@@ -1205,7 +1208,7 @@ function LandingInner() {
 
             {/* Generate button */}
             {error && (
-              <div className="mb-3 flex items-center gap-2 text-red-400 text-sm" data-testid="text-run-error">
+              <div className="mb-3 flex items-center gap-2 text-red-500 text-sm" data-testid="text-run-error">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
               </div>
             )}
@@ -1213,7 +1216,7 @@ function LandingInner() {
               type="button"
               onClick={() => { setError(null); runMutation.mutate(); }}
               disabled={!canRun || isRunning}
-              className="w-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_30px_rgba(99,102,241,0.3)] hover:shadow-[0_0_40px_rgba(99,102,241,0.45)]"
+              className="w-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_30px_rgba(99,102,241,0.2)] hover:shadow-[0_0_40px_rgba(99,102,241,0.35)]"
               data-testid="button-run-analysis"
             >
               <Sparkles className="w-5 h-5" />
@@ -1221,7 +1224,7 @@ function LandingInner() {
               <ArrowRight className="w-4 h-4" />
             </button>
             {!canRun && (
-              <p className="text-slate-500 text-xs text-center mt-2">Select at least one service, one customer type, and enter a city.</p>
+              <p className="text-gray-400 text-xs text-center mt-2">Select at least one service, one customer type, and enter a city.</p>
             )}
           </div>
         )}
