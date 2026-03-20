@@ -99,13 +99,7 @@ export function HireAgentsPanel() {
   return (
     <div className="mt-8 max-w-3xl mx-auto" data-testid="hire-agents-panel">
       <div className="mb-6 text-center">
-        <p className="text-xs font-semibold tracking-[0.15em] uppercase mb-1" style={{ color: "#9ca3af" }}>
-          Specialist agents that run autonomously on your brand — on AnswerMonk
-        </p>
-        <h2 className="text-2xl font-bold mb-1" style={{ color: "#111827" }}>Hire an Agent</h2>
-        <p style={{ color: "#6b7280" }} className="text-sm">
-          Specialist agents that run autonomously on your brand — 24/7.
-        </p>
+        <h2 className="text-2xl font-bold mb-1" style={{ color: "#111827" }}>Hire agents to fix your brand's AI search visibility</h2>
       </div>
 
       <div className="flex flex-col gap-3">
