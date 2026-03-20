@@ -502,10 +502,9 @@ function LandingInner() {
 
         {/* Hero — vertically centered with same -mt-20 trick as mockup */}
         <div
-          className="flex flex-col items-center justify-center px-4"
-          style={{ minHeight: "calc(100vh - 88px)", marginTop: "-80px" }}
+          className="flex flex-col items-center px-4 pt-12 pb-8"
         >
-        <div className="space-y-8 max-w-3xl flex flex-col items-center w-full">
+        <div className="space-y-5 max-w-3xl flex flex-col items-center w-full">
 
             {!replayMode && (
               <>
@@ -603,7 +602,7 @@ function LandingInner() {
               }}
             >
               {(["reports", "directory", "agents"] as const).map((tab) => {
-                const labels: Record<string, string> = { reports: "Reports", directory: "Directory", agents: "Hire Agents" };
+                const labels: Record<string, string> = { reports: "Reports", directory: "AI Directory", agents: "Hire Agents" };
                 const isActive = activeTab === tab;
                 return (
                   <button
@@ -613,7 +612,7 @@ function LandingInner() {
                       if (tab === "directory") {
                         toast({
                           title: "Coming soon",
-                          description: "The directory is on its way — stay tuned.",
+                          description: "AI Directory is on its way - stay tuned.",
                           duration: 2500,
                         });
                         return;
@@ -630,7 +629,8 @@ function LandingInner() {
                       letterSpacing: "0.01em",
                       transition: "all 0.2s",
                       background: isActive ? "rgba(124,58,237,0.10)" : "transparent",
-                      color: tab === "directory" ? "#94a3b8" : isActive ? "#6d28d9" : "#64748b",
+                      color: isActive ? "#6d28d9" : "#64748b",
+                      opacity: tab === "directory" ? 0.55 : 1,
                       boxShadow: "none",
                       borderBottom: isActive ? "1px solid rgba(124,58,237,0.22)" : "1px solid transparent",
                     }}
