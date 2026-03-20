@@ -83,17 +83,17 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
       className="rounded-2xl border overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 transition-all"
       style={{
         borderColor: isSelectable
-          ? isSelected ? "rgba(34,197,94,0.4)" : "rgba(255,255,255,0.06)"
-          : "rgba(255,255,255,0.08)",
+          ? isSelected ? "rgba(34,197,94,0.5)" : "rgba(255,255,255,0.08)"
+          : "rgba(255,255,255,0.1)",
         background: isSelectable
           ? isSelected
-            ? "linear-gradient(135deg,rgba(17,24,39,0.97) 0%,rgba(20,40,20,0.3) 100%)"
-            : "rgba(17,24,39,0.5)"
-          : "rgba(17,24,39,0.95)",
+            ? "#0f1a2e"
+            : "#0a1120"
+          : "#0f1a2e",
         boxShadow: isSelected && isSelectable
-          ? "0 0 0 1px rgba(34,197,94,0.12) inset, 0 4px 24px rgba(0,0,0,0.35)"
-          : "0 4px 24px rgba(0,0,0,0.3)",
-        opacity: isSelectable && !isSelected ? 0.55 : 1,
+          ? "0 0 0 1px rgba(34,197,94,0.15) inset, 0 4px 28px rgba(0,0,0,0.5)"
+          : "0 4px 20px rgba(0,0,0,0.4)",
+        opacity: isSelectable && !isSelected ? 0.6 : 1,
         cursor: isSelectable ? "pointer" : "default",
       }}
     >
