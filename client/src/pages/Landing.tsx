@@ -474,90 +474,103 @@ function LandingInner() {
         </div>
       </nav>
 
-      <main className="relative z-10 max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">
-        {!replayMode && (
-          <>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-violet-200 text-violet-700 text-sm font-medium mb-8 shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
-              </span>
-              Intelligence Engine v2.0 — Live
-            </div>
+      <main className="relative z-10 text-center">
 
-            <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight mb-6 leading-[1.1]" style={{ color: "#1e1b4b", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Dominate{" "}
-              <span style={{background: "linear-gradient(to right, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text"}}>
-                AI search results
-              </span>
-            </h1>
+        {/* ── Hero section — vertically centered above the fold ── */}
+        <div className="flex flex-col items-center justify-center px-6 pb-16" style={{ minHeight: "calc(100vh - 88px)" }}>
+          <div className="flex flex-col items-center space-y-8 w-full max-w-3xl">
 
-            <p className="text-lg md:text-xl max-w-xl mx-auto mb-10 leading-relaxed" style={{ color: "#6b7280", letterSpacing: "-0.01em" }}>
-              When customers ask AI,{" "}
-              <span style={{ color: "#1e1b4b", fontWeight: 600 }}>see which brands get recommended, why they win, and how to beat them.</span>
-            </p>
-          </>
-        )}
+            {!replayMode && (
+              <>
+                {/* Eyebrow */}
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-violet-200 text-violet-700 text-sm font-medium shadow-sm">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+                  </span>
+                  Intelligence Engine v2.0 — Live
+                </div>
 
-        {/* URL Input — hidden once complete or in replay mode */}
-        {!isComplete && !isError && !replayMode && (
-          <form onSubmit={handleSubmit} className="max-w-3xl mx-auto relative group">
-            <input
-              ref={honeypotRef}
-              name="_hp"
-              type="text"
-              tabIndex={-1}
-              aria-hidden="true"
-              autoComplete="off"
-              className="absolute opacity-0 pointer-events-none w-0 h-0"
-            />
-            <div className="absolute -inset-1 bg-gradient-to-r from-violet-400 to-blue-400 rounded-2xl blur opacity-15 group-hover:opacity-25 transition duration-1000" />
-            <div className="relative flex items-center bg-white border border-gray-200 rounded-2xl p-2 shadow-lg">
-              <div className="pl-4 flex-shrink-0">
-                <Globe className="w-5 h-5 text-slate-400" />
-              </div>
-              <input
-                type="text"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="Enter your website URL (e.g., acme.com)"
-                className="flex-1 bg-transparent border-none outline-none text-gray-800 px-4 py-4 text-lg placeholder:text-gray-400"
-                disabled={isProcessing}
-                data-testid="input-website-url"
-              />
-              <button
-                type="submit"
-                disabled={isProcessing}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                className="disabled:opacity-60 disabled:cursor-not-allowed px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 text-white"
-                style={{ backgroundColor: "#7c3aed" }}
-                data-testid="button-analyze"
-              >
-                {isProcessing ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" />Analyzing</>
-                ) : (
-                  <>Analyze <ArrowRight className={`w-4 h-4 transition-transform duration-300 ${isHovered ? "translate-x-1" : ""}`} /></>
+                {/* Heading */}
+                <h1
+                  className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight"
+                  style={{ color: "#1e1b4b", fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                >
+                  Dominate{" "}
+                  <span style={{ background: "linear-gradient(to right, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                    AI search results
+                  </span>
+                </h1>
+
+                {/* Subtext */}
+                <p className="text-lg md:text-xl max-w-xl mx-auto leading-relaxed" style={{ color: "#374151" }}>
+                  When customers ask AI,{" "}
+                  <span style={{ color: "#1e1b4b", fontWeight: 500 }}>see which brands get recommended, why they win, and how to beat them.</span>
+                </p>
+              </>
+            )}
+
+            {/* URL Input — hidden once complete or in replay mode */}
+            {!isComplete && !isError && !replayMode && (
+              <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto space-y-4">
+                <input
+                  ref={honeypotRef}
+                  name="_hp"
+                  type="text"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  autoComplete="off"
+                  className="absolute opacity-0 pointer-events-none w-0 h-0"
+                />
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="text"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="Enter your website URL..."
+                    disabled={isProcessing}
+                    data-testid="input-website-url"
+                    className="flex-1 px-5 py-4 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-gray-800 placeholder-gray-400 text-lg"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isProcessing}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                    data-testid="button-analyze"
+                    className="px-8 py-4 text-white font-semibold rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 whitespace-nowrap text-lg flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+                    style={{ backgroundColor: "#7c3aed" }}
+                  >
+                    {isProcessing ? (
+                      <><Loader2 className="w-5 h-5 animate-spin" />Analysing</>
+                    ) : (
+                      <>Analyse <span>&rarr;</span></>
+                    )}
+                  </button>
+                </div>
+                {error && (
+                  <div className="flex items-center gap-2 text-red-600 text-sm justify-center" data-testid="text-error">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
+                  </div>
                 )}
-              </button>
-            </div>
-            {error && (
-              <div className="mt-3 flex items-center gap-2 text-red-600 text-sm justify-center" data-testid="text-error">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
+              </form>
+            )}
+
+            {/* Example chip */}
+            {!isComplete && !isError && !isProcessing && !replayMode && (
+              <div
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium cursor-default transition-colors hover:bg-white/80"
+                style={{ background: "rgba(255,255,255,0.6)", border: "1px solid rgba(209,213,219,0.5)", color: "#4b5563", backdropFilter: "blur(8px)" }}
+              >
+                Try: <span style={{ color: "#111827", fontWeight: 600 }}>warbyparker.com</span>
+                <span className="flex items-center gap-1 ml-1" style={{ color: "#7c3aed" }}>
+                  View free example <span className="text-xs">&rarr;</span>
+                </span>
               </div>
             )}
-          </form>
-        )}
 
-        {/* Example chip — shown only on idle hero */}
-        {!isComplete && !isError && !isProcessing && !replayMode && (
-          <div className="flex justify-center mt-4 mb-2">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border cursor-default" style={{ background: "rgba(255,255,255,0.65)", borderColor: "rgba(0,0,0,0.08)", color: "#374151", backdropFilter: "blur(8px)" }}>
-              Try: <span className="font-semibold text-gray-900">warbyparker.com</span>
-              <span className="text-violet-600 flex items-center gap-1">View free example <ArrowRight className="w-3 h-3" /></span>
-            </div>
           </div>
-        )}
+        </div>
 
         {/* ── Mode tab switcher ── */}
         {!replayMode && (
