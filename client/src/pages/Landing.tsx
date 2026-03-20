@@ -603,11 +603,12 @@ function LandingInner() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 4,
-                background: "rgba(255,255,255,0.7)",
+                background: "rgba(255,255,255,0.75)",
                 border: "1px solid rgba(0,0,0,0.08)",
-                borderRadius: 12,
-                padding: "4px",
-                backdropFilter: "blur(8px)",
+                borderRadius: 14,
+                padding: "5px",
+                backdropFilter: "blur(10px)",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
               }}
             >
               {(["reports", "directory", "agents"] as const).map((tab) => {
@@ -629,19 +630,19 @@ function LandingInner() {
                       setActiveTab(tab);
                     }}
                     style={{
-                      padding: "6px 16px",
-                      borderRadius: 8,
+                      padding: "9px 24px",
+                      borderRadius: 10,
                       border: "none",
                       cursor: tab === "directory" ? "default" : "pointer",
-                      fontSize: 12,
-                      fontWeight: isActive ? 600 : 500,
+                      fontSize: 14,
+                      fontWeight: isActive ? 700 : 500,
                       letterSpacing: "0.01em",
                       transition: "all 0.2s",
                       background: isActive ? "rgba(124,58,237,0.10)" : "transparent",
                       color: isActive ? "#6d28d9" : "#64748b",
-                      opacity: tab === "directory" ? 0.55 : 1,
-                      boxShadow: "none",
-                      borderBottom: isActive ? "1px solid rgba(124,58,237,0.22)" : "1px solid transparent",
+                      opacity: tab === "directory" ? 0.5 : 1,
+                      boxShadow: isActive ? "0 1px 4px rgba(124,58,237,0.15)" : "none",
+                      borderBottom: isActive ? "1.5px solid rgba(124,58,237,0.25)" : "1.5px solid transparent",
                     }}
                   >
                     {labels[tab]}
