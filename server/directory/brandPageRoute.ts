@@ -314,8 +314,8 @@ function buildBrandPageHtml(brand: BrandPageData, canonicalUrl: string): string 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${brand.name} — AI Search Visibility | AnswerMonk GEO</title>
-  <meta name="description" content="${brand.name} appears in ${brand.occurrences.length} AI-analysed queries with an average visibility rate of ${avgPct}. Data from AnswerMonk GEO.">
+  <title>${brand.name} — AI Search Visibility | AnswerMonk</title>
+  <meta name="description" content="${brand.name} appears in ${brand.occurrences.length} AI-analysed queries with an average visibility rate of ${avgPct}. Data from AnswerMonk.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="${canonicalUrl}">
   <meta property="og:title" content="${brand.name} — AI Search Visibility">
@@ -330,7 +330,7 @@ ${jsonLd}
 
 <nav>
   <div class="logo-icon">✦</div>
-  <span class="brand-nav">AnswerMonk <span>GEO</span></span>
+  <span class="brand-nav">AnswerMonk</span>
 </nav>
 
 <div class="breadcrumb">
@@ -345,7 +345,7 @@ ${jsonLd}
   </div>
 
   <h1>${brand.name}</h1>
-  <div class="sub">AI search visibility data — AnswerMonk GEO analysis</div>
+  <div class="sub">AI search visibility data — AnswerMonk analysis</div>
 
   <!-- Top-line stats -->
   <div class="stat-row">

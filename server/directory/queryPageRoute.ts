@@ -177,7 +177,7 @@ function buildJsonLd(opts: {
       name: `AI Search Rankings: ${h1}`,
       description: `Ranked list of AI-visible brands for the query "${slug}", derived from ${promptCount} prompts across ChatGPT, Claude, Gemini, and Perplexity.`,
       dateModified: lastUpdated,
-      creator: { "@type": "Organization", name: "AnswerMonk GEO" },
+      creator: { "@type": "Organization", name: "AnswerMonk" },
     },
     {
       "@type": "ItemList",
@@ -366,8 +366,8 @@ function buildQueryPageHtml(opts: {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${h1} (${analysisWindow} AI Analysis) | AnswerMonk GEO</title>
-  <meta name="description" content="${topStr} are the top AI-visible providers for ${h1}, based on ${promptCount} prompts analysed by AnswerMonk GEO.">
+  <title>${h1} (${analysisWindow} AI Analysis) | AnswerMonk</title>
+  <meta name="description" content="${topStr} are the top AI-visible providers for ${h1}, based on ${promptCount} prompts analysed by AnswerMonk.">
   <meta name="robots" content="${robots}">
   <link rel="canonical" href="${canonicalUrl}">
 
@@ -387,7 +387,7 @@ ${jsonLd}
 
   <nav>
     <div class="logo-icon">✦</div>
-    <span class="brand">AnswerMonk <span>GEO</span></span>
+    <span class="brand">AnswerMonk</span>
   </nav>
 
   <!-- Breadcrumb -->
@@ -414,7 +414,7 @@ ${jsonLd}
     <!-- §2 Direct answer paragraph -->
     <div class="answer-box">
       <strong>${topStr}</strong> are the most frequently cited providers for <em>${h1}</em>
-      across ChatGPT, Claude, Gemini and Perplexity, based on AnswerMonk GEO analysis of
+      across ChatGPT, Claude, Gemini and Perplexity, based on AnswerMonk analysis of
       <span class="stat">${promptCount} prompts</span> (${analysisWindow}).
       The top-ranked brand appeared in
       <span class="stat">${Math.round(topRate * 100)}% of AI responses</span>.

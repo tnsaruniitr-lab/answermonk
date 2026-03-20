@@ -491,8 +491,27 @@ function LandingInner() {
 
       {/* Nav — matches mockup exactly */}
       <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between relative z-10">
-        <div className="text-xl font-bold text-indigo-900 tracking-tight">
-          AnswerMonk <span style={{ color: "rgba(79,70,229,0.8)" }}>GEO</span>
+        <div className="flex items-center gap-2.5">
+          {/* AnswerMonk logo mark — speech bubble with pulse dots */}
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="am-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#6366f1" />
+                <stop offset="100%" stopColor="#8b5cf6" />
+              </linearGradient>
+            </defs>
+            {/* Bubble body */}
+            <rect x="1" y="1" width="26" height="20" rx="6" fill="url(#am-grad)" />
+            {/* Tail */}
+            <path d="M7 21 L4 28 L13 21Z" fill="url(#am-grad)" />
+            {/* Three dots */}
+            <circle cx="9" cy="11" r="2.2" fill="white" fillOpacity="0.95" />
+            <circle cx="14" cy="11" r="2.2" fill="white" fillOpacity="0.95" />
+            <circle cx="19" cy="11" r="2.2" fill="white" fillOpacity="0.95" />
+          </svg>
+          <span className="text-xl font-bold tracking-tight" style={{ color: "#1e1b4b" }}>
+            Answer<span style={{ color: "#6366f1" }}>Monk</span>
+          </span>
         </div>
       </header>
 
@@ -1285,7 +1304,7 @@ function LandingInner() {
         aria-labelledby="features-heading"
         className="relative z-10 max-w-4xl mx-auto px-6 pb-4"
       >
-        <h2 id="features-heading" className="sr-only">Key features of AnswerMonk GEO Intelligence</h2>
+        <h2 id="features-heading" className="sr-only">Key features of AnswerMonk Intelligence</h2>
         <dl className="sr-only">
           <div>
             <dt>Prompt Network Creator (PNC)</dt>
@@ -1447,7 +1466,7 @@ function LandingInner() {
       <footer style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }} className="relative z-10 py-8 text-center">
         <div className="flex items-center justify-center gap-2 mb-1">
           <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.15em", color: "#94a3b8" }}>
-            ANSWERMONK GEO
+            ANSWERMONK
           </span>
           <span style={{ color: "#cbd5e1", fontSize: 10 }}>·</span>
           <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.15em", color: "#94a3b8" }}>

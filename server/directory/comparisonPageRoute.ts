@@ -274,7 +274,7 @@ function buildComparisonParagraph(d: ComparisonData): { p1: string; p2: string }
   const trailerPct = d.avgRate1 > d.avgRate2 ? avg2Pct : avg1Pct;
   const diffPct = `${Math.round(Math.abs(d.avgRate1 - d.avgRate2) * 100)}`;
 
-  const p1 = `Across ${d.sharedPages.length} shared AI-analysed queries in ${loc}, ${leader} averages ${leaderPct} AI visibility compared to ${trailer}'s ${trailerPct} — a ${diffPct}-point gap based on AnswerMonk GEO prompt analysis.`;
+  const p1 = `Across ${d.sharedPages.length} shared AI-analysed queries in ${loc}, ${leader} averages ${leaderPct} AI visibility compared to ${trailer}'s ${trailerPct} — a ${diffPct}-point gap based on AnswerMonk prompt analysis.`;
 
   const leadCount = d.avgRate1 > d.avgRate2 ? d.pagesLeading1 : d.pagesLeading2;
   const p2 = `${leader} leads on ${leadCount} of ${d.sharedPages.length} shared query pages. This comparison is based on co-occurrence data only — both brands were independently cited by ChatGPT, Claude, Gemini, and Perplexity across the same query categories.`;
@@ -418,8 +418,8 @@ function buildComparisonHtml(d: ComparisonData, canonicalUrl: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${d.brand1Name} vs ${d.brand2Name} in ${locTitle} — AI Visibility | AnswerMonk GEO</title>
-  <meta name="description" content="${d.brand1Name} averages ${avg1Pct} vs ${d.brand2Name}'s ${avg2Pct} AI visibility across ${d.sharedPages.length} shared queries in ${locTitle}. AnswerMonk GEO.">
+  <title>${d.brand1Name} vs ${d.brand2Name} in ${locTitle} — AI Visibility | AnswerMonk</title>
+  <meta name="description" content="${d.brand1Name} averages ${avg1Pct} vs ${d.brand2Name}'s ${avg2Pct} AI visibility across ${d.sharedPages.length} shared queries in ${locTitle}. AnswerMonk.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="${canonicalUrl}">
   <script type="application/ld+json">
@@ -431,7 +431,7 @@ ${jsonLd}
 
 <nav>
   <div class="logo-icon"></div>
-  <span class="brand-nav">AnswerMonk <span>GEO</span></span>
+  <span class="brand-nav">AnswerMonk</span>
 </nav>
 
 <div class="breadcrumb">
@@ -443,7 +443,7 @@ ${jsonLd}
   <div class="badge">⬡ ${d.sharedPages.length} shared query pages · ${locTitle}</div>
 
   <h1>${d.brand1Name} vs ${d.brand2Name} in ${locTitle} — AI Visibility Comparison</h1>
-  <div class="sub">Prompt-level AI search visibility · AnswerMonk GEO analysis</div>
+  <div class="sub">Prompt-level AI search visibility · AnswerMonk analysis</div>
 
   <!-- §1 Editorial comparison paragraph -->
   <div class="editorial">

@@ -57,8 +57,8 @@ function shell(opts: {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title} | AnswerMonk GEO</title>
-  <meta name="description" content="${title} — how AnswerMonk GEO measures AI search visibility and produces rankings.">
+  <title>${title} | AnswerMonk</title>
+  <meta name="description" content="${title} — how AnswerMonk measures AI search visibility and produces rankings.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="${canonical}">
   <style>${BASE_CSS}</style>
@@ -66,7 +66,7 @@ function shell(opts: {
 <body>
   <nav>
     <div class="logo-icon">✦</div>
-    <span class="brand">AnswerMonk <span>GEO</span></span>
+    <span class="brand">AnswerMonk</span>
   </nav>
   <div class="breadcrumb">
     <a href="/">Home</a> › <a href="/directory">Directory</a> › ${title}
@@ -92,10 +92,10 @@ function methodologyHtml(base: string): string {
     activePath: "/methodology",
     body: `
 <h1>Methodology</h1>
-<p class="lead">How AnswerMonk GEO measures AI search visibility across ChatGPT, Claude, Gemini and Perplexity.</p>
+<p class="lead">How AnswerMonk measures AI search visibility across ChatGPT, Claude, Gemini and Perplexity.</p>
 
 <h2>Overview</h2>
-<p>AnswerMonk GEO runs structured prompt sets across four major AI engines and records which brands appear, their position, and the sources cited. Rankings are derived from appearance frequency — not paid placement or manual curation.</p>
+<p>AnswerMonk runs structured prompt sets across four major AI engines and records which brands appear, their position, and the sources cited. Rankings are derived from appearance frequency — not paid placement or manual curation.</p>
 
 <h2>Prompt Design</h2>
 <div class="card">
@@ -122,7 +122,7 @@ function methodologyHtml(base: string): string {
 <p>A query page is eligible for publication only when <code>evidence_score ≥ 3</code> AND <code>brand_count ≥ 3</code>. Pages that fail the gate are kept as drafts and may be published manually with a logged reason.</p>
 
 <h2>Authority domains</h2>
-<p>AnswerMonk GEO recognises a curated set of authority domains — regulatory bodies, established review platforms, government health authorities, and major media — as high-signal citation sources. These include: <span class="tag">dha.gov.ae</span><span class="tag">g2.com</span><span class="tag">reddit.com</span><span class="tag">capterra.com</span><span class="tag">haad.ae</span> and others.</p>
+<p>AnswerMonk recognises a curated set of authority domains — regulatory bodies, established review platforms, government health authorities, and major media — as high-signal citation sources. These include: <span class="tag">dha.gov.ae</span><span class="tag">g2.com</span><span class="tag">reddit.com</span><span class="tag">capterra.com</span><span class="tag">haad.ae</span> and others.</p>
 `,
   });
 }
@@ -153,7 +153,7 @@ function aboutTheDataHtml(base: string): string {
 </div>
 <div class="card">
   <h3>Not exhaustive</h3>
-  <p>AnswerMonk GEO analyses the brands that appear in AI responses. Brands not mentioned by AI engines are not ranked — their absence is itself a signal of low AI visibility, not necessarily low quality.</p>
+  <p>AnswerMonk analyses the brands that appear in AI responses. Brands not mentioned by AI engines are not ranked — their absence is itself a signal of low AI visibility, not necessarily low quality.</p>
 </div>
 
 <h2>Data versioning</h2>

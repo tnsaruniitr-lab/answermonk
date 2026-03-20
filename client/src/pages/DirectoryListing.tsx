@@ -119,7 +119,7 @@ export default function DirectoryListing() {
             <span style={{ fontSize: 14 }}>✦</span>
           </div>
           <span style={{ fontWeight: 600, fontSize: 14, color: "#fff" }}>
-            AnswerMonk <span style={{ color: "#60a5fa", fontWeight: 300 }}>GEO</span>
+            AnswerMonk
           </span>
         </div>
         <a href="/start" style={{ fontSize: 13, color: "#475569", textDecoration: "none" }}>← Back to home</a>
