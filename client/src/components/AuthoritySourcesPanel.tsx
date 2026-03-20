@@ -625,27 +625,27 @@ function MissionControlLoader({
   const streamColors = ["#3b82f6", "#6366f1", "#10b981"];
 
   return (
-    <div style={{ background: "#040912", borderRadius: 12, overflow: "hidden", fontFamily: "system-ui, sans-serif" }}>
+    <div style={{ background: "rgba(255,255,255,0.92)", borderRadius: 12, overflow: "hidden", fontFamily: "system-ui, sans-serif", border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 2px 16px rgba(99,102,241,0.08)" }}>
       {/* Status bar */}
-      <div style={{ background: "#0a1628", borderBottom: "1px solid #1e3a5f", padding: "8px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ background: "linear-gradient(90deg, rgba(99,102,241,0.06) 0%, rgba(59,130,246,0.04) 100%)", borderBottom: "1px solid rgba(0,0,0,0.07)", padding: "8px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ color: "#3b82f6", fontSize: 10, fontFamily: "monospace", letterSpacing: 2 }}>ANSWERMONK</span>
-          <span style={{ color: "#1e3a5f", fontSize: 10 }}>·</span>
-          <span style={{ color: "#64748b", fontSize: 10, fontFamily: "monospace" }}>CITATION INTELLIGENCE</span>
+          <span style={{ color: "#4f46e5", fontSize: 10, fontFamily: "monospace", letterSpacing: 2 }}>ANSWERMONK</span>
+          <span style={{ color: "#d1d5db", fontSize: 10 }}>·</span>
+          <span style={{ color: "#9ca3af", fontSize: 10, fontFamily: "monospace" }}>CITATION INTELLIGENCE</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <div style={{ width: 5, height: 5, borderRadius: "50%", background: insightsPending ? "#f59e0b" : "#ef4444", animation: "mc-blink 0.8s infinite" }} />
-          <span style={{ color: insightsPending ? "#f59e0b" : "#ef4444", fontSize: 10, fontFamily: "monospace", letterSpacing: 1 }}>{phaseLabel}</span>
+          <span style={{ color: insightsPending ? "#d97706" : "#dc2626", fontSize: 10, fontFamily: "monospace", letterSpacing: 1 }}>{phaseLabel}</span>
         </div>
       </div>
 
       {/* Main panel */}
-      <div style={{ background: "#060f1e", padding: "20px 20px 16px" }}>
+      <div style={{ background: "transparent", padding: "20px 20px 16px" }}>
         {/* Central ring */}
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
           <div style={{ position: "relative", width: 130, height: 130 }}>
             <svg viewBox="0 0 140 140" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
-              <circle cx="70" cy="70" r="62" fill="none" stroke="#1e3a5f" strokeWidth="4" />
+              <circle cx="70" cy="70" r="62" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="4" />
               <circle cx="70" cy="70" r="62" fill="none"
                 stroke={insightsPending ? "#f59e0b" : "#3b82f6"} strokeWidth="4"
                 strokeDasharray={`${2 * Math.PI * 62}`}
@@ -655,7 +655,7 @@ function MissionControlLoader({
               />
             </svg>
             <svg viewBox="0 0 140 140" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
-              <circle cx="70" cy="70" r="46" fill="none" stroke="#0a1e3a" strokeWidth="2" />
+              <circle cx="70" cy="70" r="46" fill="none" stroke="rgba(99,102,241,0.12)" strokeWidth="2" />
               <circle cx="70" cy="70" r="46" fill="none" stroke="#6366f1" strokeWidth="2"
                 strokeDasharray={`${2 * Math.PI * 46}`}
                 strokeDashoffset={`${2 * Math.PI * 46 * (1 - classifiedPct)}`}
@@ -664,10 +664,10 @@ function MissionControlLoader({
               />
             </svg>
             <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ color: "#e2e8f0", fontSize: 26, fontWeight: 700, lineHeight: 1, fontFamily: "monospace" }}>
+              <div style={{ color: "#111827", fontSize: 26, fontWeight: 700, lineHeight: 1, fontFamily: "monospace" }}>
                 {Math.round(displayPct)}%
               </div>
-              <div style={{ color: insightsPending ? "#f59e0b" : "#3b82f6", fontSize: 9, letterSpacing: 1, marginTop: 4, fontFamily: "monospace" }}>
+              <div style={{ color: insightsPending ? "#d97706" : "#3b82f6", fontSize: 9, letterSpacing: 1, marginTop: 4, fontFamily: "monospace" }}>
                 {insightsPending ? "ANALYSING" : "CRAWLED"}
               </div>
             </div>
@@ -678,14 +678,14 @@ function MissionControlLoader({
         {!insightsPending && (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
             {[0, 1, 2].map(i => (
-              <div key={i} style={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 8, padding: "8px 10px" }}>
-                <div style={{ color: "#334155", fontSize: 9, fontFamily: "monospace", marginBottom: 5, letterSpacing: 1 }}>STREAM {i + 1}</div>
+              <div key={i} style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.07)", borderRadius: 8, padding: "8px 10px" }}>
+                <div style={{ color: "#9ca3af", fontSize: 9, fontFamily: "monospace", marginBottom: 5, letterSpacing: 1 }}>STREAM {i + 1}</div>
                 <div style={{ color: streamColors[i], fontSize: 10, fontFamily: "monospace", marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {streamDomains[i]}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                   <div style={{ width: 4, height: 4, borderRadius: "50%", background: streamColors[streamStatus[i] % 3], animation: "mc-pulse 1.2s infinite" }} />
-                  <span style={{ color: "#475569", fontSize: 9, fontFamily: "monospace" }}>{STATUSES[streamStatus[i]]}</span>
+                  <span style={{ color: "#9ca3af", fontSize: 9, fontFamily: "monospace" }}>{STATUSES[streamStatus[i]]}</span>
                 </div>
               </div>
             ))}
@@ -694,9 +694,9 @@ function MissionControlLoader({
 
         {/* Claude Sonnet analysis message — insights phase */}
         {insightsPending && (
-          <div style={{ background: "#0a1628", border: "1px solid #78350f", borderRadius: 8, padding: "12px 16px", marginBottom: 14, textAlign: "center" }}>
-            <div style={{ color: "#f59e0b", fontSize: 11, fontFamily: "monospace", letterSpacing: 1, marginBottom: 6 }}>CLAUDE SONNET ANALYSIS</div>
-            <div style={{ color: "#64748b", fontSize: 10, fontFamily: "monospace" }}>Analysing {animCrawled.toLocaleString()} citation rows · discovering GEO tactics…</div>
+          <div style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 8, padding: "12px 16px", marginBottom: 14, textAlign: "center" }}>
+            <div style={{ color: "#d97706", fontSize: 11, fontFamily: "monospace", letterSpacing: 1, marginBottom: 6 }}>CLAUDE SONNET ANALYSIS</div>
+            <div style={{ color: "#9ca3af", fontSize: 10, fontFamily: "monospace" }}>Analysing {animCrawled.toLocaleString()} citation rows · discovering GEO tactics…</div>
           </div>
         )}
 
@@ -704,21 +704,21 @@ function MissionControlLoader({
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
           {[
             { label: "PAGES FOUND", value: realCrawled ?? animCrawled, suffix: realTotal ? `/${realTotal}` : "", color: "#3b82f6" },
-            { label: "ACCESSIBLE", value: realOk ?? animOk, suffix: "", color: "#10b981" },
+            { label: "ACCESSIBLE", value: realOk ?? animOk, suffix: "", color: "#059669" },
             { label: "CLASSIFIED", value: animClassified, suffix: "", color: "#6366f1" },
           ].map(s => (
-            <div key={s.label} style={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 8, padding: "10px 12px", textAlign: "center" }}>
+            <div key={s.label} style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.07)", borderRadius: 8, padding: "10px 12px", textAlign: "center" }}>
               <div style={{ color: s.color, fontFamily: "monospace", fontSize: 20, fontWeight: 700, letterSpacing: -0.5 }}>
                 {s.value.toLocaleString()}
-                {s.suffix && <span style={{ color: "#1e3a5f", fontSize: 12 }}>{s.suffix}</span>}
+                {s.suffix && <span style={{ color: "#d1d5db", fontSize: 12 }}>{s.suffix}</span>}
               </div>
-              <div style={{ color: "#334155", fontSize: 9, fontFamily: "monospace", letterSpacing: 1, marginTop: 3 }}>{s.label}</div>
+              <div style={{ color: "#9ca3af", fontSize: 9, fontFamily: "monospace", letterSpacing: 1, marginTop: 3 }}>{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* Phase detail */}
-        <div style={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 8, padding: "10px 14px" }}>
+        <div style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.07)", borderRadius: 8, padding: "10px 14px" }}>
           <div style={{ color: "#334155", fontSize: 9, fontFamily: "monospace", letterSpacing: 1, marginBottom: 7 }}>CURRENT OPERATION</div>
           <div style={{ color: "#475569", fontSize: 10, fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {progress?.detail ?? (insightsPending ? "Running Claude Sonnet 4.5 citation intelligence analysis…" : "Initialising web crawler…")}
@@ -847,7 +847,7 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
   const accent = RANK_ACCENT[rank] ?? DEFAULT_RANK_ACCENT;
 
   return (
-    <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid rgba(255,255,255,0.08)`, background: "#0b1120", borderLeft: `3px solid ${accent.border}` }}>
+    <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid rgba(0,0,0,0.08)`, background: "rgba(255,255,255,0.92)", borderLeft: `3px solid ${accent.border}` }}>
       {/* Header — always visible, clickable to collapse */}
       <button
         onClick={() => setOpen((o) => !o)}
@@ -857,16 +857,16 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
           #{rank}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#f1f5f9", lineHeight: 1.3, marginBottom: 4 }}>{title}</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#111827", lineHeight: 1.3, marginBottom: 4 }}>{title}</div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: accent.badgeText }}>{citations.toLocaleString()}</span>
-            <span style={{ fontSize: 11, color: "#64748b" }}>citations</span>
+            <span style={{ fontSize: 11, color: "#9ca3af" }}>citations</span>
             {tactic.impact && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5, background: accent.badgeBg, color: accent.badgeText, border: `1px solid ${accent.border}40` }}>{tactic.impact}</span>}
-            {tactic.confidence && <span style={{ fontSize: 10, color: "#475569" }}>· {tactic.confidence} confidence</span>}
+            {tactic.confidence && <span style={{ fontSize: 10, color: "#9ca3af" }}>· {tactic.confidence} confidence</span>}
           </div>
         </div>
-        <div style={{ width: 28, height: 28, borderRadius: 8, background: open ? "rgba(99,102,241,0.15)" : "rgba(255,255,255,0.06)", border: `1px solid ${open ? "rgba(99,102,241,0.35)" : "rgba(255,255,255,0.1)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.2s" }}>
-          <ChevronDown style={{ width: 18, height: 18, color: open ? "#818cf8" : "#94a3b8", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s, color 0.2s" }} />
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: open ? "rgba(99,102,241,0.08)" : "rgba(0,0,0,0.04)", border: `1px solid ${open ? "rgba(99,102,241,0.25)" : "rgba(0,0,0,0.08)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.2s" }}>
+          <ChevronDown style={{ width: 18, height: 18, color: open ? "#6366f1" : "#9ca3af", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s, color 0.2s" }} />
         </div>
       </button>
 
@@ -876,9 +876,9 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
           {examples.map((ex, i) => {
             const domain = ex.url.replace(/^https?:\/\//, "").split("/")[0];
             return (
-              <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, background: "rgba(255,255,255,0.05)", color: "#94a3b8", border: "1px solid rgba(255,255,255,0.1)" }}>
-                <strong style={{ color: "#e2e8f0" }}>{domain}</strong>
-                <span style={{ color: "#475569", margin: "0 3px" }}>·</span>
+              <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, background: "rgba(0,0,0,0.04)", color: "#6b7280", border: "1px solid rgba(0,0,0,0.08)" }}>
+                <strong style={{ color: "#374151" }}>{domain}</strong>
+                <span style={{ color: "#d1d5db", margin: "0 3px" }}>·</span>
                 <span style={{ color: accent.badgeText, fontWeight: 700 }}>{ex.count}</span>
               </span>
             );
@@ -895,18 +895,18 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
             exit={{ opacity: 0, height: 0 }}
             style={{ overflow: "hidden" }}
           >
-            <div style={{ padding: "16px 16px 20px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "#080e1c" }}>
+            <div style={{ padding: "16px 16px 20px", borderTop: "1px solid rgba(0,0,0,0.06)", background: "rgba(248,249,250,0.8)" }}>
 
               {/* Mechanism text */}
               {(mechanism || whyItWorks.length > 0) && (
                 <div style={{ marginBottom: 18 }}>
-                  {mechanism && <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.65, margin: "0 0 8px" }}>{mechanism}</p>}
+                  {mechanism && <p style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.65, margin: "0 0 8px" }}>{mechanism}</p>}
                   {whyItWorks.length > 0 && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                       {whyItWorks.map((w, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
                           <span style={{ fontSize: 12, color: accent.badgeText, flexShrink: 0, marginTop: 2 }}>✓</span>
-                          <span style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5 }}>{w}</span>
+                          <span style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>{w}</span>
                         </div>
                       ))}
                     </div>
@@ -917,17 +917,17 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
               {/* Source pages with descriptions */}
               {examples.some(e => e.description) && (
                 <div style={{ marginBottom: 20 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#334155", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>What these sources look like</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>What these sources look like</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {examples.filter(e => e.description).map((ex, i) => (
-                      <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 12px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+                      <div key={i} style={{ background: "rgba(0,0,0,0.02)", borderRadius: 8, padding: "8px 12px", display: "flex", gap: 10, alignItems: "flex-start", border: "1px solid rgba(0,0,0,0.06)" }}>
                         <span style={{ color: accent.badgeText, fontWeight: 700, fontSize: 12, flexShrink: 0, minWidth: 28 }}>{ex.count}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <a href={ex.url.startsWith("http") ? ex.url : `https://${ex.url}`} target="_blank" rel="noopener noreferrer"
-                            style={{ fontSize: 11, color: "#818cf8", fontFamily: "monospace", display: "block", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            style={{ fontSize: 11, color: "#6366f1", fontFamily: "monospace", display: "block", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {ex.url}
                           </a>
-                          {ex.description && <p style={{ fontSize: 12, color: "#64748b", margin: 0, lineHeight: 1.5 }}>{ex.description}</p>}
+                          {ex.description && <p style={{ fontSize: 12, color: "#6b7280", margin: 0, lineHeight: 1.5 }}>{ex.description}</p>}
                         </div>
                       </div>
                     ))}
@@ -938,7 +938,7 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
               {/* Brand performance — the main section */}
               {brandPerf.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#334155", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Brand performance on this tactic</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Brand performance on this tactic</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     {brandPerf.map((bp: any, bpIdx: number) => {
                       const bName = bp.brand ?? bp.brand_name ?? bp.name ?? "";
@@ -957,9 +957,9 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
                       });
                       const isStrong = bRating === "Strong";
                       const isPartial = bRating === "Partial";
-                      const ratingColor = isStrong ? "#10b981" : isPartial ? "#f59e0b" : "#ef4444";
-                      const ratingBg = isStrong ? "rgba(16,185,129,0.12)" : isPartial ? "rgba(245,158,11,0.12)" : "rgba(239,68,68,0.12)";
-                      const ratingBorder = isStrong ? "rgba(16,185,129,0.3)" : isPartial ? "rgba(245,158,11,0.3)" : "rgba(239,68,68,0.3)";
+                      const ratingColor = isStrong ? "#059669" : isPartial ? "#d97706" : "#dc2626";
+                      const ratingBg = isStrong ? "rgba(16,185,129,0.08)" : isPartial ? "rgba(245,158,11,0.08)" : "rgba(239,68,68,0.08)";
+                      const ratingBorder = isStrong ? "rgba(16,185,129,0.2)" : isPartial ? "rgba(245,158,11,0.2)" : "rgba(239,68,68,0.2)";
                       // Only suppress exact placeholder strings — never broad keyword match
                       const PURE_PLACEHOLDERS = [
                         "UNATTRIBUTED - web verification incomplete.",
@@ -977,11 +977,11 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
                       );
                       const bAppearClean = isPlaceholder ? "" : bAppear;
                       return (
-                        <div key={bName || bpIdx} style={{ background: "rgba(99,102,241,0.06)", borderRadius: 12, border: "1px solid rgba(99,102,241,0.18)", overflow: "hidden" }}>
+                        <div key={bName || bpIdx} style={{ background: "rgba(99,102,241,0.04)", borderRadius: 12, border: "1px solid rgba(99,102,241,0.15)", overflow: "hidden" }}>
                           {/* Brand header row */}
-                          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", background: "rgba(99,102,241,0.1)", borderBottom: "1px solid rgba(99,102,241,0.15)" }}>
-                            <Building2 style={{ width: 16, height: 16, color: "#818cf8", flexShrink: 0 }} />
-                            <span style={{ fontSize: 15, fontWeight: 800, color: "#c7d2fe", flex: 1, letterSpacing: 0.1 }}>{bName}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", background: "rgba(99,102,241,0.06)", borderBottom: "1px solid rgba(99,102,241,0.12)" }}>
+                            <Building2 style={{ width: 16, height: 16, color: "#6366f1", flexShrink: 0 }} />
+                            <span style={{ fontSize: 15, fontWeight: 800, color: "#4f46e5", flex: 1, letterSpacing: 0.1 }}>{bName}</span>
                             {bCount > 0 && (
                               <span style={{ fontSize: 12, fontWeight: 700, color: accent.badgeText, background: accent.badgeBg, padding: "3px 10px", borderRadius: 20, border: `1px solid ${accent.border}40` }}>
                                 {bCount} citations
@@ -997,22 +997,22 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
                           <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
                             {bDo && (
                               <div>
-                                <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 4 }}>What they do</span>
-                                <p style={{ fontSize: 13, color: "#cbd5e1", margin: 0, lineHeight: 1.6 }}>{bDo}</p>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 4 }}>What they do</span>
+                                <p style={{ fontSize: 13, color: "#374151", margin: 0, lineHeight: 1.6 }}>{bDo}</p>
                               </div>
                             )}
                             {bAppearClean && (
-                              <div style={{ background: isPartiallyVerified ? "rgba(245,158,11,0.08)" : "rgba(99,102,241,0.1)", borderRadius: 8, padding: "10px 14px", borderLeft: `3px solid ${isPartiallyVerified ? "#f59e0b" : "#6366f1"}` }}>
+                              <div style={{ background: isPartiallyVerified ? "rgba(245,158,11,0.05)" : "rgba(99,102,241,0.05)", borderRadius: 8, padding: "10px 14px", borderLeft: `3px solid ${isPartiallyVerified ? "#d97706" : "#6366f1"}` }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                                  <span style={{ fontSize: 10, fontWeight: 700, color: isPartiallyVerified ? "#f59e0b" : "#6366f1", textTransform: "uppercase", letterSpacing: 1 }}>How they appear</span>
-                                  {isPartiallyVerified && <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 4, background: "rgba(245,158,11,0.15)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.3)" }}>PARTIALLY VERIFIED</span>}
+                                  <span style={{ fontSize: 10, fontWeight: 700, color: isPartiallyVerified ? "#d97706" : "#6366f1", textTransform: "uppercase", letterSpacing: 1 }}>How they appear</span>
+                                  {isPartiallyVerified && <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 4, background: "rgba(245,158,11,0.08)", color: "#d97706", border: "1px solid rgba(245,158,11,0.2)" }}>PARTIALLY VERIFIED</span>}
                                 </div>
-                                <p style={{ fontSize: 13, color: isPartiallyVerified ? "#fcd34d" : "#a5b4fc", margin: 0, lineHeight: 1.65, fontStyle: "italic" }}>"{bAppearClean}"</p>
+                                <p style={{ fontSize: 13, color: isPartiallyVerified ? "#b45309" : "#4f46e5", margin: 0, lineHeight: 1.65, fontStyle: "italic" }}>"{bAppearClean}"</p>
                               </div>
                             )}
                             {bEvidence.length > 0 && (
                               <div>
-                                <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 6 }}>Evidence</span>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 6 }}>Evidence</span>
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                                   {bEvidence.map((ev: any, ei: number) => {
                                     const evUrl = ev.url ?? "";
@@ -1020,8 +1020,8 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
                                     const evCount = ev.citation_count ?? ev.count ?? 0;
                                     return (
                                       <a key={ei} href={evUrl.startsWith("http") ? evUrl : `https://${evUrl}`} target="_blank" rel="noopener noreferrer"
-                                        style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, background: "rgba(255,255,255,0.05)", color: "#64748b", border: "1px solid rgba(255,255,255,0.1)", textDecoration: "none", display: "flex", alignItems: "center", gap: 5 }}>
-                                        <strong style={{ color: "#94a3b8" }}>{evDomain}</strong>
+                                        style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, background: "rgba(0,0,0,0.04)", color: "#6b7280", border: "1px solid rgba(0,0,0,0.08)", textDecoration: "none", display: "flex", alignItems: "center", gap: 5 }}>
+                                        <strong style={{ color: "#374151" }}>{evDomain}</strong>
                                         <span style={{ color: accent.badgeText, fontWeight: 700 }}>·{evCount}</span>
                                       </a>
                                     );
@@ -1072,8 +1072,8 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {actionItems.map((a, i) => (
                         <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                          <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: "rgba(16,185,129,0.15)", color: "#34d399", border: "1px solid rgba(16,185,129,0.25)", flexShrink: 0, marginTop: 1, textTransform: "uppercase", letterSpacing: 0.5 }}>{a.label}</span>
-                          <p style={{ fontSize: 12, color: "#a7f3d0", margin: 0, lineHeight: 1.55, flex: 1 }}>{a.text}</p>
+                          <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: "rgba(16,185,129,0.08)", color: "#059669", border: "1px solid rgba(16,185,129,0.2)", flexShrink: 0, marginTop: 1, textTransform: "uppercase", letterSpacing: 0.5 }}>{a.label}</span>
+                          <p style={{ fontSize: 12, color: "#374151", margin: 0, lineHeight: 1.55, flex: 1 }}>{a.text}</p>
                         </div>
                       ))}
                     </div>
@@ -1174,18 +1174,18 @@ function FactorReport({ data }: { data: any }) {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="rounded-xl overflow-hidden border border-border/40" style={{ background: "linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%)" }}>
+      <div className="rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 2px 16px rgba(99,102,241,0.08)" }}>
         <div className="px-5 py-4">
-          <div className="text-[10px] text-slate-400 tracking-widest mb-1 uppercase">GEO Factor Analysis</div>
-          <div className="text-white font-semibold text-sm mt-0.5">{data.market ?? "Market"}</div>
+          <div className="text-[10px] tracking-widest mb-1 uppercase" style={{ color: "#6366f1" }}>GEO Factor Analysis</div>
+          <div className="font-semibold text-sm mt-0.5" style={{ color: "#111827" }}>{data.market ?? "Market"}</div>
           <div className="grid grid-cols-2 gap-4 mt-3">
             <div>
-              <div className="text-white text-lg font-bold leading-tight">{(data.total_citations_analysed ?? 0).toLocaleString()}</div>
-              <div className="text-slate-400 text-[10px] mt-0.5">Citations Analysed</div>
+              <div className="text-lg font-bold leading-tight" style={{ color: "#111827" }}>{(data.total_citations_analysed ?? 0).toLocaleString()}</div>
+              <div className="text-[10px] mt-0.5" style={{ color: "#9ca3af" }}>Citations Analysed</div>
             </div>
             <div>
-              <div className="text-white text-lg font-bold leading-tight">{factors.length}</div>
-              <div className="text-slate-400 text-[10px] mt-0.5">GEO Factors Identified</div>
+              <div className="text-lg font-bold leading-tight" style={{ color: "#111827" }}>{factors.length}</div>
+              <div className="text-[10px] mt-0.5" style={{ color: "#9ca3af" }}>GEO Factors Identified</div>
             </div>
           </div>
         </div>
@@ -1193,18 +1193,18 @@ function FactorReport({ data }: { data: any }) {
 
       {/* Top cited domains */}
       {domains.length > 0 && (
-        <div style={{ background: "#0a0f1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "14px 16px" }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 10 }}>Top Cited Domains</div>
+        <div style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: "14px 16px", boxShadow: "0 1px 8px rgba(0,0,0,0.04)" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 10 }}>Top Cited Domains</div>
           <div className="space-y-2">
             {domains.map((d: any, i: number) => (
               <div key={i} className="flex items-start gap-3">
-                <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", minWidth: 16, paddingTop: 1 }}>#{i + 1}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", minWidth: 16, paddingTop: 1 }}>#{i + 1}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#e2e8f0" }}>{d.domain}</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "#6366f1", background: "rgba(99,102,241,0.12)", borderRadius: 4, padding: "1px 6px" }}>{(d.citations ?? 0).toLocaleString()} citations</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#111827" }}>{d.domain}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#4f46e5", background: "rgba(99,102,241,0.08)", borderRadius: 4, padding: "1px 6px" }}>{(d.citations ?? 0).toLocaleString()} citations</span>
                   </div>
-                  <p style={{ fontSize: 11, color: "#64748b", margin: "2px 0 0", lineHeight: 1.5 }}>{d.why_cited}</p>
+                  <p style={{ fontSize: 11, color: "#6b7280", margin: "2px 0 0", lineHeight: 1.5 }}>{d.why_cited}</p>
                 </div>
               </div>
             ))}
@@ -1214,21 +1214,21 @@ function FactorReport({ data }: { data: any }) {
 
       {/* Factor cards */}
       {factors.map((f: any, fi: number) => {
-        const rankColor = FACTOR_RANK_COLORS[fi] ?? "#64748b";
+        const rankColor = FACTOR_RANK_COLORS[fi] ?? "#6b7280";
         const brands: any[] = f.brands ?? [];
         return (
-          <div key={fi} style={{ background: "#0a0f1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, overflow: "hidden" }}>
+          <div key={fi} style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 8px rgba(0,0,0,0.04)" }}>
             {/* Factor header */}
-            <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
               <div className="flex items-center gap-2 flex-wrap">
                 <span style={{ fontSize: 11, fontWeight: 800, color: rankColor, minWidth: 20 }}>#{f.rank ?? fi + 1}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>{f.factor}</span>
-                <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 700, color: "#64748b", background: "rgba(99,102,241,0.10)", borderRadius: 4, padding: "2px 7px", whiteSpace: "nowrap" }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>{f.factor}</span>
+                <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 700, color: "#4f46e5", background: "rgba(99,102,241,0.08)", borderRadius: 4, padding: "2px 7px", whiteSpace: "nowrap" }}>
                   {(f.total_citations_supporting ?? 0).toLocaleString()} citations
                 </span>
               </div>
               {f.why_it_matters && (
-                <p style={{ fontSize: 11, color: "#64748b", margin: "6px 0 0", lineHeight: 1.5 }}>{f.why_it_matters}</p>
+                <p style={{ fontSize: 11, color: "#6b7280", margin: "6px 0 0", lineHeight: 1.5 }}>{f.why_it_matters}</p>
               )}
             </div>
             {/* Brand rows */}
@@ -1238,11 +1238,11 @@ function FactorReport({ data }: { data: any }) {
                 return (
                   <div key={bi}>
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#e2e8f0" }}>{b.brand}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#111827" }}>{b.brand}</span>
                       <span style={{ fontSize: 9, fontWeight: 700, color: rs.color, background: rs.bg, borderRadius: 4, padding: "2px 7px", textTransform: "uppercase", letterSpacing: 0.8 }}>{rs.label}</span>
                     </div>
-                    {b.what_they_do && <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 2px", lineHeight: 1.5 }}>{b.what_they_do}</p>}
-                    {b.example && <p style={{ fontSize: 10, color: "#475569", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>eg. {b.example}</p>}
+                    {b.what_they_do && <p style={{ fontSize: 11, color: "#6b7280", margin: "0 0 2px", lineHeight: 1.5 }}>{b.what_they_do}</p>}
+                    {b.example && <p style={{ fontSize: 10, color: "#9ca3af", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>eg. {b.example}</p>}
                   </div>
                 );
               })}
@@ -1253,12 +1253,12 @@ function FactorReport({ data }: { data: any }) {
 
       {/* Biggest gap */}
       {gap && (
-        <div style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.22)", borderRadius: 12, padding: "14px 16px" }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 8 }}>Biggest Gap</div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#fcd34d", marginBottom: 4 }}>{gap.brand}</div>
-          {gap.gap && <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 6px", lineHeight: 1.5 }}>{gap.gap}</p>}
+        <div style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 12, padding: "14px 16px" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#d97706", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 8 }}>Biggest Gap</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e", marginBottom: 4 }}>{gap.brand}</div>
+          {gap.gap && <p style={{ fontSize: 11, color: "#6b7280", margin: "0 0 6px", lineHeight: 1.5 }}>{gap.gap}</p>}
           {gap.action && (
-            <div style={{ background: "rgba(245,158,11,0.10)", borderRadius: 8, padding: "8px 12px", fontSize: 11, color: "#fcd34d", lineHeight: 1.5 }}>
+            <div style={{ background: "rgba(245,158,11,0.08)", borderRadius: 8, padding: "8px 12px", fontSize: 11, color: "#92400e", lineHeight: 1.5 }}>
               <span style={{ fontWeight: 700 }}>Action: </span>{gap.action}
             </div>
           )}
@@ -1267,9 +1267,9 @@ function FactorReport({ data }: { data: any }) {
 
       {/* Quick win */}
       {data.quick_win && (
-        <div style={{ background: "rgba(20,184,166,0.07)", border: "1px solid rgba(20,184,166,0.22)", borderRadius: 12, padding: "14px 16px" }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "#14b8a6", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6 }}>Quick Win</div>
-          <p style={{ fontSize: 12, color: "#99f6e4", margin: 0, lineHeight: 1.6 }}>{data.quick_win}</p>
+        <div style={{ background: "rgba(20,184,166,0.05)", border: "1px solid rgba(20,184,166,0.2)", borderRadius: 12, padding: "14px 16px" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#0d9488", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6 }}>Quick Win</div>
+          <p style={{ fontSize: 12, color: "#134e4a", margin: 0, lineHeight: 1.6 }}>{data.quick_win}</p>
         </div>
       )}
     </div>
@@ -1294,26 +1294,26 @@ function KeyFindingCard({ text, brands }: { text: string; brands: string[] }) {
     <div
       className="rounded-2xl overflow-hidden"
       style={{
-        background: "rgba(255,255,255,0.04)",
-        backdropFilter: "blur(20px)",
-        border: "1px solid rgba(255,255,255,0.08)",
-        boxShadow: "0 0 40px rgba(245,158,11,0.08), inset 0 1px 0 rgba(255,255,255,0.06)",
+        background: "rgba(255,255,255,0.92)",
+        backdropFilter: "blur(12px)",
+        border: "1px solid rgba(245,158,11,0.25)",
+        boxShadow: "0 2px 16px rgba(245,158,11,0.08)",
       }}
     >
       <div
         className="px-5 py-2.5 flex items-center gap-2"
         style={{
-          background: "linear-gradient(90deg, rgba(245,158,11,0.15) 0%, rgba(139,92,246,0.08) 100%)",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          background: "linear-gradient(90deg, rgba(245,158,11,0.08) 0%, rgba(139,92,246,0.04) 100%)",
+          borderBottom: "1px solid rgba(245,158,11,0.15)",
         }}
       >
         <span style={{ fontSize: 14 }}>⚡</span>
-        <span style={{ color: "#fcd34d", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+        <span style={{ color: "#d97706", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
           Key Finding
         </span>
       </div>
       <div className="p-5">
-        <p style={{ color: "#f1f5f9", fontSize: 13, lineHeight: 1.7, textAlign: "left", fontWeight: 400, margin: 0 }}>
+        <p style={{ color: "#111827", fontSize: 13, lineHeight: 1.7, textAlign: "left", fontWeight: 400, margin: 0 }}>
           {parts.map((part, i) => {
             const isBrand = uniqueBrands.some((b) => b.toLowerCase() === part.toLowerCase());
             const isStat = statPhrases.some((s) => s.toLowerCase() === part.toLowerCase());
@@ -1329,9 +1329,9 @@ function KeyFindingCard({ text, brands }: { text: string; brands: string[] }) {
                     fontWeight: 600,
                     marginInline: 2,
                     verticalAlign: "middle",
-                    background: "rgba(245,158,11,0.18)",
-                    color: "#fbbf24",
-                    border: "1px solid rgba(245,158,11,0.35)",
+                    background: "rgba(245,158,11,0.1)",
+                    color: "#b45309",
+                    border: "1px solid rgba(245,158,11,0.3)",
                   }}
                 >
                   {part}
@@ -1350,9 +1350,9 @@ function KeyFindingCard({ text, brands }: { text: string; brands: string[] }) {
                     fontWeight: 600,
                     marginInline: 2,
                     verticalAlign: "middle",
-                    background: "rgba(139,92,246,0.2)",
-                    color: "#c4b5fd",
-                    border: "1px solid rgba(139,92,246,0.4)",
+                    background: "rgba(99,102,241,0.08)",
+                    color: "#4f46e5",
+                    border: "1px solid rgba(99,102,241,0.2)",
                   }}
                 >
                   {part}
@@ -1388,9 +1388,9 @@ function KeyFindingCard({ text, brands }: { text: string; brands: string[] }) {
                   borderRadius: 999,
                   fontSize: 10,
                   fontWeight: 600,
-                  background: "rgba(139,92,246,0.12)",
-                  color: "#c4b5fd",
-                  border: "1px solid rgba(139,92,246,0.3)",
+                  background: "rgba(139,92,246,0.08)",
+                  color: "#7c3aed",
+                  border: "1px solid rgba(139,92,246,0.2)",
                 }}
               >
                 {s}
@@ -1427,35 +1427,35 @@ function ActionCollapseItem({
   const [open, setOpen] = useState(false);
   const ind = accent === "amber";
   const vio = accent === "violet";
-  const borderCol = ind ? "rgba(251,191,36,0.3)" : vio ? "rgba(167,139,250,0.3)" : "rgba(99,102,241,0.3)";
-  const bgCol = ind ? "rgba(251,191,36,0.12)" : vio ? "rgba(167,139,250,0.12)" : "rgba(99,102,241,0.12)";
-  const textCol = ind ? "#fbbf24" : vio ? "#a78bfa" : "#818cf8";
-  const chevBg = open ? bgCol : "rgba(255,255,255,0.05)";
-  const chevBorder = open ? borderCol : "rgba(255,255,255,0.09)";
+  const borderCol = ind ? "rgba(245,158,11,0.3)" : vio ? "rgba(139,92,246,0.25)" : "rgba(99,102,241,0.25)";
+  const bgCol = ind ? "rgba(245,158,11,0.08)" : vio ? "rgba(139,92,246,0.08)" : "rgba(99,102,241,0.08)";
+  const textCol = ind ? "#d97706" : vio ? "#7c3aed" : "#4f46e5";
+  const chevBg = open ? bgCol : "rgba(0,0,0,0.04)";
+  const chevBorder = open ? borderCol : "rgba(0,0,0,0.08)";
 
   return (
-    <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid ${open ? borderCol : "rgba(255,255,255,0.07)"}`, background: ind ? "rgba(251,191,36,0.03)" : vio ? "rgba(167,139,250,0.03)" : "#0b1120", transition: "border-color 0.15s" }}>
+    <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid ${open ? borderCol : "rgba(0,0,0,0.08)"}`, background: "rgba(255,255,255,0.92)", transition: "border-color 0.15s", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
       <button onClick={() => setOpen(o => !o)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
         <div style={{ width: 30, height: 30, borderRadius: 9, background: bgCol, border: `1px solid ${borderCol}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: ind ? 16 : 13, fontWeight: 900, color: textCol }}>
           {num}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           {ind && <div style={{ fontSize: 9, fontWeight: 700, color: textCol, letterSpacing: "0.09em", textTransform: "uppercase", marginBottom: 2 }}>Bonus · Quick Win</div>}
-          <span style={{ fontSize: 13, fontWeight: 600, color: ind ? "#fde68a" : vio ? "#ddd6fe" : "#e2e8f0", lineHeight: 1.4 }}>{summary}</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: ind ? "#92400e" : vio ? "#5b21b6" : "#1e1b4b", lineHeight: 1.4 }}>{summary}</span>
         </div>
         <div style={{ width: 26, height: 26, borderRadius: 7, background: chevBg, border: `1px solid ${chevBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
-          <ChevronDown style={{ width: 15, height: 15, color: open ? textCol : "#64748b", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.18s, color 0.15s" }} />
+          <ChevronDown style={{ width: 15, height: 15, color: open ? textCol : "#9ca3af", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.18s, color 0.15s" }} />
         </div>
       </button>
       <AnimatePresence initial={false}>
         {open && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} style={{ overflow: "hidden" }}>
-            <div style={{ padding: "4px 16px 16px 58px", borderTop: `1px solid ${ind ? "rgba(251,191,36,0.1)" : vio ? "rgba(167,139,250,0.1)" : "rgba(255,255,255,0.05)"}`, background: ind ? "rgba(251,191,36,0.02)" : vio ? "rgba(167,139,250,0.02)" : "#080e1c" }}>
-              <p style={{ fontSize: 13, color: ind ? "#fde68a" : vio ? "#c4b5fd" : "#94a3b8", lineHeight: 1.65, margin: "12px 0 10px", opacity: 0.95 }}>{detail}</p>
+            <div style={{ padding: "4px 16px 16px 58px", borderTop: `1px solid ${ind ? "rgba(245,158,11,0.12)" : vio ? "rgba(139,92,246,0.12)" : "rgba(0,0,0,0.06)"}`, background: "rgba(248,249,250,0.7)" }}>
+              <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.65, margin: "12px 0 10px", opacity: 0.95 }}>{detail}</p>
               {(weakest || gap) && (
-                <div style={{ fontSize: 10, color: "#475569", borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 8 }}>
-                  {weakest && <span>Weakest tactic: <span style={{ color: "#64748b" }}>{weakest}</span></span>}
-                  {gap && <span style={{ color: "#334155" }}> · {gap} citations</span>}
+                <div style={{ fontSize: 10, color: "#9ca3af", borderTop: "1px solid rgba(0,0,0,0.05)", paddingTop: 8 }}>
+                  {weakest && <span>Weakest tactic: <span style={{ color: "#6b7280" }}>{weakest}</span></span>}
+                  {gap && <span style={{ color: "#9ca3af" }}> · {gap} citations</span>}
                 </div>
               )}
             </div>
@@ -1467,14 +1467,14 @@ function ActionCollapseItem({
 }
 
 const AUDIT_TYPE_HEX: Record<string, { bg: string; text: string }> = {
-  Government: { bg: "rgba(59,130,246,0.15)", text: "#60a5fa" },
-  News: { bg: "rgba(34,197,94,0.15)", text: "#4ade80" },
-  Brand: { bg: "rgba(236,72,153,0.15)", text: "#f472b6" },
-  Directory: { bg: "rgba(99,102,241,0.15)", text: "#818cf8" },
-  Community: { bg: "rgba(249,115,22,0.15)", text: "#fb923c" },
-  "Review Platform": { bg: "rgba(167,139,250,0.15)", text: "#a78bfa" },
-  Aggregator: { bg: "rgba(100,116,139,0.15)", text: "#94a3b8" },
-  Other: { bg: "rgba(100,116,139,0.15)", text: "#94a3b8" },
+  Government: { bg: "rgba(59,130,246,0.08)", text: "#1d4ed8" },
+  News: { bg: "rgba(16,185,129,0.08)", text: "#059669" },
+  Brand: { bg: "rgba(236,72,153,0.08)", text: "#be185d" },
+  Directory: { bg: "rgba(99,102,241,0.08)", text: "#4f46e5" },
+  Community: { bg: "rgba(249,115,22,0.08)", text: "#c2410c" },
+  "Review Platform": { bg: "rgba(139,92,246,0.08)", text: "#7c3aed" },
+  Aggregator: { bg: "rgba(100,116,139,0.08)", text: "#475569" },
+  Other: { bg: "rgba(100,116,139,0.08)", text: "#475569" },
 };
 
 function AuditExpandableRow({ entry, sessionId, rank, maxApps }: {
@@ -1501,30 +1501,30 @@ function AuditExpandableRow({ entry, sessionId, rank, maxApps }: {
         onClick={() => setOpen(o => !o)}
         style={{ width: "100%", display: "grid", gridTemplateColumns: "22px 1fr auto auto 14px", alignItems: "center", gap: 10, padding: "9px 14px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}
       >
-        <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", textAlign: "right" }}>{rank}</span>
-        <span style={{ fontSize: 12, fontWeight: 600, color: "#cbd5e1", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{entry.domain}</span>
+        <span style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textAlign: "right" }}>{rank}</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: "#111827", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{entry.domain}</span>
         <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
-          {entry.inChatgpt && <span style={{ fontSize: 9, fontWeight: 700, color: "#4ade80", background: "rgba(74,222,128,0.1)", padding: "1px 5px", borderRadius: 4 }}>GPT</span>}
-          {entry.inGemini && <span style={{ fontSize: 9, fontWeight: 700, color: "#60a5fa", background: "rgba(96,165,250,0.1)", padding: "1px 5px", borderRadius: 4 }}>Gem</span>}
-          {entry.inClaude && <span style={{ fontSize: 9, fontWeight: 700, color: "#fb923c", background: "rgba(251,146,60,0.1)", padding: "1px 5px", borderRadius: 4 }}>Cla</span>}
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#2dd4bf", minWidth: 20, textAlign: "right" }}>{entry.appearances}</span>
+          {entry.inChatgpt && <span style={{ fontSize: 9, fontWeight: 700, color: "#059669", background: "rgba(16,185,129,0.08)", padding: "1px 5px", borderRadius: 4 }}>GPT</span>}
+          {entry.inGemini && <span style={{ fontSize: 9, fontWeight: 700, color: "#2563eb", background: "rgba(59,130,246,0.08)", padding: "1px 5px", borderRadius: 4 }}>Gem</span>}
+          {entry.inClaude && <span style={{ fontSize: 9, fontWeight: 700, color: "#d97706", background: "rgba(245,158,11,0.08)", padding: "1px 5px", borderRadius: 4 }}>Cla</span>}
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#0d9488", minWidth: 20, textAlign: "right" }}>{entry.appearances}</span>
         </div>
-        <div style={{ width: 44, height: 3, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden", flexShrink: 0 }}>
-          <div style={{ width: `${pct}%`, height: "100%", borderRadius: 2, background: "rgba(20,184,166,0.55)" }} />
+        <div style={{ width: 44, height: 3, borderRadius: 2, background: "rgba(0,0,0,0.08)", overflow: "hidden", flexShrink: 0 }}>
+          <div style={{ width: `${pct}%`, height: "100%", borderRadius: 2, background: "rgba(20,184,166,0.6)" }} />
         </div>
-        <ChevronDown style={{ width: 11, height: 11, color: "#475569", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s", flexShrink: 0 }} />
+        <ChevronDown style={{ width: 11, height: 11, color: "#9ca3af", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s", flexShrink: 0 }} />
       </button>
       {open && (
-        <div style={{ padding: "6px 14px 10px 44px", background: "rgba(0,0,0,0.18)", borderTop: "1px solid rgba(20,184,166,0.04)" }}>
+        <div style={{ padding: "6px 14px 10px 44px", background: "rgba(0,0,0,0.02)", borderTop: "1px solid rgba(0,0,0,0.05)" }}>
           {isFetching ? (
-            <p style={{ fontSize: 11, color: "#475569", margin: 0 }}>Loading URLs…</p>
+            <p style={{ fontSize: 11, color: "#9ca3af", margin: 0 }}>Loading URLs…</p>
           ) : (data?.urls ?? []).length === 0 ? (
-            <p style={{ fontSize: 11, color: "#475569", margin: 0 }}>No URLs found</p>
+            <p style={{ fontSize: 11, color: "#9ca3af", margin: 0 }}>No URLs found</p>
           ) : (data?.urls ?? []).map((u, i) => (
             <a key={i} href={u.url} target="_blank" rel="noopener noreferrer"
               style={{ display: "flex", alignItems: "flex-start", gap: 6, marginBottom: 5, textDecoration: "none" }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: "#2dd4bf", flexShrink: 0, marginTop: 1 }}>{u.citation_count}×</span>
-              <span style={{ fontSize: 11, color: "#60a5fa", lineHeight: 1.4, wordBreak: "break-all" }}>{u.title || u.url}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: "#0d9488", flexShrink: 0, marginTop: 1 }}>{u.citation_count}×</span>
+              <span style={{ fontSize: 11, color: "#4f46e5", lineHeight: 1.4, wordBreak: "break-all" }}>{u.title || u.url}</span>
             </a>
           ))}
         </div>
@@ -1541,11 +1541,11 @@ function AuditDefaultItem({ topSources, realSources = [], brandSources = [], ses
 }) {
   const [open, setOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
-  const borderCol = "rgba(20,184,166,0.3)";
-  const bgCol = "rgba(20,184,166,0.12)";
-  const textCol = "#2dd4bf";
-  const chevBg = open ? bgCol : "rgba(255,255,255,0.05)";
-  const chevBorder = open ? borderCol : "rgba(255,255,255,0.09)";
+  const borderCol = "rgba(20,184,166,0.25)";
+  const bgCol = "rgba(20,184,166,0.08)";
+  const textCol = "#0d9488";
+  const chevBg = open ? bgCol : "rgba(0,0,0,0.04)";
+  const chevBorder = open ? borderCol : "rgba(0,0,0,0.08)";
 
   const sources = realSources.length > 0 ? realSources : [];
   const visible = showAll ? sources : sources.slice(0, 10);
@@ -1553,14 +1553,14 @@ function AuditDefaultItem({ topSources, realSources = [], brandSources = [], ses
   const brandMaxApps = Math.max(...brandSources.map(s => s.appearances), 1);
 
   return (
-    <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid ${open ? borderCol : "rgba(255,255,255,0.07)"}`, background: "rgba(20,184,166,0.03)", transition: "border-color 0.15s" }}>
+    <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid ${open ? borderCol : "rgba(0,0,0,0.08)"}`, background: "rgba(255,255,255,0.92)", transition: "border-color 0.15s", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
       <button onClick={() => setOpen(o => !o)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
         <div style={{ width: 30, height: 30, borderRadius: 9, background: bgCol, border: `1px solid ${borderCol}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 13, fontWeight: 900, color: textCol }}>
           1
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 9, fontWeight: 700, color: textCol, letterSpacing: "0.09em", textTransform: "uppercase", marginBottom: 2 }}>Standing Action · Always On</div>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0", lineHeight: 1.4 }}>Audit the authority sources shaping your AI results — then enhance and monitor your presence across them continuously</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "#111827", lineHeight: 1.4 }}>Audit the authority sources shaping your AI results — then enhance and monitor your presence across them continuously</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           {sources.length > 0 && (
@@ -1616,20 +1616,20 @@ function AuditDefaultItem({ topSources, realSources = [], brandSources = [], ses
                     {brandSources.map((s, idx) => {
                       const bPct = Math.round((s.appearances / brandMaxApps) * 100);
                       return (
-                        <div key={s.domain} style={{ display: "grid", gridTemplateColumns: "22px 1fr auto auto", alignItems: "center", gap: 10, padding: "9px 14px", background: idx % 2 === 0 ? "rgba(251,113,133,0.04)" : "rgba(0,0,0,0.15)", borderBottom: idx < brandSources.length - 1 ? "1px solid rgba(251,113,133,0.08)" : "none" }}>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", textAlign: "right" }}>{idx + 1}</span>
+                        <div key={s.domain} style={{ display: "grid", gridTemplateColumns: "22px 1fr auto auto", alignItems: "center", gap: 10, padding: "9px 14px", background: idx % 2 === 0 ? "rgba(251,113,133,0.03)" : "rgba(0,0,0,0.01)", borderBottom: idx < brandSources.length - 1 ? "1px solid rgba(251,113,133,0.08)" : "none" }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textAlign: "right" }}>{idx + 1}</span>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-                            <span style={{ fontSize: 12, fontWeight: 600, color: "#cbd5e1", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.domain}</span>
-                            <span style={{ fontSize: 9, fontWeight: 700, color: "#fb7185", background: "rgba(251,113,133,0.12)", padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>Brand</span>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: "#111827", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.domain}</span>
+                            <span style={{ fontSize: 9, fontWeight: 700, color: "#be185d", background: "rgba(236,72,153,0.08)", padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>Brand</span>
                           </div>
                           <div style={{ display: "flex", gap: 3 }}>
-                            {s.inChatgpt && <span style={{ fontSize: 9, fontWeight: 700, color: "#4ade80", background: "rgba(74,222,128,0.1)", padding: "1px 5px", borderRadius: 4 }}>GPT</span>}
-                            {s.inGemini && <span style={{ fontSize: 9, fontWeight: 700, color: "#60a5fa", background: "rgba(96,165,250,0.1)", padding: "1px 5px", borderRadius: 4 }}>Gem</span>}
-                            {s.inClaude && <span style={{ fontSize: 9, fontWeight: 700, color: "#fb923c", background: "rgba(251,146,60,0.1)", padding: "1px 5px", borderRadius: 4 }}>Cla</span>}
-                            <span style={{ fontSize: 11, fontWeight: 700, color: "#fb7185", minWidth: 20, textAlign: "right" }}>{s.appearances}</span>
+                            {s.inChatgpt && <span style={{ fontSize: 9, fontWeight: 700, color: "#059669", background: "rgba(16,185,129,0.08)", padding: "1px 5px", borderRadius: 4 }}>GPT</span>}
+                            {s.inGemini && <span style={{ fontSize: 9, fontWeight: 700, color: "#2563eb", background: "rgba(59,130,246,0.08)", padding: "1px 5px", borderRadius: 4 }}>Gem</span>}
+                            {s.inClaude && <span style={{ fontSize: 9, fontWeight: 700, color: "#d97706", background: "rgba(245,158,11,0.08)", padding: "1px 5px", borderRadius: 4 }}>Cla</span>}
+                            <span style={{ fontSize: 11, fontWeight: 700, color: "#be185d", minWidth: 20, textAlign: "right" }}>{s.appearances}</span>
                           </div>
-                          <div style={{ width: 44, height: 3, borderRadius: 2, background: "rgba(251,113,133,0.1)", overflow: "hidden" }}>
-                            <div style={{ width: `${bPct}%`, height: "100%", borderRadius: 2, background: "rgba(251,113,133,0.5)" }} />
+                          <div style={{ width: 44, height: 3, borderRadius: 2, background: "rgba(236,72,153,0.1)", overflow: "hidden" }}>
+                            <div style={{ width: `${bPct}%`, height: "100%", borderRadius: 2, background: "rgba(236,72,153,0.5)" }} />
                           </div>
                         </div>
                       );
@@ -1638,7 +1638,7 @@ function AuditDefaultItem({ topSources, realSources = [], brandSources = [], ses
                 </div>
               )}
 
-              <div style={{ fontSize: 10, color: "#334155", marginTop: 10 }}>Sorted by citation frequency across all AI engines in this session</div>
+              <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 10 }}>Sorted by citation frequency across all AI engines in this session</div>
             </div>
           </motion.div>
         )}
@@ -1667,7 +1667,7 @@ function PriorityActionsBlock({ actionsData, quickWin, topSources = [], realSour
         <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(99,102,241,0.13)", border: "1px solid rgba(99,102,241,0.28)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>🎯</div>
         <div>
           <div style={{ fontSize: 10, fontWeight: 700, color: "#6366f1", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 3 }}>Data-backed moves</div>
-          <h4 style={{ fontSize: 15, fontWeight: 800, color: "#f1f5f9", lineHeight: 1.25, margin: 0 }}>Quick actions to leapfrog the competition</h4>
+          <h4 style={{ fontSize: 15, fontWeight: 800, color: "#111827", lineHeight: 1.25, margin: 0 }}>Quick actions to leapfrog the competition</h4>
         </div>
       </div>
 
@@ -1709,17 +1709,17 @@ function PriorityActionsBlock({ actionsData, quickWin, topSources = [], realSour
 function NewSourcesTable({ sources, sessionId, maxAppearances }: { sources: SourceEntry[]; sessionId: number; maxAppearances: number }) {
   if (!sources?.length) return null;
   return (
-    <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,0.07)", background: "#0d1526" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 130px auto 40px 26px", padding: "7px 16px", background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+    <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid rgba(0,0,0,0.08)", background: "rgba(255,255,255,0.92)", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 130px auto 40px 26px", padding: "7px 16px", background: "rgba(0,0,0,0.03)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
         {["Source", "Type", "Engines", "Apps.", ""].map(h => (
-          <span key={h} style={{ fontSize: 9, fontWeight: 700, color: "#334155", letterSpacing: "0.1em", textTransform: "uppercase" }}>{h}</span>
+          <span key={h} style={{ fontSize: 9, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.1em", textTransform: "uppercase" }}>{h}</span>
         ))}
       </div>
       {sources.map((s) => (
         <ExpandableSourceRow key={s.domain} source={s} sessionId={sessionId} maxAppearances={maxAppearances} />
       ))}
-      <div style={{ padding: "6px 16px", borderTop: "1px solid rgba(255,255,255,0.04)", background: "rgba(0,0,0,0.1)" }}>
-        <span style={{ fontSize: 10, color: "#334155" }}>Click any source to expand its cited URLs</span>
+      <div style={{ padding: "6px 16px", borderTop: "1px solid rgba(0,0,0,0.05)", background: "rgba(0,0,0,0.02)" }}>
+        <span style={{ fontSize: 10, color: "#9ca3af" }}>Click any source to expand its cited URLs</span>
       </div>
     </div>
   );
@@ -1751,9 +1751,9 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
 
       {/* Header card — only shown when we have real summary stats */}
       {data.summary && (
-        <div className="rounded-xl overflow-hidden border border-border/40" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)" }}>
+        <div className="rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 2px 16px rgba(99,102,241,0.08)" }}>
           <div className="px-5 py-4">
-            <div className="text-[10px] text-slate-400 tracking-widest mb-1 uppercase">Citation Intelligence Report</div>
+            <div className="text-[10px] tracking-widest mb-1 uppercase" style={{ color: "#6366f1" }}>Citation Intelligence Report</div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-3">
               {[
                 { label: "Total Citations", value: data.summary?.total_citations?.toLocaleString() ?? "—" },
@@ -1762,8 +1762,8 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
                 { label: "AI Tactics Found", value: data.tactics?.length?.toString() ?? "—" },
               ].map((s) => (
                 <div key={s.label}>
-                  <div className="text-white text-lg font-bold leading-tight">{s.value}</div>
-                  <div className="text-slate-400 text-[10px] mt-0.5">{s.label}</div>
+                  <div className="text-gray-900 text-lg font-bold leading-tight">{s.value}</div>
+                  <div className="text-gray-400 text-[10px] mt-0.5">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -1774,37 +1774,37 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
       {/* GEO Insights — primary section for the insights format */}
       {isInsightsFormat && (
         <div>
-          <div style={{ padding: "10px 16px", borderRadius: 10, background: "linear-gradient(90deg, rgba(99,102,241,0.18) 0%, rgba(99,102,241,0.04) 100%)", border: "1px solid rgba(99,102,241,0.22)", marginBottom: 14 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", lineHeight: 1.3 }}>What matters in this category?</div>
-            <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>Learnings from the top appearances · {insightsList.length} findings</div>
+          <div style={{ padding: "10px 16px", borderRadius: 10, background: "linear-gradient(90deg, rgba(99,102,241,0.08) 0%, rgba(99,102,241,0.02) 100%)", border: "1px solid rgba(99,102,241,0.18)", marginBottom: 14 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#111827", lineHeight: 1.3 }}>What matters in this category?</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 3 }}>Learnings from the top appearances · {insightsList.length} findings</div>
           </div>
           <div className="space-y-3">
             {insightsList.map((insight: any, i: number) => (
-              <div key={i} style={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "14px 16px" }} className="space-y-2">
+              <div key={i} style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: "14px 16px", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }} className="space-y-2">
                 <div className="flex items-start gap-2">
-                  <span style={{ color: "#818cf8", fontSize: 11, fontWeight: 700, flexShrink: 0, marginTop: 2 }}>#{insight.rank ?? i + 1}</span>
-                  <span style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600, lineHeight: 1.4 }}>{insight.title}</span>
+                  <span style={{ color: "#6366f1", fontSize: 11, fontWeight: 700, flexShrink: 0, marginTop: 2 }}>#{insight.rank ?? i + 1}</span>
+                  <span style={{ color: "#111827", fontSize: 13, fontWeight: 600, lineHeight: 1.4 }}>{insight.title}</span>
                   {insight.evidence && (
-                    <span style={{ marginLeft: "auto", fontSize: 9, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: "rgba(99,102,241,0.15)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.3)", flexShrink: 0 }}>{insight.evidence}</span>
+                    <span style={{ marginLeft: "auto", fontSize: 9, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: "rgba(99,102,241,0.08)", color: "#4f46e5", border: "1px solid rgba(99,102,241,0.2)", flexShrink: 0 }}>{insight.evidence}</span>
                   )}
                 </div>
                 {insight.what_they_do && (
-                  <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6, margin: 0 }}>
-                    <span style={{ color: "#cbd5e1", fontWeight: 600 }}>What they do: </span>{insight.what_they_do}
+                  <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, margin: 0 }}>
+                    <span style={{ color: "#374151", fontWeight: 600 }}>What they do: </span>{insight.what_they_do}
                   </p>
                 )}
                 {insight.why_it_works && (
-                  <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6, margin: 0 }}>
-                    <span style={{ color: "#cbd5e1", fontWeight: 600 }}>Why it works: </span>{insight.why_it_works}
+                  <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, margin: 0 }}>
+                    <span style={{ color: "#374151", fontWeight: 600 }}>Why it works: </span>{insight.why_it_works}
                   </p>
                 )}
                 {insight.who_does_it_best && (
-                  <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6, margin: 0 }}>
-                    <span style={{ color: "#cbd5e1", fontWeight: 600 }}>Who does it best: </span>{insight.who_does_it_best}
+                  <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, margin: 0 }}>
+                    <span style={{ color: "#374151", fontWeight: 600 }}>Who does it best: </span>{insight.who_does_it_best}
                   </p>
                 )}
                 {insight.opportunity && (
-                  <p style={{ fontSize: 11, color: "#818cf8", lineHeight: 1.6, margin: 0, borderLeft: "2px solid rgba(129,140,248,0.4)", paddingLeft: 8, fontStyle: "italic" }}>{insight.opportunity}</p>
+                  <p style={{ fontSize: 11, color: "#4f46e5", lineHeight: 1.6, margin: 0, borderLeft: "2px solid rgba(99,102,241,0.3)", paddingLeft: 8, fontStyle: "italic" }}>{insight.opportunity}</p>
                 )}
               </div>
             ))}
@@ -1817,8 +1817,8 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
         <div style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.25)", borderRadius: 12, padding: "12px 16px" }} className="flex gap-3 items-start">
           <span style={{ fontSize: 18, flexShrink: 0 }}>🎯</span>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#fbbf24", marginBottom: 4 }}>Biggest Opportunity Missed</div>
-            <p style={{ fontSize: 12, color: "#fde68a", lineHeight: 1.6, margin: 0 }}>{biggestOpp}</p>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#d97706", marginBottom: 4 }}>Biggest Opportunity Missed</div>
+            <p style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, margin: 0 }}>{biggestOpp}</p>
           </div>
         </div>
       )}
@@ -1836,24 +1836,24 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
               ))}
             </div>
           )}
-          <div style={{ padding: "10px 16px", borderRadius: 10, background: "linear-gradient(90deg, rgba(99,102,241,0.18) 0%, rgba(99,102,241,0.04) 100%)", border: "1px solid rgba(99,102,241,0.22)", marginBottom: 14 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", lineHeight: 1.3 }}>What matters in this category?</div>
-            <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>Learnings from the top appearances · {topTacticsList.length} tactics</div>
+          <div style={{ padding: "10px 16px", borderRadius: 10, background: "linear-gradient(90deg, rgba(99,102,241,0.08) 0%, rgba(99,102,241,0.02) 100%)", border: "1px solid rgba(99,102,241,0.18)", marginBottom: 14 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#111827", lineHeight: 1.3 }}>What matters in this category?</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 3 }}>Learnings from the top appearances · {topTacticsList.length} tactics</div>
           </div>
           <div className="space-y-3">
             {topTacticsList.map((t: any, i: number) => (
-              <div key={i} style={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "14px 16px" }} className="space-y-2">
+              <div key={i} style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: "14px 16px", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }} className="space-y-2">
                 <div className="flex items-start gap-2">
                   <span style={{ color: "#f97316", fontSize: 11, fontWeight: 700, flexShrink: 0, marginTop: 2 }}>#{t.rank ?? t.number ?? i + 1}</span>
-                  <span style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600, lineHeight: 1.4, flex: 1 }}>{t.tactic_title ?? t.title}</span>
+                  <span style={{ color: "#111827", fontSize: 13, fontWeight: 600, lineHeight: 1.4, flex: 1 }}>{t.tactic_title ?? t.title}</span>
                   <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                    {t.data_source && <span style={{ fontSize: 9, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: "rgba(99,102,241,0.15)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.3)" }}>{t.data_source}</span>}
-                    {(t.total_citations ?? t.citations) && <span style={{ fontSize: 9, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: "rgba(16,185,129,0.12)", color: "#34d399", border: "1px solid rgba(16,185,129,0.25)" }}>{t.total_citations ?? t.citations} citations</span>}
+                    {t.data_source && <span style={{ fontSize: 9, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: "rgba(99,102,241,0.08)", color: "#4f46e5", border: "1px solid rgba(99,102,241,0.2)" }}>{t.data_source}</span>}
+                    {(t.total_citations ?? t.citations) && <span style={{ fontSize: 9, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: "rgba(16,185,129,0.08)", color: "#059669", border: "1px solid rgba(16,185,129,0.2)" }}>{t.total_citations ?? t.citations} citations</span>}
                   </div>
                 </div>
                 {t.why_it_works && (
-                  <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6, margin: 0 }}>
-                    <span style={{ color: "#cbd5e1", fontWeight: 600 }}>Why it works: </span>{Array.isArray(t.why_it_works) ? t.why_it_works.join(" ") : t.why_it_works}
+                  <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, margin: 0 }}>
+                    <span style={{ color: "#374151", fontWeight: 600 }}>Why it works: </span>{Array.isArray(t.why_it_works) ? t.why_it_works.join(" ") : t.why_it_works}
                   </p>
                 )}
                 {(t.brand_performance ?? t.brands ?? []).length > 0 && (
@@ -1864,27 +1864,27 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
                       const cCount = bp.citation_count_for_tactic ?? bp.tactic_citations ?? bp.appearances ?? "";
                       const cDesc = bp.what_they_do ?? bp.details ?? bp.description ?? "";
                       return (
-                      <div key={cBrand || bpi} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "10px 12px", border: "1px solid rgba(255,255,255,0.07)" }}>
+                      <div key={cBrand || bpi} style={{ background: "rgba(0,0,0,0.02)", borderRadius: 10, padding: "10px 12px", border: "1px solid rgba(0,0,0,0.07)" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 8, padding: "3px 10px" }}>
-                            <span style={{ color: "#c7d2fe", fontSize: 12, fontWeight: 700 }}>{cBrand}</span>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.18)", borderRadius: 8, padding: "3px 10px" }}>
+                            <span style={{ color: "#4f46e5", fontSize: 12, fontWeight: 700 }}>{cBrand}</span>
                           </span>
-                          <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 5, background: cRating === "Strong" ? "rgba(16,185,129,0.18)" : "rgba(251,191,36,0.14)", color: cRating === "Strong" ? "#34d399" : "#fbbf24", fontWeight: 700, border: `1px solid ${cRating === "Strong" ? "rgba(16,185,129,0.3)" : "rgba(251,191,36,0.25)"}` }}>{cRating}</span>
-                          {cCount && <span style={{ fontSize: 10, color: "#475569", marginLeft: "auto", fontWeight: 600 }}>{cCount} cit.</span>}
+                          <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 5, background: cRating === "Strong" ? "rgba(16,185,129,0.08)" : "rgba(245,158,11,0.08)", color: cRating === "Strong" ? "#059669" : "#d97706", fontWeight: 700, border: `1px solid ${cRating === "Strong" ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)"}` }}>{cRating}</span>
+                          {cCount && <span style={{ fontSize: 10, color: "#9ca3af", marginLeft: "auto", fontWeight: 600 }}>{cCount} cit.</span>}
                         </div>
-                        {cDesc && <p style={{ fontSize: 11, color: "#64748b", lineHeight: 1.55, margin: 0 }}>{cDesc}</p>}
+                        {cDesc && <p style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.55, margin: 0 }}>{cDesc}</p>}
                       </div>
                       );
                     })}
                   </div>
                 )}
                 {(t.top_examples ?? t.sources ?? t.examples ?? []).length > 0 && (
-                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 8, marginTop: 4 }}>
-                    <div style={{ fontSize: 9, fontWeight: 700, color: "#475569", letterSpacing: 1, marginBottom: 5, textTransform: "uppercase" }}>Third-party sources</div>
+                  <div style={{ borderTop: "1px solid rgba(0,0,0,0.06)", paddingTop: 8, marginTop: 4 }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: "#9ca3af", letterSpacing: 1, marginBottom: 5, textTransform: "uppercase" }}>Third-party sources</div>
                     <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                       {(t.top_examples ?? t.sources ?? t.examples ?? []).map((ex: any, j: number) => (
-                        <span key={j} style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 12, background: "rgba(99,102,241,0.13)", color: "#a5b4fc", border: "1px solid rgba(99,102,241,0.28)" }}>
-                          <strong style={{ color: "#c7d2fe" }}>{ex.source ?? ex.url}</strong>{(ex.citation_count ?? ex.count) ? ` · ${ex.citation_count ?? ex.count}` : ""}
+                        <span key={j} style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 12, background: "rgba(99,102,241,0.06)", color: "#4f46e5", border: "1px solid rgba(99,102,241,0.15)" }}>
+                          <strong style={{ color: "#4f46e5" }}>{ex.source ?? ex.url}</strong>{(ex.citation_count ?? ex.count) ? ` · ${ex.citation_count ?? ex.count}` : ""}
                         </span>
                       ))}
                     </div>
@@ -1917,11 +1917,11 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
           color: TACTIC_COLORS[i % TACTIC_COLORS.length],
         })).filter((b) => b.pct > 0);
         return (
-          <div style={{ borderRadius: 14, padding: "16px 18px", background: "#0d1526", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <div style={{ borderRadius: 14, padding: "16px 18px", background: "rgba(255,255,255,0.92)", border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 2px 12px rgba(99,102,241,0.06)" }}>
             <div style={{ display: "flex", alignItems: "center", marginBottom: 10 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", letterSpacing: "0.1em", textTransform: "uppercase" }}>Citation Distribution</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#111827", letterSpacing: "0.1em", textTransform: "uppercase" }}>Citation Distribution</span>
               {totalCitations > 0 && (
-                <span style={{ marginLeft: "auto", fontSize: 10, color: "#475569" }}>{totalCitations.toLocaleString()} total citations</span>
+                <span style={{ marginLeft: "auto", fontSize: 10, color: "#9ca3af" }}>{totalCitations.toLocaleString()} total citations</span>
               )}
             </div>
             <div style={{ height: 12, borderRadius: 100, overflow: "hidden", display: "flex", gap: 2, marginBottom: 12 }}>
@@ -1933,13 +1933,13 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
               {bars.map((b) => (
                 <div key={b.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 2, background: b.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: 10, color: "#94a3b8", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.label}</span>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: "#fff" }}>{b.pct}%</span>
+                  <span style={{ fontSize: 10, color: "#6b7280", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.label}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: "#111827" }}>{b.pct}%</span>
                 </div>
               ))}
             </div>
             {data.page_type_distribution?.summary && (
-              <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.65, borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 12, margin: 0 }}>
+              <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.65, borderTop: "1px solid rgba(0,0,0,0.06)", paddingTop: 12, margin: 0 }}>
                 {data.page_type_distribution.summary}
               </p>
             )}
@@ -1949,29 +1949,29 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
 
       {/* ── Variant B: Cross-Engine Champions — 2×2 card grid ── */}
       {data.cross_engine_champions?.length > 0 && (
-        <div style={{ borderRadius: 14, padding: "16px 18px", background: "#0d1526", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div style={{ borderRadius: 14, padding: "16px 18px", background: "rgba(255,255,255,0.92)", border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 2px 12px rgba(99,102,241,0.06)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
               <div style={{ height: 4, width: 24, borderRadius: 100, background: "#3b82f6" }} />
               <div style={{ height: 4, width: 16, borderRadius: 100, background: "#818cf8" }} />
             </div>
             <div>
-              <span style={{ fontSize: 16, fontWeight: 700, color: "#fff", display: "block", lineHeight: 1.25 }}>Cross-Engine Champions</span>
-              <span style={{ fontSize: 11, color: "#64748b" }}>Brands appearing in both ChatGPT + Gemini</span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", display: "block", lineHeight: 1.25 }}>Cross-Engine Champions</span>
+              <span style={{ fontSize: 11, color: "#6b7280" }}>Brands appearing in both ChatGPT + Gemini</span>
             </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             {data.cross_engine_champions.slice(0, 4).map((c, i) => (
-              <div key={c.brand} style={{ borderRadius: 10, padding: "12px 14px", background: i === 0 ? "rgba(99,102,241,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${i === 0 ? "rgba(99,102,241,0.25)" : "rgba(255,255,255,0.07)"}` }}>
+              <div key={c.brand} style={{ borderRadius: 10, padding: "12px 14px", background: i === 0 ? "rgba(99,102,241,0.06)" : "rgba(0,0,0,0.02)", border: `1px solid ${i === 0 ? "rgba(99,102,241,0.2)" : "rgba(0,0,0,0.07)"}` }}>
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#f1f5f9", maxWidth: "60%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.brand}</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: "#cbd5e1", fontVariantNumeric: "tabular-nums" }}>{c.total}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#111827", maxWidth: "60%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.brand}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#374151", fontVariantNumeric: "tabular-nums" }}>{c.total}</span>
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
-                  <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, fontWeight: 600, background: "rgba(59,130,246,0.2)", color: "#93c5fd", border: "1px solid rgba(59,130,246,0.3)", display: "flex", alignItems: "center", gap: 4 }}>
+                  <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, fontWeight: 600, background: "rgba(16,185,129,0.08)", color: "#059669", border: "1px solid rgba(16,185,129,0.2)", display: "flex", alignItems: "center", gap: 4 }}>
                     <span style={{ fontSize: 9, opacity: 0.7 }}>GPT</span> {c.chatgpt}
                   </span>
-                  <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, fontWeight: 600, background: "rgba(99,102,241,0.2)", color: "#a5b4fc", border: "1px solid rgba(99,102,241,0.3)", display: "flex", alignItems: "center", gap: 4 }}>
+                  <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, fontWeight: 600, background: "rgba(59,130,246,0.08)", color: "#2563eb", border: "1px solid rgba(59,130,246,0.2)", display: "flex", alignItems: "center", gap: 4 }}>
                     <span style={{ fontSize: 9, opacity: 0.7 }}>Gem</span> {c.gemini}
                   </span>
                 </div>
@@ -1983,18 +1983,18 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
 
       {/* ── Variant B: What matters — indigo gradient banner + expandable TacticCards ── */}
       {data.tactics?.length > 0 && (
-        <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(99,102,241,0.35)" }}>
-          <div style={{ padding: "20px 22px", background: "linear-gradient(135deg,#1e1b4b 0%,#0f0c2e 100%)", display: "flex", alignItems: "center", gap: 18 }}>
-            <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(99,102,241,0.2)", border: "1px solid rgba(99,102,241,0.35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
+        <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(99,102,241,0.18)", boxShadow: "0 2px 16px rgba(99,102,241,0.08)" }}>
+          <div style={{ padding: "20px 22px", background: "linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.04) 100%)", display: "flex", alignItems: "center", gap: 18, borderBottom: "1px solid rgba(99,102,241,0.12)" }}>
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
               🎯
             </div>
             <div>
-              <p style={{ fontSize: 10, fontFamily: "monospace", letterSpacing: "0.12em", textTransform: "uppercase", color: "#818cf8", margin: "0 0 2px" }}>Ranked by citation evidence</p>
-              <h3 style={{ fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2, letterSpacing: "-0.02em", margin: 0 }}>What matters in this category?</h3>
-              <p style={{ fontSize: 12, color: "rgba(165,180,252,0.7)", marginTop: 4, marginBottom: 0 }}>{data.tactics.length} proven tactics from top-appearing brands</p>
+              <p style={{ fontSize: 10, fontFamily: "monospace", letterSpacing: "0.12em", textTransform: "uppercase", color: "#6366f1", margin: "0 0 2px" }}>Ranked by citation evidence</p>
+              <h3 style={{ fontSize: 22, fontWeight: 800, color: "#111827", lineHeight: 1.2, letterSpacing: "-0.02em", margin: 0 }}>What matters in this category?</h3>
+              <p style={{ fontSize: 12, color: "#6b7280", marginTop: 4, marginBottom: 0 }}>{data.tactics.length} proven tactics from top-appearing brands</p>
             </div>
           </div>
-          <div style={{ background: "#09071f" }}>
+          <div style={{ background: "rgba(255,255,255,0.92)" }}>
             {data.tactics.map((t, i) => <TacticCard key={t.rank ?? (t as any).tactic_number ?? (t as any).number ?? i} tactic={t} />)}
           </div>
         </div>
@@ -2017,8 +2017,8 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
           <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
             <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(167,139,250,0.13)", border: "1px solid rgba(167,139,250,0.28)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>🔬</div>
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: "#a78bfa", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 3 }}>Anomaly detection</div>
-              <h4 style={{ fontSize: 15, fontWeight: 800, color: "#f1f5f9", lineHeight: 1.25, margin: 0 }}>Patterns the data didn't expect</h4>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#7c3aed", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 3 }}>Anomaly detection</div>
+              <h4 style={{ fontSize: 15, fontWeight: 800, color: "#111827", lineHeight: 1.25, margin: 0 }}>Patterns the data didn't expect</h4>
             </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -2132,11 +2132,11 @@ function CollapsibleMdCard({ section, rank }: { section: MdSection; rank: number
     .trim();
 
   return (
-    <div style={{ border: `1px solid rgba(255,255,255,0.08)`, borderRadius: 12, overflow: "hidden", marginBottom: 8 }}>
+    <div style={{ border: `1px solid rgba(0,0,0,0.08)`, borderRadius: 12, overflow: "hidden", marginBottom: 8, boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
       <button
         onClick={() => setOpen(o => !o)}
         style={{
-          width: "100%", background: open ? "#0f172a" : "#111827",
+          width: "100%", background: "rgba(255,255,255,0.92)",
           border: "none", padding: "12px 16px", textAlign: "left", cursor: "pointer",
           display: "flex", alignItems: "center", gap: 12, transition: "background 0.15s",
         }}
@@ -2149,7 +2149,7 @@ function CollapsibleMdCard({ section, rank }: { section: MdSection; rank: number
           <span style={{ color: meta.color, fontSize: 11, fontWeight: 700 }}>#{rank}</span>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{rawTitle}</div>
+          <div style={{ color: "#111827", fontSize: 13, fontWeight: 600, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{rawTitle}</div>
           <span style={{
             display: "inline-block", marginTop: 3,
             background: meta.bg, border: `1px solid ${meta.border}`,
@@ -2157,7 +2157,7 @@ function CollapsibleMdCard({ section, rank }: { section: MdSection; rank: number
             padding: "1px 6px", borderRadius: 4, letterSpacing: 0.5,
           }}>{meta.label}</span>
         </div>
-        <ChevronDown className={`w-4 h-4 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} style={{ color: "#334155" }} />
+        <ChevronDown className={`w-4 h-4 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} style={{ color: "#9ca3af" }} />
       </button>
       <AnimatePresence>
         {open && (
@@ -2167,7 +2167,7 @@ function CollapsibleMdCard({ section, rank }: { section: MdSection; rank: number
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div style={{ background: "#0a0f1e", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "14px 16px" }}>
+            <div style={{ background: "rgba(248,249,250,0.8)", borderTop: "1px solid rgba(0,0,0,0.06)", padding: "14px 16px" }}>
               <MdBodyBlocks body={cleanBody} />
             </div>
           </motion.div>
@@ -2195,24 +2195,24 @@ function MarkdownReport({ text }: { text: string }) {
 
   return (
     <div className="space-y-5">
-      {/* Dark navy header */}
-      <div className="rounded-xl overflow-hidden border border-border/40" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)" }}>
+      {/* Light header */}
+      <div className="rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 2px 16px rgba(99,102,241,0.08)" }}>
         <div className="px-5 py-4">
-          <div className="text-[10px] text-slate-400 tracking-widest mb-1 uppercase">Citation Intelligence Report</div>
-          <div className="text-white text-lg font-bold leading-tight">{title?.heading ?? "GEO Citation Analysis"}</div>
+          <div className="text-[10px] tracking-widest mb-1 uppercase" style={{ color: "#6366f1" }}>Citation Intelligence Report</div>
+          <div className="text-lg font-bold leading-tight" style={{ color: "#111827" }}>{title?.heading ?? "GEO Citation Analysis"}</div>
           {title?.body && (
-            <p className="text-slate-400 text-xs mt-2 leading-relaxed line-clamp-2">{title.body.replace(/\*\*/g, "")}</p>
+            <p className="text-xs mt-2 leading-relaxed line-clamp-2" style={{ color: "#6b7280" }}>{title.body.replace(/\*\*/g, "")}</p>
           )}
         </div>
       </div>
 
       {/* Executive summary → amber key finding */}
       {summarySection && (
-        <div className="flex gap-3 items-start rounded-xl px-4 py-3" style={{ background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.2)" }}>
+        <div className="flex gap-3 items-start rounded-xl px-4 py-3" style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.2)" }}>
           <span className="text-lg shrink-0">⚡</span>
           <div>
-            <div className="mb-1" style={{ color: "#fbbf24", fontSize: 11, fontWeight: 700 }}>Key Finding</div>
-            <div style={{ color: "#fde68a", fontSize: 12, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: renderInline(summarySection.body.split("\n\n")[0] ?? summarySection.body) }} />
+            <div className="mb-1" style={{ color: "#d97706", fontSize: 11, fontWeight: 700 }}>Key Finding</div>
+            <div style={{ color: "#374151", fontSize: 12, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: renderInline(summarySection.body.split("\n\n")[0] ?? summarySection.body) }} />
           </div>
         </div>
       )}
@@ -2220,9 +2220,9 @@ function MarkdownReport({ text }: { text: string }) {
       {/* What top brands do differently */}
       {(tacticItems.length > 0) && (
         <div>
-          <div style={{ padding: "10px 16px", borderRadius: 10, background: "linear-gradient(90deg, rgba(99,102,241,0.18) 0%, rgba(99,102,241,0.04) 100%)", border: "1px solid rgba(99,102,241,0.22)", marginBottom: 14 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", lineHeight: 1.3 }}>What matters in this category?</div>
-            <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>Learnings from the top appearances · {tacticItems.length} tactics</div>
+          <div style={{ padding: "10px 16px", borderRadius: 10, background: "linear-gradient(90deg, rgba(99,102,241,0.08) 0%, rgba(99,102,241,0.02) 100%)", border: "1px solid rgba(99,102,241,0.18)", marginBottom: 14 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#111827", lineHeight: 1.3 }}>What matters in this category?</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 3 }}>Learnings from the top appearances · {tacticItems.length} tactics</div>
           </div>
           {tacticItems.map((s, i) => (
             <CollapsibleMdCard key={i} section={s} rank={i + 1} />
