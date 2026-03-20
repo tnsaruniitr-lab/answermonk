@@ -540,7 +540,7 @@ function LandingInner() {
                   className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight"
                   style={{ color: "#1e1b4b" }}
                 >
-                  When customers ask AI —{" "}
+                  When customers ask AI -{" "}
                   <span style={{ background: "linear-gradient(to right, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
                     are you the answer?
                   </span>
