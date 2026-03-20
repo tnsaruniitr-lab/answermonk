@@ -1264,8 +1264,8 @@ function LandingInner() {
       <section className="relative z-10 py-16 border-y border-black/5" style={{ background: "rgba(255,255,255,0.4)", backdropFilter: "blur(8px)" }}>
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-10">
-            <h2 className="text-2xl font-semibold text-indigo-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>The Intelligence Pipeline</h2>
-            <p className="text-slate-500 mt-2">From raw domain to actionable GEO insights in minutes.</p>
+            <h2 className="text-2xl font-bold" style={{ color: "#1e1b4b", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>The Intelligence Pipeline</h2>
+            <p className="text-sm mt-2" style={{ color: "#64748b" }}>From raw domain to actionable GEO insights in minutes.</p>
           </div>
           <div className="relative">
             <div className="absolute top-8 left-0 w-full h-0.5 bg-black/5 hidden md:block" />
