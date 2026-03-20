@@ -458,10 +458,10 @@ function LandingInner() {
       style={{ background: "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)" }}
       data-testid="landing-page"
     >
-      {/* Aurora orbs — exact positions from mockup */}
-      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] pointer-events-none" style={{ background: "#fbcfe8", borderRadius: "50%", filter: "blur(100px)", opacity: 0.35 }} />
-      <div className="absolute top-[10%] right-[-10%] w-[600px] h-[600px] pointer-events-none" style={{ background: "#c4b5fd", borderRadius: "50%", filter: "blur(120px)", opacity: 0.35 }} />
-      <div className="absolute bottom-[-10%] left-[20%] w-[500px] h-[500px] pointer-events-none" style={{ background: "#a7f3d0", borderRadius: "50%", filter: "blur(100px)", opacity: 0.35 }} />
+      {/* Aurora orbs — viewport-relative so they fill corners at any screen width */}
+      <div className="absolute top-[-10%] left-[-5%] pointer-events-none" style={{ width: "42vw", height: "42vw", background: "#fbcfe8", borderRadius: "50%", filter: "blur(min(8vw, 120px))", opacity: 0.5 }} />
+      <div className="absolute top-[5%] right-[-10%] pointer-events-none" style={{ width: "50vw", height: "50vw", background: "#c4b5fd", borderRadius: "50%", filter: "blur(min(10vw, 140px))", opacity: 0.45 }} />
+      <div className="absolute bottom-[-10%] left-[15%] pointer-events-none" style={{ width: "45vw", height: "45vw", background: "#a7f3d0", borderRadius: "50%", filter: "blur(min(8vw, 120px))", opacity: 0.45 }} />
 
       {/* Nav — matches mockup exactly */}
       <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between relative z-10">
