@@ -1228,7 +1228,7 @@ function LandingInner() {
               data-testid="button-run-analysis"
             >
               <Sparkles className="w-5 h-5" />
-              Generate My GEO Report
+              Activate Audit Agent
               <ArrowRight className="w-4 h-4" />
             </button>
             {!canRun && (
