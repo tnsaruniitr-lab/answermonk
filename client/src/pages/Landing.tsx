@@ -540,17 +540,15 @@ function LandingInner() {
                   className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight"
                   style={{ color: "#1e1b4b" }}
                 >
-                  Dominate{" "}
+                  When customers ask AI —{" "}
                   <span style={{ background: "linear-gradient(to right, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-                    AI search results
+                    are you the answer?
                   </span>
                 </h1>
 
                 {/* Subtext */}
                 <p className="text-lg md:text-xl max-w-xl mx-auto leading-relaxed" style={{ color: "#374151" }}>
-                  When customers ask AI - are you the answer?
-                  <br />
-                  <span style={{ color: "#1e1b4b", fontWeight: 600 }}>Answer<span style={{ color: "#6366f1" }}>Monk</span> makes sure you are.</span>
+                  <span style={{ color: "#1e1b4b", fontWeight: 600 }}>Answer<span style={{ color: "#6366f1" }}>Monk</span></span> analyses why brands dominate AI search results — and how to get you there.
                 </p>
               </>
             )}
