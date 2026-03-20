@@ -570,7 +570,7 @@ function LandingInner() {
                     type="text"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
-                    placeholder="Enter your website URL..."
+                    placeholder="Enter your website URL and know who shows up when your customers ask AI"
                     disabled={isProcessing}
                     data-testid="input-website-url"
                     className="flex-1 px-5 py-4 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-gray-800 placeholder-gray-400 text-lg"
@@ -587,7 +587,7 @@ function LandingInner() {
                     {isProcessing ? (
                       <><Loader2 className="w-5 h-5 animate-spin" />Analysing</>
                     ) : (
-                      <>Analyse <span>&rarr;</span></>
+                      <>Audit now <span>&rarr;</span></>
                     )}
                   </button>
                 </div>
