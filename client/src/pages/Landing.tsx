@@ -1046,10 +1046,22 @@ function LandingInner() {
             {/* Header */}
             <div className="flex items-center gap-3 mb-5">
               <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-white font-semibold">Signals detected for {normalizeDomain(url)}</p>
                 <p className="text-slate-400 text-xs mt-0.5">Confirm your services, customer types and competitor landscape, then generate your report.</p>
               </div>
+              <button
+                onClick={() => {
+                  setSubmissionId(null);
+                  setError(null);
+                  setUrl("");
+                  runMutation.reset();
+                }}
+                data-testid="button-reset-analysis"
+                className="flex-shrink-0 text-xs text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1"
+              >
+                ← New URL
+              </button>
             </div>
 
             {/* Services */}
