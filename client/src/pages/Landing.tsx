@@ -492,7 +492,7 @@ function LandingInner() {
       {/* Nav — matches mockup exactly */}
       <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between relative z-10">
         <div className="text-xl font-bold text-indigo-900 tracking-tight">
-          Nexalytics <span style={{ color: "rgba(79,70,229,0.8)" }}>GEO</span>
+          AnswerMonk <span style={{ color: "rgba(79,70,229,0.8)" }}>GEO</span>
         </div>
       </header>
 
@@ -1285,7 +1285,7 @@ function LandingInner() {
         aria-labelledby="features-heading"
         className="relative z-10 max-w-4xl mx-auto px-6 pb-4"
       >
-        <h2 id="features-heading" className="sr-only">Key features of Nexalytics GEO Intelligence</h2>
+        <h2 id="features-heading" className="sr-only">Key features of AnswerMonk GEO Intelligence</h2>
         <dl className="sr-only">
           <div>
             <dt>Prompt Network Creator (PNC)</dt>
@@ -1447,7 +1447,7 @@ function LandingInner() {
       <footer style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }} className="relative z-10 py-8 text-center">
         <div className="flex items-center justify-center gap-2 mb-1">
           <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.15em", color: "#94a3b8" }}>
-            NEXALYTICS GEO
+            ANSWERMONK GEO
           </span>
           <span style={{ color: "#cbd5e1", fontSize: 10 }}>·</span>
           <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.15em", color: "#94a3b8" }}>
@@ -1459,7 +1459,7 @@ function LandingInner() {
           </span>
         </div>
         <p style={{ fontFamily: "monospace", fontSize: 9, color: "#cbd5e1", letterSpacing: "0.1em" }}>
-          © 2026 NEXALYTICS. ALL RIGHTS RESERVED.
+          © 2026 ANSWERMONK. ALL RIGHTS RESERVED.
         </p>
       </footer>
     </div>

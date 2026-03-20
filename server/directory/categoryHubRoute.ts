@@ -191,7 +191,7 @@ function buildEditorialSummary(hub: HubData): { p1: string; p2: string } {
       : "";
     p1 = `Across ${hub.pageCount} analysed ${catTitle} quer${hub.pageCount === 1 ? "y" : "ies"} in ${locTitle}, ${topName} is the most AI-visible provider — cited in ${topPct} of responses across ChatGPT, Claude, Gemini, and Perplexity.${othersSentence}`;
   } else {
-    p1 = `Nexalytics GEO has analysed ${hub.pageCount} ${catTitle} quer${hub.pageCount === 1 ? "y" : "ies"} in ${locTitle}. AI visibility rankings will appear here as data is collected.`;
+    p1 = `AnswerMonk GEO has analysed ${hub.pageCount} ${catTitle} quer${hub.pageCount === 1 ? "y" : "ies"} in ${locTitle}. AI visibility rankings will appear here as data is collected.`;
   }
 
   // ── Paragraph 2: authority sources + data freshness ────────────
@@ -201,9 +201,9 @@ function buildEditorialSummary(hub: HubData): { p1: string; p2: string } {
     const authList = authSources.length === 1
       ? authSources[0]
       : `${authSources.slice(0, -1).join(", ")} and ${authSources[authSources.length - 1]}`;
-    p2 = `${authList} ${authSources.length === 1 ? "is" : "are"} among the most frequently cited authority sources when AI engines respond to ${catTitle} queries in ${locTitle}. Nexalytics GEO tracks rankings across all ${hub.pageCount} cluster variant${hub.pageCount === 1 ? "" : "s"} continuously, updating each time new prompt analysis is collected.`;
+    p2 = `${authList} ${authSources.length === 1 ? "is" : "are"} among the most frequently cited authority sources when AI engines respond to ${catTitle} queries in ${locTitle}. AnswerMonk GEO tracks rankings across all ${hub.pageCount} cluster variant${hub.pageCount === 1 ? "" : "s"} continuously, updating each time new prompt analysis is collected.`;
   } else {
-    p2 = `Nexalytics GEO monitors ${hub.pageCount} ${catTitle} query variant${hub.pageCount === 1 ? "" : "s"} in ${locTitle} across ChatGPT, Claude, Gemini, and Perplexity. Rankings are updated each time new prompt analysis data is collected.`;
+    p2 = `AnswerMonk GEO monitors ${hub.pageCount} ${catTitle} query variant${hub.pageCount === 1 ? "" : "s"} in ${locTitle} across ChatGPT, Claude, Gemini, and Perplexity. Rankings are updated each time new prompt analysis data is collected.`;
   }
 
   return { p1, p2 };
@@ -319,8 +319,8 @@ function buildHubHtml(hub: HubData, canonicalUrl: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Best ${catTitle} in ${locTitle} — AI Rankings | Nexalytics GEO</title>
-  <meta name="description" content="AI search visibility rankings for ${hub.pageCount} ${catTitle} queries in ${locTitle}. Based on ${hub.totalBrandOccurrences} brand appearances analysed by Nexalytics GEO.">
+  <title>Best ${catTitle} in ${locTitle} — AI Rankings | AnswerMonk GEO</title>
+  <meta name="description" content="AI search visibility rankings for ${hub.pageCount} ${catTitle} queries in ${locTitle}. Based on ${hub.totalBrandOccurrences} brand appearances analysed by AnswerMonk GEO.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="${canonicalUrl}">
   <script type="application/ld+json">
@@ -332,7 +332,7 @@ ${jsonLd}
 
 <nav>
   <div class="logo-icon"></div>
-  <span class="brand-nav">Nexalytics <span>GEO</span></span>
+  <span class="brand-nav">AnswerMonk <span>GEO</span></span>
 </nav>
 
 <div class="breadcrumb">
@@ -344,7 +344,7 @@ ${jsonLd}
   <div class="badge">⬡ ${hub.pageCount} query variants · ${hub.location}</div>
 
   <h1>Best ${catTitle} in ${locTitle}</h1>
-  <div class="sub">AI Search Visibility — Category Hub · Nexalytics GEO</div>
+  <div class="sub">AI Search Visibility — Category Hub · AnswerMonk GEO</div>
 
   <!-- §1 Editorial summary (2 paragraphs, data-driven) -->
   <div class="editorial">

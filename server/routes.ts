@@ -322,7 +322,7 @@ async function tagMentionedBrands(sessionId: number, brandNames: string[]): Prom
       const timer = setTimeout(() => controller.abort(), 7000);
       const resp = await fetch(row.url, {
         signal: controller.signal,
-        headers: { "User-Agent": "Mozilla/5.0 (compatible; NexalyticsBot/1.0)" },
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; AnswerMonkBot/1.0)" },
       });
       clearTimeout(timer);
       const html = await resp.text();

@@ -32,7 +32,7 @@ function scramble(target: string, progress: number): string {
 function rand(a: number, b: number) { return Math.floor(Math.random() * (b - a + 1)) + a; }
 
 const STREAM_POOLS = [
-  ["gpt-crawl-01.nexalytics.io", "resolver-a.internal", "openai-grounding.io"],
+  ["gpt-crawl-01.answermonk.io", "resolver-a.internal", "openai-grounding.io"],
   ["vertex-redirect.googleapis.com", "gemini-src-01.io", "grounding-api.gcp"],
   ["claude-cite-01.anthropic.com", "bedrock-ref.aws", "haiku-grounding.io"],
 ];
