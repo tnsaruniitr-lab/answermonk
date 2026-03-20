@@ -550,7 +550,7 @@ function LandingInner() {
                 <p className="text-lg md:text-xl max-w-xl mx-auto leading-relaxed" style={{ color: "#374151" }}>
                   When customers ask AI - are you the answer?
                   <br />
-                  <span style={{ color: "#1e1b4b", fontWeight: 600 }}>AnswerMonk makes sure you are.</span>
+                  <span style={{ color: "#1e1b4b", fontWeight: 600 }}>Answer<span style={{ color: "#6366f1" }}>Monk</span> makes sure you are.</span>
                 </p>
               </>
             )}
