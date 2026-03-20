@@ -45,31 +45,35 @@ function timeAgo(dateStr: string): string {
 }
 
 const ENGINES = [
-  { key: "chatgpt" as const, short: "CHA" },
-  { key: "gemini"  as const, short: "GEM" },
-  { key: "claude"  as const, short: "CLA" },
+  { key: "chatgpt" as const, short: "CHA", color: "#10b981" },
+  { key: "gemini"  as const, short: "GEM", color: "#3b82f6" },
+  { key: "claude"  as const, short: "CLA", color: "#f59e0b" },
 ];
 
 // ── Score Ring ────────────────────────────────────────────────────────────────
 
 function ScoreRing({ score, accent }: { score: number; accent: string }) {
-  const r = 18;
+  const r = 20;
   const circ = 2 * Math.PI * r;
+  const label = score === 0 ? "—" : `${score}`;
   return (
-    <div style={{ position: "relative", width: 44, height: 44, flexShrink: 0 }}>
-      <svg viewBox="0 0 44 44" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
-        <circle cx="22" cy="22" r={r} fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="3.5" />
-        <circle
-          cx="22" cy="22" r={r} fill="none"
-          stroke={accent} strokeWidth="3.5"
-          strokeDasharray={circ}
-          strokeDashoffset={circ * (1 - score / 100)}
-          strokeLinecap="round"
-          style={{ filter: `drop-shadow(0 0 4px ${accent}80)`, transition: "stroke-dashoffset 0.6s ease" }}
-        />
+    <div style={{ position: "relative", width: 50, height: 50, flexShrink: 0 }}>
+      <svg viewBox="0 0 50 50" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
+        <circle cx="25" cy="25" r={r} fill="none" stroke="#f1f5f9" strokeWidth="3.5" />
+        {score > 0 && (
+          <circle
+            cx="25" cy="25" r={r} fill="none"
+            stroke={accent} strokeWidth="3.5"
+            strokeDasharray={circ}
+            strokeDashoffset={circ * (1 - score / 100)}
+            strokeLinecap="round"
+            style={{ filter: `drop-shadow(0 0 4px ${accent}80)`, transition: "stroke-dashoffset 0.6s ease" }}
+          />
+        )}
       </svg>
-      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ color: accent, fontSize: 12, fontWeight: 900, lineHeight: 1 }}>{score}</span>
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ color: score > 0 ? accent : "#9ca3af", fontSize: score > 0 ? 13 : 17, fontWeight: 900, lineHeight: 1 }}>{label}</span>
+        {score > 0 && <span style={{ color: "#9ca3af", fontSize: 7, fontWeight: 600, marginTop: 1 }}>/ 100</span>}
       </div>
     </div>
   );
@@ -80,35 +84,39 @@ function ScoreRing({ score, accent }: { score: number; accent: string }) {
 function SkeletonTile() {
   return (
     <div style={{
-      background: "rgba(255,255,255,0.7)",
-      border: "1px solid rgba(255,255,255,0.9)",
-      backdropFilter: "blur(12px)",
-      borderRadius: 16,
+      background: "rgba(255,255,255,0.88)",
+      border: "1px solid rgba(0,0,0,0.07)",
+      borderRadius: 14,
       overflow: "hidden",
-      boxShadow: "0 2px 16px rgba(99,102,241,0.07), 0 1px 3px rgba(0,0,0,0.04)",
+      boxShadow: "0 2px 12px rgba(99,102,241,0.06), 0 1px 3px rgba(0,0,0,0.04)",
     }}>
       <div style={{ height: 3, background: "rgba(99,102,241,0.15)" }} />
-      <div style={{ padding: "14px 16px" }}>
-        <div style={{ height: 9, width: 70, background: "rgba(0,0,0,0.06)", borderRadius: 4, marginBottom: 10 }} />
-        <div style={{ height: 13, width: "85%", background: "rgba(0,0,0,0.05)", borderRadius: 4, marginBottom: 5 }} />
-        <div style={{ height: 13, width: "60%", background: "rgba(0,0,0,0.04)", borderRadius: 4, marginBottom: 14 }} />
-        <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 12 }}>
-          <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(0,0,0,0.06)" }} />
-          <div>
-            <div style={{ height: 10, width: 80, background: "rgba(0,0,0,0.06)", borderRadius: 3, marginBottom: 5 }} />
-            <div style={{ height: 9, width: 55, background: "rgba(0,0,0,0.04)", borderRadius: 3 }} />
+      <div style={{ padding: "12px 14px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+          <div style={{ height: 18, width: 90, background: "rgba(0,0,0,0.06)", borderRadius: 4 }} />
+          <div style={{ height: 10, width: 40, background: "rgba(0,0,0,0.04)", borderRadius: 3 }} />
+        </div>
+        <div style={{ height: 13, width: "90%", background: "rgba(0,0,0,0.05)", borderRadius: 4, marginBottom: 5 }} />
+        <div style={{ height: 13, width: "65%", background: "rgba(0,0,0,0.04)", borderRadius: 4, marginBottom: 10 }} />
+        <div style={{ background: "rgba(0,0,0,0.025)", borderRadius: 10, padding: "9px 10px", marginBottom: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 8 }}>
+            <div style={{ width: 50, height: 50, borderRadius: "50%", background: "rgba(0,0,0,0.06)", flexShrink: 0 }} />
+            <div>
+              <div style={{ height: 10, width: 80, background: "rgba(0,0,0,0.06)", borderRadius: 3, marginBottom: 5 }} />
+              <div style={{ height: 9, width: 110, background: "rgba(0,0,0,0.04)", borderRadius: 3 }} />
+            </div>
+          </div>
+          <div style={{ borderTop: "1px solid rgba(0,0,0,0.05)", paddingTop: 7, display: "flex", flexDirection: "column" as const, gap: 5 }}>
+            <div style={{ height: 20, width: "75%", background: "rgba(0,0,0,0.04)", borderRadius: 4 }} />
+            <div style={{ height: 20, width: "60%", background: "rgba(0,0,0,0.04)", borderRadius: 4 }} />
           </div>
         </div>
-        <div style={{ display: "flex", gap: 4, marginBottom: 10 }}>
-          {[70, 55].map((w, i) => (
-            <div key={i} style={{ height: 18, width: w, background: "rgba(0,0,0,0.04)", borderRadius: 4 }} />
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: 5 }}>
+        <div style={{ display: "flex", gap: 5, marginBottom: 10 }}>
           {[1, 2, 3].map(i => (
-            <div key={i} style={{ flex: 1, height: 22, background: "rgba(0,0,0,0.04)", borderRadius: 5 }} />
+            <div key={i} style={{ flex: 1, height: 24, background: "rgba(0,0,0,0.04)", borderRadius: 6 }} />
           ))}
         </div>
+        <div style={{ height: 30, background: "rgba(0,0,0,0.03)", borderRadius: 8 }} />
       </div>
     </div>
   );
@@ -118,109 +126,160 @@ function SkeletonTile() {
 
 function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
   const accent = accentFor(tile.category);
+  const displayBrand = tile.topBrand || tile.brandDomain || tile.brandName;
+
   return (
     <div
-      onClick={onClick}
       data-testid={`card-directory-tile-${tile.id}`}
       style={{
-        background: "rgba(255,255,255,0.75)",
-        border: "1px solid rgba(255,255,255,0.9)",
+        background: "rgba(255,255,255,0.88)",
+        border: "1px solid rgba(0,0,0,0.07)",
         backdropFilter: "blur(12px)",
-        borderRadius: 16,
+        borderRadius: 14,
         overflow: "hidden",
         cursor: "pointer",
-        boxShadow: "0 2px 16px rgba(99,102,241,0.07), 0 1px 3px rgba(0,0,0,0.04)",
+        boxShadow: "0 2px 12px rgba(99,102,241,0.06), 0 1px 3px rgba(0,0,0,0.04)",
         transition: "box-shadow 0.2s, border-color 0.2s",
+        display: "flex",
+        flexDirection: "column",
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 4px 24px ${accent}1e, 0 1px 3px rgba(0,0,0,0.06)`;
-        (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}44`;
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.boxShadow = `0 4px 24px ${accent}20, 0 1px 6px rgba(0,0,0,0.06)`;
+        el.style.borderColor = `${accent}40`;
       }}
       onMouseLeave={e => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 16px rgba(99,102,241,0.07), 0 1px 3px rgba(0,0,0,0.04)";
-        (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.9)";
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.boxShadow = "0 2px 12px rgba(99,102,241,0.06), 0 1px 3px rgba(0,0,0,0.04)";
+        el.style.borderColor = "rgba(0,0,0,0.07)";
       }}
     >
-      {/* Accent top bar */}
-      <div style={{ height: 3, background: `linear-gradient(90deg, ${accent}, ${accent}44)` }} />
+      {/* Top accent stripe */}
+      <div style={{ height: 3, background: `linear-gradient(90deg, ${accent}, ${accent}44)`, flexShrink: 0 }} />
 
-      <div style={{ padding: "14px 16px" }}>
+      <div style={{ padding: "12px 14px", flex: 1, display: "flex", flexDirection: "column" }}>
+
         {/* Category + time */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}>
           <span style={{
-            fontSize: 10, fontWeight: 700, letterSpacing: "0.05em",
+            fontSize: 9.5, fontWeight: 700, letterSpacing: "0.06em",
             color: accent, background: `${accent}14`,
-            padding: "3px 8px", borderRadius: 5,
-            maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            padding: "2px 8px", borderRadius: 4,
+            maxWidth: 135, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>
             {tile.category.toUpperCase()}
           </span>
-          <span style={{ color: "#9ca3af", fontSize: 10, flexShrink: 0, marginLeft: 6 }}>
+          <span style={{ color: "#9ca3af", fontSize: 10, flexShrink: 0 }}>
             {timeAgo(tile.createdAt)}
           </span>
         </div>
 
         {/* Query headline */}
         <p style={{
-          color: "#111827", fontSize: 14, fontWeight: 700,
-          margin: "0 0 12px", lineHeight: 1.4,
+          color: "#111827", fontSize: 13.5, fontWeight: 700,
+          margin: "0 0 10px", lineHeight: 1.35,
           display: "-webkit-box", WebkitLineClamp: 2,
           WebkitBoxOrient: "vertical", overflow: "hidden",
         } as React.CSSProperties}>
           {tile.query.replace(/^best\s+/i, "")}
         </p>
 
-        {/* Score ring + top brand */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-          <ScoreRing score={tile.topScore} accent={accent} />
-          <div style={{ minWidth: 0 }}>
-            <div style={{
-              color: "#111827", fontSize: 13, fontWeight: 700,
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            }}>
-              {tile.topBrand || tile.brandDomain || tile.brandName}
+        {/* Rankings block */}
+        <div style={{
+          background: "rgba(0,0,0,0.025)", borderRadius: 10,
+          padding: "9px 10px", marginBottom: 10, flex: 1,
+        }}>
+          {/* #1 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: tile.rivals.length > 0 ? 8 : 0 }}>
+            <ScoreRing score={tile.topScore} accent={accent} />
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
+                <span style={{
+                  fontSize: 9, fontWeight: 700, color: "#fff",
+                  background: accent, borderRadius: 3, padding: "1px 5px", flexShrink: 0,
+                }}>#1</span>
+                <span style={{
+                  color: "#111827", fontSize: 13.5, fontWeight: 800,
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                }}>
+                  {displayBrand}
+                </span>
+              </div>
+              <span style={{ color: "#9ca3af", fontSize: 10 }}>Most cited in AI responses</span>
             </div>
-            <div style={{ color: "#6b7280", fontSize: 11, marginTop: 2 }}>Top ranked</div>
           </div>
+
+          {/* #2 and #3 */}
+          {tile.rivals.length > 0 && (
+            <div style={{ borderTop: "1px solid rgba(0,0,0,0.06)", paddingTop: 7, display: "flex", flexDirection: "column", gap: 5 }}>
+              {tile.rivals.slice(0, 2).map((rival, i) => (
+                <div key={rival} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, color: "#6b7280",
+                    background: "#f3f4f6", border: "1px solid #e5e7eb",
+                    borderRadius: 3, padding: "1px 5px", flexShrink: 0,
+                  }}>
+                    #{i + 2}
+                  </span>
+                  <span style={{
+                    color: "#374151", fontSize: 12, fontWeight: 600,
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>
+                    {rival}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Rivals */}
-        {tile.rivals.length > 0 && (
-          <div style={{ display: "flex", gap: 5, marginBottom: 10, flexWrap: "wrap" }}>
-            {tile.rivals.map((r, i) => (
-              <span key={r} style={{
-                fontSize: 10, color: "#4b5563",
-                background: "rgba(0,0,0,0.05)",
-                border: "1px solid rgba(0,0,0,0.08)",
-                borderRadius: 4, padding: "2px 8px",
-                overflow: "hidden", textOverflow: "ellipsis", maxWidth: 110, whiteSpace: "nowrap",
+        {/* Engine badges — always visible, fixed per-engine colors */}
+        <div style={{ display: "flex", gap: 5, marginBottom: 10 }}>
+          {ENGINES.map(e => {
+            const on = tile.engines[e.key];
+            return (
+              <div key={e.key} style={{
+                flex: 1, height: 24, borderRadius: 6,
+                background: on ? `${e.color}12` : "#f3f4f6",
+                border: `1.5px solid ${on ? e.color + "50" : "#e5e7eb"}`,
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
               }}>
-                #{i + 2} {r}
-              </span>
-            ))}
-          </div>
-        )}
-        {tile.rivals.length === 0 && <div style={{ marginBottom: 10 }} />}
-
-        {/* Engine badges */}
-        <div style={{ display: "flex", gap: 5 }}>
-          {ENGINES.map(e => (
-            <div key={e.key} style={{
-              flex: 1, height: 24, borderRadius: 6,
-              background: tile.engines[e.key] ? `${accent}14` : "rgba(0,0,0,0.03)",
-              border: `1px solid ${tile.engines[e.key] ? accent + "40" : "rgba(0,0,0,0.07)"}`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              opacity: tile.engines[e.key] ? 1 : 0.35,
-            }}>
-              <span style={{
-                color: tile.engines[e.key] ? accent : "#9ca3af",
-                fontSize: 9, fontWeight: 700, letterSpacing: "0.04em",
-              }}>
-                {e.short}
-              </span>
-            </div>
-          ))}
+                <div style={{ width: 5, height: 5, borderRadius: "50%", background: on ? e.color : "#d1d5db" }} />
+                <span style={{ color: on ? e.color : "#9ca3af", fontSize: 9, fontWeight: 700, letterSpacing: "0.04em" }}>
+                  {e.short}
+                </span>
+              </div>
+            );
+          })}
         </div>
+
+        {/* CTA */}
+        <button
+          onClick={onClick}
+          data-testid={`button-view-analysis-${tile.id}`}
+          style={{
+            width: "100%", padding: "7px 0", borderRadius: 8,
+            border: `1.5px solid ${accent}33`,
+            background: `${accent}08`,
+            color: accent, fontSize: 11, fontWeight: 700,
+            cursor: "pointer", display: "flex", alignItems: "center",
+            justifyContent: "center", gap: 5, letterSpacing: "0.01em",
+            transition: "background 0.15s, border-color 0.15s",
+          }}
+          onMouseEnter={e => {
+            const el = e.currentTarget as HTMLButtonElement;
+            el.style.background = `${accent}14`;
+            el.style.borderColor = `${accent}55`;
+          }}
+          onMouseLeave={e => {
+            const el = e.currentTarget as HTMLButtonElement;
+            el.style.background = `${accent}08`;
+            el.style.borderColor = `${accent}33`;
+          }}
+        >
+          View full analysis
+          <span style={{ fontSize: 13, lineHeight: 1 }}>→</span>
+        </button>
       </div>
     </div>
   );
@@ -248,13 +307,26 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
 
   if (!isLoading && tiles.length === 0) return null;
 
+  function handleTileClick(tile: DirectoryTile) {
+    if (onSelect) {
+      onSelect(tile.sessionId);
+    } else {
+      navigate(`/v2/${tile.sessionId}`);
+    }
+  }
+
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", marginTop: 56 }}>
       {/* Section header */}
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 20 }}>
-        <h2 style={{ color: "#1e1b4b", fontSize: 16, fontWeight: 700, margin: 0 }}>
-          Recent reports on most cited businesses
-        </h2>
+        <div>
+          <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", color: "#8b5cf6", textTransform: "uppercase", marginBottom: 5 }}>
+            AI Directory
+          </div>
+          <h2 style={{ color: "#1e1b4b", fontSize: 16, fontWeight: 700, margin: 0 }}>
+            Recent reports on most cited businesses
+          </h2>
+        </div>
         {!isLoading && tiles.length > INITIAL_COUNT && !expanded && (
           <button
             onClick={() => setExpanded(true)}
@@ -279,7 +351,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
               <Tile
                 key={tile.id}
                 tile={tile}
-                onClick={() => onSelect ? onSelect(tile.sessionId) : navigate(`/v2/${tile.sessionId}`)}
+                onClick={() => handleTileClick(tile)}
               />
             ))}
       </div>
@@ -291,7 +363,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
             onClick={() => setExpanded(x => !x)}
             data-testid="button-directory-expand"
             style={{
-              background: "rgba(255,255,255,0.7)",
+              background: "rgba(255,255,255,0.8)",
               border: "1px solid rgba(99,102,241,0.2)",
               color: "#6b7280", fontSize: 12,
               padding: "9px 28px", borderRadius: 10, cursor: "pointer",
