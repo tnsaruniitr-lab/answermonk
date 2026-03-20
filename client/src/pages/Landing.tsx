@@ -573,7 +573,7 @@ function LandingInner() {
                     placeholder="Enter your website to see AI search analysis..."
                     disabled={isProcessing}
                     data-testid="input-website-url"
-                    className="flex-1 px-5 py-4 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-gray-800 placeholder-gray-400 text-lg"
+                    className="flex-1 px-5 py-4 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-gray-800 placeholder-gray-400 text-sm"
                   />
                   <button
                     type="submit"
