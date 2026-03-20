@@ -454,20 +454,22 @@ function LandingInner() {
 
   return (
     <div
-      className="min-h-screen bg-[#0A0F1E] text-slate-200 font-sans overflow-hidden relative"
+      className="min-h-screen text-slate-800 font-sans overflow-hidden relative"
+      style={{ background: "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)" }}
       data-testid="landing-page"
     >
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none" />
-      <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-violet-600/10 blur-[120px] pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(59,130,246,0.05)_0%,_transparent_60%)] pointer-events-none" />
+      {/* Aurora orbs */}
+      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: "#fbcfe8", filter: "blur(100px)", opacity: 0.35 }} />
+      <div className="absolute top-[10%] right-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{ background: "#c4b5fd", filter: "blur(120px)", opacity: 0.35 }} />
+      <div className="absolute bottom-[5%] left-[20%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: "#a7f3d0", filter: "blur(100px)", opacity: 0.3 }} />
 
-      <nav className="relative z-10 flex items-center justify-between px-8 py-6 max-w-7xl mx-auto border-b border-white/5">
+      <nav className="relative z-10 flex items-center justify-between px-8 py-6 max-w-7xl mx-auto border-b border-black/5">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+          <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.4)]">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
-          <span className="font-semibold text-lg tracking-tight text-white">
-            Nexalytics <span className="text-blue-400 font-light">GEO</span>
+          <span className="font-semibold text-lg tracking-tight text-indigo-900">
+            Nexalytics <span className="text-violet-500 font-light">GEO</span>
           </span>
         </div>
       </nav>
@@ -475,7 +477,7 @@ function LandingInner() {
       <main className="relative z-10 max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">
         {!replayMode && (
           <>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-8 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-violet-200 text-violet-700 text-sm font-medium mb-8 shadow-sm">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
@@ -483,16 +485,16 @@ function LandingInner() {
               Intelligence Engine v2.0 — Live
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.1]" style={{ color: "#1e1b4b", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Dominate{" "}
               <span style={{background: "linear-gradient(to right, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text"}}>
                 AI search results
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl max-w-2xl mx-auto mb-12 leading-relaxed font-light" style={{ color: "#94a3b8", letterSpacing: "-0.01em" }}>
+            <p className="text-xl md:text-2xl max-w-2xl mx-auto mb-12 leading-relaxed font-light" style={{ color: "#6b7280", letterSpacing: "-0.01em" }}>
               When customers ask AI,{" "}
-              <span style={{ color: "#e2e8f0", fontWeight: 500 }}>see which brands get recommended, why they win, and how to beat them.</span>
+              <span style={{ color: "#1e1b4b", fontWeight: 500 }}>see which brands get recommended, why they win, and how to beat them.</span>
             </p>
           </>
         )}
@@ -509,8 +511,8 @@ function LandingInner() {
               autoComplete="off"
               className="absolute opacity-0 pointer-events-none w-0 h-0"
             />
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-violet-500 rounded-2xl blur opacity-20 group-hover:opacity-35 transition duration-1000" />
-            <div className="relative flex items-center bg-[#111827]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-2xl">
+            <div className="absolute -inset-1 bg-gradient-to-r from-violet-400 to-blue-400 rounded-2xl blur opacity-15 group-hover:opacity-25 transition duration-1000" />
+            <div className="relative flex items-center bg-white border border-gray-200 rounded-2xl p-2 shadow-lg">
               <div className="pl-4 flex-shrink-0">
                 <Globe className="w-5 h-5 text-slate-400" />
               </div>
@@ -519,7 +521,7 @@ function LandingInner() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="Enter your website URL (e.g., acme.com)"
-                className="flex-1 bg-transparent border-none outline-none text-white px-4 py-4 text-lg placeholder:text-slate-500"
+                className="flex-1 bg-transparent border-none outline-none text-gray-800 px-4 py-4 text-lg placeholder:text-gray-400"
                 disabled={isProcessing}
                 data-testid="input-website-url"
               />
@@ -528,7 +530,8 @@ function LandingInner() {
                 disabled={isProcessing}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
-                className="disabled:opacity-60 disabled:cursor-not-allowed bg-white text-black hover:bg-slate-100 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                className="disabled:opacity-60 disabled:cursor-not-allowed px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 text-white"
+                style={{ backgroundColor: "#7c3aed" }}
                 data-testid="button-analyze"
               >
                 {isProcessing ? (
@@ -539,7 +542,7 @@ function LandingInner() {
               </button>
             </div>
             {error && (
-              <div className="mt-3 flex items-center gap-2 text-red-400 text-sm justify-center" data-testid="text-error">
+              <div className="mt-3 flex items-center gap-2 text-red-600 text-sm justify-center" data-testid="text-error">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
               </div>
             )}
@@ -554,10 +557,11 @@ function LandingInner() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 4,
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.07)",
+                background: "rgba(255,255,255,0.7)",
+                border: "1px solid rgba(0,0,0,0.08)",
                 borderRadius: 12,
                 padding: "4px",
+                backdropFilter: "blur(8px)",
               }}
             >
               {(["reports", "directory", "agents"] as const).map((tab) => {
@@ -586,10 +590,10 @@ function LandingInner() {
                       fontSize: 13,
                       fontWeight: 600,
                       transition: "all 0.2s",
-                      background: isActive ? "rgba(59,130,246,0.15)" : "transparent",
-                      color: tab === "directory" ? "#334155" : isActive ? "#93c5fd" : "#475569",
-                      boxShadow: isActive ? "inset 0 1px 0 rgba(255,255,255,0.06)" : "none",
-                      borderBottom: isActive ? "1px solid rgba(59,130,246,0.3)" : "1px solid transparent",
+                      background: isActive ? "rgba(124,58,237,0.12)" : "transparent",
+                      color: tab === "directory" ? "#94a3b8" : isActive ? "#6d28d9" : "#64748b",
+                      boxShadow: isActive ? "inset 0 1px 0 rgba(124,58,237,0.08)" : "none",
+                      borderBottom: isActive ? "1px solid rgba(124,58,237,0.25)" : "1px solid transparent",
                     }}
                   >
                     {labels[tab]}
@@ -810,7 +814,8 @@ function LandingInner() {
                   onClick={() => setShowIntelligence(true)}
                   disabled={selectedSegmentIds.size === 0}
                   data-testid="btn-analyse-intelligence"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-white text-black hover:bg-slate-100 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.3)] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white hover:opacity-90 transition-all duration-300 shadow-[0_0_20px_rgba(124,58,237,0.25)] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+                  style={{ backgroundColor: "#7c3aed" }}
                 >
                   Analyse Citation Intelligence
                   {selectedSegmentIds.size < scoredSegs.length && selectedSegmentIds.size > 0 && (
@@ -1086,31 +1091,32 @@ function LandingInner() {
       </main>
 
       {/* Pipeline visualization */}
-      <section className="relative z-10 py-16 bg-black/20 border-y border-white/5 backdrop-blur-sm">
+      <section className="relative z-10 py-16 border-y border-black/5" style={{ background: "rgba(255,255,255,0.4)", backdropFilter: "blur(8px)" }}>
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-10">
-            <h2 className="text-2xl font-semibold text-white">The Intelligence Pipeline</h2>
-            <p className="text-slate-400 mt-2">From raw domain to actionable GEO insights in minutes.</p>
+            <h2 className="text-2xl font-semibold text-indigo-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>The Intelligence Pipeline</h2>
+            <p className="text-slate-500 mt-2">From raw domain to actionable GEO insights in minutes.</p>
           </div>
           <div className="relative">
-            <div className="absolute top-8 left-0 w-full h-0.5 bg-slate-800 hidden md:block" />
+            <div className="absolute top-8 left-0 w-full h-0.5 bg-black/5 hidden md:block" />
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {steps.map((item, index) => (
                 <div key={item.title} className="relative z-10 flex flex-col items-center">
                   <div
                     className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 border transition-all duration-500 ${
                       activeStep === index
-                        ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.3)] text-blue-400"
-                        : "bg-[#111827] border-white/10 text-slate-500"
+                        ? "border-violet-300 shadow-[0_0_20px_rgba(124,58,237,0.2)] text-violet-600"
+                        : "border-black/8 text-slate-400"
                     }`}
+                    style={{ background: activeStep === index ? "rgba(124,58,237,0.08)" : "rgba(255,255,255,0.7)" }}
                     data-testid={`step-${index}`}
                   >
                     <item.icon className="w-7 h-7" />
                   </div>
-                  <h3 className={`font-semibold mb-1 transition-colors text-center ${activeStep === index ? "text-white" : "text-slate-300"}`}>
+                  <h3 className={`font-semibold mb-1 transition-colors text-center ${activeStep === index ? "text-indigo-900" : "text-slate-600"}`}>
                     {item.title}
                   </h3>
-                  <p className="text-sm text-slate-500 text-center">{item.desc}</p>
+                  <p className="text-sm text-slate-400 text-center">{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -1158,16 +1164,16 @@ function LandingInner() {
       >
         {/* Section header */}
         <div className="flex items-center gap-3 justify-center mb-2">
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22d3ee", boxShadow: "0 0 10px #22d3ee" }} className="animate-pulse" />
-          <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.2em", color: "#22d3ee" }}>
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#7c3aed", boxShadow: "0 0 8px rgba(124,58,237,0.5)" }} className="animate-pulse" />
+          <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.2em", color: "#7c3aed" }}>
             AGENT INTELLIGENCE BRIEF
           </span>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22d3ee", boxShadow: "0 0 10px #22d3ee" }} className="animate-pulse" />
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#7c3aed", boxShadow: "0 0 8px rgba(124,58,237,0.5)" }} className="animate-pulse" />
         </div>
-        <h2 id="faq-heading" className="text-2xl font-bold text-white text-center mb-1">
+        <h2 id="faq-heading" className="text-2xl font-bold text-center mb-1" style={{ color: "#1e1b4b", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
           How the agents work
         </h2>
-        <p className="text-center text-sm mb-10" style={{ color: "#475569" }}>
+        <p className="text-center text-sm mb-10" style={{ color: "#64748b" }}>
           Everything you need to brief your team before the first run.
         </p>
 
@@ -1212,16 +1218,17 @@ function LandingInner() {
             <article
               key={id}
               style={{
-                background: "#060f1e",
-                border: "1px solid #1e3a5f",
+                background: "rgba(255,255,255,0.75)",
+                border: "1px solid rgba(0,0,0,0.07)",
                 borderRadius: 12,
                 overflow: "hidden",
+                backdropFilter: "blur(8px)",
               }}
             >
               {/* Query bar */}
               <div style={{
-                background: "#0a1628",
-                borderBottom: "1px solid #1e3a5f",
+                background: "rgba(255,255,255,0.9)",
+                borderBottom: "1px solid rgba(0,0,0,0.06)",
                 padding: "8px 16px",
                 display: "flex",
                 alignItems: "center",
@@ -1230,14 +1237,14 @@ function LandingInner() {
                 <span style={{
                   fontFamily: "monospace",
                   fontSize: 9,
-                  color: "#334155",
+                  color: "#94a3b8",
                   letterSpacing: "0.1em",
                 }}>
                   {id}
                 </span>
                 <span style={{
-                  background: `${color}18`,
-                  border: `1px solid ${color}40`,
+                  background: `${color}15`,
+                  border: `1px solid ${color}35`,
                   color,
                   fontSize: 8,
                   fontFamily: "monospace",
@@ -1248,7 +1255,7 @@ function LandingInner() {
                 }}>
                   {tag}
                 </span>
-                <span style={{ fontFamily: "monospace", fontSize: 10, color: "#334155", marginLeft: "auto" }}>
+                <span style={{ fontFamily: "monospace", fontSize: 10, color: "#94a3b8", marginLeft: "auto" }}>
                   RESOLVED
                 </span>
               </div>
@@ -1258,7 +1265,7 @@ function LandingInner() {
                 <h3 style={{
                   fontFamily: "monospace",
                   fontSize: 12,
-                  color: "#94a3b8",
+                  color: "#374151",
                   marginBottom: 10,
                   letterSpacing: "0.01em",
                   display: "flex",
@@ -1270,7 +1277,7 @@ function LandingInner() {
                 </h3>
                 <p style={{
                   fontSize: 13,
-                  color: "#cbd5e1",
+                  color: "#4b5563",
                   lineHeight: 1.65,
                   margin: 0,
                   paddingLeft: 16,
@@ -1283,21 +1290,21 @@ function LandingInner() {
         </div>
       </section>
 
-      <footer style={{ borderTop: "1px solid #1e3a5f" }} className="relative z-10 py-8 text-center">
+      <footer style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }} className="relative z-10 py-8 text-center">
         <div className="flex items-center justify-center gap-2 mb-1">
-          <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.15em", color: "#334155" }}>
+          <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.15em", color: "#94a3b8" }}>
             NEXALYTICS GEO
           </span>
-          <span style={{ color: "#1e3a5f", fontSize: 10 }}>·</span>
-          <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.15em", color: "#334155" }}>
+          <span style={{ color: "#cbd5e1", fontSize: 10 }}>·</span>
+          <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.15em", color: "#94a3b8" }}>
             CITATION INTELLIGENCE
           </span>
-          <span style={{ color: "#1e3a5f", fontSize: 10 }}>·</span>
-          <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.15em", color: "#334155" }}>
+          <span style={{ color: "#cbd5e1", fontSize: 10 }}>·</span>
+          <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.15em", color: "#94a3b8" }}>
             GEO SCORING
           </span>
         </div>
-        <p style={{ fontFamily: "monospace", fontSize: 9, color: "#1e3a5f", letterSpacing: "0.1em" }}>
+        <p style={{ fontFamily: "monospace", fontSize: 9, color: "#cbd5e1", letterSpacing: "0.1em" }}>
           © 2026 NEXALYTICS. ALL RIGHTS RESERVED.
         </p>
       </footer>
