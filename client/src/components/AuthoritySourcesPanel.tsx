@@ -530,6 +530,82 @@ function DomainRow({
 
 // ── Mission Control Loader ────────────────────────────────────────────────────
 
+const QUIPS = [
+  "In my skin, these wounds they will not heal...",
+  "Crawling through 47,329 URLs so you don't have to",
+  "I've become so numb... wait, that's a different Linkin Park song",
+  "There's something inside me that PULLS these redirects apart",
+  "Status 429: even the internet needs a moment",
+  "Crawling back to you... and to this VertexAI redirect URL",
+  "When progress says 23% and it's been 4 minutes: totally normal",
+  "The walls are closing in — also the rate limits",
+  "Minor setback: website requires cookie consent in 11 languages",
+  "Sending GET requests like a robot fully possessed",
+  "I am so afraid of... timeouts. Many timeouts.",
+  "Finding your 404s so you look busy doing something important",
+];
+
+const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#";
+
+function scrambleText(target: string, progress: number): string {
+  return target.split("").map((ch, i) => {
+    if (i < progress) return ch;
+    if (ch === " ") return " ";
+    return SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+  }).join("");
+}
+
+function useQuips() {
+  const [quipIdx, setQuipIdx] = useState(0);
+  const [displayed, setDisplayed] = useState("");
+  const [phase, setPhase] = useState<"decode" | "hold" | "fade">("decode");
+  const [decodeProgress, setDecodeProgress] = useState(0);
+  const [opacity, setOpacity] = useState(1);
+
+  useEffect(() => {
+    const target = QUIPS[quipIdx];
+
+    if (phase === "decode") {
+      const t = setInterval(() => {
+        setDecodeProgress(p => {
+          const next = p + 2;
+          setDisplayed(scrambleText(target, next));
+          if (next >= target.length) {
+            setPhase("hold");
+            return target.length;
+          }
+          return next;
+        });
+      }, 28);
+      return () => clearInterval(t);
+    }
+
+    if (phase === "hold") {
+      setDisplayed(target);
+      const t = setTimeout(() => setPhase("fade"), 2800);
+      return () => clearTimeout(t);
+    }
+
+    if (phase === "fade") {
+      let op = 1;
+      const t = setInterval(() => {
+        op -= 0.08;
+        setOpacity(Math.max(op, 0));
+        if (op <= 0) {
+          clearInterval(t);
+          setQuipIdx(i => (i + 1) % QUIPS.length);
+          setDecodeProgress(0);
+          setOpacity(1);
+          setPhase("decode");
+        }
+      }, 30);
+      return () => clearInterval(t);
+    }
+  }, [phase, quipIdx]);
+
+  return { displayed, opacity };
+}
+
 const STREAM_POOLS = [
   ["healthfinder.ae","dha.gov.ae","nhfd.ae","haad.to","seha.ae","moh.gov.ae"],
   ["reddit.com","trustpilot.com","g2.com","capterra.com","glassdoor.com","quora.com"],
@@ -568,6 +644,7 @@ function MissionControlLoader({
   insightsPending: boolean;
 }) {
   const progress = useCrawlProgress(sessionId, crawlPending);
+  const { displayed: quipText, opacity: quipOpacity } = useQuips();
   const [streamDomains, setStreamDomains] = useState(STREAM_POOLS.map(p => p[0]));
   const [streamStatus, setStreamStatus] = useState([0, 1, 2]);
   const tick = useRef(0);
@@ -641,6 +718,33 @@ function MissionControlLoader({
 
       {/* Main panel */}
       <div style={{ background: "#060f1e", padding: "22px 22px 18px" }}>
+
+        {/* Quip — animated decode/scramble text */}
+        <div style={{
+          marginBottom: 20,
+          background: "rgba(255,255,255,0.025)",
+          border: "1px solid rgba(30,58,95,0.8)",
+          borderRadius: 8,
+          padding: "10px 16px",
+          minHeight: 42,
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+        }}>
+          <div style={{
+            width: 6, height: 6, borderRadius: "50%",
+            background: "#22d3ee", boxShadow: "0 0 8px #22d3ee",
+            flexShrink: 0, animation: "mc-pulse 1.2s ease-in-out infinite",
+          }} />
+          <p style={{
+            margin: 0, fontSize: 12, fontFamily: "monospace",
+            color: "rgba(148,163,184,0.9)", opacity: quipOpacity,
+            letterSpacing: "0.01em", lineHeight: 1.5,
+          }}>
+            {quipText}
+          </p>
+        </div>
+
         {/* Central ring */}
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
           <div style={{ position: "relative", width: 140, height: 140 }}>

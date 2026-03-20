@@ -1,0 +1,195 @@
+Citation Intelligence Report
+1,448
+Total Citations
+452
+Domains Analysed
+2
+Cross-Engine Brands
+10
+AI Tactics Found
+⚡
+Key Finding
+Vesta Care and Mediclinic are the only brands appearing in both ChatGPT and Gemini citations, with Vesta Care dominating home healthcare visibility through brand service pages while unattributed community threads on Reddit drive the highest single-URL citation volumes.
+
+Vesta Care
+Mediclinic
+Citation Distribution
+1,199 total citations
+Dominate brand service pages with location-specific, service-specific landing pages
+41%
+Build exhaustive brand homepage presence with keyword-rich title tags
+34%
+Secure citations from unattributed community discussions on Reddit
+2%
+Appear in third-party comparison articles with verbatim brand mentions
+3%
+Establish directory listings on health-focused vertical directories
+7%
+Earn citations from review platforms with verified customer testimonials
+4%
+Publish brand blogs addressing specific user pain points with educational content
+3%
+Generate news and PR citations through launch announcements and industry awards
+3%
+Create product/package pages with specific pricing and test details
+2%
+Build government and regulatory authority through .gov.ae citations
+1%
+Brand service pages account for 34% of all citations, followed by brand homepages (28%) and community threads (12%). Branded content massively outperforms third-party comparison articles and directories, suggesting AI engines prefer first-party service descriptions over aggregated listicles. Reddit discussions generate high per-URL citation counts despite mentioning zero target brands, indicating topic relevance alone drives inclusion.
+
+Cross-Engine Champions
+Brands appearing in both ChatGPT + Gemini
+Vesta Care
+24
+GPT
+10
+Gem
+14
+Mediclinic
+18
+GPT
+12
+Gem
+6
+🎯
+Ranked by citation evidence
+
+What matters in this category?
+10 proven tactics from top-appearing brands
+
+
+#1
+Dominate brand service pages with location-specific, service-specific landing pages
+487
+citations
+HIGHEST
+· HIGH confidence
+www.vestacare.ae·7
+www.vestacare.ae·5
+www.mediclinic.ae·4
+
+#2
+Build exhaustive brand homepage presence with keyword-rich title tags
+404
+citations
+VERY HIGH
+· HIGH confidence
+loyalhealthcare.ae·6
+de-novu.com·6
+vitalzone.ae·5
+
+#3
+Secure citations from unattributed community discussions on Reddit
+18
+citations
+VERY HIGH
+· MEDIUM confidence
+www.reddit.com·10
+www.reddit.com·8
+www.reddit.com·2
+
+#4
+Appear in third-party comparison articles with verbatim brand mentions
+41
+citations
+HIGH
+· MEDIUM confidence
+www.propertyfinder.ae·4
+www.dubaisbest.com·3
+advice.dubaibff.com·3
+
+#5
+Establish directory listings on health-focused vertical directories
+87
+citations
+HIGH
+· HIGH confidence
+healthfinder.ae·1
+servicemarket.com·1
+healthfinder.ae·3
+
+#6
+Earn citations from review platforms with verified customer testimonials
+48
+citations
+HIGH
+· MEDIUM confidence
+www.trustindex.io·3
+www.trustpilot.com·4
+www.doctify.com·2
+
+#7
+Publish brand blogs addressing specific user pain points with educational content
+39
+citations
+MEDIUM
+· MEDIUM confidence
+vitalshealthcare.ae·2
+www.avidalongevity.com·5
+www.pflege.ae·2
+
+#8
+Generate news and PR citations through launch announcements and industry awards
+31
+citations
+MEDIUM
+· LOW confidence
+gulfnews.com·2
+www.zawya.com·1
+www.dubaihospitalitynews.com·1
+
+#9
+Create product/package pages with specific pricing and test details
+27
+citations
+MEDIUM
+· LOW confidence
+www.vestacare.ae·2
+www.vestacare.ae·1
+smartsalem.ae·3
+
+#10
+Build government and regulatory authority through .gov.ae citations
+17
+citations
+LOW
+· LOW confidence
+www.dha.gov.ae·1
+www.doh.gov.ae·1
+u.ae·2
+🎯
+Data-backed moves
+Quick actions to leapfrog the competition
+
+1
+Standing Action · Always On
+Audit the authority sources shaping your AI results — then enhance and monitor your presence across them continuously
+8 sources
+
+2
+Secure a feature in Gulf News or Zawya by announcing a new service vertical (e.g., 'Vesta…
+
+3
+Create and optimize profiles on healthfinder.ae (26 total citations across competitors) an…
+
+4
+Pitch inclusion to Property Finder's elderly care guide (https://www.propertyfinder.ae/blo…
+
+⚡
+Bonus · Quick Win
+Get listed on healthfinder.ae (26 total citations across 13 URLs), which cites brands like…
+🔬
+Anomaly detection
+Patterns the data didn't expect
+
+1
+Reddit dominates per-URL citation efficiency despite zero brand mentions
+
+2
+Brand inner pages outperform in longevity/testing vertical
+
+3
+Review platform citations persist even for non-target brands
+
+4
+No correlation between domain authority and citation count
