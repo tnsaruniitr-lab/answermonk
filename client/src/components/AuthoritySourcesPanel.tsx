@@ -625,27 +625,27 @@ function MissionControlLoader({
   const streamColors = ["#3b82f6", "#6366f1", "#10b981"];
 
   return (
-    <div style={{ background: "rgba(255,255,255,0.92)", borderRadius: 12, overflow: "hidden", fontFamily: "system-ui, sans-serif", border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 2px 16px rgba(99,102,241,0.08)" }}>
+    <div style={{ background: "#040912", borderRadius: 16, overflow: "hidden", fontFamily: "system-ui, sans-serif", border: "1px solid #1e3a5f", boxShadow: "0 4px 24px rgba(0,0,0,0.4)" }}>
       {/* Status bar */}
-      <div style={{ background: "linear-gradient(90deg, rgba(99,102,241,0.06) 0%, rgba(59,130,246,0.04) 100%)", borderBottom: "1px solid rgba(0,0,0,0.07)", padding: "8px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ background: "#0a1628", borderBottom: "1px solid #1e3a5f", padding: "9px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ color: "#4f46e5", fontSize: 10, fontFamily: "monospace", letterSpacing: 2 }}>ANSWERMONK</span>
-          <span style={{ color: "#d1d5db", fontSize: 10 }}>·</span>
-          <span style={{ color: "#9ca3af", fontSize: 10, fontFamily: "monospace" }}>CITATION INTELLIGENCE</span>
+          <span style={{ color: "#3b82f6", fontSize: 10, fontFamily: "monospace", letterSpacing: 2 }}>ANSWERMONK</span>
+          <span style={{ color: "#1e3a5f", fontSize: 10 }}>·</span>
+          <span style={{ color: "#334155", fontSize: 10, fontFamily: "monospace" }}>CITATION INTELLIGENCE</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <div style={{ width: 5, height: 5, borderRadius: "50%", background: insightsPending ? "#f59e0b" : "#ef4444", animation: "mc-blink 0.8s infinite" }} />
-          <span style={{ color: insightsPending ? "#d97706" : "#dc2626", fontSize: 10, fontFamily: "monospace", letterSpacing: 1 }}>{phaseLabel}</span>
+          <span style={{ color: insightsPending ? "#f59e0b" : "#ef4444", fontSize: 10, fontFamily: "monospace", letterSpacing: 1 }}>{phaseLabel}</span>
         </div>
       </div>
 
       {/* Main panel */}
-      <div style={{ background: "transparent", padding: "20px 20px 16px" }}>
+      <div style={{ background: "#060f1e", padding: "22px 22px 18px" }}>
         {/* Central ring */}
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
-          <div style={{ position: "relative", width: 130, height: 130 }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
+          <div style={{ position: "relative", width: 140, height: 140 }}>
             <svg viewBox="0 0 140 140" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
-              <circle cx="70" cy="70" r="62" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="4" />
+              <circle cx="70" cy="70" r="62" fill="none" stroke="#1e3a5f" strokeWidth="4" />
               <circle cx="70" cy="70" r="62" fill="none"
                 stroke={insightsPending ? "#f59e0b" : "#3b82f6"} strokeWidth="4"
                 strokeDasharray={`${2 * Math.PI * 62}`}
@@ -655,19 +655,19 @@ function MissionControlLoader({
               />
             </svg>
             <svg viewBox="0 0 140 140" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
-              <circle cx="70" cy="70" r="46" fill="none" stroke="rgba(99,102,241,0.12)" strokeWidth="2" />
-              <circle cx="70" cy="70" r="46" fill="none" stroke="#6366f1" strokeWidth="2"
-                strokeDasharray={`${2 * Math.PI * 46}`}
-                strokeDashoffset={`${2 * Math.PI * 46 * (1 - classifiedPct)}`}
+              <circle cx="70" cy="70" r="48" fill="none" stroke="#0a1e3a" strokeWidth="2" />
+              <circle cx="70" cy="70" r="48" fill="none" stroke="#6366f1" strokeWidth="2"
+                strokeDasharray={`${2 * Math.PI * 48}`}
+                strokeDashoffset={`${2 * Math.PI * 48 * (1 - classifiedPct)}`}
                 strokeLinecap="round"
                 style={{ transition: "stroke-dashoffset 0.8s ease", filter: "drop-shadow(0 0 5px #6366f1)" }}
               />
             </svg>
             <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ color: "#111827", fontSize: 26, fontWeight: 700, lineHeight: 1, fontFamily: "monospace" }}>
+              <div style={{ color: "#e2e8f0", fontSize: 28, fontWeight: 700, lineHeight: 1, fontFamily: "monospace" }}>
                 {Math.round(displayPct)}%
               </div>
-              <div style={{ color: insightsPending ? "#d97706" : "#3b82f6", fontSize: 9, letterSpacing: 1, marginTop: 4, fontFamily: "monospace" }}>
+              <div style={{ color: insightsPending ? "#f59e0b" : "#3b82f6", fontSize: 9, letterSpacing: 1, marginTop: 4, fontFamily: "monospace" }}>
                 {insightsPending ? "ANALYSING" : "CRAWLED"}
               </div>
             </div>
@@ -676,16 +676,16 @@ function MissionControlLoader({
 
         {/* Stream monitors — hidden during insights phase */}
         {!insightsPending && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
             {[0, 1, 2].map(i => (
-              <div key={i} style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.07)", borderRadius: 8, padding: "8px 10px" }}>
-                <div style={{ color: "#9ca3af", fontSize: 9, fontFamily: "monospace", marginBottom: 5, letterSpacing: 1 }}>STREAM {i + 1}</div>
+              <div key={i} style={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 8, padding: "9px 11px" }}>
+                <div style={{ color: "#334155", fontSize: 9, fontFamily: "monospace", marginBottom: 5, letterSpacing: 1 }}>STREAM {i + 1}</div>
                 <div style={{ color: streamColors[i], fontSize: 10, fontFamily: "monospace", marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {streamDomains[i]}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                   <div style={{ width: 4, height: 4, borderRadius: "50%", background: streamColors[streamStatus[i] % 3], animation: "mc-pulse 1.2s infinite" }} />
-                  <span style={{ color: "#9ca3af", fontSize: 9, fontFamily: "monospace" }}>{STATUSES[streamStatus[i]]}</span>
+                  <span style={{ color: "#475569", fontSize: 9, fontFamily: "monospace" }}>{STATUSES[streamStatus[i]]}</span>
                 </div>
               </div>
             ))}
@@ -694,31 +694,31 @@ function MissionControlLoader({
 
         {/* Claude Sonnet analysis message — insights phase */}
         {insightsPending && (
-          <div style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 8, padding: "12px 16px", marginBottom: 14, textAlign: "center" }}>
-            <div style={{ color: "#d97706", fontSize: 11, fontFamily: "monospace", letterSpacing: 1, marginBottom: 6 }}>CLAUDE SONNET ANALYSIS</div>
-            <div style={{ color: "#9ca3af", fontSize: 10, fontFamily: "monospace" }}>Analysing {animCrawled.toLocaleString()} citation rows · discovering GEO tactics…</div>
+          <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 8, padding: "12px 16px", marginBottom: 14, textAlign: "center" }}>
+            <div style={{ color: "#f59e0b", fontSize: 11, fontFamily: "monospace", letterSpacing: 1, marginBottom: 6 }}>CLAUDE SONNET ANALYSIS</div>
+            <div style={{ color: "#475569", fontSize: 10, fontFamily: "monospace" }}>Analysing {animCrawled.toLocaleString()} citation rows · discovering GEO tactics…</div>
           </div>
         )}
 
         {/* Stats row */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
           {[
             { label: "PAGES FOUND", value: realCrawled ?? animCrawled, suffix: realTotal ? `/${realTotal}` : "", color: "#3b82f6" },
-            { label: "ACCESSIBLE", value: realOk ?? animOk, suffix: "", color: "#059669" },
+            { label: "ACCESSIBLE", value: realOk ?? animOk, suffix: "", color: "#10b981" },
             { label: "CLASSIFIED", value: animClassified, suffix: "", color: "#6366f1" },
           ].map(s => (
-            <div key={s.label} style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.07)", borderRadius: 8, padding: "10px 12px", textAlign: "center" }}>
+            <div key={s.label} style={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 8, padding: "11px 13px", textAlign: "center" }}>
               <div style={{ color: s.color, fontFamily: "monospace", fontSize: 20, fontWeight: 700, letterSpacing: -0.5 }}>
                 {s.value.toLocaleString()}
-                {s.suffix && <span style={{ color: "#d1d5db", fontSize: 12 }}>{s.suffix}</span>}
+                {s.suffix && <span style={{ color: "#334155", fontSize: 12 }}>{s.suffix}</span>}
               </div>
-              <div style={{ color: "#9ca3af", fontSize: 9, fontFamily: "monospace", letterSpacing: 1, marginTop: 3 }}>{s.label}</div>
+              <div style={{ color: "#334155", fontSize: 9, fontFamily: "monospace", letterSpacing: 1, marginTop: 3 }}>{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* Phase detail */}
-        <div style={{ background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.07)", borderRadius: 8, padding: "10px 14px" }}>
+        <div style={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 8, padding: "11px 15px" }}>
           <div style={{ color: "#334155", fontSize: 9, fontFamily: "monospace", letterSpacing: 1, marginBottom: 7 }}>CURRENT OPERATION</div>
           <div style={{ color: "#475569", fontSize: 10, fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {progress?.detail ?? (insightsPending ? "Running Claude Sonnet 4.5 citation intelligence analysis…" : "Initialising web crawler…")}
