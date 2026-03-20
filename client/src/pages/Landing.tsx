@@ -81,24 +81,27 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
       onClick={isSelectable ? onToggle : undefined}
       className="border rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 transition-all"
       style={{
-        background: "#111827cc",
+        background: "rgba(255,255,255,0.88)",
+        backdropFilter: "blur(12px)",
         borderColor: isSelectable
-          ? isSelected ? "rgba(34,197,94,0.35)" : "rgba(255,255,255,0.06)"
-          : "rgba(255,255,255,0.10)",
-        opacity: isSelectable && !isSelected ? 0.5 : 1,
+          ? isSelected ? "rgba(22,163,74,0.4)" : "rgba(0,0,0,0.08)"
+          : "rgba(0,0,0,0.08)",
+        opacity: isSelectable && !isSelected ? 0.55 : 1,
         cursor: isSelectable ? "pointer" : "default",
-        boxShadow: isSelected && isSelectable ? "0 0 0 1px rgba(34,197,94,0.1) inset" : "none",
+        boxShadow: isSelected && isSelectable
+          ? "0 0 0 3px rgba(22,163,74,0.08) inset, 0 2px 16px rgba(99,102,241,0.07)"
+          : "0 2px 16px rgba(99,102,241,0.07)",
       }}
     >
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b border-white/5">
+      <div className="flex items-center gap-3 p-4 border-b border-gray-100">
         {/* Checkbox or static checkmark */}
         {isSelectable ? (
           <div
             className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all duration-200"
             style={{
-              background: isSelected ? "#22c55e" : "transparent",
-              border: isSelected ? "2px solid #22c55e" : "2px solid rgba(255,255,255,0.18)",
+              background: isSelected ? "#16a34a" : "transparent",
+              border: isSelected ? "2px solid #16a34a" : "2px solid rgba(0,0,0,0.18)",
             }}
           >
             {isSelected && (
@@ -108,60 +111,61 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
             )}
           </div>
         ) : (
-          <div className="w-6 h-6 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center flex-shrink-0">
-            <span className="text-green-400 leading-none" style={{ fontSize: "10px" }}>✓</span>
+          <div className="w-6 h-6 rounded-full bg-green-50 border border-green-300 flex items-center justify-center flex-shrink-0">
+            <span className="text-green-600 leading-none" style={{ fontSize: "10px" }}>✓</span>
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-white text-sm font-semibold truncate capitalize">{label}</p>
+          <p className="text-gray-900 text-sm font-semibold truncate capitalize">{label}</p>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <span className="inline-block text-[10px] font-semibold tracking-widest uppercase px-2 py-0.5 rounded-full"
-              style={{ background: type === "customer" ? "rgba(139,92,246,0.12)" : "rgba(59,130,246,0.12)", color: type === "customer" ? "#a78bfa" : "#60a5fa", border: `1px solid ${type === "customer" ? "rgba(139,92,246,0.25)" : "rgba(59,130,246,0.25)"}` }}>
+              style={{ background: type === "customer" ? "rgba(139,92,246,0.08)" : "rgba(59,130,246,0.08)", color: type === "customer" ? "#7c3aed" : "#2563eb", border: `1px solid ${type === "customer" ? "rgba(139,92,246,0.2)" : "rgba(59,130,246,0.2)"}` }}>
               {type === "customer" ? "Customer" : "Service"}
             </span>
             {promptContext && (
-              <span className="text-[10px] text-slate-500 truncate font-mono max-w-[200px]" title={promptContext}>
+              <span className="text-[10px] text-gray-400 truncate font-mono max-w-[200px]" title={promptContext}>
                 {promptContext}
               </span>
             )}
           </div>
         </div>
         <div className="text-right flex-shrink-0">
-          <p className="text-2xl font-bold text-white">{appearance}%</p>
-          <p className="text-slate-500 text-xs">Appearance</p>
+          <p className="text-2xl font-bold text-gray-900">{appearance}%</p>
+          <p className="text-gray-400 text-xs">Appearance</p>
         </div>
       </div>
 
       {/* Metrics row */}
-      <div className="grid grid-cols-3 divide-x divide-white/5 border-b border-white/5">
+      <div className="grid grid-cols-3 divide-x divide-gray-100 border-b border-gray-100">
         <div className="p-3 text-center">
-          <p className="text-lg font-bold text-white">{primary}%</p>
-          <p className="text-slate-500 text-xs">Top 3</p>
+          <p className="text-lg font-bold text-gray-900">{primary}%</p>
+          <p className="text-gray-400 text-xs">Top 3</p>
         </div>
         <div className="p-3 text-center">
-          <p className="text-lg font-bold text-white">{avgRank}</p>
-          <p className="text-slate-500 text-xs">Avg Rank</p>
+          <p className="text-lg font-bold text-gray-900">{avgRank}</p>
+          <p className="text-gray-400 text-xs">Avg Rank</p>
         </div>
         <div className="p-3 text-center">
-          <p className="text-lg font-bold text-white">{citationCount}</p>
-          <p className="text-slate-500 text-xs">Citations</p>
+          <p className="text-lg font-bold text-gray-900">{citationCount}</p>
+          <p className="text-gray-400 text-xs">Citations</p>
         </div>
       </div>
 
       {/* Engine breakdown */}
       {Object.keys(engines).length > 0 && (
-        <div className="divide-y divide-white/5 border-b border-white/5">
+        <div className="divide-y divide-gray-100 border-b border-gray-100">
           {Object.entries(engines).map(([eng, data]: [string, any]) => {
-            const label = eng === "chatgpt" ? "ChatGPT" : eng === "gemini" ? "Gemini" : "Claude";
+            const engLabel = eng === "chatgpt" ? "ChatGPT" : eng === "gemini" ? "Gemini" : "Claude";
+            const engColor = eng === "chatgpt" ? "#10b981" : eng === "gemini" ? "#3b82f6" : "#f59e0b";
             const pct = Math.round((data.appearance_rate ?? 0) * 100);
             const top3pct = Math.round((data.primary_rate ?? 0) * 100);
             return (
               <div key={eng} className="flex items-center gap-3 px-4 py-2">
-                <span className="text-xs text-slate-400 w-16">{label}</span>
-                <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
+                <span className="text-xs text-gray-500 w-16">{engLabel}</span>
+                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: engColor }} />
                 </div>
-                <span className="text-xs text-slate-400 w-20 text-right">{pct}% · Top3: {top3pct}%</span>
+                <span className="text-xs text-gray-400 w-20 text-right">{pct}% · Top3: {top3pct}%</span>
               </div>
             );
           })}
@@ -171,7 +175,7 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
       {/* Rankings */}
       {allRankings.length > 0 && (
         <div className="p-4">
-          <p className="text-xs text-slate-500 mb-3 font-mono uppercase tracking-wider">Rankings</p>
+          <p className="text-xs text-gray-400 mb-3 font-mono uppercase tracking-wider">Rankings</p>
           <div className="space-y-2.5">
             {allRankings.map((c, idx) => {
               const pct = Math.round((c.share ?? 0) * 100);
@@ -179,20 +183,20 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
               const barWidth = Math.round((pct / maxPct) * 100);
               return (
                 <div key={c.name} className="flex items-center gap-2.5">
-                  <span className={`text-[10px] font-mono w-4 text-right flex-shrink-0 ${c.isBrand ? "text-blue-400 font-bold" : "text-slate-600"}`}>
+                  <span className={`text-[10px] font-mono w-4 text-right flex-shrink-0 ${c.isBrand ? "text-blue-600 font-bold" : "text-gray-400"}`}>
                     {idx + 1}
                   </span>
-                  <span className={`text-xs w-32 truncate flex-shrink-0 ${c.isBrand ? "text-blue-300 font-semibold" : "text-slate-400"}`}>
+                  <span className={`text-xs w-32 truncate flex-shrink-0 ${c.isBrand ? "text-blue-700 font-semibold" : "text-gray-600"}`}>
                     {c.name}
                     {c.isBrand && <span className="ml-1 text-[9px] text-blue-500 font-mono uppercase">you</span>}
                   </span>
-                  <div className="flex-1 h-1 rounded-full bg-white/5 overflow-hidden">
+                  <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-700 ${c.isBrand ? "bg-gradient-to-r from-blue-500 to-violet-500" : "bg-slate-600"}`}
+                      className={`h-full rounded-full transition-all duration-700 ${c.isBrand ? "bg-gradient-to-r from-blue-500 to-violet-500" : "bg-gray-300"}`}
                       style={{ width: `${barWidth}%` }}
                     />
                   </div>
-                  <span className={`text-xs w-8 text-right flex-shrink-0 tabular-nums ${c.isBrand ? "text-blue-300 font-semibold" : "text-slate-500"}`}>
+                  <span className={`text-xs w-8 text-right flex-shrink-0 tabular-nums ${c.isBrand ? "text-blue-600 font-semibold" : "text-gray-400"}`}>
                     {pct}%
                   </span>
                 </div>
@@ -661,23 +665,23 @@ function LandingInner() {
         {isProcessing && submissionId && (
           <div className="mt-8 max-w-md mx-auto" data-testid="status-processing">
             <div className="relative">
-              <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-blue-500/50 via-violet-500/40 to-blue-500/50 blur-sm" />
-              <div className="relative bg-[#0a0f1a] rounded-2xl p-6">
+              <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-blue-400/30 via-violet-400/20 to-blue-400/30 blur-sm" />
+              <div className="relative bg-white/85 backdrop-blur-xl rounded-2xl p-6 border border-white/90 shadow-lg">
                 {/* Bot header */}
                 <div className="flex items-center gap-3 mb-5">
                   <div className="relative flex-shrink-0">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-violet-500/20 border border-blue-500/30 flex items-center justify-center">
-                      <Bot className="w-5 h-5 text-blue-400 animate-pulse" />
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-50 to-violet-50 border border-blue-200 flex items-center justify-center">
+                      <Bot className="w-5 h-5 text-blue-600 animate-pulse" />
                     </div>
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-[#0a0f1a] animate-pulse" />
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white animate-pulse" />
                   </div>
                   <div>
-                    <p className="text-white text-sm font-semibold leading-tight">GEO Agent · Active</p>
-                    <p className="text-blue-400/70 text-xs font-mono truncate">analyzing {normalizeDomain(url)}</p>
+                    <p className="text-gray-900 text-sm font-semibold leading-tight">GEO Agent · Active</p>
+                    <p className="text-blue-600/70 text-xs font-mono truncate">analyzing {normalizeDomain(url)}</p>
                   </div>
                   <div className="ml-auto flex gap-1">
                     {[0, 1, 2].map((i) => (
-                      <div key={i} className="w-1 h-1 rounded-full bg-blue-400/60 animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
+                      <div key={i} className="w-1 h-1 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
                     ))}
                   </div>
                 </div>
@@ -691,21 +695,21 @@ function LandingInner() {
                     return (
                       <div
                         key={i}
-                        className={`flex items-center gap-3 transition-all duration-500 ${pending ? "opacity-25" : "opacity-100"}`}
+                        className={`flex items-center gap-3 transition-all duration-500 ${pending ? "opacity-30" : "opacity-100"}`}
                       >
                         <div className="flex-shrink-0 w-4 h-4 flex items-center justify-center">
                           {done && (
-                            <div className="w-4 h-4 rounded-full bg-green-500/15 border border-green-500/40 flex items-center justify-center">
-                              <span className="text-green-400 leading-none" style={{ fontSize: "8px" }}>✓</span>
+                            <div className="w-4 h-4 rounded-full bg-green-50 border border-green-300 flex items-center justify-center">
+                              <span className="text-green-600 leading-none" style={{ fontSize: "8px" }}>✓</span>
                             </div>
                           )}
-                          {running && <div className="w-4 h-4 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />}
-                          {pending && <div className="w-1.5 h-1.5 rounded-full bg-slate-600 mx-auto" />}
+                          {running && <div className="w-4 h-4 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />}
+                          {pending && <div className="w-1.5 h-1.5 rounded-full bg-gray-300 mx-auto" />}
                         </div>
                         <p className={`text-xs font-mono transition-colors duration-300 ${
-                          done ? "text-slate-600" :
-                          running ? "text-blue-300" :
-                          "text-slate-700"
+                          done ? "text-gray-400" :
+                          running ? "text-blue-600" :
+                          "text-gray-500"
                         }`}>
                           {step.emoji} {step.label.replace("{domain}", normalizeDomain(url))}
                         </p>
@@ -722,23 +726,23 @@ function LandingInner() {
         {isRunning && (
           <div className="mt-8 max-w-md mx-auto" data-testid="status-running">
             <div className="relative">
-              <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-violet-500/50 via-indigo-500/40 to-violet-500/50 blur-sm" />
-              <div className="relative bg-[#0a0f1a] rounded-2xl p-6">
+              <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-violet-400/30 via-indigo-400/20 to-violet-400/30 blur-sm" />
+              <div className="relative bg-white/85 backdrop-blur-xl rounded-2xl p-6 border border-white/90 shadow-lg">
                 {/* Agent header */}
                 <div className="flex items-center gap-3 mb-5">
                   <div className="relative flex-shrink-0">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/30 flex items-center justify-center">
-                      <Sparkles className="w-5 h-5 text-violet-400 animate-pulse" />
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-50 to-indigo-50 border border-violet-200 flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-violet-600 animate-pulse" />
                     </div>
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-violet-400 border-2 border-[#0a0f1a] animate-pulse" />
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-violet-500 border-2 border-white animate-pulse" />
                   </div>
                   <div>
-                    <p className="text-white text-sm font-semibold leading-tight">GEO Agent · Computing Report</p>
-                    <p className="text-violet-400/70 text-xs font-mono truncate">building prompt network for {normalizeDomain(url)}</p>
+                    <p className="text-gray-900 text-sm font-semibold leading-tight">GEO Agent · Computing Report</p>
+                    <p className="text-violet-600/70 text-xs font-mono truncate">building prompt network for {normalizeDomain(url)}</p>
                   </div>
                   <div className="ml-auto flex gap-1">
                     {[0, 1, 2].map((i) => (
-                      <div key={i} className="w-1 h-1 rounded-full bg-violet-400/60 animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
+                      <div key={i} className="w-1 h-1 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
                     ))}
                   </div>
                 </div>
@@ -753,21 +757,21 @@ function LandingInner() {
                     return (
                       <div
                         key={i}
-                        className={`flex items-center gap-3 transition-all duration-500 ${pending ? "opacity-25" : "opacity-100"}`}
+                        className={`flex items-center gap-3 transition-all duration-500 ${pending ? "opacity-30" : "opacity-100"}`}
                       >
                         <div className="flex-shrink-0 w-4 h-4 flex items-center justify-center">
                           {done && (
-                            <div className="w-4 h-4 rounded-full bg-violet-500/15 border border-violet-500/40 flex items-center justify-center">
-                              <span className="text-violet-400 leading-none" style={{ fontSize: "8px" }}>✓</span>
+                            <div className="w-4 h-4 rounded-full bg-violet-50 border border-violet-300 flex items-center justify-center">
+                              <span className="text-violet-600 leading-none" style={{ fontSize: "8px" }}>✓</span>
                             </div>
                           )}
-                          {running && <div className="w-4 h-4 rounded-full border-2 border-violet-400 border-t-transparent animate-spin" />}
-                          {pending && <div className="w-1.5 h-1.5 rounded-full bg-slate-600 mx-auto" />}
+                          {running && <div className="w-4 h-4 rounded-full border-2 border-violet-500 border-t-transparent animate-spin" />}
+                          {pending && <div className="w-1.5 h-1.5 rounded-full bg-gray-300 mx-auto" />}
                         </div>
                         <p className={`text-xs font-mono transition-colors duration-300 ${
-                          done ? "text-slate-600" :
-                          running ? "text-violet-300" :
-                          "text-slate-700"
+                          done ? "text-gray-400" :
+                          running ? "text-violet-600" :
+                          "text-gray-500"
                         }`}>
                           {step.emoji} {label}
                         </p>
@@ -777,7 +781,7 @@ function LandingInner() {
                 </div>
 
                 {/* Bottom label */}
-                <p className="mt-5 text-[10px] text-slate-600 font-mono text-center">Scoring fires in background — your report will be ready in ~60s</p>
+                <p className="mt-5 text-[10px] text-gray-400 font-mono text-center">Scoring fires in background — your report will be ready in ~60s</p>
               </div>
             </div>
           </div>
@@ -787,35 +791,35 @@ function LandingInner() {
         {queuedData !== null && !waitlistSubmitted && (
           <div
             className="mt-8 max-w-lg mx-auto rounded-2xl overflow-hidden"
-            style={{ background: "linear-gradient(160deg, #0d0f1a 0%, #0a0c14 100%)", border: "1px solid rgba(255,255,255,0.07)" }}
+            style={{ background: "rgba(255,255,255,0.88)", backdropFilter: "blur(12px)", border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 4px 24px rgba(99,102,241,0.08)" }}
           >
             <div className="p-6 space-y-5">
               {/* Status badge */}
               <div className="flex justify-center">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)" }}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                  <span className="text-xs font-semibold text-amber-300">Intelligence Engine at Capacity</span>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)" }}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  <span className="text-xs font-semibold text-amber-700">Intelligence Engine at Capacity</span>
                 </div>
               </div>
 
               {/* Headline */}
               <div className="text-center">
-                <h2 className="text-xl font-bold text-white mb-2">Your audit is queued</h2>
-                <p className="text-sm text-slate-400 leading-relaxed">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Your audit is queued</h2>
+                <p className="text-sm text-gray-500 leading-relaxed">
                   3 audits are running right now. We've already crawled your site and found your segments — your full analysis will start the moment a slot opens.
                 </p>
               </div>
 
               {/* Website chip */}
-              <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)" }}>
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-indigo-400" style={{ background: "rgba(99,102,241,0.2)" }}>
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.18)" }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-indigo-600" style={{ background: "rgba(99,102,241,0.12)" }}>
                   {queuedData.website.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-indigo-300 truncate">{queuedData.website}</div>
-                  <div className="text-xs text-slate-500">Step 1 complete · waiting for scoring slot</div>
+                  <div className="text-sm font-semibold text-indigo-700 truncate">{queuedData.website}</div>
+                  <div className="text-xs text-gray-400">Step 1 complete · waiting for scoring slot</div>
                 </div>
-                <div className="text-xs font-bold text-amber-400 px-2 py-0.5 rounded-md" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.2)" }}>
+                <div className="text-xs font-bold text-amber-700 px-2 py-0.5 rounded-md" style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)" }}>
                   #1 next
                 </div>
               </div>
@@ -823,8 +827,8 @@ function LandingInner() {
               {/* Email capture */}
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm font-semibold text-white mb-1">Notify me when it's ready</p>
-                  <p className="text-xs text-slate-500">We'll email you the moment your GEO Intelligence Report is complete.</p>
+                  <p className="text-sm font-semibold text-gray-900 mb-1">Notify me when it's ready</p>
+                  <p className="text-xs text-gray-400">We'll email you the moment your GEO Intelligence Report is complete.</p>
                 </div>
                 <div className="flex gap-2">
                   <input
@@ -834,8 +838,8 @@ function LandingInner() {
                     onKeyDown={(e) => e.key === "Enter" && handleWaitlistSubmit()}
                     placeholder="you@company.com"
                     data-testid="input-waitlist-email"
-                    className="flex-1 px-4 py-3 rounded-xl text-sm text-white placeholder-slate-600 outline-none"
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", fontFamily: "inherit" }}
+                    className="flex-1 px-4 py-3 rounded-xl text-sm text-gray-800 placeholder-gray-400 outline-none"
+                    style={{ background: "#fff", border: "1px solid rgba(0,0,0,0.12)", fontFamily: "inherit" }}
                   />
                   <button
                     onClick={handleWaitlistSubmit}
@@ -843,10 +847,11 @@ function LandingInner() {
                     data-testid="button-waitlist-submit"
                     className="px-5 py-3 rounded-xl text-sm font-semibold text-white transition-all"
                     style={{
-                      background: waitlistEmail.includes("@") ? "linear-gradient(135deg,#6366f1,#8b5cf6)" : "rgba(255,255,255,0.06)",
+                      background: waitlistEmail.includes("@") ? "linear-gradient(135deg,#6366f1,#8b5cf6)" : "rgba(0,0,0,0.08)",
+                      color: waitlistEmail.includes("@") ? "#fff" : "#9ca3af",
                       opacity: waitlistSubmitting ? 0.6 : 1,
                       cursor: waitlistEmail.includes("@") && !waitlistSubmitting ? "pointer" : "not-allowed",
-                      boxShadow: waitlistEmail.includes("@") ? "0 0 20px rgba(99,102,241,0.3)" : "none",
+                      boxShadow: waitlistEmail.includes("@") ? "0 0 20px rgba(99,102,241,0.25)" : "none",
                     }}
                   >
                     {waitlistSubmitting ? "..." : "Notify me →"}
@@ -854,7 +859,7 @@ function LandingInner() {
                 </div>
               </div>
 
-              <p className="text-center text-xs text-slate-700">No account needed · Report emailed directly to you</p>
+              <p className="text-center text-xs text-gray-400">No account needed · Report emailed directly to you</p>
             </div>
           </div>
         )}
@@ -863,15 +868,15 @@ function LandingInner() {
         {queuedData !== null && waitlistSubmitted && (
           <div
             className="mt-8 max-w-lg mx-auto rounded-2xl overflow-hidden text-center"
-            style={{ background: "linear-gradient(160deg, #0d0f1a 0%, #0a0c14 100%)", border: "1px solid rgba(255,255,255,0.07)" }}
+            style={{ background: "rgba(255,255,255,0.88)", backdropFilter: "blur(12px)", border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 4px 24px rgba(99,102,241,0.08)" }}
           >
             <div className="p-8 space-y-4">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl mx-auto" style={{ background: "rgba(16,185,129,0.15)", border: "2px solid rgba(16,185,129,0.3)" }}>
+              <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl mx-auto" style={{ background: "rgba(16,185,129,0.1)", border: "2px solid rgba(16,185,129,0.3)" }}>
                 ✓
               </div>
-              <h2 className="text-xl font-bold text-white">You're in the queue</h2>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                We've saved your spot for <span className="text-indigo-400 font-semibold">{queuedData.website}</span>. The moment a slot opens your audit runs automatically — we'll send the report straight to your inbox.
+              <h2 className="text-xl font-bold text-gray-900">You're in the queue</h2>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                We've saved your spot for <span className="text-indigo-600 font-semibold">{queuedData.website}</span>. The moment a slot opens your audit runs automatically — we'll send the report straight to your inbox.
               </p>
               <div className="grid grid-cols-3 gap-3 mt-2">
                 {[
@@ -879,9 +884,9 @@ function LandingInner() {
                   { label: "Est. wait", value: "~12 min" },
                   { label: "Segments ready", value: `${services.length} found` },
                 ].map(({ label, value }) => (
-                  <div key={label} className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                    <div className="text-sm font-bold text-white">{value}</div>
-                    <div className="text-xs text-slate-600 mt-0.5">{label}</div>
+                  <div key={label} className="rounded-xl p-3" style={{ background: "rgba(99,102,241,0.05)", border: "1px solid rgba(99,102,241,0.12)" }}>
+                    <div className="text-sm font-bold text-gray-900">{value}</div>
+                    <div className="text-xs text-gray-400 mt-0.5">{label}</div>
                   </div>
                 ))}
               </div>
