@@ -454,31 +454,30 @@ function LandingInner() {
 
   return (
     <div
-      className="min-h-screen text-slate-800 font-sans overflow-hidden relative"
+      className="relative min-h-screen w-full overflow-hidden flex flex-col font-sans"
       style={{ background: "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)" }}
       data-testid="landing-page"
     >
-      {/* Aurora orbs */}
-      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: "#fbcfe8", filter: "blur(100px)", opacity: 0.35 }} />
-      <div className="absolute top-[10%] right-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{ background: "#c4b5fd", filter: "blur(120px)", opacity: 0.35 }} />
-      <div className="absolute bottom-[5%] left-[20%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: "#a7f3d0", filter: "blur(100px)", opacity: 0.3 }} />
+      {/* Aurora orbs — exact positions from mockup */}
+      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] pointer-events-none" style={{ background: "#fbcfe8", borderRadius: "50%", filter: "blur(100px)", opacity: 0.35 }} />
+      <div className="absolute top-[10%] right-[-10%] w-[600px] h-[600px] pointer-events-none" style={{ background: "#c4b5fd", borderRadius: "50%", filter: "blur(120px)", opacity: 0.35 }} />
+      <div className="absolute bottom-[-10%] left-[20%] w-[500px] h-[500px] pointer-events-none" style={{ background: "#a7f3d0", borderRadius: "50%", filter: "blur(100px)", opacity: 0.35 }} />
 
-      <nav className="relative z-10 flex items-center justify-between px-8 py-6 max-w-7xl mx-auto border-b border-black/5">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.4)]">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-semibold text-lg tracking-tight text-indigo-900">
-            Nexalytics <span className="text-violet-500 font-light">GEO</span>
-          </span>
+      {/* Nav — matches mockup exactly */}
+      <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between relative z-10">
+        <div className="text-xl font-bold text-indigo-900 tracking-tight">
+          Nexalytics <span style={{ color: "rgba(79,70,229,0.8)" }}>GEO</span>
         </div>
-      </nav>
+      </header>
 
       <main className="relative z-10 text-center">
 
-        {/* ── Hero section — vertically centered above the fold ── */}
-        <div className="flex flex-col items-center justify-center px-6 pb-16" style={{ minHeight: "calc(100vh - 88px)" }}>
-          <div className="flex flex-col items-center space-y-8 w-full max-w-3xl">
+        {/* Hero — vertically centered with same -mt-20 trick as mockup */}
+        <div
+          className="flex flex-col items-center justify-center px-4"
+          style={{ minHeight: "calc(100vh - 88px)", marginTop: "-80px" }}
+        >
+        <div className="space-y-8 max-w-3xl flex flex-col items-center w-full">
 
             {!replayMode && (
               <>
@@ -494,7 +493,7 @@ function LandingInner() {
                 {/* Heading */}
                 <h1
                   className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight"
-                  style={{ color: "#1e1b4b", fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  style={{ color: "#1e1b4b" }}
                 >
                   Dominate{" "}
                   <span style={{ background: "linear-gradient(to right, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
