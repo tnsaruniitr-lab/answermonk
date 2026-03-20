@@ -548,7 +548,7 @@ function LandingInner() {
 
                 {/* Subtext */}
                 <p className="text-lg md:text-xl max-w-xl mx-auto leading-relaxed" style={{ color: "#374151" }}>
-                  <span style={{ color: "#1e1b4b", fontWeight: 600 }}>Answer<span style={{ color: "#6366f1" }}>Monk</span> makes sure you are.</span>
+                  <span style={{ color: "#1e1b4b", fontWeight: 600 }}>Answer<span style={{ color: "#6366f1" }}>Monk</span> makes AI recommend you.</span>
                 </p>
               </>
             )}
