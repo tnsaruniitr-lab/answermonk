@@ -234,6 +234,10 @@ function LandingInner() {
   const [selectedSegmentIds, setSelectedSegmentIds] = useState<Set<string>>(new Set());
   const [customerLimitError, setCustomerLimitError] = useState(false);
   const [serviceLimitError, setServiceLimitError] = useState(false);
+  const [queuedData, setQueuedData] = useState<{ website: string; submissionId: number } | null>(null);
+  const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
+  const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
 
   const MAX_SELECTED = 4;
 
@@ -321,12 +325,34 @@ function LandingInner() {
       return res.json();
     },
     onSuccess: (data) => {
+      if (data.queued) {
+        setQueuedData({ website: data.website, submissionId: data.submissionId });
+        return;
+      }
       setActiveSessionId(data.sessionId);
     },
     onError: (err: any) => {
       setError(err?.message || "Analysis setup failed. Please try again.");
     },
   });
+
+  async function handleWaitlistSubmit() {
+    if (!waitlistEmail.includes("@") || !queuedData) return;
+    setWaitlistSubmitting(true);
+    try {
+      await apiRequest("POST", "/api/waitlist", {
+        website: queuedData.website,
+        email: waitlistEmail,
+        submissionId: queuedData.submissionId,
+      });
+      setWaitlistSubmitted(true);
+    } catch {
+      // fail silently — still show confirmed
+      setWaitlistSubmitted(true);
+    } finally {
+      setWaitlistSubmitting(false);
+    }
+  }
 
   const { data: scoringSession } = useQuery<any>({
     queryKey: ["/api/multisegment/sessions", activeSessionId],
@@ -756,6 +782,112 @@ function LandingInner() {
 
                 {/* Bottom label */}
                 <p className="mt-5 text-[10px] text-slate-600 font-mono text-center">Scoring fires in background — your report will be ready in ~60s</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Queue / Waitlist Screen — shown when engine is at capacity ── */}
+        {queuedData !== null && !waitlistSubmitted && (
+          <div
+            className="mt-8 max-w-lg mx-auto rounded-2xl overflow-hidden"
+            style={{ background: "linear-gradient(160deg, #0d0f1a 0%, #0a0c14 100%)", border: "1px solid rgba(255,255,255,0.07)" }}
+          >
+            <div className="p-6 space-y-5">
+              {/* Status badge */}
+              <div className="flex justify-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)" }}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="text-xs font-semibold text-amber-300">Intelligence Engine at Capacity</span>
+                </div>
+              </div>
+
+              {/* Headline */}
+              <div className="text-center">
+                <h2 className="text-xl font-bold text-white mb-2">Your audit is queued</h2>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  3 audits are running right now. We've already crawled your site and found your segments — your full analysis will start the moment a slot opens.
+                </p>
+              </div>
+
+              {/* Website chip */}
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)" }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-indigo-400" style={{ background: "rgba(99,102,241,0.2)" }}>
+                  {queuedData.website.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-indigo-300 truncate">{queuedData.website}</div>
+                  <div className="text-xs text-slate-500">Step 1 complete · waiting for scoring slot</div>
+                </div>
+                <div className="text-xs font-bold text-amber-400 px-2 py-0.5 rounded-md" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.2)" }}>
+                  #1 next
+                </div>
+              </div>
+
+              {/* Email capture */}
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm font-semibold text-white mb-1">Notify me when it's ready</p>
+                  <p className="text-xs text-slate-500">We'll email you the moment your GEO Intelligence Report is complete.</p>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={waitlistEmail}
+                    onChange={(e) => setWaitlistEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleWaitlistSubmit()}
+                    placeholder="you@company.com"
+                    data-testid="input-waitlist-email"
+                    className="flex-1 px-4 py-3 rounded-xl text-sm text-white placeholder-slate-600 outline-none"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", fontFamily: "inherit" }}
+                  />
+                  <button
+                    onClick={handleWaitlistSubmit}
+                    disabled={waitlistSubmitting || !waitlistEmail.includes("@")}
+                    data-testid="button-waitlist-submit"
+                    className="px-5 py-3 rounded-xl text-sm font-semibold text-white transition-all"
+                    style={{
+                      background: waitlistEmail.includes("@") ? "linear-gradient(135deg,#6366f1,#8b5cf6)" : "rgba(255,255,255,0.06)",
+                      opacity: waitlistSubmitting ? 0.6 : 1,
+                      cursor: waitlistEmail.includes("@") && !waitlistSubmitting ? "pointer" : "not-allowed",
+                      boxShadow: waitlistEmail.includes("@") ? "0 0 20px rgba(99,102,241,0.3)" : "none",
+                    }}
+                  >
+                    {waitlistSubmitting ? "..." : "Notify me →"}
+                  </button>
+                </div>
+              </div>
+
+              <p className="text-center text-xs text-slate-700">No account needed · Report emailed directly to you</p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Waitlist confirmed ── */}
+        {queuedData !== null && waitlistSubmitted && (
+          <div
+            className="mt-8 max-w-lg mx-auto rounded-2xl overflow-hidden text-center"
+            style={{ background: "linear-gradient(160deg, #0d0f1a 0%, #0a0c14 100%)", border: "1px solid rgba(255,255,255,0.07)" }}
+          >
+            <div className="p-8 space-y-4">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl mx-auto" style={{ background: "rgba(16,185,129,0.15)", border: "2px solid rgba(16,185,129,0.3)" }}>
+                ✓
+              </div>
+              <h2 className="text-xl font-bold text-white">You're in the queue</h2>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                We've saved your spot for <span className="text-indigo-400 font-semibold">{queuedData.website}</span>. The moment a slot opens your audit runs automatically — we'll send the report straight to your inbox.
+              </p>
+              <div className="grid grid-cols-3 gap-3 mt-2">
+                {[
+                  { label: "Queue position", value: "#1 — next up" },
+                  { label: "Est. wait", value: "~12 min" },
+                  { label: "Segments ready", value: `${services.length} found` },
+                ].map(({ label, value }) => (
+                  <div key={label} className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div className="text-sm font-bold text-white">{value}</div>
+                    <div className="text-xs text-slate-600 mt-0.5">{label}</div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

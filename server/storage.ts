@@ -1,6 +1,6 @@
 
 import { db } from "./db";
-import { and, desc, eq, isNull, ne, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, isNull, ne, or, sql } from "drizzle-orm";
 import {
   analysisResults,
   scoringJobs,
@@ -15,6 +15,7 @@ import {
   landingSubmissions,
   directoryPages,
   queryPageVersions,
+  auditWaitlist,
   type InsertIncomingLead,
   type IncomingLead,
   type InsertAnalysisResult,
@@ -106,6 +107,8 @@ export interface IStorage {
   forcePublishDirectoryPage(slug: string, reason: string): Promise<DirectoryPage>;
   addQueryPageVersion(v: InsertQueryPageVersion): Promise<QueryPageVersion>;
   createAgentInterest(data: InsertAgentInterest): Promise<AgentInterest>;
+  countRunningSessions(): Promise<number>;
+  createWaitlistEntry(website: string, email: string, submissionId?: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -631,6 +634,18 @@ export class DatabaseStorage implements IStorage {
   async createAgentInterest(data: InsertAgentInterest): Promise<AgentInterest> {
     const [row] = await db.insert(agentInterest).values(data).returning();
     return row;
+  }
+
+  async countRunningSessions(): Promise<number> {
+    const [row] = await db
+      .select({ n: count() })
+      .from(landingSubmissions)
+      .where(eq(landingSubmissions.status, "running"));
+    return Number(row?.n ?? 0);
+  }
+
+  async createWaitlistEntry(website: string, email: string, submissionId?: number): Promise<void> {
+    await db.insert(auditWaitlist).values({ website, email, submissionId: submissionId ?? null });
   }
 }
 

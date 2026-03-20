@@ -396,6 +396,17 @@ export const insertAgentInterestSchema = createInsertSchema(agentInterest).omit(
 export type AgentInterest = typeof agentInterest.$inferSelect;
 export type InsertAgentInterest = z.infer<typeof insertAgentInterestSchema>;
 
+export const auditWaitlist = pgTable("audit_waitlist", {
+  id: serial("id").primaryKey(),
+  website: text("website").notNull(),
+  email: text("email").notNull(),
+  submissionId: integer("submission_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export const insertAuditWaitlistSchema = createInsertSchema(auditWaitlist).omit({ id: true, createdAt: true });
+export type AuditWaitlistEntry = typeof auditWaitlist.$inferSelect;
+export type InsertAuditWaitlistEntry = z.infer<typeof insertAuditWaitlistSchema>;
+
 export const EvalResponseSchema = z.object({
   engine: EngineEnum,
   query: z.string(),

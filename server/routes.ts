@@ -644,6 +644,33 @@ export async function registerRoutes(
       return res.status(500).json({ error: "Failed to fetch submission" });
     }
   });
+  const CONCURRENCY_LIMIT = 3;
+
+  app.get("/api/capacity", async (_req: Request, res: Response) => {
+    try {
+      const running = await storage.countRunningSessions();
+      return res.json({ running, limit: CONCURRENCY_LIMIT, available: running < CONCURRENCY_LIMIT });
+    } catch (err) {
+      return res.status(500).json({ error: "Failed to check capacity" });
+    }
+  });
+
+  app.post("/api/waitlist", async (req: Request, res: Response) => {
+    try {
+      const schema = z.object({
+        website: z.string().min(1),
+        email: z.string().email(),
+        submissionId: z.number().int().positive().optional(),
+      });
+      const { website, email, submissionId } = schema.parse(req.body);
+      await storage.createWaitlistEntry(website, email, submissionId);
+      return res.status(201).json({ ok: true });
+    } catch (err) {
+      if (err instanceof z.ZodError) return res.status(400).json({ error: "Invalid email or website" });
+      return res.status(500).json({ error: "Failed to join waitlist" });
+    }
+  });
+
   app.post("/api/landing/run-analysis", async (req: Request, res: Response) => {
     try {
       const schema = z.object({
@@ -657,6 +684,19 @@ export async function registerRoutes(
       const submissions = await storage.listLandingSubmissions();
       const submission = submissions.find((s) => s.id === submissionId);
       if (!submission) return res.status(404).json({ error: "Submission not found" });
+
+      // Capacity check — queue if 3 analyses already running
+      const running = await storage.countRunningSessions();
+      if (running >= CONCURRENCY_LIMIT) {
+        return res.status(200).json({
+          queued: true,
+          website: submission.normalizedDomain,
+          submissionId,
+        });
+      }
+
+      // Mark as running so capacity counter picks it up immediately
+      await storage.updateLandingSubmission(submissionId, { status: "running" } as any);
 
       const url = submission.websiteUrl;
 
@@ -738,6 +778,8 @@ export async function registerRoutes(
           }
         }
         console.log(`[Landing] All segments complete for session ${session.id}`);
+        // Mark submission as done so the slot frees up
+        storage.updateLandingSubmission(submissionId, { status: "done" } as any).catch(() => {});
         // Auto-publish to GEO directory — fire-and-forget, never blocks the response
         syncSessionToDirectory(session.id).then((r) => {
           console.log(`[dir-sync] Landing session ${session.id}: published=${r.published} skipped=${r.skipped} errors=${r.errors.length}`);
