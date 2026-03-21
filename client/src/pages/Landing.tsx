@@ -348,6 +348,9 @@ function LandingInner() {
         return;
       }
       setActiveSessionId(data.sessionId);
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 120);
     },
     onError: (err: any) => {
       setError(err?.message || "Analysis setup failed. Please try again.");
@@ -412,12 +415,25 @@ function LandingInner() {
         return next;
       });
     }
+    if (scoredSegs.length === 1) {
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 80);
+    }
   }, [scoredSegs.length]);
 
   useEffect(() => {
     setSelectedSegmentIds(new Set());
     setShowIntelligence(false);
   }, [activeSessionId]);
+
+  useEffect(() => {
+    if (allSegmentsDone) {
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 150);
+    }
+  }, [allSegmentsDone]);
 
   function handleTileSelect(sessionId: number) {
     setActiveSessionId(sessionId);
