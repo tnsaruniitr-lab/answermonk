@@ -8,7 +8,7 @@ const MAX_HTML_SIZE = 200000;
 const MIN_TEXT_LENGTH = 200;
 const MAX_CONCURRENT = 20;
 const LARGE_CRAWL_THRESHOLD = 200;
-const LARGE_CRAWL_CONCURRENT = 5;
+const LARGE_CRAWL_CONCURRENT = 20;
 
 export interface CrawledPage {
   url: string;
@@ -335,7 +335,7 @@ export async function fetchWithBrowser(url: string): Promise<{ html: string; fin
   }
 }
 
-const SINGLE_URL_TIMEOUT = 15000;
+const SINGLE_URL_TIMEOUT = 8000;
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T | null> {
   return Promise.race([
