@@ -97,6 +97,7 @@ export interface IStorage {
   getLandingSubmissionByDomain(domain: string, withinHours: number): Promise<LandingSubmission | undefined>;
   updateLandingSubmission(id: number, updates: Partial<InsertLandingSubmission>): Promise<LandingSubmission>;
   listLandingSubmissions(): Promise<LandingSubmission[]>;
+  countLandingSubmissions(): Promise<number>;
 
   // ── Directory pages ─────────────────────────────────────────────
   upsertDirectoryPage(data: InsertDirectoryPage): Promise<DirectoryPage>;
@@ -501,6 +502,13 @@ export class DatabaseStorage implements IStorage {
       .from(landingSubmissions)
       .orderBy(desc(landingSubmissions.createdAt))
       .limit(100);
+  }
+
+  async countLandingSubmissions(): Promise<number> {
+    const [row] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(landingSubmissions);
+    return row?.count ?? 0;
   }
 
   // ── Directory pages ─────────────────────────────────────────────

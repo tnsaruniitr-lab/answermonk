@@ -610,7 +610,15 @@ export async function registerRoutes(
         return res.status(200).json({ id: existing.id, cached: true, status: existing.status, pncResult: existing.pncResult });
       }
 
-      // Layer 3: Write to DB
+      // Layer 3: Global analysis cap — 30 total in production
+      if (!isDev) {
+        const totalCount = await storage.countLandingSubmissions();
+        if (totalCount >= 30) {
+          return res.status(429).json({ error: "We've reached capacity for now. Join the waitlist and we'll let you know when a spot opens up." });
+        }
+      }
+
+      // Layer 4: Write to DB
       const submission = await storage.createLandingSubmission({
         websiteUrl: websiteUrl.trim(),
         normalizedDomain: domain,
