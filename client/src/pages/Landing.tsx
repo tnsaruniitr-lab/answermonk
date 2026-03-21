@@ -431,11 +431,21 @@ function LandingInner() {
     setShowIntelligence(false);
   }
 
+  function isValidDomain(input: string): boolean {
+    const cleaned = input.trim().replace(/^https?:\/\//i, "").replace(/^www\./i, "");
+    // Must have at least one dot, no spaces, valid characters, TLD ≥ 2 chars
+    return /^([\w\-]+\.)+[\w\-]{2,}(\/[^\s]*)?$/.test(cleaned);
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     const trimmed = url.trim();
     if (!trimmed) return;
+    if (!isValidDomain(trimmed)) {
+      setError("Please enter a valid website URL, e.g. yourcompany.com");
+      return;
+    }
     submitMutation.mutate(trimmed);
   }
 

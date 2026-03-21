@@ -594,6 +594,13 @@ export async function registerRoutes(
         return res.status(400).json({ error: "A valid website URL is required." });
       }
 
+      // Domain format validation — must look like a real domain
+      const cleanedForValidation = websiteUrl.trim().replace(/^https?:\/\//i, "").replace(/^www\./i, "");
+      const domainRegex = /^([\w\-]+\.)+[\w\-]{2,}(\/[^\s]*)?$/;
+      if (!domainRegex.test(cleanedForValidation)) {
+        return res.status(400).json({ error: "Please enter a valid website URL, e.g. yourcompany.com" });
+      }
+
       const domain = normalizeDomain(websiteUrl.trim());
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
 
