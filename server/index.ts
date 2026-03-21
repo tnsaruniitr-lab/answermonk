@@ -99,6 +99,13 @@ function isPublicPath(path: string): boolean {
   if (path.match(/^\/api\/landing\/submission\/\d+$/)) return true;
   if (path === "/api/landing/run-analysis") return true;
   if (path === "/api/waitlist") return true;
+  if (path.match(/^\/api\/multisegment\/sessions\/\d+$/)) return true;
+  if (path === "/api/directory/recent") return true;
+  if (path.match(/^\/api\/multi-segment-sessions\/\d+\/citation-sources$/)) return true;
+  if (path.match(/^\/api\/multi-segment-sessions\/\d+\/citation-domains\//)) return true;
+  if (path.match(/^\/api\/multi-segment-sessions\/\d+\/citation-insights$/)) return true;
+  if (path.match(/^\/api\/segment-analysis\/progress\//)) return true;
+  if (path === "/api/agents/interest") return true;
   if (!path.startsWith("/api/")) return true;
   return false;
 }
