@@ -25,24 +25,6 @@ import Landing from "@/pages/Landing";
 import DirectoryListing from "@/pages/DirectoryListing";
 import { Loader2 } from "lucide-react";
 
-function AdminRouter() {
-  return (
-    <Switch>
-      <Route path="/" component={Analyzer} />
-      <Route path="/history" component={HistoryPage} />
-      <Route path="/prompts" component={PromptGenerator} />
-      <Route path="/scoring/:id" component={ScoringDetail} />
-      <Route path="/v2/:id" component={V2SessionDetail} />
-      <Route path="/summary/:id" component={SummaryReport} />
-      <Route path="/teaser/:id" component={ProspectTeaser} />
-      <Route path="/reports/collectmaxx" component={CollectmaxxReport} />
-      <Route path="/leads" component={Leads} />
-      <Route path="/incoming-leads" component={IncomingLeads} />
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
-
 function SlugTeaser({ params }: { params: { slug: string } }) {
   return <ProspectTeaser slug={params.slug} />;
 }
@@ -59,29 +41,34 @@ function CollectmaxxReport() {
   return <SummaryReport auditSlug="collectmaxx-reminders" />;
 }
 
-function PublicRouter() {
+function AdminDashboard() {
   return (
     <Switch>
+      <Route path="/admin" component={Analyzer} />
+      <Route path="/admin/history" component={HistoryPage} />
+      <Route path="/admin/prompts" component={PromptGenerator} />
+      <Route path="/history" component={HistoryPage} />
+      <Route path="/prompts" component={PromptGenerator} />
+      <Route path="/scoring/:id" component={ScoringDetail} />
+      <Route path="/v2/:id" component={V2SessionDetail} />
+      <Route path="/summary/:id" component={SlugSummary} />
+      <Route path="/teaser/:id" component={ProspectTeaser} />
       <Route path="/share/summary/:id" component={SummaryReport} />
       <Route path="/share/teaser/:id" component={ProspectTeaser} />
+      <Route path="/leads" component={Leads} />
+      <Route path="/incoming-leads" component={IncomingLeads} />
+      <Route path="/citations/:sessionId">{(params) => <CitationViewer sessionId={parseInt(params.sessionId)} />}</Route>
       <Route path="/analytics/:sessionId" component={AnalyticsDashboard} />
       <Route path="/analytics" component={AnalyticsDashboard} />
+      <Route path="/brand-intelligence" component={BrandIntelligence} />
+      <Route path="/signal-consistency" component={SignalConsistency} />
       <Route path="/reports/crawlability" component={CrawlabilityReport} />
       <Route path="/reports/geo-landing-page" component={GeoLandingPageReport} />
       <Route path="/reports/collectmaxx" component={CollectmaxxReport} />
       <Route path="/directory" component={DirectoryListing} />
-      <Route path="/summary/:id" component={SlugSummary} />
-      <Route path="/incoming-leads">
-        <Login onSuccess={() => window.location.reload()} />
-      </Route>
-      <Route path="/leads">
-        <Login onSuccess={() => window.location.reload()} />
-      </Route>
       <Route path="/audit/:slug">{(params) => <AuditBySlug params={params} />}</Route>
       <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
-      <Route>
-        <Login onSuccess={() => window.location.reload()} />
-      </Route>
+      <Route component={NotFound} />
     </Switch>
   );
 }
@@ -105,44 +92,17 @@ function AuthGate() {
   }
 
   if (authState === "authenticated") {
-    return (
-      <>
-        <Switch>
-          <Route path="/share/summary/:id" component={SummaryReport} />
-          <Route path="/share/teaser/:id" component={ProspectTeaser} />
-          <Route path="/history" component={HistoryPage} />
-          <Route path="/prompts" component={PromptGenerator} />
-          <Route path="/scoring/:id" component={ScoringDetail} />
-          <Route path="/v2/:id" component={V2SessionDetail} />
-          <Route path="/summary/:id" component={SummaryReport} />
-          <Route path="/teaser/:id" component={ProspectTeaser} />
-          <Route path="/leads" component={Leads} />
-          <Route path="/incoming-leads" component={IncomingLeads} />
-          <Route path="/citations/:sessionId">{(params) => <CitationViewer sessionId={parseInt(params.sessionId)} />}</Route>
-          <Route path="/analytics/:sessionId">{(params) => <AnalyticsDashboard />}</Route>
-          <Route path="/analytics" component={AnalyticsDashboard} />
-          <Route path="/brand-intelligence" component={BrandIntelligence} />
-          <Route path="/signal-consistency" component={SignalConsistency} />
-          <Route path="/reports/crawlability" component={CrawlabilityReport} />
-          <Route path="/reports/geo-landing-page" component={GeoLandingPageReport} />
-          <Route path="/reports/collectmaxx" component={CollectmaxxReport} />
-          <Route path="/directory" component={DirectoryListing} />
-          <Route path="/audit/:slug">{(params) => <AuditBySlug params={params} />}</Route>
-          <Route path="/" component={Analyzer} />
-          <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
-          <Route component={NotFound} />
-        </Switch>
-      </>
-    );
+    return <AdminDashboard />;
   }
 
-  return <PublicRouter />;
+  return <Login onSuccess={() => window.location.reload()} />;
 }
 
 function App() {
   const [path] = useLocation();
 
-  if (path === "/start" || path.startsWith("/start?") || window.location.pathname === "/start") {
+  // Public landing page — always accessible, no auth required
+  if (path === "/" || path === "/start" || path.startsWith("/start?")) {
     return (
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
@@ -153,6 +113,7 @@ function App() {
     );
   }
 
+  // All other routes — require admin auth
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
