@@ -1348,14 +1348,14 @@ function LandingInner() {
       </main>
 
       {/* Pipeline visualization */}
-      <section className="relative z-10 py-16">
+      <section className="relative z-10 py-16" style={{ background: "linear-gradient(180deg, rgba(237,233,254,0.25) 0%, rgba(236,253,245,0.25) 100%)" }}>
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-bold" style={{ color: "#1e1b4b", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>The Intelligence Pipeline</h2>
             <p className="text-sm mt-2" style={{ color: "#64748b" }}>From raw domain to actionable GEO insights in minutes.</p>
           </div>
           <div className="relative">
-            <div className="absolute top-8 left-0 w-full h-0.5 bg-black/5 hidden md:block" />
+            <div className="absolute top-8 left-0 w-full h-px hidden md:block" style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.15) 20%, rgba(99,102,241,0.15) 80%, transparent)" }} />
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {steps.map((item, index) => (
                 <div key={item.title} className="relative z-10 flex flex-col items-center">
