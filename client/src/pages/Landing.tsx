@@ -253,6 +253,7 @@ function LandingInner() {
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
   const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
   const MAX_SELECTED = 4;
 
@@ -983,6 +984,61 @@ function LandingInner() {
               />
             ))}
 
+            {/* Email nudge — LLM scoring phase */}
+            {isScoring && !nudgeDismissed && (
+              <div style={{
+                background: "rgba(255,255,255,0.82)",
+                border: "1px solid rgba(99,102,241,0.14)",
+                borderLeft: "3px solid #6366f1",
+                borderRadius: "10px",
+                padding: "10px 14px",
+                backdropFilter: "blur(8px)",
+                boxShadow: "0 2px 12px rgba(99,102,241,0.06)",
+              }}>
+                {!waitlistSubmitted ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <p style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a", margin: 0, flex: "0 0 auto" }}>
+                      🧘 In a hurry?
+                    </p>
+                    <p style={{ fontSize: "12px", color: "#64748b", margin: 0, flex: 1 }}>
+                      Leave your email and we'll send the report to you.
+                    </p>
+                    <input
+                      value={waitlistEmail}
+                      onChange={e => setWaitlistEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      style={{
+                        border: "1px solid rgba(99,102,241,0.22)", borderRadius: "7px",
+                        padding: "7px 10px", fontSize: "12px", color: "#0f172a", outline: "none",
+                        background: "rgba(255,255,255,0.9)", width: "160px", flexShrink: 0,
+                      }}
+                    />
+                    <button
+                      onClick={handleWaitlistSubmit}
+                      disabled={waitlistSubmitting || !waitlistEmail.includes("@")}
+                      style={{
+                        background: waitlistEmail.includes("@") ? "#6366f1" : "rgba(0,0,0,0.06)",
+                        color: waitlistEmail.includes("@") ? "white" : "#9ca3af",
+                        border: "none", borderRadius: "7px", padding: "7px 14px",
+                        fontSize: "12px", fontWeight: 600, cursor: waitlistEmail.includes("@") ? "pointer" : "not-allowed",
+                        whiteSpace: "nowrap", flexShrink: 0,
+                      }}
+                    >
+                      {waitlistSubmitting ? "..." : "Send report →"}
+                    </button>
+                    <button
+                      onClick={() => setNudgeDismissed(true)}
+                      style={{ background: "none", border: "none", color: "#94a3b8", fontSize: "16px", cursor: "pointer", padding: "0 0 0 4px", lineHeight: 1, flexShrink: 0 }}
+                    >×</button>
+                  </div>
+                ) : (
+                  <p style={{ fontSize: "12px", color: "#10b981", fontWeight: 600, margin: 0 }}>
+                    ✓ We'll send the report to <strong>{waitlistEmail}</strong> when it's done.
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Live Dispatch Feed — shown while scoring is in progress */}
             {isScoring && (
               <DispatchFeedLive
@@ -991,6 +1047,63 @@ function LandingInner() {
                 brandName={scoringSession?.brandName || ""}
                 brandDomain={scoringSession?.brandDomain || undefined}
               />
+            )}
+
+            {/* Email nudge — citation crawl phase */}
+            {allSegmentsDone && !waitlistSubmitted && (
+              <div style={{
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(245,158,11,0.2)",
+                borderLeft: "3px solid #f59e0b",
+                borderRadius: "10px",
+                padding: "10px 14px",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <p style={{ fontSize: "12px", fontWeight: 600, color: "#f8fafc", margin: 0, flex: "0 0 auto" }}>
+                    🔍 In a hurry?
+                  </p>
+                  <p style={{ fontSize: "12px", color: "#94a3b8", margin: 0, flex: 1 }}>
+                    Leave your email and we'll send it to you.
+                  </p>
+                  <input
+                    value={waitlistEmail}
+                    onChange={e => setWaitlistEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    style={{
+                      border: "1px solid rgba(245,158,11,0.25)", borderRadius: "7px",
+                      padding: "7px 10px", fontSize: "12px", color: "#f1f5f9", outline: "none",
+                      background: "rgba(255,255,255,0.05)", width: "160px", flexShrink: 0,
+                    }}
+                  />
+                  <button
+                    onClick={handleWaitlistSubmit}
+                    disabled={waitlistSubmitting || !waitlistEmail.includes("@")}
+                    style={{
+                      background: waitlistEmail.includes("@") ? "#f59e0b" : "rgba(255,255,255,0.06)",
+                      color: waitlistEmail.includes("@") ? "#0f172a" : "#64748b",
+                      border: "none", borderRadius: "7px", padding: "7px 14px",
+                      fontSize: "12px", fontWeight: 700, cursor: waitlistEmail.includes("@") ? "pointer" : "not-allowed",
+                      whiteSpace: "nowrap", flexShrink: 0,
+                    }}
+                  >
+                    {waitlistSubmitting ? "..." : "Email link →"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {allSegmentsDone && waitlistSubmitted && (
+              <div style={{
+                background: "rgba(16,185,129,0.06)",
+                border: "1px solid rgba(16,185,129,0.18)",
+                borderLeft: "3px solid #10b981",
+                borderRadius: "10px",
+                padding: "10px 14px",
+              }}>
+                <p style={{ fontSize: "12px", color: "#6ee7b7", fontWeight: 600, margin: 0 }}>
+                  ✓ We'll send the full report to <strong>{waitlistEmail}</strong>.
+                </p>
+              </div>
             )}
 
             {/* Citation sources preview — always visible once scoring completes */}
