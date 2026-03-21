@@ -39,7 +39,7 @@ export function CitationCrawlCard() {
             padding: "12px 14px",
           }}>
             <p style={{ fontSize: "12px", fontWeight: 700, color: "#f8fafc", margin: "0 0 8px" }}>
-              🔍 Citation crawl running — <span style={{ fontWeight: 400, color: "#94a3b8" }}>~2 min. Email yourself the report link.</span>
+              🔍 In a hurry? <span style={{ fontWeight: 400, color: "#94a3b8" }}>Leave your email and we'll send it to you.</span>
             </p>
             <div style={{ display: "flex", gap: "6px" }}>
               <input

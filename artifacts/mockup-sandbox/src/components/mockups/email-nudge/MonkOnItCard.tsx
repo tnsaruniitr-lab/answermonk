@@ -41,7 +41,7 @@ export function MonkOnItCard() {
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
               <p style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a", margin: 0 }}>
-                🧘 The Monk is on it — <span style={{ fontWeight: 400, color: "#64748b" }}>4–6 min. Leave your email, we'll send the report.</span>
+                🧘 In a hurry? <span style={{ fontWeight: 400, color: "#64748b" }}>Leave your email and we'll send it to you.</span>
               </p>
               {!sent && (
                 <button onClick={() => setDismissed(true)} style={{
