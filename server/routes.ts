@@ -2130,7 +2130,7 @@ export async function registerRoutes(
     const key = req.params.key;
     const progress = analysisProgress.get(key);
     if (!progress) {
-      res.json({ step: "unknown", detail: "No active analysis", pct: 0 });
+      res.status(404).json({ step: "unknown", detail: "No active analysis", pct: 0 });
       return;
     }
     res.json(progress);
