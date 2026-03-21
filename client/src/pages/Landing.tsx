@@ -1028,17 +1028,85 @@ function LandingInner() {
 
         {/* Error state */}
         {isError && !isRunning && (
-          <div className="mt-8 max-w-md mx-auto" data-testid="status-error">
-            <div className="bg-red-900/20 border border-red-500/30 rounded-2xl p-6 text-center">
-              <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-3" />
-              <p className="text-white font-medium">Analysis failed</p>
-              <p className="text-slate-400 text-sm mt-1">{error || "We couldn't process that request. Please try again."}</p>
-              <button
-                onClick={() => { setSubmissionId(null); setError(null); runMutation.reset(); }}
-                className="mt-4 text-blue-400 text-sm underline"
-              >
-                Try again
-              </button>
+          <div className="mt-8 max-w-lg mx-auto rounded-2xl overflow-hidden" data-testid="status-error"
+            style={{ background: "rgba(255,255,255,0.88)", backdropFilter: "blur(12px)", border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 4px 24px rgba(99,102,241,0.08)" }}
+          >
+            <div className="p-6 space-y-5">
+              {!waitlistSubmitted ? (
+                <>
+                  <div className="flex justify-center">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.25)" }}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                      <span className="text-xs font-semibold text-red-600">Audit interrupted</span>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">Something went wrong</h2>
+                    <p className="text-sm text-gray-500 leading-relaxed">
+                      We're on it. Leave your email and we'll send you the complete results as soon as it's done.
+                    </p>
+                  </div>
+                  {url && (
+                    <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.18)" }}>
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-indigo-600" style={{ background: "rgba(99,102,241,0.12)" }}>
+                        {normalizeDomain(url).charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-indigo-700 truncate">{normalizeDomain(url)}</div>
+                        <div className="text-xs text-gray-400">Analysis incomplete</div>
+                      </div>
+                    </div>
+                  )}
+                  <div className="space-y-3">
+                    <p className="text-sm font-semibold text-gray-900">Get notified when it's ready</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        value={waitlistEmail}
+                        onChange={(e) => setWaitlistEmail(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleWaitlistSubmit()}
+                        placeholder="you@company.com"
+                        data-testid="input-error-email"
+                        className="flex-1 px-4 py-3 rounded-xl text-sm text-gray-800 placeholder-gray-400 outline-none"
+                        style={{ background: "#fff", border: "1px solid rgba(0,0,0,0.12)", fontFamily: "inherit" }}
+                      />
+                      <button
+                        onClick={handleWaitlistSubmit}
+                        disabled={waitlistSubmitting || !waitlistEmail.includes("@")}
+                        data-testid="button-error-notify"
+                        className="px-5 py-3 rounded-xl text-sm font-semibold transition-all"
+                        style={{
+                          background: waitlistEmail.includes("@") ? "linear-gradient(135deg,#6366f1,#8b5cf6)" : "rgba(0,0,0,0.08)",
+                          color: waitlistEmail.includes("@") ? "#fff" : "#9ca3af",
+                          opacity: waitlistSubmitting ? 0.6 : 1,
+                          cursor: waitlistEmail.includes("@") && !waitlistSubmitting ? "pointer" : "not-allowed",
+                          boxShadow: waitlistEmail.includes("@") ? "0 0 20px rgba(99,102,241,0.25)" : "none",
+                        }}
+                      >
+                        {waitlistSubmitting ? "..." : "Notify me →"}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => { setSubmissionId(null); setError(null); runMutation.reset(); }}
+                      className="text-xs text-gray-400 hover:text-gray-600 transition-colors underline"
+                    >
+                      Or try again with a different URL
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-2 space-y-3">
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl mx-auto" style={{ background: "rgba(16,185,129,0.1)", border: "2px solid rgba(16,185,129,0.3)" }}>
+                    ✓
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900">You're on the list</h2>
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    We'll send the complete audit to <span className="text-indigo-600 font-semibold">{waitlistEmail}</span> as soon as it's ready. Usually within a few minutes.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
