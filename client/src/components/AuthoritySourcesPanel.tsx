@@ -2367,6 +2367,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<"authority" | "brand">("authority");
   const [crawlError, setCrawlError] = useState<string | null>(null);
+  const [isCrawlRunning, setIsCrawlRunning] = useState(false);
   const autoInsightsTriggered = useRef(false);
   const autoCrawlTriggered = useRef(false);
 
@@ -2456,14 +2457,10 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       return res.json();
     },
     onSuccess: () => {
+      // Server now responds immediately — set running flag so the loader stays
+      // visible; completion is detected via the progress polling hook below.
       setCrawlError(null);
-      qc.invalidateQueries({ queryKey: ["/api/multi-segment-sessions", sessionId, "citation-insights"] });
-      qc.invalidateQueries({ queryKey: ["/api/multi-segment-sessions", sessionId, "citation-sources"] });
-      // Auto-chain: fire Claude Sonnet immediately after crawl if autoRun
-      if (autoRun && !autoInsightsTriggered.current) {
-        autoInsightsTriggered.current = true;
-        insightsMutation.mutate();
-      }
+      setIsCrawlRunning(true);
     },
     onError: (err: any) => setCrawlError(String(err)),
   });
@@ -2505,12 +2502,31 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
     },
   });
 
+  // ── Panel-level progress poll: watches for crawl completion ─────────────────
+  const panelCrawlProgress = useCrawlProgress(sessionId, isCrawlRunning);
+
+  useEffect(() => {
+    if (!isCrawlRunning) return;
+    if (panelCrawlProgress?.step === "complete") {
+      setIsCrawlRunning(false);
+      qc.invalidateQueries({ queryKey: ["/api/multi-segment-sessions", sessionId, "citation-insights"] });
+      qc.invalidateQueries({ queryKey: ["/api/multi-segment-sessions", sessionId, "citation-sources"] });
+      if (autoRun && !autoInsightsTriggered.current) {
+        autoInsightsTriggered.current = true;
+        insightsMutation.mutate();
+      }
+    } else if (panelCrawlProgress?.step === "error") {
+      setIsCrawlRunning(false);
+      setCrawlError(panelCrawlProgress.detail || "Crawl failed");
+    }
+  }, [panelCrawlProgress?.step, isCrawlRunning]);
+
   // ── Auto-run chain: fire crawl → insights without user interaction ──────────
   useEffect(() => {
     if (!autoRun || insightsLoading) return;
 
     // Case 1: No citation data yet → start crawl
-    if (rowCount === 0 && !autoCrawlTriggered.current && !crawlMutation.isPending) {
+    if (rowCount === 0 && !autoCrawlTriggered.current && !crawlMutation.isPending && !isCrawlRunning) {
       autoCrawlTriggered.current = true;
       crawlMutation.mutate();
       return;
@@ -2532,7 +2548,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       {/* ── No data yet: loading / empty / crawl trigger ──────────────── */}
       {!hasData && (
         <>
-          {crawlMutation.isPending ? (
+          {(crawlMutation.isPending || isCrawlRunning) ? (
             <MissionControlLoader sessionId={sessionId} crawlPending={true} insightsPending={false} />
           ) : insightsLoading ? (
             <div className="flex items-center justify-center gap-2 py-10 text-xs text-muted-foreground">

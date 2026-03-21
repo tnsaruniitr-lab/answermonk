@@ -2169,61 +2169,70 @@ export async function registerRoutes(
 
       analysisProgress.set(progressKey, { step: "starting", detail: "Initializing analysis...", pct: 0, startedAt: Date.now() });
 
-      const report = await runSegmentAnalysis(brandName, normalizedSegments, (step, detail, pct, extra?: any) => {
-        console.log(`[segment-analysis] ${step}: ${detail} (${pct}%)`);
-        const prev = analysisProgress.get(progressKey);
-        const entry: any = { step, detail, pct, startedAt: prev?.startedAt || Date.now() };
-        if (extra) {
-          entry.crawlDone = extra.done;
-          entry.crawlTotal = extra.total;
-          entry.crawlSuccess = extra.success;
-          entry.crawlFailed = extra.failed;
-        }
-        analysisProgress.set(progressKey, entry);
-      }, brandDomain || undefined, typeof sessionId === "number" ? sessionId : undefined);
+      // Respond immediately so the HTTP proxy doesn't time-out the long crawl
+      res.json({ progressKey, status: "started" });
 
-      if (sessionId && typeof sessionId === "number") {
+      // Run the full crawl + persist pipeline in the background
+      (async () => {
         try {
-          await storage.updateCitationReport(sessionId, report);
-          console.log(`[segment-analysis] Persisted citation report for session ${sessionId}`);
-        } catch (persistErr) {
-          console.error("Failed to persist citation report:", persistErr);
-        }
-        // Auto-publish to GEO directory with enriched citation data — fire-and-forget
-        syncSessionToDirectory(sessionId).then((r) => {
-          console.log(`[dir-sync] Citation hook session ${sessionId}: published=${r.published} skipped=${r.skipped}`);
-        }).catch((e) => console.error("[dir-sync] Citation hook error:", e));
-        try {
-          await populateCitationUrls(sessionId);
-          console.log(`[segment-analysis] Populated citation_urls for session ${sessionId}`);
-        } catch (citErr) {
-          console.error("Failed to populate citation_urls:", citErr);
-        }
-        try {
-          const classifyResult = await runLlmClassification(sessionId);
-          console.log(`[segment-analysis] Auto-classified ${classifyResult.updated}/${classifyResult.total} URLs for session ${sessionId} ($${classifyResult.costUsd})`);
-        } catch (classifyErr) {
-          console.error("Failed to auto-classify citation URLs:", classifyErr);
-        }
-      } else if (groupKey && typeof groupKey === "string") {
-        try {
-          const cacheKey = `group:${groupKey}:citation`;
-          await storage.setReportCache(cacheKey, report);
-          console.log(`[segment-analysis] Persisted citation report for group key ${groupKey}`);
-        } catch (persistErr) {
-          console.error("Failed to persist citation report for group key:", persistErr);
-        }
-      }
+          const report = await runSegmentAnalysis(brandName, normalizedSegments, (step, detail, pct, extra?: any) => {
+            console.log(`[segment-analysis] ${step}: ${detail} (${pct}%)`);
+            const prev = analysisProgress.get(progressKey);
+            const entry: any = { step, detail, pct, startedAt: prev?.startedAt || Date.now() };
+            if (extra) {
+              entry.crawlDone = extra.done;
+              entry.crawlTotal = extra.total;
+              entry.crawlSuccess = extra.success;
+              entry.crawlFailed = extra.failed;
+            }
+            analysisProgress.set(progressKey, entry);
+          }, brandDomain || undefined, typeof sessionId === "number" ? sessionId : undefined);
 
-      analysisProgress.set(progressKey, { step: "complete", detail: `Done — ${report.totalAccessible} pages crawled, ${report.totalCitationsCrawled - report.totalAccessible} failed`, pct: 100, startedAt: analysisProgress.get(progressKey)?.startedAt || Date.now() });
-      setTimeout(() => analysisProgress.delete(progressKey), 60000);
+          if (sessionId && typeof sessionId === "number") {
+            try {
+              await storage.updateCitationReport(sessionId, report);
+              console.log(`[segment-analysis] Persisted citation report for session ${sessionId}`);
+            } catch (persistErr) {
+              console.error("Failed to persist citation report:", persistErr);
+            }
+            syncSessionToDirectory(sessionId).then((r) => {
+              console.log(`[dir-sync] Citation hook session ${sessionId}: published=${r.published} skipped=${r.skipped}`);
+            }).catch((e) => console.error("[dir-sync] Citation hook error:", e));
+            try {
+              await populateCitationUrls(sessionId);
+              console.log(`[segment-analysis] Populated citation_urls for session ${sessionId}`);
+            } catch (citErr) {
+              console.error("Failed to populate citation_urls:", citErr);
+            }
+            try {
+              const classifyResult = await runLlmClassification(sessionId);
+              console.log(`[segment-analysis] Auto-classified ${classifyResult.updated}/${classifyResult.total} URLs for session ${sessionId} ($${classifyResult.costUsd})`);
+            } catch (classifyErr) {
+              console.error("Failed to auto-classify citation URLs:", classifyErr);
+            }
+          } else if (groupKey && typeof groupKey === "string") {
+            try {
+              const cacheKey = `group:${groupKey}:citation`;
+              await storage.setReportCache(cacheKey, report);
+              console.log(`[segment-analysis] Persisted citation report for group key ${groupKey}`);
+            } catch (persistErr) {
+              console.error("Failed to persist citation report for group key:", persistErr);
+            }
+          }
 
-      res.json({ ...report, progressKey });
+          analysisProgress.set(progressKey, { step: "complete", detail: `Done — ${report.totalAccessible} pages crawled, ${report.totalCitationsCrawled - report.totalAccessible} failed`, pct: 100, startedAt: analysisProgress.get(progressKey)?.startedAt || Date.now() });
+          setTimeout(() => analysisProgress.delete(progressKey), 60000);
+        } catch (bgErr) {
+          console.error("Segment analysis background error:", bgErr);
+          analysisProgress.set(progressKey, { step: "error", detail: String(bgErr), pct: 0, startedAt: analysisProgress.get(progressKey)?.startedAt || Date.now() });
+          setTimeout(() => analysisProgress.delete(progressKey), 30000);
+        }
+      })();
     } catch (err) {
-      console.error("Segment analysis error:", err);
-      analysisProgress.set(progressKey, { step: "error", detail: String(err), pct: 0, startedAt: analysisProgress.get(progressKey)?.startedAt || Date.now() });
-      setTimeout(() => analysisProgress.delete(progressKey), 30000);
-      res.status(500).json({ message: "Analysis failed", error: String(err) });
+      console.error("Segment analysis setup error:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ message: "Analysis setup failed", error: String(err) });
+      }
     }
   });
 
