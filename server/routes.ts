@@ -607,7 +607,8 @@ export async function registerRoutes(
       // Layer 2: Domain deduplication — same domain within 6 hours returns cached submission
       const existing = await storage.getLandingSubmissionByDomain(domain, 6);
       if (existing) {
-        return res.status(200).json({ id: existing.id, cached: true, status: existing.status, pncResult: existing.pncResult });
+        const normalizedStatus = existing.status === "done" ? "complete" : existing.status;
+        return res.status(200).json({ id: existing.id, cached: true, status: normalizedStatus, pncResult: existing.pncResult });
       }
 
       // Layer 3: Global analysis cap — 30 total in production
@@ -654,7 +655,8 @@ export async function registerRoutes(
       const submissions = await storage.listLandingSubmissions();
       const sub = submissions.find((s) => s.id === id);
       if (!sub) return res.status(404).json({ error: "Not found" });
-      return res.json(sub);
+      const normalized = { ...sub, status: sub.status === "done" ? "complete" : sub.status };
+      return res.json(normalized);
     } catch (err) {
       return res.status(500).json({ error: "Failed to fetch submission" });
     }
