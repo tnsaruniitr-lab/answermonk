@@ -175,7 +175,7 @@ async function populateCitationUrls(sessionId: number): Promise<void> {
   )];
 
   const resolved = new Map<string, string>();
-  const CONCURRENCY = 5;
+  const CONCURRENCY = 20;
   const queue = [...vertexUrls];
   async function worker() {
     while (queue.length > 0) {
@@ -183,7 +183,7 @@ async function populateCitationUrls(sessionId: number): Promise<void> {
       if (!url || resolved.has(url)) continue;
       const dest = await resolveVertexRedirect(url);
       resolved.set(url, dest);
-      await new Promise(r => setTimeout(r, 150));
+      await new Promise(r => setTimeout(r, 50));
     }
   }
   await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
