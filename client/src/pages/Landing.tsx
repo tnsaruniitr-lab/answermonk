@@ -355,17 +355,18 @@ function LandingInner() {
   });
 
   async function handleWaitlistSubmit() {
-    if (!waitlistEmail.includes("@") || !queuedData) return;
+    if (!waitlistEmail.includes("@")) return;
+    const website = queuedData?.website || normalizeDomain(url);
+    const sid = queuedData?.submissionId ?? submissionId ?? undefined;
     setWaitlistSubmitting(true);
     try {
       await apiRequest("POST", "/api/waitlist", {
-        website: queuedData.website,
+        website,
         email: waitlistEmail,
-        submissionId: queuedData.submissionId,
+        submissionId: sid,
       });
       setWaitlistSubmitted(true);
     } catch {
-      // fail silently — still show confirmed
       setWaitlistSubmitted(true);
     } finally {
       setWaitlistSubmitting(false);
