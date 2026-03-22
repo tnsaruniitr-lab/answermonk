@@ -191,6 +191,24 @@ export function VariantA() {
               <div style={{ color: '#94a3b8', fontSize: '13px', textAlign: 'left' }}>
                 "doctor on call in Dubai"
               </div>
+
+              {/* YOU bubble */}
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginTop: '14px',
+                backgroundColor: 'rgba(67,56,202,0.18)',
+                border: '1px solid rgba(99,102,241,0.35)',
+                borderRadius: '100px',
+                padding: '6px 14px',
+                boxShadow: '0 0 14px rgba(67,56,202,0.2)'
+              }}>
+                <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#818cf8', boxShadow: '0 0 6px #818cf8', flexShrink: 0 }} />
+                <span style={{ fontSize: '12px', fontWeight: '600', color: '#c7d2fe', lineHeight: 1.3 }}>
+                  You appear <strong style={{ color: '#ffffff', fontWeight: '800' }}>63%</strong> of the time when your potential customers search this
+                </span>
+              </div>
               <div style={{ display: 'flex', gap: '16px', marginTop: '12px', fontSize: '12px', color: '#64748b' }}>
                 <span><strong style={{color: '#e2e8f0'}}>63%</strong> Appearance</span>
                 <span><strong style={{color: '#e2e8f0'}}>50%</strong> Top 3</span>
@@ -213,21 +231,29 @@ export function VariantA() {
               backgroundColor: 'rgba(255,255,255,0.03)',
               border: '1px solid rgba(255,255,255,0.07)',
               borderRadius: '10px',
-              padding: '14px 16px',
+              padding: '12px 14px',
               marginBottom: '20px',
               display: 'flex',
-              alignItems: 'flex-start',
-              gap: '12px'
+              alignItems: 'center',
+              gap: '10px',
+              flexWrap: 'wrap'
             }}>
-              <div style={{ fontSize: '18px', flexShrink: 0, marginTop: '1px' }}>🔍</div>
-              <div>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: '#e2e8f0', marginBottom: '4px', letterSpacing: '0.01em' }}>
-                  When someone searches "doctor on call in Dubai"…
-                </div>
-                <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.5' }}>
-                  AI engines read hundreds of sources and recommend the brands below. This is who your customers are told to call — before they ever reach your website.
-                </div>
-              </div>
+              <div style={{ fontSize: '14px', flexShrink: 0 }}>🔍</div>
+              <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '500' }}>
+                See who appears when customers search for
+              </span>
+              <span style={{
+                fontSize: '11px',
+                fontWeight: '700',
+                color: '#93c5fd',
+                backgroundColor: 'rgba(59,130,246,0.12)',
+                border: '1px solid rgba(59,130,246,0.25)',
+                padding: '2px 10px',
+                borderRadius: '100px',
+                letterSpacing: '0.01em'
+              }}>
+                doctor on call in Dubai
+              </span>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
