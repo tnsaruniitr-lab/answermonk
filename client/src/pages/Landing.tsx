@@ -349,6 +349,7 @@ function LandingInner() {
   const [activeTab, setActiveTab] = useState<"reports" | "directory" | "agents">("reports");
   const { toast } = useToast();
   const [selectedSegmentIds, setSelectedSegmentIds] = useState<Set<string>>(new Set());
+  const [collapsedSegIds, setCollapsedSegIds] = useState<Set<string>>(new Set());
   const [customerLimitError, setCustomerLimitError] = useState(false);
   const [serviceLimitError, setServiceLimitError] = useState(false);
   const [queuedData, setQueuedData] = useState<{ website: string; submissionId: number } | null>(null);
@@ -576,8 +577,15 @@ function LandingInner() {
       setTimeout(() => {
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 150);
+      setTimeout(() => {
+        setCollapsedSegIds(new Set(scoredSegs.map((s: any) => String(s.id))));
+      }, 600);
     }
   }, [allSegmentsDone]);
+
+  useEffect(() => {
+    setCollapsedSegIds(new Set());
+  }, [activeSessionId]);
 
   function handleTileSelect(sessionId: number) {
     setActiveSessionId(sessionId);
@@ -687,14 +695,16 @@ function LandingInner() {
       <div style={{ position: 'absolute', top: '10vh', right: '-10vw', width: '47vw', height: '47vw', background: '#c4b5fd', borderRadius: '50%', filter: 'blur(120px)', opacity: 0.35, pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', top: '44vh', left: '20vw', width: '39vw', height: '39vw', background: '#a7f3d0', borderRadius: '50%', filter: 'blur(100px)', opacity: 0.35, pointerEvents: 'none' }} />
 
-      {/* Nav — matches mockup exactly */}
-      <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between relative z-10">
-        <div className="flex items-center">
-          <span className="text-xl font-bold tracking-tight" style={{ color: "#1e1b4b" }}>
-            Answer<span style={{ color: "#6366f1" }}>Monk</span>
-          </span>
-        </div>
-      </header>
+      {/* Nav — hidden once analysis session is active (pipeline header takes over) */}
+      {activeSessionId === null && (
+        <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between relative z-10">
+          <div className="flex items-center">
+            <span className="text-xl font-bold tracking-tight" style={{ color: "#1e1b4b" }}>
+              Answer<span style={{ color: "#6366f1" }}>Monk</span>
+            </span>
+          </div>
+        </header>
+      )}
 
       <main className="relative z-10 text-center">
 
@@ -704,7 +714,7 @@ function LandingInner() {
         >
         <div className="space-y-5 max-w-3xl flex flex-col items-center w-full">
 
-            {!replayMode && (
+            {!replayMode && activeSessionId === null && (
               <>
                 {/* Eyebrow */}
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-violet-200 text-violet-700 text-sm font-medium shadow-sm">
@@ -1139,8 +1149,68 @@ function LandingInner() {
               const isDone = seg.scoringResult !== null;
               const doneIndex = scoredSegs.findIndex((s) => s.id === seg.id);
               if (isDone) {
+                const segIdStr = String(seg.id);
+                const isCollapsed = collapsedSegIds.has(segIdStr);
+                const isSelected = allSegmentsDone ? selectedSegmentIds.has(seg.id) : true;
+                const sr = seg.scoringResult;
+                const score = sr?.score || {};
+                const appearance = Math.round((score.appearance_rate ?? 0) * 100);
+                const avgRank = score.avg_rank != null ? `#${score.avg_rank.toFixed(1)}` : "—";
+                const segLabel = seg.persona || seg.serviceType || seg.customerType || seg.label || "Segment";
+
+                if (isCollapsed) {
+                  return (
+                    <div
+                      key={seg.id}
+                      ref={doneIndex === scoredSegs.length - 1 ? lastSegCardRef : undefined}
+                      onClick={() => setCollapsedSegIds((prev) => { const n = new Set(prev); n.delete(segIdStr); return n; })}
+                      style={{
+                        background: "#0d1526",
+                        border: `1px solid ${isSelected ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.07)"}`,
+                        borderRadius: 12,
+                        padding: "10px 16px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        cursor: "pointer",
+                        transition: "border-color 0.2s",
+                      }}
+                    >
+                      <div style={{ width: 7, height: 7, borderRadius: "50%", background: isSelected ? "#22c55e" : "#374151", flexShrink: 0 }} />
+                      <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "#e2e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {segLabel}
+                      </div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: appearance >= 50 ? "#34d399" : appearance >= 25 ? "#fbbf24" : "#f87171", flexShrink: 0 }}>
+                        {appearance}%
+                      </div>
+                      <div style={{ fontSize: 11, color: "#6366f1", flexShrink: 0, marginLeft: 4 }}>{avgRank}</div>
+                      <ChevronDown style={{ width: 14, height: 14, color: "#475569", flexShrink: 0, marginLeft: 4 }} />
+                    </div>
+                  );
+                }
+
                 return (
                   <div key={seg.id} ref={doneIndex === scoredSegs.length - 1 ? lastSegCardRef : undefined}>
+                    {allSegmentsDone && (
+                      <button
+                        onClick={() => setCollapsedSegIds((prev) => new Set([...prev, segIdStr]))}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 5,
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: "#475569",
+                          fontSize: 11,
+                          padding: "0 4px 6px",
+                          marginLeft: "auto",
+                        }}
+                      >
+                        <ChevronDown style={{ width: 12, height: 12, transform: "rotate(180deg)" }} />
+                        Collapse
+                      </button>
+                    )}
                     <SegmentResultCard
                       seg={seg}
                       brandName={scoringSession?.brandName || ""}
