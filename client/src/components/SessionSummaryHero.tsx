@@ -126,6 +126,29 @@ export function SessionSummaryHero({ brandName, scoredSegs, totalSegs }: Props) 
         boxShadow: "0 0 0 1px rgba(255,255,255,0.04), 0 20px 60px rgba(0,0,0,0.5)",
       }}
     >
+      {/* ── Appearance banner ── */}
+      <div
+        style={{
+          background: "linear-gradient(100deg, #3730a3 0%, #4f46e5 45%, #6d28d9 100%)",
+          borderBottom: "1px solid rgba(255,255,255,0.12)",
+        }}
+        className="flex items-center gap-4 px-6 py-4"
+      >
+        <span
+          className="font-black leading-none flex-shrink-0"
+          style={{ fontSize: 44, color: "#ffffff", letterSpacing: "-0.02em", textShadow: "0 0 20px rgba(255,255,255,0.3)" }}
+        >
+          {stats.appearance}%
+        </span>
+        <div style={{ width: 1, height: 40, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
+        <div>
+          <p className="font-bold leading-snug" style={{ fontSize: 14, color: "#ffffff" }}>of the time you appear</p>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginTop: 2 }}>
+            when potential customers search across all your tracked services
+          </p>
+        </div>
+      </div>
+
       {/* ── Brand identity row ── */}
       <div className="flex items-center gap-3 px-6 pt-6 pb-5 border-b border-white/5">
         <div

@@ -135,6 +135,29 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
         cursor: isSelectable ? "pointer" : "default",
       }}
     >
+      {/* Appearance banner */}
+      <div
+        className="flex items-center gap-3 px-4 py-3"
+        style={{
+          background: "linear-gradient(100deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
+          borderBottom: "1px solid rgba(255,255,255,0.12)",
+        }}
+      >
+        <span
+          className="font-black leading-none flex-shrink-0"
+          style={{ fontSize: 36, color: "#ffffff", letterSpacing: "-0.02em", textShadow: "0 0 16px rgba(255,255,255,0.3)" }}
+        >
+          {appearance}%
+        </span>
+        <div style={{ width: 1, height: 34, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
+        <div>
+          <p className="font-bold leading-snug" style={{ fontSize: 13, color: "#ffffff" }}>of the time you appear</p>
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", marginTop: 1 }}>
+            when potential customers search for this {type === "customer" ? "customer type" : "service"} on AI engines
+          </p>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex items-start gap-3 p-4 pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
         {isSelectable ? (
@@ -220,9 +243,27 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
       {/* Rankings */}
       {allRankings.length > 0 && (
         <div className="px-3 pb-3 pt-2">
-          <div className="mb-2">
-            <p className="text-[11px] font-semibold" style={{ color: "rgba(255,255,255,0.75)" }}>AI Search Rankings</p>
-            <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>Brands AI recommends for this segment</p>
+          {/* Context line */}
+          <div className="flex items-center gap-1.5 flex-wrap mb-2.5">
+            <span style={{ fontSize: 12 }}>🔍</span>
+            <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.5)" }}>See who appears when customers search for</span>
+            {promptContext && (
+              <span
+                className="text-[10px] font-bold"
+                style={{
+                  color: "#93c5fd",
+                  background: "rgba(59,130,246,0.12)",
+                  border: "1px solid rgba(59,130,246,0.25)",
+                  padding: "1px 8px",
+                  borderRadius: 100,
+                }}
+              >
+                {promptContext}
+              </span>
+            )}
+          </div>
+          <div className="mb-1.5">
+            <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.3)" }}>AI Search Rankings</p>
           </div>
           <div className="space-y-1.5">
             {allRankings.map((c, idx) => {
