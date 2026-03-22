@@ -1209,6 +1209,9 @@ function LandingInner() {
                     scoredSegs={scoredSegs}
                     brandName={scoringSession?.brandName || ""}
                     brandDomain={scoringSession?.brandDomain || undefined}
+                    enabledEngines={getEnabledEngines().map(e =>
+                      e === "chatgpt" ? "ChatGPT" : e === "gemini" ? "Gemini" : "Claude"
+                    )}
                   />
                 </Suspense>
               </div>

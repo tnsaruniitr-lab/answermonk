@@ -22,6 +22,9 @@ type LogLine =
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+let _globalLineId = 0;
+function nextId(): number { return ++_globalLineId; }
+
 function nowTs(): string {
   const d = new Date();
   return [d.getHours(), d.getMinutes(), d.getSeconds()]
@@ -37,11 +40,10 @@ function getSegLabel(seg: any, idx: number): string {
   return seg.persona || seg.serviceType || seg.customerType || seg.label || `Segment ${idx + 1}`;
 }
 
-function runsToLogLines(seg: any, segIdx: number, baseId: number): LogLine[] {
+function runsToLogLines(seg: any, segIdx: number): LogLine[] {
   const label = getSegLabel(seg, segIdx);
   const runs: any[] = seg.scoringResult?.raw_runs ?? [];
   const lines: LogLine[] = [];
-  let id = baseId;
 
   for (const run of runs) {
     const engName = ENGINE_DISPLAY[run.engine] ?? run.engine;
@@ -54,8 +56,8 @@ function runsToLogLines(seg: any, segIdx: number, baseId: number): LogLine[] {
       kind: "dispatch",
       time: nowTs(),
       engine: engName,
-      prompt: `Who leads "${label}" in UAE?`,
-      id: id++,
+      prompt: `Who leads "${label}"?`,
+      id: nextId(),
     });
     lines.push({
       kind: "result",
@@ -63,7 +65,7 @@ function runsToLogLines(seg: any, segIdx: number, baseId: number): LogLine[] {
       engine: engName,
       latency: parseFloat((rand(700, 2600) / 1000).toFixed(1)),
       brands: brands.length ? brands : ["(no result)"],
-      id: id++,
+      id: nextId(),
     });
   }
   return lines;
@@ -76,25 +78,28 @@ interface Props {
   scoredSegs: any[];
   brandName: string;
   brandDomain?: string;
+  enabledEngines?: string[]; // display names e.g. ["ChatGPT","Gemini"]
 }
 
-export function DispatchFeedLive({ scoringSegs, scoredSegs, brandName, brandDomain }: Props) {
+export function DispatchFeedLive({ scoringSegs, scoredSegs, brandName, brandDomain, enabledEngines }: Props) {
+  const engines = enabledEngines && enabledEngines.length > 0 ? enabledEngines : ["ChatGPT", "Gemini"];
+
   const [lines, setLines] = useState<LogLine[]>([]);
   const [inFlight, setInFlight] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const activePillRef = useRef<HTMLDivElement>(null);
-  const lineIdRef  = useRef(0);
+  const firstActivePillRef = useRef<HTMLDivElement>(null);
   const processedRef = useRef<Set<number | string>>(new Set());
+  const engineIdxRef = useRef(0);
+  const segIdxRef = useRef(0);
 
-  // Case 3: scroll the active segment pill into view when active segment changes
-  const activeSegIdx = scoringSegs.findIndex((s, i) => !s.scoringResult && i === scoredSegs.length);
+  // Scroll first active pill into view when active segments change
   useEffect(() => {
-    if (activePillRef.current) {
+    if (firstActivePillRef.current) {
       setTimeout(() => {
-        activePillRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        firstActivePillRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }, 100);
     }
-  }, [activeSegIdx]);
+  }, [scoredSegs.length]);
 
   // ── Hydrate from real scored segment data ─────────────────────────────────
 
@@ -108,9 +113,8 @@ export function DispatchFeedLive({ scoringSegs, scoredSegs, brandName, brandDoma
       processedRef.current.add(key);
 
       const allIdx = scoringSegs.findIndex(s => (s.id ?? s) === (seg.id ?? seg));
-      const lines = runsToLogLines(seg, allIdx >= 0 ? allIdx : i, lineIdRef.current);
-      lineIdRef.current += lines.length;
-      newLines.push(...lines);
+      const ls = runsToLogLines(seg, allIdx >= 0 ? allIdx : i);
+      newLines.push(...ls);
     }
 
     if (newLines.length > 0) {
@@ -118,27 +122,28 @@ export function DispatchFeedLive({ scoringSegs, scoredSegs, brandName, brandDoma
     }
   }, [scoredSegs.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Animated dispatch feed for the active in-flight segment ──────────────
+  // ── Animated dispatch feed — cycles across ALL in-flight segments ──────────
 
   useEffect(() => {
-    const activeSeg = scoringSegs.find(s => !s.scoringResult);
-    if (!activeSeg) return;
-
-    const activeIdx = scoringSegs.indexOf(activeSeg);
-    const label = getSegLabel(activeSeg, activeIdx);
-    const engines = ["ChatGPT", "Gemini", "Claude"];
-    let ei = 0;
+    const pendingSegs = scoringSegs.filter(s => !s.scoringResult);
+    if (pendingSegs.length === 0) return;
 
     const timers: ReturnType<typeof setTimeout>[] = [];
 
     const intervalId = setInterval(() => {
-      const engine = engines[ei % engines.length];
-      ei++;
-      const dispId = ++lineIdRef.current;
+      // Round-robin through segments and engines
+      const seg = pendingSegs[segIdxRef.current % pendingSegs.length];
+      const engine = engines[engineIdxRef.current % engines.length];
+      segIdxRef.current++;
+      engineIdxRef.current++;
+
+      const segAllIdx = scoringSegs.indexOf(seg);
+      const label = getSegLabel(seg, segAllIdx >= 0 ? segAllIdx : 0);
+      const dispId = nextId();
 
       setLines(prev => [
         ...prev.slice(-79),
-        { kind: "dispatch", time: nowTs(), engine, prompt: `Who leads "${label}" in UAE?`, id: dispId },
+        { kind: "dispatch", time: nowTs(), engine, prompt: `Who leads "${label}"?`, id: dispId },
       ]);
       setInFlight(n => n + 1);
 
@@ -153,12 +158,12 @@ export function DispatchFeedLive({ scoringSegs, scoredSegs, brandName, brandDoma
             engine,
             latency: parseFloat((delay / 1000).toFixed(1)),
             brands: ["…scanning"],
-            id: ++lineIdRef.current,
+            id: nextId(),
           },
         ]);
       }, delay);
       timers.push(t);
-    }, 720);
+    }, 600);
 
     return () => {
       clearInterval(intervalId);
@@ -183,14 +188,14 @@ export function DispatchFeedLive({ scoringSegs, scoredSegs, brandName, brandDoma
     const runs: any[] = s.scoringResult?.raw_runs ?? [];
     return sum + runs.reduce((rs, r) => rs + (r.match?.competitors?.length ?? 0), 0);
   }, 0);
-  const pendingSegs = scoringSegs.length - scoredSegs.length;
-  const estimatedTotal = totalRealRuns + pendingSegs * 24; // 8 prompts × 3 engines
+  const pendingCount = scoringSegs.length - scoredSegs.length;
+  const estimatedTotal = totalRealRuns + pendingCount * 8 * engines.length;
 
   const counters = [
-    { label: "DISPATCHED", value: estimatedTotal, color: "#6366f1" },
-    { label: "COMPLETE",   value: totalRealRuns,  color: "#10b981" },
-    { label: "IN FLIGHT",  value: inFlight,       color: "#f59e0b" },
-    { label: "MENTIONS",   value: totalMentions,  color: "#3b82f6" },
+    { label: "DISPATCHED", value: estimatedTotal,  color: "#6366f1" },
+    { label: "COMPLETE",   value: totalRealRuns,   color: "#10b981" },
+    { label: "IN FLIGHT",  value: inFlight,        color: "#f59e0b" },
+    { label: "MENTIONS",   value: totalMentions,   color: "#3b82f6" },
   ];
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -234,7 +239,7 @@ export function DispatchFeedLive({ scoringSegs, scoredSegs, brandName, brandDoma
           <div>
             <div style={{ color: "#e2e8f0", fontSize: 12, fontWeight: 600 }}>GEO Agent · Prompt Dispatch</div>
             <div style={{ color: "#475569", fontSize: 10 }}>
-              {brandDomain || brandName} · live engine feed
+              {brandDomain || brandName} · {engines.join(" + ")} · parallel
             </div>
           </div>
         </div>
@@ -294,6 +299,11 @@ export function DispatchFeedLive({ scoringSegs, scoredSegs, brandName, brandDoma
             }}
           >
             <span style={{ color: "#334155", fontSize: 9, letterSpacing: 1 }}>LIVE DISPATCH LOG</span>
+            {pendingCount > 0 && (
+              <span style={{ color: "#f59e0b", fontSize: 9, letterSpacing: 1 }}>
+                · {pendingCount} segment{pendingCount > 1 ? "s" : ""} running in parallel
+              </span>
+            )}
             <div
               style={{
                 width: 5,
@@ -315,7 +325,7 @@ export function DispatchFeedLive({ scoringSegs, scoredSegs, brandName, brandDoma
                 Initialising engine connections…
               </div>
             ) : (
-              lines.map((line, i) => (
+              lines.map((line) => (
                 <div
                   key={`${line.id}-${line.kind}`}
                   style={{
@@ -323,7 +333,6 @@ export function DispatchFeedLive({ scoringSegs, scoredSegs, brandName, brandDoma
                     gap: 10,
                     padding: "4px 14px",
                     borderBottom: "1px solid #0a1628",
-                    opacity: i === lines.length - 1 ? 1 : 0.8,
                   }}
                 >
                   <span
@@ -402,16 +411,17 @@ export function DispatchFeedLive({ scoringSegs, scoredSegs, brandName, brandDoma
           </div>
         </div>
 
-        {/* Segment pills */}
+        {/* Segment pills — all pending show as active (parallel) */}
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {scoringSegs.map((seg, i) => {
             const done = !!seg.scoringResult;
-            const active = !done && i === scoredSegs.length;
+            const active = !done; // parallel: all pending segments are active simultaneously
+            const isFirst = active && scoringSegs.slice(0, i).every(s => !!s.scoringResult);
             const label = getSegLabel(seg, i);
             return (
               <div
                 key={seg.id ?? i}
-                ref={active ? activePillRef : undefined}
+                ref={isFirst ? firstActivePillRef : undefined}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -428,6 +438,7 @@ export function DispatchFeedLive({ scoringSegs, scoredSegs, brandName, brandDoma
                     height: 5,
                     borderRadius: "50%",
                     background: done ? "#10b981" : active ? "#f59e0b" : "#1e3a5f",
+                    boxShadow: active && !done ? "0 0 4px #f59e0b" : "none",
                   }}
                 />
                 <span
