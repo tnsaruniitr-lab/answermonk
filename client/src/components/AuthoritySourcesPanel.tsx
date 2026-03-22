@@ -2648,11 +2648,11 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       {!hasData && (
         <>
           {/* autoRun: show full mission-control loader instead of the manual button */}
-          {(crawlMutation.isPending || isCrawlRunning || (autoRun && !insightsLoading && !insightsGenerated)) ? (
+          {(crawlMutation.isPending || isCrawlRunning || insightsMutation.isPending || (autoRun && !insightsLoading && !insightsGenerated)) ? (
             <MissionControlLoader
               sessionId={sessionId}
-              crawlPending={true}
-              insightsPending={false}
+              crawlPending={crawlMutation.isPending || isCrawlRunning || (autoRun && !insightsMutation.isPending && !insightsGenerated)}
+              insightsPending={insightsMutation.isPending}
               rowCount={rowCount}
               modelLabel={activeModelLabel}
             />
