@@ -241,10 +241,10 @@ export function DispatchFeedLive({ scoringSegs, scoredSegs, brandName, brandDoma
         </div>
       </div>
 
-      <div style={{ padding: "14px 18px" }}>
+      <div style={{ padding: "12px 14px" }}>
         {/* Counter tiles */}
         <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 14 }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr))", gap: 8, marginBottom: 14 }}
         >
           {counters.map(s => (
             <div

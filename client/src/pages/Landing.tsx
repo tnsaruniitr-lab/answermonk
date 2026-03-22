@@ -917,7 +917,7 @@ function LandingInner() {
               <p className="text-sm text-gray-500 leading-relaxed">
                 We've saved your spot for <span className="text-indigo-600 font-semibold">{queuedData.website}</span>. The moment a slot opens your audit runs automatically — we'll send the report straight to your inbox.
               </p>
-              <div className="grid grid-cols-3 gap-3 mt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
                 {[
                   { label: "Queue position", value: "#1 — next up" },
                   { label: "Est. wait", value: "~12 min" },
@@ -996,40 +996,45 @@ function LandingInner() {
                 boxShadow: "0 2px 12px rgba(99,102,241,0.06)",
               }}>
                 {!waitlistSubmitted ? (
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <p style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a", margin: 0, flex: "0 0 auto" }}>
-                      🧘 In a hurry?
-                    </p>
-                    <p style={{ fontSize: "12px", color: "#64748b", margin: 0, flex: 1 }}>
-                      Leave your email and we'll send the report to you.
-                    </p>
-                    <input
-                      value={waitlistEmail}
-                      onChange={e => setWaitlistEmail(e.target.value)}
-                      placeholder="your@email.com"
-                      style={{
-                        border: "1px solid rgba(99,102,241,0.22)", borderRadius: "7px",
-                        padding: "7px 10px", fontSize: "12px", color: "#0f172a", outline: "none",
-                        background: "rgba(255,255,255,0.9)", width: "160px", flexShrink: 0,
-                      }}
-                    />
-                    <button
-                      onClick={handleWaitlistSubmit}
-                      disabled={waitlistSubmitting || !waitlistEmail.includes("@")}
-                      style={{
-                        background: waitlistEmail.includes("@") ? "#6366f1" : "rgba(0,0,0,0.06)",
-                        color: waitlistEmail.includes("@") ? "white" : "#9ca3af",
-                        border: "none", borderRadius: "7px", padding: "7px 14px",
-                        fontSize: "12px", fontWeight: 600, cursor: waitlistEmail.includes("@") ? "pointer" : "not-allowed",
-                        whiteSpace: "nowrap", flexShrink: 0,
-                      }}
-                    >
-                      {waitlistSubmitting ? "..." : "Send report →"}
-                    </button>
-                    <button
-                      onClick={() => setNudgeDismissed(true)}
-                      style={{ background: "none", border: "none", color: "#94a3b8", fontSize: "16px", cursor: "pointer", padding: "0 0 0 4px", lineHeight: 1, flexShrink: 0 }}
-                    >×</button>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <p style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a", margin: 0, flexShrink: 0 }}>
+                        🧘 In a hurry?
+                      </p>
+                      <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }} className="truncate">
+                        Leave your email and we'll send the report to you.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <input
+                        value={waitlistEmail}
+                        onChange={e => setWaitlistEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        className="flex-1 sm:flex-none"
+                        style={{
+                          border: "1px solid rgba(99,102,241,0.22)", borderRadius: "7px",
+                          padding: "7px 10px", fontSize: "12px", color: "#0f172a", outline: "none",
+                          background: "rgba(255,255,255,0.9)", minWidth: 0, width: "auto",
+                        }}
+                      />
+                      <button
+                        onClick={handleWaitlistSubmit}
+                        disabled={waitlistSubmitting || !waitlistEmail.includes("@")}
+                        style={{
+                          background: waitlistEmail.includes("@") ? "#6366f1" : "rgba(0,0,0,0.06)",
+                          color: waitlistEmail.includes("@") ? "white" : "#9ca3af",
+                          border: "none", borderRadius: "7px", padding: "7px 14px",
+                          fontSize: "12px", fontWeight: 600, cursor: waitlistEmail.includes("@") ? "pointer" : "not-allowed",
+                          whiteSpace: "nowrap", flexShrink: 0,
+                        }}
+                      >
+                        {waitlistSubmitting ? "..." : "Send report →"}
+                      </button>
+                      <button
+                        onClick={() => setNudgeDismissed(true)}
+                        style={{ background: "none", border: "none", color: "#94a3b8", fontSize: "16px", cursor: "pointer", padding: "0 0 0 4px", lineHeight: 1, flexShrink: 0 }}
+                      >×</button>
+                    </div>
                   </div>
                 ) : (
                   <p style={{ fontSize: "12px", color: "#10b981", fontWeight: 600, margin: 0 }}>
@@ -1060,36 +1065,41 @@ function LandingInner() {
                 backdropFilter: "blur(8px)",
                 boxShadow: "0 2px 12px rgba(245,158,11,0.06)",
               }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <p style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a", margin: 0, flex: "0 0 auto" }}>
-                    🔍 In a hurry?
-                  </p>
-                  <p style={{ fontSize: "12px", color: "#64748b", margin: 0, flex: 1 }}>
-                    Leave your email and we'll send it to you.
-                  </p>
-                  <input
-                    value={waitlistEmail}
-                    onChange={e => setWaitlistEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    style={{
-                      border: "1px solid rgba(245,158,11,0.3)", borderRadius: "7px",
-                      padding: "7px 10px", fontSize: "12px", color: "#0f172a", outline: "none",
-                      background: "rgba(255,255,255,0.9)", width: "160px", flexShrink: 0,
-                    }}
-                  />
-                  <button
-                    onClick={handleWaitlistSubmit}
-                    disabled={waitlistSubmitting || !waitlistEmail.includes("@")}
-                    style={{
-                      background: waitlistEmail.includes("@") ? "#f59e0b" : "rgba(0,0,0,0.06)",
-                      color: waitlistEmail.includes("@") ? "#0f172a" : "#9ca3af",
-                      border: "none", borderRadius: "7px", padding: "7px 14px",
-                      fontSize: "12px", fontWeight: 700, cursor: waitlistEmail.includes("@") ? "pointer" : "not-allowed",
-                      whiteSpace: "nowrap", flexShrink: 0,
-                    }}
-                  >
-                    {waitlistSubmitting ? "..." : "Email link →"}
-                  </button>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <p style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a", margin: 0, flexShrink: 0 }}>
+                      🔍 In a hurry?
+                    </p>
+                    <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }} className="truncate">
+                      Leave your email and we'll send it to you.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <input
+                      value={waitlistEmail}
+                      onChange={e => setWaitlistEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      className="flex-1 sm:flex-none"
+                      style={{
+                        border: "1px solid rgba(245,158,11,0.3)", borderRadius: "7px",
+                        padding: "7px 10px", fontSize: "12px", color: "#0f172a", outline: "none",
+                        background: "rgba(255,255,255,0.9)", minWidth: 0, width: "auto",
+                      }}
+                    />
+                    <button
+                      onClick={handleWaitlistSubmit}
+                      disabled={waitlistSubmitting || !waitlistEmail.includes("@")}
+                      style={{
+                        background: waitlistEmail.includes("@") ? "#f59e0b" : "rgba(0,0,0,0.06)",
+                        color: waitlistEmail.includes("@") ? "#0f172a" : "#9ca3af",
+                        border: "none", borderRadius: "7px", padding: "7px 14px",
+                        fontSize: "12px", fontWeight: 700, cursor: waitlistEmail.includes("@") ? "pointer" : "not-allowed",
+                        whiteSpace: "nowrap", flexShrink: 0,
+                      }}
+                    >
+                      {waitlistSubmitting ? "..." : "Email link →"}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

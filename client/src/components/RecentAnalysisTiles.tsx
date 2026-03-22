@@ -336,8 +336,8 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
         )}
       </div>
 
-      {/* 3-column grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+      {/* Responsive grid — 3-col desktop, 2-col tablet, 1-col mobile */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
         {isLoading
           ? Array.from({ length: INITIAL_COUNT }, (_, i) => <SkeletonTile key={i} />)
           : visible.map(tile => (

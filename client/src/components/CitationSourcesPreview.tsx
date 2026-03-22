@@ -160,10 +160,10 @@ export function CitationSourcesPreview({ sessionId }: Props) {
         </p>
       </div>
 
-      <div style={{ padding: "16px 24px 20px" }}>
+      <div style={{ padding: "12px 16px 16px" }}>
 
-        {/* Top 3 podium cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
+        {/* Top 3 podium cards — responsive: 3-col desktop, 1-col mobile */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10, marginBottom: 14 }}>
           {top3.map((s, i) => {
             const isExpanded = expandedDomain === s.domain;
             const isLoadingThis = loadingDomain === s.domain;

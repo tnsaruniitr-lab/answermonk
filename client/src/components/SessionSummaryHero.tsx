@@ -159,7 +159,7 @@ export function SessionSummaryHero({ brandName, scoredSegs, totalSegs }: Props) 
       </div>
 
       {/* ── Score ring + stats + engine bars ── */}
-      <div className="flex gap-6 items-center px-6 py-5">
+      <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 items-center sm:items-start px-5 sm:px-6 py-5">
         <ScoreRing score={stats.appearance} />
 
         <div className="flex-1 min-w-0">
