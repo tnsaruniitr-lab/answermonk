@@ -71,6 +71,24 @@ export function VariantA() {
                 </div>
               </div>
             </div>
+
+            {/* Overall appearance bubble */}
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginTop: '16px',
+              backgroundColor: 'rgba(67,56,202,0.18)',
+              border: '1px solid rgba(99,102,241,0.35)',
+              borderRadius: '100px',
+              padding: '7px 16px',
+              boxShadow: '0 0 14px rgba(67,56,202,0.2)'
+            }}>
+              <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#818cf8', boxShadow: '0 0 6px #818cf8', flexShrink: 0 }} />
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#c7d2fe', lineHeight: 1.3 }}>
+                You appear <strong style={{ color: '#ffffff', fontWeight: '800' }}>47%</strong> of the time across all searches we tracked
+              </span>
+            </div>
           </div>
 
           {/* Body Area */}
