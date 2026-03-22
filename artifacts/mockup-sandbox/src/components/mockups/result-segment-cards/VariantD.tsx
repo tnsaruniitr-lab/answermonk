@@ -16,6 +16,88 @@ export function VariantD() {
     <div style={{ backgroundColor: '#060f1e', minHeight: '100vh', padding: '40px 20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <div style={{ maxWidth: '640px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
+        {/* ─── YOUR RESULTS CARD ─── */}
+        <div style={{
+          backgroundColor: '#0d1526',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '16px',
+          overflow: 'hidden'
+        }}>
+
+          {/* ★ OVERALL BANNER */}
+          <div style={{
+            background: 'linear-gradient(100deg, #3730a3 0%, #4f46e5 45%, #6d28d9 100%)',
+            padding: '18px 24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            borderBottom: '1px solid rgba(255,255,255,0.12)'
+          }}>
+            <div style={{ fontSize: '48px', fontWeight: '900', color: '#ffffff', lineHeight: 1, letterSpacing: '-0.02em', flexShrink: 0, textShadow: '0 0 20px rgba(255,255,255,0.3)' }}>
+              47%
+            </div>
+            <div style={{ width: '1px', height: '44px', backgroundColor: 'rgba(255,255,255,0.25)', flexShrink: 0 }} />
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#ffffff', lineHeight: 1.3, marginBottom: '3px' }}>
+                of the time you appear
+              </div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', lineHeight: 1.4 }}>
+                when potential customers search across all your tracked services
+              </div>
+            </div>
+          </div>
+
+          {/* Brand row */}
+          <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ backgroundColor: 'rgba(34,197,94,0.15)', color: '#4ade80', padding: '3px 10px', borderRadius: '100px', fontSize: '11px', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase', border: '1px solid rgba(34,197,94,0.3)' }}>
+                  Your Results
+                </div>
+              </div>
+              <div style={{ backgroundColor: 'rgba(245,158,11,0.15)', color: '#fbbf24', padding: '5px 12px', borderRadius: '100px', fontSize: '13px', fontWeight: '600', border: '1px solid rgba(245,158,11,0.3)', boxShadow: '0 0 10px rgba(245,158,11,0.1)' }}>
+                #5 of 27 brands
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg,#4338ca,#3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', fontWeight: 'bold', color: 'white', boxShadow: '0 4px 12px rgba(67,56,202,0.4)', flexShrink: 0 }}>
+                F
+              </div>
+              <div>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff' }}>First Response Healthcare</div>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '3px', color: '#94a3b8', fontSize: '12px' }}>
+                  <span>Dubai</span><span>•</span><span>3/3 segments</span><span>•</span><span>48 responses</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Engine breakdown */}
+          <div style={{ padding: '18px 24px', display: 'flex', gap: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            {[{ label: 'ChatGPT', pct: 33, color: '#22c55e' }, { label: 'Gemini', pct: 60, color: '#3b82f6' }, { label: 'Claude', pct: 0, color: '#8b5cf6' }].map(e => (
+              <div key={e.label} style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '5px' }}>
+                  <span style={{ color: '#e2e8f0' }}>{e.label}</span>
+                  <span style={{ color: '#ffffff', fontWeight: '700' }}>{e.pct}%</span>
+                </div>
+                <div style={{ height: '5px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ width: `${e.pct}%`, height: '100%', backgroundColor: e.color, borderRadius: '3px' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Stats footer */}
+          <div style={{ padding: '14px 24px', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px' }}>
+            {[{ label: 'Top 3 Rate', val: '25%' }, { label: 'Avg Rank', val: '#4.1' }, { label: 'Rating', val: 'Moderate', amber: true }].map(s => (
+              <div key={s.label}>
+                <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '3px' }}>{s.label}</div>
+                <div style={{ fontSize: '16px', color: s.amber ? '#fcd34d' : '#ffffff', fontWeight: '700' }}>{s.val}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* ─── SEGMENT CARD ─── */}
         <div style={{
           backgroundColor: '#0d1526',
