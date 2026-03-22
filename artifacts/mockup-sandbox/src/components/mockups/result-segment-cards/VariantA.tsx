@@ -173,14 +173,15 @@ export function VariantA() {
             <div>
               <div style={{ 
                 display: 'inline-block',
-                backgroundColor: 'rgba(255,255,255,0.1)', 
-                color: '#cbd5e1', 
+                backgroundColor: 'rgba(59,130,246,0.15)', 
+                color: '#93c5fd', 
                 padding: '2px 8px', 
                 borderRadius: '4px', 
                 fontSize: '10px', 
                 fontWeight: '600',
                 letterSpacing: '0.05em',
-                marginBottom: '8px'
+                marginBottom: '8px',
+                border: '1px solid rgba(59,130,246,0.25)'
               }}>
                 SERVICE
               </div>
@@ -188,7 +189,7 @@ export function VariantA() {
                 Doctor On Call
               </h3>
               <div style={{ color: '#94a3b8', fontSize: '13px', textAlign: 'left' }}>
-                "trusted doctor on call services in Dubai"
+                "doctor on call in Dubai"
               </div>
               <div style={{ display: 'flex', gap: '16px', marginTop: '12px', fontSize: '12px', color: '#64748b' }}>
                 <span><strong style={{color: '#e2e8f0'}}>63%</strong> Appearance</span>
@@ -206,9 +207,31 @@ export function VariantA() {
 
           {/* Rankings Section */}
           <div style={{ padding: '24px' }}>
-            <div style={{ marginBottom: '20px' }}>
-              <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: '#ffffff' }}>AI Search Rankings</h4>
-              <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#64748b' }}>Brands AI recommends when your customers search this</p>
+
+            {/* Context callout */}
+            <div style={{
+              backgroundColor: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: '10px',
+              padding: '14px 16px',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px'
+            }}>
+              <div style={{ fontSize: '18px', flexShrink: 0, marginTop: '1px' }}>🔍</div>
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: '#e2e8f0', marginBottom: '4px', letterSpacing: '0.01em' }}>
+                  When someone searches "doctor on call in Dubai"…
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.5' }}>
+                  AI engines read hundreds of sources and recommend the brands below. This is who your customers are told to call — before they ever reach your website.
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <h4 style={{ margin: 0, fontSize: '13px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>AI Search Rankings</h4>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
