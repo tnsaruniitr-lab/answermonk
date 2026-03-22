@@ -1665,11 +1665,12 @@ const AUDIT_TYPE_HEX: Record<string, { bg: string; text: string }> = {
   Other: { bg: "rgba(100,116,139,0.08)", text: "#475569" },
 };
 
-function AuditExpandableRow({ entry, sessionId, rank, maxApps }: {
+function AuditExpandableRow({ entry, sessionId, rank, maxApps, accent = "teal" }: {
   entry: DomainEntry;
   sessionId: number;
   rank: number;
   maxApps: number;
+  accent?: "teal" | "brand";
 }) {
   const [open, setOpen] = useState(false);
   const { data, isFetching } = useQuery<{ urls: DomainUrl[] }>({
@@ -1683,8 +1684,12 @@ function AuditExpandableRow({ entry, sessionId, rank, maxApps }: {
     staleTime: 5 * 60 * 1000,
   });
   const pct = maxApps > 0 ? Math.round((entry.appearances / maxApps) * 100) : 0;
+  const accentColor = accent === "brand" ? "#be185d" : "#0d9488";
+  const accentBar = accent === "brand" ? "rgba(236,72,153,0.55)" : "rgba(20,184,166,0.6)";
+  const accentDiv = accent === "brand" ? "rgba(251,113,133,0.06)" : "rgba(20,184,166,0.06)";
+  const urlColor = accent === "brand" ? "#f472b6" : "#2dd4bf";
   return (
-    <div style={{ borderBottom: "1px solid rgba(20,184,166,0.06)" }}>
+    <div style={{ borderBottom: `1px solid ${accentDiv}` }}>
       <button
         onClick={() => setOpen(o => !o)}
         style={{ width: "100%", display: "grid", gridTemplateColumns: "22px 1fr auto auto 14px", alignItems: "center", gap: 10, padding: "9px 14px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}
@@ -1695,10 +1700,10 @@ function AuditExpandableRow({ entry, sessionId, rank, maxApps }: {
           {entry.inChatgpt && <span style={{ fontSize: 9, fontWeight: 700, color: "#059669", background: "rgba(16,185,129,0.08)", padding: "1px 5px", borderRadius: 4 }}>GPT</span>}
           {entry.inGemini && <span style={{ fontSize: 9, fontWeight: 700, color: "#2563eb", background: "rgba(59,130,246,0.08)", padding: "1px 5px", borderRadius: 4 }}>Gem</span>}
           {entry.inClaude && <span style={{ fontSize: 9, fontWeight: 700, color: "#d97706", background: "rgba(245,158,11,0.08)", padding: "1px 5px", borderRadius: 4 }}>Cla</span>}
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#0d9488", minWidth: 20, textAlign: "right" }}>{entry.appearances}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: accentColor, minWidth: 20, textAlign: "right" }}>{entry.appearances}</span>
         </div>
         <div style={{ width: 44, height: 3, borderRadius: 2, background: "rgba(255,255,255,0.1)", overflow: "hidden", flexShrink: 0 }}>
-          <div style={{ width: `${pct}%`, height: "100%", borderRadius: 2, background: "rgba(20,184,166,0.6)" }} />
+          <div style={{ width: `${pct}%`, height: "100%", borderRadius: 2, background: accentBar }} />
         </div>
         <ChevronDown style={{ width: 11, height: 11, color: "#475569", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s", flexShrink: 0 }} />
       </button>
@@ -1711,7 +1716,7 @@ function AuditExpandableRow({ entry, sessionId, rank, maxApps }: {
           ) : (data?.urls ?? []).map((u, i) => (
             <a key={i} href={u.url} target="_blank" rel="noopener noreferrer"
               style={{ display: "flex", alignItems: "flex-start", gap: 6, marginBottom: 5, textDecoration: "none" }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: "#2dd4bf", flexShrink: 0, marginTop: 1 }}>{u.citation_count}×</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: urlColor, flexShrink: 0, marginTop: 1 }}>{u.citation_count}×</span>
               <span style={{ fontSize: 11, color: "#818cf8", lineHeight: 1.4, wordBreak: "break-all" }}>{u.title || u.url}</span>
             </a>
           ))}
@@ -1728,17 +1733,31 @@ function AuditDefaultItem({ topSources, realSources = [], brandSources = [], ses
   sessionId: number;
 }) {
   const [open, setOpen] = useState(false);
-  const [showAll, setShowAll] = useState(false);
+  const [activeTab, setActiveTab] = useState<"authority" | "brand" | "all">("authority");
+  const [showAllAuth, setShowAllAuth] = useState(false);
+  const [showAllBrand, setShowAllBrand] = useState(false);
   const borderCol = "rgba(20,184,166,0.25)";
   const bgCol = "rgba(20,184,166,0.08)";
   const textCol = "#0d9488";
   const chevBg = open ? bgCol : "rgba(255,255,255,0.04)";
   const chevBorder = open ? borderCol : "rgba(255,255,255,0.08)";
 
-  const sources = realSources.length > 0 ? realSources : [];
-  const visible = showAll ? sources : sources.slice(0, 10);
-  const maxApps = Math.max(...sources.map(s => s.appearances), 1);
+  const authSources = realSources;
+  const LIMIT = 15;
+  const authVisible = showAllAuth ? authSources : authSources.slice(0, LIMIT);
+  const brandVisible = showAllBrand ? brandSources : brandSources.slice(0, LIMIT);
+  const maxApps = Math.max(...authSources.map(s => s.appearances), 1);
   const brandMaxApps = Math.max(...brandSources.map(s => s.appearances), 1);
+
+  const showAuth = activeTab === "authority" || activeTab === "all";
+  const showBrand = activeTab === "brand" || activeTab === "all";
+  const totalCount = authSources.length + brandSources.length;
+
+  const tabs: { key: "authority" | "brand" | "all"; label: string; count: number; activeColor: string; activeBorder: string }[] = [
+    { key: "authority", label: "Third-party", count: authSources.length, activeColor: "#0d9488", activeBorder: "rgba(20,184,166,0.35)" },
+    { key: "brand",     label: "Brand / Comp", count: brandSources.length, activeColor: "#be185d", activeBorder: "rgba(236,72,153,0.35)" },
+    { key: "all",       label: "All",          count: totalCount,          activeColor: "#64748b", activeBorder: "rgba(255,255,255,0.2)" },
+  ];
 
   return (
     <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid ${open ? borderCol : "rgba(255,255,255,0.08)"}`, background: "#0d1526", transition: "border-color 0.15s" }}>
@@ -1751,8 +1770,8 @@ function AuditDefaultItem({ topSources, realSources = [], brandSources = [], ses
           <span style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0", lineHeight: 1.4 }}>Audit the authority sources shaping your AI results — then enhance and monitor your presence across them continuously</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-          {sources.length > 0 && (
-            <span style={{ fontSize: 10, fontWeight: 600, color: "#475569" }}>{sources.length} sources</span>
+          {totalCount > 0 && (
+            <span style={{ fontSize: 10, fontWeight: 600, color: "#475569" }}>{totalCount} sources</span>
           )}
           <div style={{ width: 26, height: 26, borderRadius: 7, background: chevBg, border: `1px solid ${chevBorder}`, display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s" }}>
             <ChevronDown style={{ width: 15, height: 15, color: open ? textCol : "#64748b", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.18s, color 0.15s" }} />
@@ -1763,70 +1782,96 @@ function AuditDefaultItem({ topSources, realSources = [], brandSources = [], ses
         {open && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} style={{ overflow: "hidden" }}>
             <div style={{ padding: "4px 16px 16px 16px", borderTop: "1px solid rgba(20,184,166,0.1)", background: "rgba(20,184,166,0.02)" }}>
-              <p style={{ fontSize: 12, color: "#5eead4", lineHeight: 1.6, margin: "12px 0 14px", opacity: 0.9 }}>
-                These are the authority sources currently shaping AI recommendations in your market — ranked by how often they are cited. Audit your presence on each, contribute content, get cited, or build relationships with publishers.
+              <p style={{ fontSize: 12, color: "#5eead4", lineHeight: 1.6, margin: "12px 0 12px", opacity: 0.9 }}>
+                Domains ranked by AI citation frequency. Third-party sources are the actionable intelligence — these are the platforms you can get listed on, improve your profile, and earn citations from.
               </p>
 
-              {/* Real authority sources table */}
-              {visible.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", borderRadius: 10, overflow: "hidden", border: "1px solid rgba(20,184,166,0.12)" }}>
-                  {/* Header */}
-                  <div style={{ display: "grid", gridTemplateColumns: "22px 1fr auto auto 14px", gap: 10, padding: "6px 14px", background: "rgba(0,0,0,0.3)", borderBottom: "1px solid rgba(20,184,166,0.1)" }}>
-                    {["#", "Domain", "Engines · Citations", "Bar", ""].map((h, hi) => (
-                      <span key={hi} style={{ fontSize: 9, fontWeight: 700, color: "#334155", letterSpacing: 1, textTransform: "uppercase" }}>{h}</span>
+              {/* Tab selector */}
+              <div style={{ display: "flex", gap: 5, marginBottom: 14 }}>
+                {tabs.map(tab => {
+                  const isActive = activeTab === tab.key;
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActiveTab(tab.key)}
+                      style={{
+                        fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 6,
+                        border: `1px solid ${isActive ? tab.activeBorder : "rgba(255,255,255,0.1)"}`,
+                        background: isActive ? "rgba(255,255,255,0.05)" : "transparent",
+                        color: isActive ? tab.activeColor : "#475569",
+                        cursor: "pointer", transition: "all 0.15s", letterSpacing: 0.5,
+                      }}
+                    >
+                      {tab.label}
+                      <span style={{ marginLeft: 5, fontSize: 9, opacity: 0.7 }}>{tab.count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Third-party authority section */}
+              {showAuth && (
+                <div style={{ marginBottom: showBrand && brandSources.length > 0 ? 18 : 0 }}>
+                  {activeTab === "all" && authSources.length > 0 && (
+                    <div style={{ fontSize: 9, fontWeight: 700, color: "#0d9488", letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 7, display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#0d9488" }} />
+                      Third-party Authority Sources
+                    </div>
+                  )}
+                  {authVisible.length > 0 ? (
+                    <div style={{ display: "flex", flexDirection: "column", borderRadius: 10, overflow: "hidden", border: "1px solid rgba(20,184,166,0.12)" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "22px 1fr auto auto 14px", gap: 10, padding: "6px 14px", background: "rgba(0,0,0,0.3)", borderBottom: "1px solid rgba(20,184,166,0.1)" }}>
+                        {["#", "Domain", "Engines · Citations", "Bar", ""].map((h, hi) => (
+                          <span key={hi} style={{ fontSize: 9, fontWeight: 700, color: "#334155", letterSpacing: 1, textTransform: "uppercase" }}>{h}</span>
+                        ))}
+                      </div>
+                      {authVisible.map((s, idx) => (
+                        <AuditExpandableRow key={s.domain} entry={s} sessionId={sessionId} rank={idx + 1} maxApps={maxApps} accent="teal" />
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 12, color: "#475569", fontStyle: "italic" }}>No third-party source data for this session.</div>
+                  )}
+                  {authSources.length > LIMIT && (
+                    <button onClick={() => setShowAllAuth(a => !a)} style={{ marginTop: 7, fontSize: 11, color: "#2dd4bf", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}>
+                      {showAllAuth ? "Show less" : `Show ${authSources.length - LIMIT} more third-party sources`}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Brand / Competitor section */}
+              {showBrand && brandSources.length > 0 && (
+                <div>
+                  {activeTab === "all" && (
+                    <div style={{ fontSize: 9, fontWeight: 700, color: "#be185d", letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 7, display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#be185d" }} />
+                      Brand &amp; Competitor Domains
+                    </div>
+                  )}
+                  <div style={{ display: "flex", flexDirection: "column", borderRadius: 10, overflow: "hidden", border: "1px solid rgba(251,113,133,0.18)" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "22px 1fr auto auto 14px", gap: 10, padding: "6px 14px", background: "rgba(0,0,0,0.3)", borderBottom: "1px solid rgba(251,113,133,0.1)" }}>
+                      {["#", "Domain", "Engines · Citations", "Bar", ""].map((h, hi) => (
+                        <span key={hi} style={{ fontSize: 9, fontWeight: 700, color: "#334155", letterSpacing: 1, textTransform: "uppercase" }}>{h}</span>
+                      ))}
+                    </div>
+                    {brandVisible.map((s, idx) => (
+                      <AuditExpandableRow key={s.domain} entry={s} sessionId={sessionId} rank={idx + 1} maxApps={brandMaxApps} accent="brand" />
                     ))}
                   </div>
-                  {visible.map((s, idx) => (
-                    <AuditExpandableRow key={s.domain} entry={s} sessionId={sessionId} rank={idx + 1} maxApps={maxApps} />
-                  ))}
+                  {brandSources.length > LIMIT && (
+                    <button onClick={() => setShowAllBrand(a => !a)} style={{ marginTop: 7, fontSize: 11, color: "#f472b6", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}>
+                      {showAllBrand ? "Show less" : `Show ${brandSources.length - LIMIT} more brand sources`}
+                    </button>
+                  )}
                 </div>
-              ) : (
+              )}
+
+              {showAuth && !authVisible.length && showBrand && !brandVisible.length && (
                 <div style={{ fontSize: 12, color: "#475569", fontStyle: "italic" }}>No source data available for this session.</div>
               )}
 
-              {/* Show more / show less */}
-              {sources.length > 10 && (
-                <button
-                  onClick={() => setShowAll(a => !a)}
-                  style={{ marginTop: 8, fontSize: 11, color: "#2dd4bf", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}
-                >
-                  {showAll ? "Show less" : `Show ${sources.length - 10} more sources`}
-                </button>
-              )}
-
-              {/* Brand & competitor domains block */}
-              {brandSources.length > 0 && (
-                <div style={{ marginTop: 16 }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: "#fb7185", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
-                    Brand &amp; Competitor Domains · cited by AI engines
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", borderRadius: 10, overflow: "hidden", border: "1px solid rgba(251,113,133,0.18)" }}>
-                    {brandSources.map((s, idx) => {
-                      const bPct = Math.round((s.appearances / brandMaxApps) * 100);
-                      return (
-                        <div key={s.domain} style={{ display: "grid", gridTemplateColumns: "22px 1fr auto auto", alignItems: "center", gap: 10, padding: "9px 14px", background: idx % 2 === 0 ? "rgba(251,113,133,0.03)" : "rgba(0,0,0,0.01)", borderBottom: idx < brandSources.length - 1 ? "1px solid rgba(251,113,133,0.08)" : "none" }}>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textAlign: "right" }}>{idx + 1}</span>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-                            <span style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.domain}</span>
-                            <span style={{ fontSize: 9, fontWeight: 700, color: "#be185d", background: "rgba(236,72,153,0.08)", padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>Brand</span>
-                          </div>
-                          <div style={{ display: "flex", gap: 3 }}>
-                            {s.inChatgpt && <span style={{ fontSize: 9, fontWeight: 700, color: "#059669", background: "rgba(16,185,129,0.08)", padding: "1px 5px", borderRadius: 4 }}>GPT</span>}
-                            {s.inGemini && <span style={{ fontSize: 9, fontWeight: 700, color: "#2563eb", background: "rgba(59,130,246,0.08)", padding: "1px 5px", borderRadius: 4 }}>Gem</span>}
-                            {s.inClaude && <span style={{ fontSize: 9, fontWeight: 700, color: "#d97706", background: "rgba(245,158,11,0.08)", padding: "1px 5px", borderRadius: 4 }}>Cla</span>}
-                            <span style={{ fontSize: 11, fontWeight: 700, color: "#be185d", minWidth: 20, textAlign: "right" }}>{s.appearances}</span>
-                          </div>
-                          <div style={{ width: 44, height: 3, borderRadius: 2, background: "rgba(236,72,153,0.1)", overflow: "hidden" }}>
-                            <div style={{ width: `${bPct}%`, height: "100%", borderRadius: 2, background: "rgba(236,72,153,0.5)" }} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <div style={{ fontSize: 10, color: "#334155", marginTop: 10 }}>Sorted by citation frequency across all AI engines in this session</div>
+              <div style={{ fontSize: 10, color: "#334155", marginTop: 12 }}>Sorted by citation frequency across all AI engines in this session</div>
             </div>
           </motion.div>
         )}
