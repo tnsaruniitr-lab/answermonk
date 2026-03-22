@@ -4376,7 +4376,7 @@ Rules for content:
           apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY,
           baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
         });
-        const claudeModel = model === "claude-haiku-3-5" ? "claude-haiku-3-5" : "claude-sonnet-4-5";
+        const claudeModel = model === "claude-haiku-4-5" ? "claude-haiku-4-5" : "claude-sonnet-4-5";
 
         if (webSearch) {
           // Multi-turn loop with Anthropic web_search tool

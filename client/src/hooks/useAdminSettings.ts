@@ -12,7 +12,7 @@ export interface AdminSettings {
   maxServices: number;
   maxCustomers: number;
   citationAnalysisMode: "url_rows" | "domain_aggregated";
-  insightsModel: "claude-sonnet-4-5" | "claude-haiku-3-5";
+  insightsModel: "claude-sonnet-4-5" | "claude-haiku-4-5";
 }
 
 const STORAGE_KEY = "answermonk_admin_settings";
@@ -44,7 +44,9 @@ function loadSettings(): AdminSettings {
       maxServices: parsed.maxServices ?? DEFAULTS.maxServices,
       maxCustomers: parsed.maxCustomers ?? DEFAULTS.maxCustomers,
       citationAnalysisMode: parsed.citationAnalysisMode ?? DEFAULTS.citationAnalysisMode,
-      insightsModel: parsed.insightsModel ?? DEFAULTS.insightsModel,
+      insightsModel: (parsed.insightsModel === "claude-haiku-4-5" || parsed.insightsModel === "claude-sonnet-4-5")
+        ? parsed.insightsModel
+        : DEFAULTS.insightsModel,
     };
   } catch {
     return { ...DEFAULTS, engines: { ...DEFAULTS.engines } };

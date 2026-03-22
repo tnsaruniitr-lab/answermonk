@@ -225,11 +225,11 @@ export default function AdminSettings() {
         {/* Section: Insights Model */}
         <p style={SECTION_TITLE}>INSIGHTS MODEL</p>
         <div style={{ background: "#0a1628", borderRadius: 10, padding: "0 16px", border: "1px solid rgba(255,255,255,0.06)" }}>
-          {(["claude-sonnet-4-5", "claude-haiku-3-5"] as const).map((m, i, arr) => {
+          {(["claude-sonnet-4-5", "claude-haiku-4-5"] as const).map((m, i, arr) => {
             const isLast = i === arr.length - 1;
             const labels: Record<string, { name: string; sub: string }> = {
               "claude-sonnet-4-5": { name: "Claude Sonnet 4.5", sub: "High quality — ~150–200s, ~$0.10 per run" },
-              "claude-haiku-3-5": { name: "Claude Haiku 3.5 (fast)", sub: "Faster & cheaper — ~30–50s, ~$0.01 per run" },
+              "claude-haiku-4-5": { name: "Claude Haiku 4.5 (fast)", sub: "Faster & cheaper — ~30–50s, ~$0.01 per run" },
             };
             const isSelected = settings.insightsModel === m;
             return (
