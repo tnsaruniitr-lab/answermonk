@@ -887,11 +887,15 @@ function MissionControlLoader({
 
         {/* Stats row */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
-          {[
+          {(insightsPending ? [
+            { label: "CITATION ROWS", value: rowCount, suffix: "", color: "#f59e0b" },
+            { label: "TOKEN ESTIMATE", value: Math.round((rowCount * 62) / 1000), suffix: "K", color: "#6366f1" },
+            { label: "REPORTS DONE", value: 0, suffix: "", color: "#10b981" },
+          ] : [
             { label: "PAGES FOUND", value: realCrawled ?? animCrawled, suffix: realTotal ? `/${realTotal}` : "", color: "#3b82f6" },
             { label: "ACCESSIBLE", value: realOk ?? animOk, suffix: "", color: "#10b981" },
             { label: "CLASSIFIED", value: animClassified, suffix: "", color: "#6366f1" },
-          ].map(s => (
+          ]).map(s => (
             <div key={s.label} style={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 8, padding: "11px 13px", textAlign: "center" }}>
               <div style={{ color: s.color, fontFamily: "monospace", fontSize: 20, fontWeight: 700, letterSpacing: -0.5 }}>
                 {s.value.toLocaleString()}
