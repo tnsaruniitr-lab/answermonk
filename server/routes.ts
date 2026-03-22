@@ -698,6 +698,7 @@ export async function registerRoutes(
         engines: z.array(z.enum(["chatgpt", "gemini", "claude"])).min(1).optional(),
       });
       const { submissionId, services, customers, city, engines } = schema.parse(req.body);
+      console.log(`[AnswerMonk] run-analysis received — engines from client: ${JSON.stringify(engines ?? "not sent (fallback will apply)")}`);
 
       const submissions = await storage.listLandingSubmissions();
       const submission = submissions.find((s) => s.id === submissionId);
