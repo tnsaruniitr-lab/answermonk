@@ -4174,6 +4174,7 @@ export async function registerRoutes(
       await pool.query(`ALTER TABLE citation_urls ADD COLUMN IF NOT EXISTS brand_context JSONB`);
 
       let csvText: string;
+      let csvRowCount = 0;
 
       if (citationAnalysisMode === "domain_aggregated") {
         // ── Domain-aggregated mode: one row per domain, sum citations, collect page types ──
@@ -4204,6 +4205,7 @@ export async function registerRoutes(
           .map(v => `"${String(v).replace(/"/g, '""')}"`)
           .join(",")
         );
+        csvRowCount = domainRows.length;
         csvText = [domainCsvHeader, ...domainCsvRows].join("\n")
           + `\n\nNOTE: Domain-aggregated view — ${domainRows.length} unique domains summarised from all citation URLs.`;
         console.log(`[citation-insights] Domain-aggregated CSV: ${domainRows.length} domain rows`);
@@ -4243,6 +4245,7 @@ export async function registerRoutes(
           .map(v => `"${String(v).replace(/"/g, '""')}"`)
           .join(",");
         });
+        csvRowCount = rows.length;
         const truncationNote = truncated ? `\n\nNOTE: CSV truncated to top ${MAX_CSV_ROWS} rows by citation_count (${rows.length} total rows). All highest-cited URLs are included.` : "";
         csvText = [csvHeader, ...csvRows].join("\n") + truncationNote;
         console.log(`[citation-insights] Standard CSV: ${rowsForCsv.length}/${rows.length} URL rows`);
@@ -4490,7 +4493,7 @@ Rules for content:
       const insertResult = await pool.query(
         `INSERT INTO citation_insights (session_id, model, result_text, input_tokens, output_tokens, row_count)
          VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at`,
-        [sessionId, model, resultText, inputTokens, outputTokens, rows.length]
+        [sessionId, model, resultText, inputTokens, outputTokens, csvRowCount]
       );
 
       res.json({
@@ -4499,7 +4502,7 @@ Rules for content:
         resultText,
         inputTokens,
         outputTokens,
-        rowCount: rows.length,
+        rowCount: csvRowCount,
         createdAt: insertResult.rows[0].created_at,
       });
     } catch (err: any) {
