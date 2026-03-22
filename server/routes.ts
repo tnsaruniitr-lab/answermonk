@@ -799,6 +799,10 @@ export async function registerRoutes(
 
         const failed = results.filter((r) => r.status === "rejected").length;
         if (failed > 0) console.warn(`[Landing] ${failed}/${segments.length} segment(s) failed for session ${session.id}`);
+
+        // Final authoritative write — guarantees correct state regardless of intermediate write ordering
+        await storage.updateMultiSegmentSessionSegments(session.id, updatedSegments);
+
         console.log(`[Landing] All segments complete for session ${session.id}`);
         // Mark submission as done so the slot frees up
         storage.updateLandingSubmission(submissionId, { status: "done" } as any).catch(() => {});
