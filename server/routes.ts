@@ -1451,8 +1451,16 @@ export async function registerRoutes(
     }
   });
 
+  let _directoryRecentCache: { data: any[]; ts: number } | null = null;
+  const DIRECTORY_CACHE_TTL_MS = 60_000;
+
   app.get("/api/directory/recent", async (_req, res) => {
     try {
+      if (_directoryRecentCache && Date.now() - _directoryRecentCache.ts < DIRECTORY_CACHE_TTL_MS) {
+        res.setHeader("Cache-Control", "public, max-age=60");
+        return res.json(_directoryRecentCache.data);
+      }
+
       const { pool } = await import("./db");
       const result = await pool.query(`
         SELECT
@@ -1460,19 +1468,20 @@ export async function registerRoutes(
           mss.brand_name,
           mss.brand_domain,
           mss.created_at,
-          (
-            SELECT elem
-            FROM jsonb_array_elements(mss.segments) AS elem
-            WHERE (elem->'scoringResult') IS NOT NULL
-              AND jsonb_typeof(elem->'scoringResult') = 'object'
-            LIMIT 1
-          ) AS primary_seg
-        FROM multi_segment_sessions mss
+          ps.elem AS primary_seg
+        FROM multi_segment_sessions mss,
+        LATERAL (
+          SELECT elem
+          FROM jsonb_array_elements(mss.segments) AS elem
+          WHERE (elem->'scoringResult') IS NOT NULL
+            AND jsonb_typeof(elem->'scoringResult') = 'object'
+          LIMIT 1
+        ) ps
         WHERE (mss.session_type IS DISTINCT FROM 'competitor')
           AND mss.segments IS NOT NULL
           AND jsonb_array_length(mss.segments) > 0
         ORDER BY mss.created_at DESC
-        LIMIT 50
+        LIMIT 12
       `);
 
       const tiles = result.rows
@@ -1517,6 +1526,8 @@ export async function registerRoutes(
           };
         });
 
+      _directoryRecentCache = { data: tiles, ts: Date.now() };
+      res.setHeader("Cache-Control", "public, max-age=60");
       res.json(tiles);
     } catch (err) {
       console.error("[directory/recent] error:", err);

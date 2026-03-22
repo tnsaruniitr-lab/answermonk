@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, Component } from "react";
+import { useState, useEffect, useRef, Component, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -8,12 +8,22 @@ import {
   Search, TrendingUp, Rocket,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { AuthoritySourcesPanel } from "@/components/AuthoritySourcesPanel";
-import { CitationSourcesPreview } from "@/components/CitationSourcesPreview";
-import { DispatchFeedLive } from "@/components/DispatchFeedLive";
 import { RecentAnalysisTiles } from "@/components/RecentAnalysisTiles";
-import { SessionSummaryHero } from "@/components/SessionSummaryHero";
-import { HireAgentsPanel } from "@/components/HireAgentsPanel";
+const AuthoritySourcesPanel = lazy(() =>
+  import("@/components/AuthoritySourcesPanel").then(m => ({ default: m.AuthoritySourcesPanel }))
+);
+const CitationSourcesPreview = lazy(() =>
+  import("@/components/CitationSourcesPreview").then(m => ({ default: m.CitationSourcesPreview }))
+);
+const DispatchFeedLive = lazy(() =>
+  import("@/components/DispatchFeedLive").then(m => ({ default: m.DispatchFeedLive }))
+);
+const SessionSummaryHero = lazy(() =>
+  import("@/components/SessionSummaryHero").then(m => ({ default: m.SessionSummaryHero }))
+);
+const HireAgentsPanel = lazy(() =>
+  import("@/components/HireAgentsPanel").then(m => ({ default: m.HireAgentsPanel }))
+);
 
 function normalizeDomain(url: string): string {
   try {
@@ -981,12 +991,14 @@ function LandingInner() {
 
             {/* Session summary hero — appears as soon as the first segment scores */}
             {scoredSegs.length > 0 && (
-              <SessionSummaryHero
-                brandName={scoringSession?.brandName || ""}
-                brandDomain={scoringSession?.brandDomain || undefined}
-                scoredSegs={scoredSegs}
-                totalSegs={scoringSegs.length}
-              />
+              <Suspense fallback={null}>
+                <SessionSummaryHero
+                  brandName={scoringSession?.brandName || ""}
+                  brandDomain={scoringSession?.brandDomain || undefined}
+                  scoredSegs={scoredSegs}
+                  totalSegs={scoringSegs.length}
+                />
+              </Suspense>
             )}
 
             {/* Scored segment cards — appear one by one as they complete */}
@@ -1073,12 +1085,14 @@ function LandingInner() {
             {/* Live Dispatch Feed — shown while scoring is in progress */}
             {isScoring && (
               <div ref={dispatchFeedRef}>
-                <DispatchFeedLive
-                  scoringSegs={scoringSegs}
-                  scoredSegs={scoredSegs}
-                  brandName={scoringSession?.brandName || ""}
-                  brandDomain={scoringSession?.brandDomain || undefined}
-                />
+                <Suspense fallback={null}>
+                  <DispatchFeedLive
+                    scoringSegs={scoringSegs}
+                    scoredSegs={scoredSegs}
+                    brandName={scoringSession?.brandName || ""}
+                    brandDomain={scoringSession?.brandDomain || undefined}
+                  />
+                </Suspense>
               </div>
             )}
 
@@ -1150,7 +1164,9 @@ function LandingInner() {
             {/* Citation sources preview — always visible once scoring completes */}
             {allSegmentsDone && activeSessionId !== null && (
               <div className="mt-4">
-                <CitationSourcesPreview sessionId={activeSessionId} />
+                <Suspense fallback={null}>
+                  <CitationSourcesPreview sessionId={activeSessionId} />
+                </Suspense>
               </div>
             )}
 
@@ -1176,21 +1192,23 @@ function LandingInner() {
             {/* Citation Intelligence panel — revealed after button press */}
             {allSegmentsDone && showIntelligence && activeSessionId !== null && (
               <div className="mt-2">
-                <AuthoritySourcesPanel
-                  autoRun
-                  sessionId={activeSessionId}
-                  brandName={scoringSession?.brandName || ""}
-                  segments={scoredSegs
-                    .filter((s: any) => selectedSegmentIds.has(s.id))
-                    .map((s: any, i: number) => ({
-                      id: s.id || `seg-${i}`,
-                      persona: s.persona || s.serviceType || s.label || `Segment ${i + 1}`,
-                      seedType: s.seedType || "",
-                      customerType: s.customerType || "",
-                      location: s.location || "",
-                      scoringResult: s.scoringResult,
-                    }))}
-                />
+                <Suspense fallback={null}>
+                  <AuthoritySourcesPanel
+                    autoRun
+                    sessionId={activeSessionId}
+                    brandName={scoringSession?.brandName || ""}
+                    segments={scoredSegs
+                      .filter((s: any) => selectedSegmentIds.has(s.id))
+                      .map((s: any, i: number) => ({
+                        id: s.id || `seg-${i}`,
+                        persona: s.persona || s.serviceType || s.label || `Segment ${i + 1}`,
+                        seedType: s.seedType || "",
+                        customerType: s.customerType || "",
+                        location: s.location || "",
+                        scoringResult: s.scoringResult,
+                      }))}
+                  />
+                </Suspense>
               </div>
             )}
           </div>
@@ -1513,7 +1531,9 @@ function LandingInner() {
 
         {/* Hire Agents tab */}
         {activeTab === "agents" && (
-          <HireAgentsPanel />
+          <Suspense fallback={null}>
+            <HireAgentsPanel />
+          </Suspense>
         )}
       </main>
 
