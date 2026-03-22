@@ -95,7 +95,7 @@ export async function runScoring(
   const allRawRuns: RawRunResult[] = [];
 
   const ENGINE_MODELS: Record<ScoringEngine, string> = {
-    chatgpt: "gpt-5.2",
+    chatgpt: "gpt-4o",
     claude: "claude-sonnet-4-5",
     gemini: "gemini-2.5-flash",
   };
@@ -291,15 +291,13 @@ function parseCitationsFromMarkdown(text: string): Citation[] {
 }
 
 async function queryChatGPT(prompt: string): Promise<EngineResponse> {
-  try {
-    const directOpenai = new OpenAI({
-      apiKey: process.env.OPENAI_DIRECT_API_KEY,
-    });
+  const CHATGPT_MODEL = "gpt-4o";
 
-    const response = await directOpenai.responses.create({
-      model: "gpt-5.2",
-      tools: [{ type: "web_search" as any }],
-      tool_choice: "required" as any,
+  async function tryResponsesApi(client: OpenAI): Promise<EngineResponse> {
+    const response = await (client as any).responses.create({
+      model: CHATGPT_MODEL,
+      tools: [{ type: "web_search_preview" }],
+      tool_choice: "required",
       input: prompt,
       temperature: 0.2,
     });
@@ -331,22 +329,35 @@ async function queryChatGPT(prompt: string): Promise<EngineResponse> {
     if (citations.length === 0) {
       citations.push(...parseCitationsFromMarkdown(text));
     }
-
-    const webSearchStatus: WebSearchStatus = webSearchToolUsed
-      ? "grounded"
-      : "ungrounded";
-
     const usage: TokenUsage = {
       input_tokens: (response as any).usage?.input_tokens ?? 0,
       output_tokens: (response as any).usage?.output_tokens ?? 0,
     };
+    return { text, citations, webSearchStatus: webSearchToolUsed ? "grounded" : "ungrounded", usage };
+  }
 
-    return { text, citations, webSearchStatus, usage };
-  } catch (err) {
-    const reason = err instanceof Error ? err.message : String(err);
-    console.error("Quick mode ChatGPT web search failed, falling back to standard:", err);
+  // 1. Try Replit-managed OpenAI integration first (no extra key required)
+  try {
+    return await tryResponsesApi(openai);
+  } catch (replitErr) {
+    console.warn("[ChatGPT] Replit integration responses.create failed:", (replitErr as Error).message);
+  }
+
+  // 2. Try direct OpenAI key if set
+  if (process.env.OPENAI_DIRECT_API_KEY) {
+    try {
+      const directOpenai = new OpenAI({ apiKey: process.env.OPENAI_DIRECT_API_KEY });
+      return await tryResponsesApi(directOpenai);
+    } catch (directErr) {
+      console.warn("[ChatGPT] Direct API responses.create failed:", (directErr as Error).message);
+    }
+  }
+
+  // 3. Final fallback: standard chat completions (no web search, no citations)
+  console.warn("[ChatGPT] Falling back to standard completions — no citations will be recorded");
+  try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-5.2",
+      model: CHATGPT_MODEL,
       messages: [{ role: "user", content: prompt }],
       max_completion_tokens: 1024,
       temperature: 0.2,
@@ -359,9 +370,11 @@ async function queryChatGPT(prompt: string): Promise<EngineResponse> {
       text: completion.choices[0]?.message?.content ?? "",
       citations: [],
       webSearchStatus: "fallback",
-      fallbackReason: reason,
+      fallbackReason: "responses.create unavailable via both Replit integration and direct key",
       usage,
     };
+  } catch (fallbackErr) {
+    throw fallbackErr;
   }
 }
 
