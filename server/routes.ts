@@ -368,11 +368,25 @@ function requireAdmin(req: any, res: any, next: any) {
 
 async function runLlmClassification(sessionId: number): Promise<{ updated: number; total: number; tokens: number; costUsd: number }> {
   const { pool } = await import("./db");
-  const { rows } = await pool.query<{ id: number; url: string; domain: string; title: string; url_category: string }>(
-    `SELECT id, url, domain, title, url_category FROM citation_urls WHERE session_id = $1 AND url IS NOT NULL`,
+
+  // Fetch one representative URL per domain (highest-cited URL for each domain).
+  // Classifying at the domain level reduces API calls from ~6 chunks (422 URLs)
+  // to ~2 chunks (~150 domains), cutting classification time by ~65%.
+  const { rows: domainRows } = await pool.query<{ domain: string; url: string; title: string }>(
+    `SELECT DISTINCT ON (domain) domain, url, title
+     FROM citation_urls
+     WHERE session_id = $1 AND domain IS NOT NULL AND url IS NOT NULL
+     ORDER BY domain, citation_count DESC NULLS LAST`,
     [sessionId]
   );
-  if (rows.length === 0) return { updated: 0, total: 0, tokens: 0, costUsd: 0 };
+  if (domainRows.length === 0) return { updated: 0, total: 0, tokens: 0, costUsd: 0 };
+
+  // Also get total URL count for reporting
+  const { rows: countRows } = await pool.query<{ cnt: string }>(
+    `SELECT COUNT(*) AS cnt FROM citation_urls WHERE session_id = $1 AND url IS NOT NULL`,
+    [sessionId]
+  );
+  const totalUrls = parseInt(countRows[0]?.cnt ?? "0", 10);
 
   const VALID_CATEGORIES = [
     "Community Thread", "Jobs Listing", "Social Media Profile",
@@ -383,40 +397,40 @@ async function runLlmClassification(sessionId: number): Promise<{ updated: numbe
   ];
 
   const CHUNK_SIZE = 80;
-  const chunks: typeof rows[] = [];
-  for (let i = 0; i < rows.length; i += CHUNK_SIZE) chunks.push(rows.slice(i, i + CHUNK_SIZE));
+  const chunks: typeof domainRows[] = [];
+  for (let i = 0; i < domainRows.length; i += CHUNK_SIZE) chunks.push(domainRows.slice(i, i + CHUNK_SIZE));
 
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
-  const classifications: { id: number; category: string }[] = [];
+  const domainClassifications: { domain: string; category: string }[] = [];
 
   for (const chunk of chunks) {
-    const urlList = chunk.map((r, i) =>
-      `${i + 1}. domain: ${r.domain || ""} | title: ${r.title || "(no title)"} | url: ${r.url}`
+    const domainList = chunk.map((r, i) =>
+      `${i + 1}. domain: ${r.domain} | title: ${r.title || "(no title)"} | example_url: ${r.url}`
     ).join("\n");
 
-    const systemPrompt = `You are a URL page-type classifier. Classify each URL into exactly one of these categories:
+    const systemPrompt = `You are a website domain classifier. Classify each domain into exactly one of these categories based on what the domain is as a whole:
 ${VALID_CATEGORIES.map(c => `- "${c}"`).join("\n")}
 
 Rules:
-- "Brand Homepage": root domain with no path, or bare domain
-- "Brand Service Page": a brand's own service/product page
+- "Brand Homepage": the root/primary website of a brand or company
+- "Brand Service Page": a brand's own service/product pages
 - "Brand Blog / Article": a brand's own blog or editorial content
 - "Brand About / Contact": about, team, contact, FAQ, accreditation pages
 - "Brand Inner Page": any other page on a brand's own domain
 - "Review Platform": third-party review sites (Trustpilot, Doctify, Okadoc, GoProfiled, etc.)
 - "Directory Listing": health/business directories, aggregator listings
-- "News / PR": news articles, press releases, media coverage
-- "Comparison Article": "best X", "top 10", comparison or guide articles
-- "Government / Regulatory": .gov domains, regulatory authority pages
+- "News / PR": news sites, press releases, media outlets
+- "Comparison Article": "best X", "top 10", comparison or guide sites
+- "Government / Regulatory": .gov domains, regulatory authority sites
 - "Community Thread": Reddit, Quora, forums, expat communities
-- "Social Media Profile": LinkedIn, Instagram, Facebook, Twitter/X pages
-- "Market Research": Statista, Mordor Intelligence, market reports
-- "Jobs Listing": Indeed, LinkedIn jobs, careers pages
+- "Social Media Profile": LinkedIn, Instagram, Facebook, Twitter/X
+- "Market Research": Statista, Mordor Intelligence, market report sites
+- "Jobs Listing": Indeed, LinkedIn jobs, careers sites
 
-Return ONLY valid JSON in this exact shape: {"classifications": [{"id": <number>, "category": "<category>"}, ...]} for every item. No extra text.`;
+Classify the domain as a whole, not just the example URL. Return ONLY valid JSON: {"classifications": [{"id": <number>, "category": "<category>"}, ...]}. No extra text.`;
 
-    const userPrompt = `Classify these ${chunk.length} URLs:\n${urlList}`;
+    const userPrompt = `Classify these ${chunk.length} domains:\n${domainList}`;
 
     const response = await anthropicClassifier.messages.create({
       model: "claude-sonnet-4-5",
@@ -442,25 +456,28 @@ Return ONLY valid JSON in this exact shape: {"classifications": [{"id": <number>
         const rowIndex = (item.id ?? 0) - 1;
         const row = chunk[rowIndex];
         if (row && VALID_CATEGORIES.includes(item.category)) {
-          classifications.push({ id: row.id, category: item.category });
+          domainClassifications.push({ domain: row.domain, category: item.category });
         }
       }
     }
   }
 
-  for (const { id, category } of classifications) {
-    await pool.query(
-      `UPDATE citation_urls SET llm_pagetype_classification = $1 WHERE id = $2`,
-      [category, id]
+  // Apply each domain's classification to ALL citation_urls rows for that domain in one UPDATE
+  let totalUpdated = 0;
+  for (const { domain, category } of domainClassifications) {
+    const result = await pool.query(
+      `UPDATE citation_urls SET llm_pagetype_classification = $1 WHERE session_id = $2 AND domain = $3`,
+      [category, sessionId, domain]
     );
+    totalUpdated += result.rowCount ?? 0;
   }
 
   const costUsd = (totalInputTokens / 1_000_000) * CLAUDE_INPUT_COST_PER_1M
     + (totalOutputTokens / 1_000_000) * CLAUDE_OUTPUT_COST_PER_1M;
 
   return {
-    updated: classifications.length,
-    total: rows.length,
+    updated: totalUpdated,
+    total: totalUrls,
     tokens: totalInputTokens + totalOutputTokens,
     costUsd: Math.round(costUsd * 10000) / 10000,
   };
