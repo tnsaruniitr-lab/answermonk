@@ -2649,14 +2649,14 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
     onError: (err: any) => setCrawlError(String(err)),
   });
 
-  // Auto-run insights mutation (hardcoded claude-sonnet-4-5, used by the auto-run chain)
+  // Auto-run insights mutation (model + mode read from admin settings at fire time)
   const insightsMutation = useMutation({
     mutationFn: async () => {
-      const { citationAnalysisMode } = getAdminSettings();
+      const { citationAnalysisMode, insightsModel } = getAdminSettings();
       const res = await apiRequest(
         "POST",
         `/api/multi-segment-sessions/${sessionId}/citation-insights`,
-        { model: "claude-sonnet-4-5", citationAnalysisMode }
+        { model: insightsModel, citationAnalysisMode }
       );
       return res.json();
     },
