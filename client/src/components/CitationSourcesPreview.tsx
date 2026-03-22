@@ -159,6 +159,22 @@ export function CitationSourcesPreview({ sessionId }: Props) {
 
       <div style={{ padding: "14px 16px 16px" }}>
 
+        {/* Yellow badge */}
+        <div style={{ marginBottom: 12 }}>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            background: "rgba(234,179,8,0.12)",
+            border: "1px solid rgba(234,179,8,0.4)",
+            borderRadius: 999,
+            padding: "5px 14px",
+            fontSize: 11, fontWeight: 800,
+            color: "#fde047",
+            letterSpacing: "0.01em",
+          }}>
+            <span style={{ fontSize: 13 }}>★</span> Top domains you need to show up in
+          </span>
+        </div>
+
         {/* Top 3 podium cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10, marginBottom: 14 }}>
           {top3.map((s, i) => {
@@ -196,14 +212,17 @@ export function CitationSourcesPreview({ sessionId }: Props) {
                     <EngineBadges gpt={s.inChatgpt} gem={s.inGemini} claude={s.inClaude} />
                   </div>
                   <div style={{
-                    marginTop: 10, padding: "4px 8px", borderRadius: 6,
-                    background: isExpanded ? "rgba(99,102,241,0.14)" : "rgba(99,102,241,0.06)",
-                    border: `1px solid ${isExpanded ? "rgba(99,102,241,0.4)" : "rgba(99,102,241,0.15)"}`,
-                    fontSize: 10, fontWeight: 600,
-                    color: isExpanded ? "#a5b4fc" : "#6366f1",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                    marginTop: 10, padding: "7px 10px", borderRadius: 8,
+                    background: isExpanded
+                      ? "rgba(99,102,241,0.25)"
+                      : "linear-gradient(135deg, #4338ca 0%, #6d28d9 100%)",
+                    border: `1px solid ${isExpanded ? "rgba(129,140,248,0.5)" : "rgba(99,102,241,0.6)"}`,
+                    fontSize: 11, fontWeight: 700,
+                    color: "#fff",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                    boxShadow: isExpanded ? "none" : "0 2px 8px rgba(79,70,229,0.4)",
                   }}>
-                    <span style={{ fontSize: 11 }}>{isExpanded ? "▾" : "▸"}</span>
+                    <span style={{ fontSize: 12 }}>{isExpanded ? "▾" : "▸"}</span>
                     {isLoadingThis ? "loading…" : isExpanded ? "hide URLs" : "show URLs"}
                   </div>
                 </button>
@@ -275,11 +294,14 @@ export function CitationSourcesPreview({ sessionId }: Props) {
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 600, color: isExpanded ? "#a5b4fc" : "#475569", width: 26, textAlign: "right", flexShrink: 0 }}>{s.appearances}</span>
                     <span style={{
-                      flexShrink: 0, fontSize: 10, fontWeight: 600,
-                      color: isExpanded ? "#818cf8" : "#6366f1",
-                      background: isExpanded ? "rgba(99,102,241,0.18)" : "rgba(99,102,241,0.08)",
-                      border: `1px solid ${isExpanded ? "rgba(99,102,241,0.4)" : "rgba(99,102,241,0.2)"}`,
-                      borderRadius: 5, padding: "2px 6px", whiteSpace: "nowrap", transition: "all 0.12s",
+                      flexShrink: 0, fontSize: 10, fontWeight: 700,
+                      color: "#fff",
+                      background: isExpanded
+                        ? "rgba(99,102,241,0.3)"
+                        : "linear-gradient(135deg, #4338ca 0%, #6d28d9 100%)",
+                      border: `1px solid ${isExpanded ? "rgba(129,140,248,0.45)" : "rgba(99,102,241,0.6)"}`,
+                      borderRadius: 6, padding: "4px 10px", whiteSpace: "nowrap", transition: "all 0.12s",
+                      boxShadow: isExpanded ? "none" : "0 1px 6px rgba(79,70,229,0.35)",
                     }}>
                       {isLoadingThis ? "…" : isExpanded ? "hide ▴" : "URLs ▾"}
                     </span>
