@@ -566,7 +566,7 @@ function LandingInner() {
     refetchInterval: (q) => {
       const segs: any[] = Array.isArray(q?.state?.data?.segments) ? q.state.data.segments : [];
       const allDone = segs.length > 0 && segs.every((s) => s.scoringResult !== null);
-      return allDone ? false : 4000;
+      return allDone ? false : 1500;
     },
   });
 
@@ -1160,26 +1160,74 @@ function LandingInner() {
               </Suspense>
             )}
 
-            {/* Scored segment cards — appear one by one as they complete */}
+            {/* Scored segment cards — appear one by one as they complete, with skeletons for pending */}
             {allSegmentsDone && scoredSegs.length > 0 && (
               <p className="text-[10px] font-mono tracking-wider uppercase text-slate-500 px-1">
                 Unselect a segment if you think it's irrelevant to your brand
               </p>
             )}
-            {scoredSegs.map((seg, i) => (
-              <div key={seg.id} ref={i === scoredSegs.length - 1 ? lastSegCardRef : undefined}>
-                <SegmentResultCard
-                  seg={seg}
-                  brandName={scoringSession?.brandName || ""}
-                  selected={allSegmentsDone ? selectedSegmentIds.has(seg.id) : undefined}
-                  onToggle={allSegmentsDone ? () => setSelectedSegmentIds((prev) => {
-                    const next = new Set(prev);
-                    if (next.has(seg.id)) next.delete(seg.id); else next.add(seg.id);
-                    return next;
-                  }) : undefined}
-                />
-              </div>
-            ))}
+            <style>{`
+              @keyframes am-shimmer {
+                0% { background-position: -400px 0; }
+                100% { background-position: 400px 0; }
+              }
+              .am-shimmer {
+                background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 75%);
+                background-size: 800px 100%;
+                animation: am-shimmer 1.8s infinite linear;
+              }
+            `}</style>
+            {scoringSegs.map((seg, i) => {
+              const isDone = seg.scoringResult !== null;
+              const doneIndex = scoredSegs.findIndex((s) => s.id === seg.id);
+              if (isDone) {
+                return (
+                  <div key={seg.id} ref={doneIndex === scoredSegs.length - 1 ? lastSegCardRef : undefined}>
+                    <SegmentResultCard
+                      seg={seg}
+                      brandName={scoringSession?.brandName || ""}
+                      selected={allSegmentsDone ? selectedSegmentIds.has(seg.id) : undefined}
+                      onToggle={allSegmentsDone ? () => setSelectedSegmentIds((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(seg.id)) next.delete(seg.id); else next.add(seg.id);
+                        return next;
+                      }) : undefined}
+                    />
+                  </div>
+                );
+              }
+              return (
+                <div key={seg.id} style={{ borderRadius: "16px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.07)", background: "#0d1526" }}>
+                  <div style={{ padding: "14px 16px 12px", display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                    <div className="am-shimmer" style={{ width: 28, height: 28, borderRadius: "50%", flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="am-shimmer" style={{ height: 13, borderRadius: 6, width: "55%", marginBottom: 6 }} />
+                      <div className="am-shimmer" style={{ height: 10, borderRadius: 5, width: "35%" }} />
+                    </div>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      {[60, 44].map((w, k) => (
+                        <div key={k} className="am-shimmer" style={{ width: w, height: 22, borderRadius: 6 }} />
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ padding: "12px 16px 14px" }}>
+                    <div className="am-shimmer" style={{ height: 36, borderRadius: 8, marginBottom: 10 }} />
+                    <div style={{ display: "flex", gap: 8 }}>
+                      {[1, 2, 3].map((k) => (
+                        <div key={k} style={{ flex: 1, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 10, padding: "10px 8px" }}>
+                          <div className="am-shimmer" style={{ height: 20, borderRadius: 5, marginBottom: 6, width: "60%", margin: "0 auto 6px" }} />
+                          <div className="am-shimmer" style={{ height: 10, borderRadius: 4, width: "70%", margin: "0 auto" }} />
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#6366f1", animation: "pulse 1.2s ease-in-out infinite" }} />
+                      <div className="am-shimmer" style={{ height: 10, borderRadius: 4, width: 140 }} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
 
             {/* Email nudge — LLM scoring phase */}
             {isScoring && !nudgeDismissed && (
