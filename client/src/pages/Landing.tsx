@@ -1129,7 +1129,48 @@ function LandingInner() {
             )}
 
             {/* Scored segment cards — appear one by one as they complete, with skeletons for pending */}
-            {allSegmentsDone && scoredSegs.length > 0 && (
+
+            {/* When all segments are done AND all are collapsed → show single consolidated CTA card */}
+            {allSegmentsDone && scoredSegs.length > 0 && collapsedSegIds.size >= scoredSegs.length && (
+              <div
+                style={{
+                  borderRadius: 18,
+                  overflow: "hidden",
+                  background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
+                  padding: "28px 28px 24px",
+                  cursor: "pointer",
+                }}
+                onClick={() => setCollapsedSegIds(new Set())}
+              >
+                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.55)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 10, fontWeight: 600 }}>
+                  ◈ AI Ranking Results
+                </div>
+                <h3 style={{ fontSize: 21, fontWeight: 800, color: "#fff", lineHeight: 1.25, marginBottom: 8 }}>
+                  Who does AI recommend when customers search your market?
+                </h3>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginBottom: 20, lineHeight: 1.5 }}>
+                  {scoredSegs.length} {scoredSegs.length === 1 ? "segment" : "segments"} scored across ChatGPT, Gemini &amp; Claude
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 24 }}>
+                  {scoredSegs.map((s: any) => {
+                    const lbl = s.persona || s.serviceType || s.customerType || s.label || "Segment";
+                    const app = Math.round((s.scoringResult?.score?.appearance_rate ?? 0) * 100);
+                    return (
+                      <span key={s.id} style={{ fontSize: 11.5, background: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 20, padding: "4px 12px", color: "#e0e7ff", fontWeight: 500 }}>
+                        {lbl} · <span style={{ color: app >= 50 ? "#6ee7b7" : app >= 25 ? "#fde68a" : "#fca5a5" }}>{app}%</span>
+                      </span>
+                    );
+                  })}
+                </div>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", borderRadius: 10, padding: "10px 20px", fontSize: 13, fontWeight: 700, color: "#3730a3" }}>
+                  View all rankings
+                  <span style={{ fontSize: 15 }}>→</span>
+                </div>
+              </div>
+            )}
+
+            {/* Individual segment cards (expanded or mixed state) */}
+            {allSegmentsDone && scoredSegs.length > 0 && collapsedSegIds.size < scoredSegs.length && (
               <p className="text-[10px] font-mono tracking-wider uppercase text-slate-500 px-1">
                 Unselect a segment if you think it's irrelevant to your brand
               </p>
@@ -1145,7 +1186,7 @@ function LandingInner() {
                 animation: am-shimmer 1.8s infinite linear;
               }
             `}</style>
-            {scoringSegs.map((seg, i) => {
+            {collapsedSegIds.size < scoredSegs.length && scoringSegs.map((seg, i) => {
               const isDone = seg.scoringResult !== null;
               const doneIndex = scoredSegs.findIndex((s) => s.id === seg.id);
               if (isDone) {
