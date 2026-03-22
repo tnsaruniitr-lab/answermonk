@@ -75,15 +75,17 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
   const score = sr?.score || {};
   const appearance = Math.round((score.appearance_rate ?? 0) * 100);
   const primary = Math.round((score.primary_rate ?? 0) * 100);
-  const avgRank = score.avg_rank != null ? `#${score.avg_rank}` : "—";
-  const engines = score.engine_breakdown || {};
+  const avgRank = score.avg_rank != null ? `#${score.avg_rank.toFixed(1)}` : "—";
+  const enginesBreakdown = score.engine_breakdown || {};
   const rawRuns = sr?.raw_runs || [];
   const citationCount = rawRuns.reduce((s: number, r: any) => s + (r.citations?.length || 0), 0);
   const label = seg.persona || seg.serviceType || seg.customerType || seg.label || "Segment";
   const type = seg.seedType || seg.type || "service";
+  const isCustomer = type === "customer";
 
   const firstPromptText = rawRuns[0]?.prompt_text || (seg.prompts?.[0]?.text ?? "");
   const promptContext = firstPromptText ? stripPromptPrefix(firstPromptText) : "";
+  const totalResponses = rawRuns.length;
 
   const [showCitations, setShowCitations] = useState(false);
 
@@ -115,264 +117,202 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
     .slice(0, 8)
     .map((c) => ({ ...c, isBrand: c.isBrand || c.name?.toLowerCase() === brandName?.toLowerCase() }));
 
+  const engineList = (["chatgpt", "gemini", "claude"] as const).filter((e) => enginesBreakdown[e]);
+  const engMeta = { chatgpt: { label: "ChatGPT", color: "#22c55e" }, gemini: { label: "Gemini", color: "#3b82f6" }, claude: { label: "Claude", color: "#a78bfa" } };
+
   return (
     <div
       onClick={isSelectable ? onToggle : undefined}
-      className="rounded-2xl border overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 transition-all"
+      className="animate-in fade-in slide-in-from-bottom-4 duration-500"
       style={{
-        borderColor: isSelectable
-          ? isSelected ? "rgba(34,197,94,0.5)" : "rgba(255,255,255,0.08)"
-          : "rgba(255,255,255,0.1)",
-        background: isSelectable
-          ? isSelected
-            ? "#0f1a2e"
-            : "#0a1120"
-          : "#0f1a2e",
-        boxShadow: isSelected && isSelectable
-          ? "0 0 0 1px rgba(34,197,94,0.15) inset, 0 4px 28px rgba(0,0,0,0.5)"
-          : "0 4px 20px rgba(0,0,0,0.4)",
-        opacity: isSelectable && !isSelected ? 0.6 : 1,
+        backgroundColor: "#0d1526",
+        border: `1px solid ${isSelectable ? (isSelected ? "rgba(34,197,94,0.4)" : "rgba(255,255,255,0.07)") : "rgba(255,255,255,0.08)"}`,
+        borderRadius: 16,
+        overflow: "hidden",
+        opacity: isSelectable && !isSelected ? 0.55 : 1,
         cursor: isSelectable ? "pointer" : "default",
+        boxShadow: isSelected && isSelectable ? "0 0 0 1px rgba(34,197,94,0.1) inset, 0 4px 28px rgba(0,0,0,0.5)" : "0 4px 20px rgba(0,0,0,0.4)",
+        transition: "opacity 0.2s, border-color 0.2s",
       }}
     >
-      {/* Appearance banner */}
-      <div
-        className="flex items-center gap-3 px-4 py-3"
-        style={{
-          background: "linear-gradient(100deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
-          borderBottom: "1px solid rgba(255,255,255,0.12)",
-        }}
-      >
-        <span
-          className="font-black leading-none flex-shrink-0"
-          style={{ fontSize: 36, color: "#ffffff", letterSpacing: "-0.02em", textShadow: "0 0 16px rgba(255,255,255,0.3)" }}
-        >
+      {/* ── Gradient banner ── */}
+      <div style={{
+        background: "linear-gradient(100deg, #3730a3 0%, #4f46e5 45%, #6d28d9 100%)",
+        padding: "18px 24px",
+        display: "flex",
+        alignItems: "center",
+        gap: 16,
+        borderBottom: "1px solid rgba(255,255,255,0.12)",
+      }}>
+        <div style={{ fontSize: 48, fontWeight: 900, color: "#ffffff", lineHeight: 1, letterSpacing: "-0.02em", flexShrink: 0, textShadow: "0 0 20px rgba(255,255,255,0.3)" }}>
           {appearance}%
-        </span>
-        <div style={{ width: 1, height: 34, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
-        <div>
-          <p className="font-bold leading-snug" style={{ fontSize: 13, color: "#ffffff" }}>of the time you appear</p>
-          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", marginTop: 1 }}>
-            when potential customers search for this {type === "customer" ? "customer type" : "service"} on AI engines
-          </p>
         </div>
-      </div>
-
-      {/* Header */}
-      <div className="flex items-start gap-3 p-4 pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-        {isSelectable ? (
-          <div
-            className="mt-0.5 w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all duration-200"
-            style={{
-              background: isSelected ? "#22c55e" : "transparent",
-              border: isSelected ? "2px solid #22c55e" : "2px solid rgba(255,255,255,0.2)",
-            }}
-          >
+        <div style={{ width: 1, height: 44, backgroundColor: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#ffffff", lineHeight: 1.3, marginBottom: 3 }}>
+            of the time you appear
+          </div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.4 }}>
+            when potential customers search for this {isCustomer ? "customer type" : "service"} on AI engines
+          </div>
+        </div>
+        {/* Selection indicator */}
+        {isSelectable && (
+          <div style={{ marginLeft: "auto", flexShrink: 0, width: 20, height: 20, borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", background: isSelected ? "#22c55e" : "rgba(255,255,255,0.12)", border: isSelected ? "2px solid #22c55e" : "2px solid rgba(255,255,255,0.2)", transition: "all 0.2s" }}>
             {isSelected && (
               <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
                 <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             )}
           </div>
-        ) : (
-          <div className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ background: "rgba(34,197,94,0.15)", border: "1.5px solid rgba(34,197,94,0.4)" }}>
-            <svg width="9" height="7" viewBox="0 0 10 8" fill="none">
-              <path d="M1 4L3.5 6.5L9 1" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
         )}
-        <div className="flex-1 min-w-0">
-          <p className="text-white text-sm font-semibold leading-snug capitalize">{label}</p>
-          <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <span className="inline-block text-[10px] font-semibold tracking-widest uppercase px-2 py-0.5 rounded-full"
-              style={{
-                background: type === "customer" ? "rgba(139,92,246,0.18)" : "rgba(236,72,153,0.18)",
-                color: type === "customer" ? "#a78bfa" : "#f472b6",
-              }}>
-              {type === "customer" ? "Customer" : "Service"}
-            </span>
-            {promptContext && (
-              <span className="text-[10px] truncate font-mono max-w-[180px]" style={{ color: "rgba(255,255,255,0.35)" }} title={promptContext}>
-                {promptContext}
-              </span>
-            )}
+      </div>
+
+      {/* ── Card identity ── */}
+      <div style={{ padding: "18px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <div style={{ display: "inline-block", backgroundColor: isCustomer ? "rgba(139,92,246,0.15)" : "rgba(59,130,246,0.15)", color: isCustomer ? "#c4b5fd" : "#93c5fd", padding: "2px 8px", borderRadius: 4, fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 6, border: isCustomer ? "1px solid rgba(139,92,246,0.25)" : "1px solid rgba(59,130,246,0.25)" }}>
+            {isCustomer ? "Customer" : "Service"}
           </div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: "#ffffff", lineHeight: 1.25, textTransform: "capitalize" }}>{label}</div>
+          {promptContext && (
+            <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>"{promptContext}"</div>
+          )}
         </div>
-        <div className="text-right flex-shrink-0">
-          <p className="text-2xl font-bold text-white">{appearance}%</p>
-          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>Appearance</p>
+        <div style={{ display: "flex", gap: 20, fontSize: 12, color: "#64748b", textAlign: "center", flexShrink: 0, marginLeft: 16 }}>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#e2e8f0" }}>{primary}%</div>
+            <div>Top 3</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#e2e8f0" }}>{avgRank}</div>
+            <div>Avg Rank</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#e2e8f0" }}>{citationCount}</div>
+            <div>Citations</div>
+          </div>
         </div>
       </div>
 
-      {/* Metrics row */}
-      <div className="grid grid-cols-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-        {[
-          { label: "Top 3", value: `${primary}%` },
-          { label: "Avg Rank", value: avgRank },
-          { label: "Citations", value: citationCount },
-        ].map(({ label: lbl, value }, i) => (
-          <div key={lbl} className="p-3 text-center" style={{ borderRight: i < 2 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
-            <p className="text-base font-bold text-white">{value}</p>
-            <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{lbl}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Engine breakdown — 3 colored boxes */}
-      {Object.keys(engines).length > 0 && (
-        <div className="p-3 grid grid-cols-3 gap-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-          {(["claude", "gemini", "chatgpt"] as const).map((eng) => {
-            const data = engines[eng];
-            if (!data) return null;
-            const engLabel = eng === "chatgpt" ? "ChatGPT" : eng === "gemini" ? "Gemini" : "Claude";
-            const engColor = eng === "chatgpt" ? "#22c55e" : eng === "gemini" ? "#3b82f6" : "#f59e0b";
-            const pct = Math.round((data.appearance_rate ?? 0) * 100);
-            const top3pct = Math.round((data.primary_rate ?? 0) * 100);
+      {/* ── Engine breakdown — horizontal bars ── */}
+      {engineList.length > 0 && (
+        <div style={{ padding: "18px 24px", display: "flex", gap: 20, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+          {engineList.map((eng) => {
+            const data = enginesBreakdown[eng];
+            const pct = Math.round((data?.appearance_rate ?? 0) * 100);
+            const meta = engMeta[eng];
             return (
-              <div key={eng} className="rounded-lg p-2.5" style={{ border: `1px solid ${engColor}30`, background: `${engColor}08` }}>
-                <p className="text-[10px] mb-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{engLabel}</p>
-                <p className="text-base font-bold" style={{ color: engColor }}>{pct}%</p>
-                <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.3)" }}>Top 3: {top3pct}%</p>
+              <div key={eng} style={{ flex: 1 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 5 }}>
+                  <span style={{ color: "#e2e8f0" }}>{meta.label}</span>
+                  <span style={{ color: "#ffffff", fontWeight: 700 }}>{pct}%</span>
+                </div>
+                <div style={{ height: 5, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ width: `${pct}%`, height: "100%", backgroundColor: meta.color, borderRadius: 3 }} />
+                </div>
               </div>
             );
           })}
         </div>
       )}
 
-      {/* Rankings */}
+      {/* ── Rankings ── */}
       {allRankings.length > 0 && (
-        <div className="px-3 pb-3 pt-2">
+        <div style={{ padding: "20px 24px" }}>
           {/* Context line */}
-          <div className="flex items-center gap-1.5 flex-wrap mb-2.5">
-            <span style={{ fontSize: 12 }}>🔍</span>
-            <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.5)" }}>See who appears when customers search for</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 14 }}>🔍</span>
+            <span style={{ fontSize: 12, color: "#94a3b8" }}>See who appears when customers search for</span>
             {promptContext && (
-              <span
-                className="text-[10px] font-bold"
-                style={{
-                  color: "#93c5fd",
-                  background: "rgba(59,130,246,0.12)",
-                  border: "1px solid rgba(59,130,246,0.25)",
-                  padding: "1px 8px",
-                  borderRadius: 100,
-                }}
-              >
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#93c5fd", backgroundColor: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.25)", padding: "2px 10px", borderRadius: 100 }}>
                 {promptContext}
               </span>
             )}
           </div>
-          <div className="mb-1.5">
-            <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.3)" }}>AI Search Rankings</p>
+
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>
+            AI Search Rankings
           </div>
-          <div className="space-y-1.5">
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
             {allRankings.map((c, idx) => {
               const pct = Math.round((c.share ?? 0) * 100);
               const maxPct = Math.round((allRankings[0]?.share ?? 1) * 100) || 1;
               const barWidth = Math.round((pct / maxPct) * 100);
               return (
-                <div key={c.name} className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono w-3 text-right flex-shrink-0"
-                    style={{ color: c.isBrand ? "#818cf8" : "rgba(255,255,255,0.45)" }}>
+                <div key={c.name} style={{
+                  display: "flex", alignItems: "center", gap: 12,
+                  ...(c.isBrand ? {
+                    backgroundColor: "rgba(67,56,202,0.14)",
+                    padding: "8px 10px",
+                    margin: "0 -10px",
+                    borderRadius: 8,
+                    border: "1px solid rgba(67,56,202,0.3)",
+                  } : {}),
+                }}>
+                  <div style={{ width: 20, fontSize: 12, fontWeight: "bold", color: c.isBrand ? "#a5b4fc" : "#475569", textAlign: "right", flexShrink: 0 }}>
                     {idx + 1}
-                  </span>
-                  <span className="text-[12px] flex-1 truncate font-medium"
-                    style={{ color: c.isBrand ? "#a5b4fc" : "rgba(255,255,255,0.78)" }}>
-                    {c.name}
-                    {c.isBrand && <span className="ml-1 text-[8px] font-mono uppercase" style={{ color: "#6366f1" }}>you</span>}
-                  </span>
-                  <div className="w-16 h-1 rounded-full overflow-hidden flex-shrink-0" style={{ background: "rgba(255,255,255,0.08)" }}>
-                    <div className="h-full rounded-full transition-all duration-700"
-                      style={{
-                        width: `${barWidth}%`,
-                        background: c.isBrand ? "linear-gradient(90deg,#6366f1,#8b5cf6)" : "rgba(255,255,255,0.28)",
-                      }} />
                   </div>
-                  <span className="text-[11px] w-7 text-right tabular-nums flex-shrink-0 font-medium"
-                    style={{ color: c.isBrand ? "#a5b4fc" : "rgba(255,255,255,0.65)" }}>
+                  <div style={{ width: 148, fontSize: 13, fontWeight: c.isBrand ? 700 : 500, color: c.isBrand ? "#ffffff" : "#cbd5e1", flexShrink: 0, display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</span>
+                    {c.isBrand && <span style={{ backgroundColor: "#4338ca", color: "white", fontSize: 9, padding: "2px 6px", borderRadius: 100, fontWeight: "bold", flexShrink: 0 }}>YOU</span>}
+                  </div>
+                  <div style={{ flex: 1, height: 6, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ width: `${barWidth}%`, height: "100%", background: c.isBrand ? "linear-gradient(90deg,#4338ca,#818cf8)" : "#1e3a5f", borderRadius: 3, boxShadow: c.isBrand ? "0 0 8px rgba(67,56,202,0.4)" : "none", transition: "width 0.7s ease" }} />
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: c.isBrand ? "#c7d2fe" : "#475569", width: 36, textAlign: "right", flexShrink: 0 }}>
                     {pct}%
-                  </span>
+                  </div>
                 </div>
               );
             })}
           </div>
+
+          <div style={{ marginTop: 16, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.05)", fontSize: 11, color: "#475569", textAlign: "center" }}>
+            Analysis across {totalResponses} responses · ChatGPT, Gemini, Claude
+          </div>
         </div>
       )}
 
-      {/* Citations */}
+      {/* ── Citations ── */}
       {aggregatedCitations.length > 0 && (
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
           <button
             onClick={(e) => { e.stopPropagation(); setShowCitations(v => !v); }}
-            className="w-full flex items-center justify-between px-3 py-2.5 transition-colors"
-            style={{ background: "transparent" }}
+            style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 24px", background: "transparent", border: "none", cursor: "pointer" }}
             data-testid="btn-toggle-citations"
           >
-            <span className="text-[11px] font-semibold" style={{ color: "rgba(255,255,255,0.55)" }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.45)" }}>
               Citations · {aggregatedCitations.length} sources
             </span>
             <ChevronDown
               size={13}
-              style={{
-                color: "rgba(255,255,255,0.35)",
-                transform: showCitations ? "rotate(180deg)" : "rotate(0deg)",
-                transition: "transform 0.2s",
-              }}
+              style={{ color: "rgba(255,255,255,0.3)", transform: showCitations ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
             />
           </button>
 
           {showCitations && (
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{ borderTop: "1px solid rgba(255,255,255,0.05)", maxHeight: 320, overflowY: "auto" }}
-            >
+            <div onClick={(e) => e.stopPropagation()} style={{ borderTop: "1px solid rgba(255,255,255,0.05)", maxHeight: 320, overflowY: "auto" }}>
               {aggregatedCitations.map((cit, i) => (
                 <div
                   key={cit.url}
-                  className="flex items-start gap-2 px-3 py-2"
-                  style={{
-                    borderBottom: i < aggregatedCitations.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
-                    background: i % 2 === 0 ? "rgba(255,255,255,0.01)" : "transparent",
-                  }}
+                  style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 24px", borderBottom: i < aggregatedCitations.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none", background: i % 2 === 0 ? "rgba(255,255,255,0.01)" : "transparent" }}
                   data-testid={`row-citation-${i}`}
                 >
-                  <span className="text-[9px] font-mono w-5 text-right flex-shrink-0 mt-0.5" style={{ color: "rgba(255,255,255,0.25)" }}>
-                    {i + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <a
-                      href={cit.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[11px] font-medium hover:underline truncate block"
-                      style={{ color: "#60a5fa" }}
-                      title={cit.url}
-                      data-testid={`link-citation-domain-${i}`}
-                    >
+                  <span style={{ fontSize: 9, fontFamily: "monospace", width: 20, textAlign: "right", flexShrink: 0, marginTop: 2, color: "rgba(255,255,255,0.25)" }}>{i + 1}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <a href={cit.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, fontWeight: 500, color: "#60a5fa", textDecoration: "none", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={cit.url} data-testid={`link-citation-domain-${i}`}>
                       {isVertexAiUrl(cit.url) ? (cit.title || getDomain(cit.url)) : cit.url}
                     </a>
                   </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
                     {Array.from(cit.engines).map(eng => (
-                      <span
-                        key={eng}
-                        className="text-[8px] px-1 py-0.5 rounded font-medium"
-                        style={{
-                          background: eng === "gemini" ? "rgba(59,130,246,0.2)" : eng === "chatgpt" ? "rgba(34,197,94,0.2)" : "rgba(245,158,11,0.2)",
-                          color: eng === "gemini" ? "#93c5fd" : eng === "chatgpt" ? "#86efac" : "#fcd34d",
-                        }}
-                      >
+                      <span key={eng} style={{ fontSize: 8, padding: "2px 4px", borderRadius: 3, fontWeight: 500, background: eng === "gemini" ? "rgba(59,130,246,0.2)" : eng === "chatgpt" ? "rgba(34,197,94,0.2)" : "rgba(167,139,250,0.2)", color: eng === "gemini" ? "#93c5fd" : eng === "chatgpt" ? "#86efac" : "#c4b5fd" }}>
                         {eng === "chatgpt" ? "GPT" : eng === "gemini" ? "Gem" : "Cla"}
                       </span>
                     ))}
-                    <a
-                      href={cit.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="ml-1"
-                      style={{ color: "rgba(255,255,255,0.25)" }}
-                      data-testid={`link-citation-open-${i}`}
-                    >
+                    <a href={cit.url} target="_blank" rel="noopener noreferrer" style={{ marginLeft: 4, color: "rgba(255,255,255,0.25)", textDecoration: "none" }} data-testid={`link-citation-open-${i}`}>
                       <span style={{ fontSize: 11 }}>↗</span>
                     </a>
                   </div>
