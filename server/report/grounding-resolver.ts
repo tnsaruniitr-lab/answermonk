@@ -85,7 +85,7 @@ async function resolveOneUrl(url: string, timeoutMs: number = 8000, maxHops: num
   return fallback;
 }
 
-export async function resolveGroundingUrls(urls: string[], concurrency: number = 10): Promise<Map<string, ResolvedUrl>> {
+export async function resolveGroundingUrls(urls: string[], concurrency: number = 25): Promise<Map<string, ResolvedUrl>> {
   const groundingUrls = urls.filter(u => {
     try {
       const domain = new URL(u).hostname.replace(/^www\./, "");
@@ -98,16 +98,37 @@ export async function resolveGroundingUrls(urls: string[], concurrency: number =
   const uniqueUrls = [...new Set(groundingUrls)];
   const results = new Map<string, ResolvedUrl>();
 
-  for (let i = 0; i < uniqueUrls.length; i += concurrency) {
-    const batch = uniqueUrls.slice(i, i + concurrency);
-    const resolved = await Promise.allSettled(batch.map(u => resolveOneUrl(u)));
-    for (let j = 0; j < batch.length; j++) {
-      const r = resolved[j];
-      if (r.status === "fulfilled") {
-        results.set(batch[j], r.value);
+  if (uniqueUrls.length === 0) return results;
+
+  // Work queue — always keeps `concurrency` requests in flight instead of waiting for each batch
+  await new Promise<void>((resolveAll) => {
+    let nextIndex = 0;
+    let activeCount = 0;
+    let doneCount = 0;
+
+    const onDone = (url: string, result: ResolvedUrl) => {
+      results.set(url, result);
+      doneCount++;
+      activeCount--;
+      if (doneCount === uniqueUrls.length) {
+        resolveAll();
+      } else {
+        launch();
       }
-    }
-  }
+    };
+
+    const launch = () => {
+      while (activeCount < concurrency && nextIndex < uniqueUrls.length) {
+        const url = uniqueUrls[nextIndex++];
+        activeCount++;
+        resolveOneUrl(url)
+          .then(r => onDone(url, r))
+          .catch(() => onDone(url, { originalUrl: url, resolvedUrl: url, resolvedDomain: "" }));
+      }
+    };
+
+    launch();
+  });
 
   const resolvedCount = Array.from(results.values()).filter(r => r.resolvedDomain).length;
   const failedCount = results.size - resolvedCount;

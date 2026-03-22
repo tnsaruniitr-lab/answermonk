@@ -92,8 +92,8 @@ export async function crawlCitations(
   const substitutionMap = new Map<string, string>();
 
   if (vertexUrls.length > 0) {
-    console.log(`[citation-crawler] Pre-resolving ${vertexUrls.length} VertexAI redirect URLs sequentially...`);
-    const resolved = await resolveGroundingUrls(vertexUrls, 5);
+    console.log(`[citation-crawler] Pre-resolving ${vertexUrls.length} VertexAI redirect URLs (25 concurrent)...`);
+    const resolved = await resolveGroundingUrls(vertexUrls, 25);
     for (const [orig, info] of resolved) {
       if (info.resolvedDomain && info.resolvedUrl !== orig) {
         substitutionMap.set(orig, info.resolvedUrl);
