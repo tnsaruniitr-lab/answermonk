@@ -182,7 +182,10 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
       {/* Rankings */}
       {allRankings.length > 0 && (
         <div className="px-3 pb-3 pt-2">
-          <p className="text-[9px] font-mono tracking-widest uppercase mb-2" style={{ color: "rgba(255,255,255,0.2)" }}>Rankings</p>
+          <div className="mb-2">
+            <p className="text-[11px] font-semibold" style={{ color: "rgba(255,255,255,0.75)" }}>AI Search Rankings</p>
+            <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>Brands AI recommends for this segment</p>
+          </div>
           <div className="space-y-1.5">
             {allRankings.map((c, idx) => {
               const pct = Math.round((c.share ?? 0) * 100);
@@ -190,24 +193,24 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
               const barWidth = Math.round((pct / maxPct) * 100);
               return (
                 <div key={c.name} className="flex items-center gap-2">
-                  <span className="text-[9px] font-mono w-3 text-right flex-shrink-0"
-                    style={{ color: c.isBrand ? "#818cf8" : "rgba(255,255,255,0.2)" }}>
+                  <span className="text-[10px] font-mono w-3 text-right flex-shrink-0"
+                    style={{ color: c.isBrand ? "#818cf8" : "rgba(255,255,255,0.45)" }}>
                     {idx + 1}
                   </span>
-                  <span className="text-[11px] flex-1 truncate"
-                    style={{ color: c.isBrand ? "#a5b4fc" : "rgba(255,255,255,0.45)" }}>
+                  <span className="text-[12px] flex-1 truncate font-medium"
+                    style={{ color: c.isBrand ? "#a5b4fc" : "rgba(255,255,255,0.78)" }}>
                     {c.name}
                     {c.isBrand && <span className="ml-1 text-[8px] font-mono uppercase" style={{ color: "#6366f1" }}>you</span>}
                   </span>
-                  <div className="w-16 h-1 rounded-full overflow-hidden flex-shrink-0" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <div className="w-16 h-1 rounded-full overflow-hidden flex-shrink-0" style={{ background: "rgba(255,255,255,0.08)" }}>
                     <div className="h-full rounded-full transition-all duration-700"
                       style={{
                         width: `${barWidth}%`,
-                        background: c.isBrand ? "linear-gradient(90deg,#6366f1,#8b5cf6)" : "rgba(255,255,255,0.18)",
+                        background: c.isBrand ? "linear-gradient(90deg,#6366f1,#8b5cf6)" : "rgba(255,255,255,0.28)",
                       }} />
                   </div>
-                  <span className="text-[10px] w-7 text-right tabular-nums flex-shrink-0"
-                    style={{ color: c.isBrand ? "#a5b4fc" : "rgba(255,255,255,0.3)" }}>
+                  <span className="text-[11px] w-7 text-right tabular-nums flex-shrink-0 font-medium"
+                    style={{ color: c.isBrand ? "#a5b4fc" : "rgba(255,255,255,0.65)" }}>
                     {pct}%
                   </span>
                 </div>
