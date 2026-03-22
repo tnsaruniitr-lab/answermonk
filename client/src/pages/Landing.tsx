@@ -302,7 +302,7 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
                       title={cit.url}
                       data-testid={`link-citation-domain-${i}`}
                     >
-                      {cit.title || cit.url}
+                      {cit.url}
                     </a>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
