@@ -25,18 +25,18 @@ interface Props {
   sessionId: number;
 }
 
-const PODIUM_COLOR = ["#f59e0b", "#94a3b8", "#cd7c2f"];
-const PODIUM_BG = ["rgba(245,158,11,0.08)", "rgba(148,163,184,0.07)", "rgba(205,124,47,0.08)"];
-const PODIUM_BORDER = ["rgba(245,158,11,0.3)", "rgba(148,163,184,0.2)", "rgba(205,124,47,0.25)"];
+const PODIUM_COLOR  = ["#818cf8", "#a5b4fc", "#c4b5fd"];
+const PODIUM_BG     = ["rgba(99,102,241,0.12)", "rgba(129,140,248,0.08)", "rgba(167,139,250,0.07)"];
+const PODIUM_BORDER = ["rgba(99,102,241,0.4)", "rgba(129,140,248,0.28)", "rgba(167,139,250,0.22)"];
 
 function EngineBadges({ gpt, gem, claude, size = "sm" }: { gpt: boolean; gem: boolean; claude: boolean; size?: "xs" | "sm" }) {
   const pad = size === "xs" ? "1px 4px" : "1px 5px";
   const fs = 7;
   return (
     <div style={{ display: "flex", gap: 3 }}>
-      {gpt && <span style={{ fontSize: fs, fontWeight: 700, padding: pad, borderRadius: 3, background: "rgba(16,185,129,0.12)", color: "#10b981", border: "1px solid rgba(16,185,129,0.3)" }}>GPT</span>}
-      {gem && <span style={{ fontSize: fs, fontWeight: 700, padding: pad, borderRadius: 3, background: "rgba(59,130,246,0.12)", color: "#60a5fa", border: "1px solid rgba(59,130,246,0.3)" }}>Gem</span>}
-      {claude && <span style={{ fontSize: fs, fontWeight: 700, padding: pad, borderRadius: 3, background: "rgba(245,158,11,0.12)", color: "#fbbf24", border: "1px solid rgba(245,158,11,0.3)" }}>Cla</span>}
+      {gpt    && <span style={{ fontSize: fs, fontWeight: 700, padding: pad, borderRadius: 3, background: "rgba(16,185,129,0.12)",  color: "#10b981", border: "1px solid rgba(16,185,129,0.3)"  }}>GPT</span>}
+      {gem    && <span style={{ fontSize: fs, fontWeight: 700, padding: pad, borderRadius: 3, background: "rgba(59,130,246,0.12)",  color: "#60a5fa", border: "1px solid rgba(59,130,246,0.3)"  }}>Gem</span>}
+      {claude && <span style={{ fontSize: fs, fontWeight: 700, padding: pad, borderRadius: 3, background: "rgba(167,139,250,0.14)", color: "#c4b5fd", border: "1px solid rgba(167,139,250,0.3)" }}>Cla</span>}
     </div>
   );
 }
@@ -45,7 +45,7 @@ function UrlList({ urls, loading }: { urls: CitationUrl[]; loading: boolean }) {
   if (loading) {
     return (
       <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
-        <div style={{ width: 12, height: 12, border: "2px solid rgba(255,255,255,0.08)", borderTopColor: "#6366f1", borderRadius: "50%", animation: "csp-spin 0.7s linear infinite", flexShrink: 0 }} />
+        <div style={{ width: 12, height: 12, border: "2px solid rgba(99,102,241,0.15)", borderTopColor: "#818cf8", borderRadius: "50%", animation: "csp-spin 0.7s linear infinite", flexShrink: 0 }} />
         <span style={{ fontSize: 11, color: "#475569" }}>Loading URLs…</span>
       </div>
     );
@@ -60,11 +60,11 @@ function UrlList({ urls, loading }: { urls: CitationUrl[]; loading: boolean }) {
           key={u.url}
           style={{
             padding: "7px 16px 7px 24px",
-            borderTop: "1px solid rgba(255,255,255,0.04)",
+            borderTop: "1px solid rgba(99,102,241,0.08)",
             display: "flex",
             alignItems: "flex-start",
             gap: 10,
-            background: i % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent",
+            background: i % 2 === 0 ? "rgba(99,102,241,0.03)" : "transparent",
           }}
         >
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -107,10 +107,7 @@ export function CitationSourcesPreview({ sessionId }: Props) {
   });
 
   const toggleDomain = useCallback(async (domain: string) => {
-    if (expandedDomain === domain) {
-      setExpandedDomain(null);
-      return;
-    }
+    if (expandedDomain === domain) { setExpandedDomain(null); return; }
     setExpandedDomain(domain);
     if (urlCache[domain]) return;
     setLoadingDomain(domain);
@@ -129,7 +126,7 @@ export function CitationSourcesPreview({ sessionId }: Props) {
     return (
       <div style={{ padding: "32px 0", textAlign: "center" }}>
         <style>{`@keyframes csp-spin { to { transform: rotate(360deg); } }`}</style>
-        <div style={{ display: "inline-block", width: 20, height: 20, border: "2px solid rgba(255,255,255,0.08)", borderTopColor: "#6366f1", borderRadius: "50%", animation: "csp-spin 0.8s linear infinite" }} />
+        <div style={{ display: "inline-block", width: 20, height: 20, border: "2px solid rgba(99,102,241,0.15)", borderTopColor: "#818cf8", borderRadius: "50%", animation: "csp-spin 0.8s linear infinite" }} />
       </div>
     );
   }
@@ -143,15 +140,15 @@ export function CitationSourcesPreview({ sessionId }: Props) {
 
   const top3 = sources.slice(0, 3);
   const rest = sources.slice(3);
-  const max = top3[0]?.appearances ?? 1;
+  const max  = top3[0]?.appearances ?? 1;
 
   return (
-    <div style={{ background: "#060f1e", border: "1px solid #1e3a5f", borderRadius: 20, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.4)" }}>
+    <div style={{ background: "#0d1526", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 20, overflow: "hidden", boxShadow: "0 4px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.06) inset" }}>
       <style>{`@keyframes csp-spin { to { transform: rotate(360deg); } }`}</style>
 
       {/* Header */}
-      <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid #1e3a5f" }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: "#f59e0b", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>◆ Citation Evidence Map</div>
+      <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid rgba(99,102,241,0.15)", background: "rgba(99,102,241,0.04)" }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: "#818cf8", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>◆ Citation Evidence Map</div>
         <h3 style={{ fontSize: 17, fontWeight: 800, color: "#e2e8f0", lineHeight: 1.25, margin: 0 }}>
           Where do LLMs get their answers about this category?
         </h3>
@@ -160,9 +157,9 @@ export function CitationSourcesPreview({ sessionId }: Props) {
         </p>
       </div>
 
-      <div style={{ padding: "12px 16px 16px" }}>
+      <div style={{ padding: "14px 16px 16px" }}>
 
-        {/* Top 3 podium cards — responsive: 3-col desktop, 1-col mobile */}
+        {/* Top 3 podium cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10, marginBottom: 14 }}>
           {top3.map((s, i) => {
             const isExpanded = expandedDomain === s.domain;
@@ -174,15 +171,14 @@ export function CitationSourcesPreview({ sessionId }: Props) {
                   style={{
                     width: "100%",
                     position: "relative",
-                    background: isExpanded
-                      ? PODIUM_BG[i].replace("0.08", "0.15").replace("0.07", "0.14")
-                      : PODIUM_BG[i],
+                    background: isExpanded ? PODIUM_BG[i].replace("0.12", "0.2").replace("0.08", "0.14").replace("0.07", "0.12") : PODIUM_BG[i],
                     border: `1px solid ${isExpanded ? PODIUM_COLOR[i] : PODIUM_BORDER[i]}`,
                     borderRadius: 14,
                     padding: "12px 10px 10px",
                     textAlign: "center",
                     cursor: "pointer",
                     transition: "all 0.15s",
+                    boxShadow: isExpanded ? `0 0 14px ${PODIUM_COLOR[i]}22` : "none",
                   }}
                 >
                   <div style={{
@@ -201,10 +197,10 @@ export function CitationSourcesPreview({ sessionId }: Props) {
                   </div>
                   <div style={{
                     marginTop: 10, padding: "4px 8px", borderRadius: 6,
-                    background: isExpanded ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: isExpanded ? "rgba(99,102,241,0.14)" : "rgba(99,102,241,0.06)",
+                    border: `1px solid ${isExpanded ? "rgba(99,102,241,0.4)" : "rgba(99,102,241,0.15)"}`,
                     fontSize: 10, fontWeight: 600,
-                    color: isExpanded ? "#94a3b8" : "#475569",
+                    color: isExpanded ? "#a5b4fc" : "#6366f1",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
                   }}>
                     <span style={{ fontSize: 11 }}>{isExpanded ? "▾" : "▸"}</span>
@@ -223,14 +219,14 @@ export function CitationSourcesPreview({ sessionId }: Props) {
               key={`urls-${s.domain}`}
               style={{
                 marginBottom: 14,
-                background: "#0a1628",
-                border: "1px solid #1e3a5f",
+                background: "#060f1e",
+                border: "1px solid rgba(99,102,241,0.2)",
                 borderRadius: 12,
                 overflow: "hidden",
               }}
             >
-              <div style={{ padding: "8px 16px", borderBottom: "1px solid #1e3a5f", display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8" }}>{s.domain}</span>
+              <div style={{ padding: "8px 16px", borderBottom: "1px solid rgba(99,102,241,0.12)", display: "flex", alignItems: "center", gap: 8, background: "rgba(99,102,241,0.06)" }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "#a5b4fc" }}>{s.domain}</span>
                 <span style={{ fontSize: 10, color: "#475569" }}>— all cited URLs</span>
               </div>
               <UrlList
@@ -243,14 +239,14 @@ export function CitationSourcesPreview({ sessionId }: Props) {
 
         {/* Ranks 4+ bar chart rows */}
         {rest.length > 0 && (
-          <div style={{ background: "#0a1628", borderRadius: 12, overflow: "hidden", border: "1px solid #1e3a5f" }}>
+          <div style={{ background: "#060f1e", borderRadius: 12, overflow: "hidden", border: "1px solid rgba(99,102,241,0.15)" }}>
             {rest.map((s, i) => {
               const gptW = s.inChatgpt ? (s.appearances / max) * 100 * 0.6 : 0;
-              const gemW = s.inGemini ? (s.appearances / max) * 100 * 0.6 : 0;
-              const isExpanded = expandedDomain === s.domain;
-              const isLoadingThis = loadingDomain === s.domain;
+              const gemW = s.inGemini  ? (s.appearances / max) * 100 * 0.6 : 0;
+              const isExpanded    = expandedDomain === s.domain;
+              const isLoadingThis = loadingDomain  === s.domain;
               return (
-                <div key={s.domain} style={{ borderBottom: i < rest.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
+                <div key={s.domain} style={{ borderBottom: i < rest.length - 1 ? "1px solid rgba(99,102,241,0.08)" : "none" }}>
                   <button
                     onClick={() => toggleDomain(s.domain)}
                     style={{
@@ -259,37 +255,37 @@ export function CitationSourcesPreview({ sessionId }: Props) {
                       alignItems: "center",
                       gap: 12,
                       padding: "9px 16px",
-                      background: isExpanded ? "rgba(99,102,241,0.08)" : "transparent",
+                      background: isExpanded ? "rgba(99,102,241,0.1)" : "transparent",
                       border: "none",
                       cursor: "pointer",
                       textAlign: "left",
                       transition: "background 0.12s",
                     }}
                   >
-                    <span style={{ fontSize: 10, fontWeight: 600, color: "#334155", width: 18, textAlign: "right", flexShrink: 0 }}>{i + 4}</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: isExpanded ? "#6366f1" : "#3d4f6e", width: 18, textAlign: "right", flexShrink: 0 }}>{i + 4}</span>
                     <span style={{ fontSize: 12, fontWeight: 500, color: isExpanded ? "#e2e8f0" : "#94a3b8", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {s.domain}
                     </span>
-                    <div style={{ width: 90, height: 5, background: "#1e3a5f", borderRadius: 3, overflow: "hidden", flexShrink: 0, display: "flex" }}>
+                    <div style={{ width: 90, height: 5, background: "rgba(99,102,241,0.12)", borderRadius: 3, overflow: "hidden", flexShrink: 0, display: "flex" }}>
                       {s.inChatgpt && <div style={{ height: "100%", width: `${gptW}%`, background: "#10b981", borderRadius: s.inGemini ? "3px 0 0 3px" : 3 }} />}
-                      {s.inGemini && <div style={{ height: "100%", width: `${gemW}%`, background: "#3b82f6", borderRadius: s.inChatgpt ? "0 3px 3px 0" : 3 }} />}
+                      {s.inGemini  && <div style={{ height: "100%", width: `${gemW}%`, background: "#3b82f6", borderRadius: s.inChatgpt ? "0 3px 3px 0" : 3 }} />}
                     </div>
                     <div style={{ flexShrink: 0 }}>
                       <EngineBadges gpt={s.inChatgpt} gem={s.inGemini} claude={s.inClaude} size="xs" />
                     </div>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#475569", width: 26, textAlign: "right", flexShrink: 0 }}>{s.appearances}</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: isExpanded ? "#a5b4fc" : "#475569", width: 26, textAlign: "right", flexShrink: 0 }}>{s.appearances}</span>
                     <span style={{
                       flexShrink: 0, fontSize: 10, fontWeight: 600,
-                      color: isExpanded ? "#818cf8" : "#475569",
-                      background: isExpanded ? "rgba(99,102,241,0.12)" : "rgba(255,255,255,0.05)",
-                      border: `1px solid ${isExpanded ? "rgba(99,102,241,0.3)" : "rgba(255,255,255,0.1)"}`,
+                      color: isExpanded ? "#818cf8" : "#6366f1",
+                      background: isExpanded ? "rgba(99,102,241,0.18)" : "rgba(99,102,241,0.08)",
+                      border: `1px solid ${isExpanded ? "rgba(99,102,241,0.4)" : "rgba(99,102,241,0.2)"}`,
                       borderRadius: 5, padding: "2px 6px", whiteSpace: "nowrap", transition: "all 0.12s",
                     }}>
                       {isLoadingThis ? "…" : isExpanded ? "hide ▴" : "URLs ▾"}
                     </span>
                   </button>
                   {isExpanded && (
-                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", background: "#060f1e" }}>
+                    <div style={{ borderTop: "1px solid rgba(99,102,241,0.1)", background: "#0a1120" }}>
                       <UrlList
                         urls={urlCache[s.domain] ?? []}
                         loading={loadingDomain === s.domain}
@@ -310,8 +306,8 @@ export function CitationSourcesPreview({ sessionId }: Props) {
           <span style={{ fontSize: 10, color: "#60a5fa", display: "flex", alignItems: "center", gap: 4 }}>
             <span style={{ width: 10, height: 3, background: "#3b82f6", borderRadius: 2, display: "inline-block" }} />Gemini
           </span>
-          <span style={{ fontSize: 10, color: "#fbbf24", display: "flex", alignItems: "center", gap: 4 }}>
-            <span style={{ width: 10, height: 3, background: "#f59e0b", borderRadius: 2, display: "inline-block" }} />Claude
+          <span style={{ fontSize: 10, color: "#c4b5fd", display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ width: 10, height: 3, background: "#a78bfa", borderRadius: 2, display: "inline-block" }} />Claude
           </span>
           <span style={{ fontSize: 10, color: "#334155", marginLeft: "auto" }}>
             {data?.authoritySources?.length ?? 0} sources indexed
