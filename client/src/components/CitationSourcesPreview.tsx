@@ -146,13 +146,13 @@ export function CitationSourcesPreview({ sessionId }: Props) {
     <div style={{ background: "#0d1526", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 20, overflow: "hidden", boxShadow: "0 4px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.06) inset" }}>
       <style>{`@keyframes csp-spin { to { transform: rotate(360deg); } }`}</style>
 
-      {/* Header */}
-      <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid rgba(99,102,241,0.15)", background: "rgba(99,102,241,0.04)" }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: "#818cf8", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>◆ Citation Evidence Map</div>
-        <h3 style={{ fontSize: 17, fontWeight: 800, color: "#e2e8f0", lineHeight: 1.25, margin: 0 }}>
+      {/* Header — gradient banner */}
+      <div style={{ background: "linear-gradient(100deg, #3730a3 0%, #4f46e5 45%, #6d28d9 100%)", padding: "20px 24px 22px" }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.55)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 8 }}>◆ Citation Evidence Map</div>
+        <h3 style={{ fontSize: 20, fontWeight: 800, color: "#fff", lineHeight: 1.25, margin: 0 }}>
           Where do LLMs get their answers about this category?
         </h3>
-        <p style={{ fontSize: 12, color: "#475569", marginTop: 5, lineHeight: 1.5, marginBottom: 0 }}>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 6, lineHeight: 1.5, marginBottom: 0 }}>
           Click any domain to expand its cited URLs
         </p>
       </div>
