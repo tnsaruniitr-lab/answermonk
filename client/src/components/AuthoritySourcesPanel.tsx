@@ -738,7 +738,7 @@ function MissionControlLoader({
     : phaseStep === "crawling" ? "CRAWLING"
     : phaseStep === "snippets" ? "EXTRACTING"
     : phaseStep === "classifying" ? "CLASSIFYING"
-    : phaseStep === "scoring" || phaseStep === "global" ? "INDEXING"
+    : phaseStep === "scoring" || phaseStep === "global" || phaseStep === "indexing" ? "INDEXING"
     : phaseStep === "complete" ? "COMPLETE"
     : "PROCESSING";
 

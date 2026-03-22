@@ -538,7 +538,7 @@ export async function runSegmentAnalysis(
   onProgress?.("global", "Computing global authority...", 96);
   const globalAuthority = computeGlobalAuthority(brandName, pageSnippetsList, classifiedSources);
 
-  onProgress?.("complete", "Analysis complete", 100);
+  onProgress?.("indexing", "Indexing citation data...", 99);
 
   return {
     brandName,
