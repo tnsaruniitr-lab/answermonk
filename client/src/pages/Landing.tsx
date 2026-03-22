@@ -64,6 +64,11 @@ function getDomain(url: string): string {
   catch { return url; }
 }
 
+function isVertexAiUrl(url: string): boolean {
+  try { return new URL(url).hostname.includes("vertexaisearch.cloud.google.com"); }
+  catch { return false; }
+}
+
 function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; brandName: string; selected?: boolean; onToggle?: () => void }) {
   const sr = seg.scoringResult;
   const score = sr?.score || {};
@@ -302,7 +307,7 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
                       title={cit.url}
                       data-testid={`link-citation-domain-${i}`}
                     >
-                      {cit.url}
+                      {isVertexAiUrl(cit.url) ? (cit.title || getDomain(cit.url)) : cit.url}
                     </a>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
