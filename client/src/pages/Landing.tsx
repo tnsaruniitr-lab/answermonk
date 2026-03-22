@@ -299,15 +299,11 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
                       rel="noopener noreferrer"
                       className="text-[11px] font-medium hover:underline truncate block"
                       style={{ color: "#60a5fa" }}
+                      title={cit.url}
                       data-testid={`link-citation-domain-${i}`}
                     >
-                      {cit.domain}
+                      {cit.title || cit.url}
                     </a>
-                    {cit.title && (
-                      <p className="text-[10px] truncate mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
-                        {cit.title}
-                      </p>
-                    )}
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
                     {Array.from(cit.engines).map(eng => (
