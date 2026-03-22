@@ -2735,9 +2735,14 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
   const authorityMax = authoritySources[0]?.appearances ?? 1;
   const brandMax = brandMentions[0]?.appearances ?? 1;
 
-  const activeModelLabel = MODEL_OPTIONS.find(o =>
-    o.value === (insightsMutation.isPending ? "claude-sonnet-4-5" : selectedModel)
-  )?.label ?? "AI Model";
+  const INSIGHT_MODEL_LABELS: Record<string, string> = {
+    "claude-sonnet-4-5": "Claude Sonnet",
+    "claude-haiku-4-5": "Claude Haiku",
+    "claude-opus-4-5": "Claude Opus",
+  };
+  const activeModelLabel = insightsMutation.isPending
+    ? (INSIGHT_MODEL_LABELS[getAdminSettings().insightsModel] ?? "AI Model")
+    : (MODEL_OPTIONS.find(o => o.value === selectedModel)?.label ?? "AI Model");
 
   const anyInsightsPending = insightsMutation.isPending || manualInsightsMutation.isPending;
 
