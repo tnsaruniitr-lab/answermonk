@@ -688,7 +688,7 @@ function LandingInner() {
           reportDone={pipelineReportDone}
         />
       )}
-      {activeSessionId !== null && <div style={{ height: 64, flexShrink: 0 }} />}
+      {activeSessionId !== null && <div style={{ height: 76, flexShrink: 0 }} />}
 
       {/* Aurora orbs — vh-based positions so they stay in the hero viewport regardless of doc height */}
       <div style={{ position: 'absolute', top: '-10vh', left: '-5vw', width: '39vw', height: '39vw', background: '#fbcfe8', borderRadius: '50%', filter: 'blur(100px)', opacity: 0.35, pointerEvents: 'none' }} />

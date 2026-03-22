@@ -53,142 +53,153 @@ export function AnalysisPipelineHeader({
         left: 0,
         right: 0,
         zIndex: 100,
-        background: "linear-gradient(180deg, #0a1020 0%, #070d1a 100%)",
-        borderBottom: "1px solid rgba(255,255,255,0.07)",
-        padding: "0 20px",
-        display: "flex",
-        alignItems: "center",
-        height: 64,
-        gap: 8,
+        padding: "8px 12px",
+        background: "transparent",
+        pointerEvents: "none",
       }}
     >
       <div
         style={{
-          fontSize: 10,
-          fontWeight: 800,
-          color: allDone ? "#10b981" : "#6366f1",
-          marginRight: 8,
-          letterSpacing: "0.15em",
-          textTransform: "uppercase",
-          flexShrink: 0,
-          transition: "color 0.6s",
+          background: "linear-gradient(180deg, #0d1526 0%, #080e1d 100%)",
+          border: "1px solid rgba(255,255,255,0.10)",
+          borderRadius: 14,
+          padding: "0 20px",
+          display: "flex",
+          alignItems: "center",
+          height: 60,
+          gap: 8,
+          boxShadow: "0 4px 24px rgba(0,0,0,0.65), 0 1px 0 rgba(255,255,255,0.04) inset",
+          backdropFilter: "blur(12px)",
+          pointerEvents: "auto",
         }}
       >
-        ◈ AM
-      </div>
-
-      <div style={{ display: "flex", alignItems: "center", flex: 1, gap: 6 }}>
-        {STAGES.map((s, i) => {
-          const done = s.id < activeStage;
-          const active = s.id === activeStage;
-          const pending = s.id > activeStage;
-
-          return (
-            <div key={s.id} style={{ display: "flex", alignItems: "center", flex: 1 }}>
-              <div
-                style={{
-                  flex: 1,
-                  background: done
-                    ? "linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.07) 100%)"
-                    : active
-                    ? `linear-gradient(135deg, rgba(79,70,229,${pulse ? 0.22 : 0.16}) 0%, rgba(109,40,217,0.12) 100%)`
-                    : "rgba(255,255,255,0.03)",
-                  border: done
-                    ? "1px solid rgba(16,185,129,0.3)"
-                    : active
-                    ? `1px solid rgba(99,102,241,${pulse ? 0.5 : 0.3})`
-                    : "1px solid rgba(255,255,255,0.07)",
-                  borderRadius: 8,
-                  padding: "7px 12px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  transition: "border-color 0.4s, background 0.4s",
-                  boxShadow: active
-                    ? `0 0 12px rgba(99,102,241,${pulse ? 0.18 : 0.08})`
-                    : "none",
-                }}
-              >
-                <div
-                  style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: 4,
-                    background: done
-                      ? "rgba(16,185,129,0.2)"
-                      : active
-                      ? "rgba(79,70,229,0.3)"
-                      : "rgba(255,255,255,0.05)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 10,
-                    color: done ? "#10b981" : active ? "#818cf8" : "#374151",
-                    flexShrink: 0,
-                  }}
-                >
-                  {done ? "✓" : s.id}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 10.5,
-                      fontWeight: done ? 500 : active ? 600 : 400,
-                      color: done ? "#34d399" : active ? "#e2e8f0" : "#374151",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {s.shortLabel}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 9,
-                      color: done ? "#10b981" : active ? "#6366f1" : "#1f2937",
-                      marginTop: 1,
-                    }}
-                  >
-                    {statusText(s.id)}
-                  </div>
-                </div>
-              </div>
-              {i < STAGES.length - 1 && (
-                <div
-                  style={{
-                    width: 10,
-                    height: 1,
-                    flexShrink: 0,
-                    background: done
-                      ? "rgba(16,185,129,0.4)"
-                      : "rgba(255,255,255,0.07)",
-                    transition: "background 0.6s",
-                  }}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {allDone && (
         <div
           style={{
-            marginLeft: 12,
             fontSize: 10,
-            color: "#10b981",
-            background: "rgba(16,185,129,0.1)",
-            border: "1px solid rgba(16,185,129,0.25)",
-            borderRadius: 5,
-            padding: "3px 9px",
-            fontWeight: 600,
+            fontWeight: 800,
+            color: allDone ? "#10b981" : "#6366f1",
+            marginRight: 8,
+            letterSpacing: "0.15em",
+            textTransform: "uppercase",
             flexShrink: 0,
-            letterSpacing: "0.05em",
+            transition: "color 0.6s",
           }}
         >
-          COMPLETE
+          ◈ AM
         </div>
-      )}
+
+        <div style={{ display: "flex", alignItems: "center", flex: 1, gap: 6 }}>
+          {STAGES.map((s, i) => {
+            const done = s.id < activeStage;
+            const active = s.id === activeStage;
+
+            return (
+              <div key={s.id} style={{ display: "flex", alignItems: "center", flex: 1 }}>
+                <div
+                  style={{
+                    flex: 1,
+                    background: done
+                      ? "linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.07) 100%)"
+                      : active
+                      ? `linear-gradient(135deg, rgba(79,70,229,${pulse ? 0.22 : 0.16}) 0%, rgba(109,40,217,0.12) 100%)`
+                      : "rgba(255,255,255,0.03)",
+                    border: done
+                      ? "1px solid rgba(16,185,129,0.3)"
+                      : active
+                      ? `1px solid rgba(99,102,241,${pulse ? 0.5 : 0.3})`
+                      : "1px solid rgba(255,255,255,0.07)",
+                    borderRadius: 8,
+                    padding: "7px 12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    transition: "border-color 0.4s, background 0.4s",
+                    boxShadow: active
+                      ? `0 0 12px rgba(99,102,241,${pulse ? 0.18 : 0.08})`
+                      : "none",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 4,
+                      background: done
+                        ? "rgba(16,185,129,0.2)"
+                        : active
+                        ? "rgba(79,70,229,0.3)"
+                        : "rgba(255,255,255,0.05)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 10,
+                      color: done ? "#10b981" : active ? "#818cf8" : "#374151",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {done ? "✓" : s.id}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: done ? 500 : active ? 600 : 400,
+                        color: done ? "#34d399" : active ? "#e2e8f0" : "#374151",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {s.shortLabel}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 9,
+                        color: done ? "#10b981" : active ? "#6366f1" : "#1f2937",
+                        marginTop: 1,
+                      }}
+                    >
+                      {statusText(s.id)}
+                    </div>
+                  </div>
+                </div>
+                {i < STAGES.length - 1 && (
+                  <div
+                    style={{
+                      width: 10,
+                      height: 1,
+                      flexShrink: 0,
+                      background: done
+                        ? "rgba(16,185,129,0.4)"
+                        : "rgba(255,255,255,0.07)",
+                      transition: "background 0.6s",
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {allDone && (
+          <div
+            style={{
+              marginLeft: 12,
+              fontSize: 10,
+              color: "#10b981",
+              background: "rgba(16,185,129,0.1)",
+              border: "1px solid rgba(16,185,129,0.25)",
+              borderRadius: 5,
+              padding: "3px 9px",
+              fontWeight: 600,
+              flexShrink: 0,
+              letterSpacing: "0.05em",
+            }}
+          >
+            COMPLETE
+          </div>
+        )}
+      </div>
     </div>
   );
 }
