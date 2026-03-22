@@ -148,13 +148,8 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
           {appearance}%
         </div>
         <div style={{ width: 1, height: 44, backgroundColor: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
-        <div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#ffffff", lineHeight: 1.3, marginBottom: 3 }}>
-            of the time you appear
-          </div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.4 }}>
-            when potential customers search for this {isCustomer ? "customer type" : "service"} on AI engines
-          </div>
+        <div style={{ fontSize: 14, fontWeight: 600, color: "#ffffff", lineHeight: 1.4 }}>
+          you appear in <strong>{appearance}%</strong> of LLM searches on average when customers look for this {isCustomer ? "customer type" : "service"}
         </div>
         {/* Selection indicator */}
         {isSelectable && (
@@ -220,17 +215,6 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
       {/* ── Rankings ── */}
       {allRankings.length > 0 && (
         <div style={{ padding: "20px 24px" }}>
-          {/* Context line */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 14 }}>🔍</span>
-            <span style={{ fontSize: 12, color: "#94a3b8" }}>See who appears when customers search for</span>
-            {promptContext && (
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#93c5fd", backgroundColor: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.25)", padding: "2px 10px", borderRadius: 100 }}>
-                {promptContext}
-              </span>
-            )}
-          </div>
-
           <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>
             AI Search Rankings
           </div>
