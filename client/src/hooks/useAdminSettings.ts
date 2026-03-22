@@ -23,7 +23,7 @@ const DEFAULTS: AdminSettings = {
     deepseek: false,
   },
   useHeuristicClassification: false,
-  showDevRerunButton: false,
+  showDevRerunButton: true,
   maxServices: 4,
   maxCustomers: 4,
 };

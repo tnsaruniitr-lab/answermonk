@@ -1,0 +1,193 @@
+4
+QuickBooks Online
+71%
+5
+Microsoft Dynamics 365
+71%
+6
+Xero
+63%
+7
+Sage
+54%
+8
+Odoo
+46%
+
+Citations · 176 sources
+🔍 In a hurry?
+
+Leave your email and we'll send it to you.
+
+your@email.com
+Email link →
+◆ Citation Evidence Map
+Where do LLMs get their answers about this category?
+Click any domain to expand its cited URLs
+
+›
+#1
+meydanfz.ae
+10
+citations
+Gem
+▸
+show URLs
+›
+#2
+clutch.co
+8
+citations
+Gem
+▸
+show URLs
+›
+#3
+softwaresuggest.com
+6
+citations
+Gem
+▸
+show URLs
+
+4
+payit.ae
+Gem
+6
+URLs ▾
+
+5
+reddit.com
+Gem
+6
+URLs ▾
+
+6
+mastercard.com
+Gem
+5
+URLs ▾
+
+7
+getapp.ae
+Gem
+5
+URLs ▾
+
+8
+saasadviser.co
+Gem
+5
+URLs ▾
+
+9
+azdan.com
+Gem
+5
+URLs ▾
+
+10
+investindubai.gov.ae
+Gem
+4
+URLs ▾
+
+11
+zawya.com
+Gem
+4
+URLs ▾
+
+12
+prajit-arora.squarespace.com
+Gem
+3
+URLs ▾
+
+13
+rfzaccounting.ae
+Gem
+3
+URLs ▾
+ChatGPT
+Gemini
+Claude
+25 sources indexed
+Analyse Citation Intelligence
+Analyzing signals across primary intelligence engines
+
+ChatGPT
+Claude
+Gemini
+Perplexity
+The Intelligence Pipeline
+From raw domain to actionable GEO insights in minutes.
+
+Business Understanding
+Web ingestion and brand understanding
+
+Detailed Audit
+Collect authority domains for your sector, scan LLMs for the answers they give customers
+
+Comp Analysis
+Discover what competitors do better and extract their strategy
+
+Agents Deployed
+AI agents activated to improve your AI search rank
+
+Key features of AnswerMonk Intelligence
+Prompt Network Creator (PNC)
+Automatically generates service-specific and persona-specific search prompts from your website using AI analysis. Produces 25–30 intent-based queries per analysis run — no manual configuration required.
+Cross-engine scoring across ChatGPT, Claude, and Gemini
+Every prompt is run against all three major AI engines simultaneously. Results are weighted by engine market share: ChatGPT 35%, Gemini 35%, Claude 20%, Perplexity 10%.
+Competitor leaderboard
+Identifies which competitors appear most frequently in AI responses for your target prompts, with their presence score and rank position per engine.
+Citation source breakdown
+Crawls and classifies all URLs cited by AI engines — directories, review platforms, brand pages, media coverage — to show which third-party sites drive AI recommendations in your category.
+Signal Consistency analysis
+Checks whether AI models agree on the same facts about your brand — location, services, attributes — or produce conflicting information across engines.
+AGENT INTELLIGENCE BRIEF
+How the agents work
+Everything you need to brief your team before the first run.
+
+Q-001
+GEO
+RESOLVED
+›
+What does the GEO agent actually measure?
+The GEO agent fires natural-language prompts at ChatGPT, Claude, Gemini, and Perplexity — the same way a real customer would ask. It records every brand mentioned in every response, scores their rank position and frequency, and computes an authority score for your brand against every competitor in the category. Not ranked URLs. Actual AI answer text.
+
+Q-002
+PNC
+RESOLVED
+›
+How does the Prompt Network agent generate its queries?
+Drop in a URL. The PNC agent reads your site, extracts your service types and customer segments, then auto-generates 25–30 real-world prompts a buyer would actually type — e.g. "Find the 10 most trusted [service] providers in [city]". No manual configuration. The agent builds the full prompt network before the first query fires.
+
+Q-003
+SCORE
+RESOLVED
+›
+What does a share-of-voice score of 100 mean?
+100 means your brand is the top-cited answer across every prompt, every engine, every run. 0 means the AI doesn't mention you at all. Everything in between is weighted by rank position and engine importance. The score updates every time an agent run completes — it's a live signal, not a snapshot.
+
+Q-004
+CITATION
+RESOLVED
+›
+What does the citation intelligence agent crawl?
+When AI engines generate answers, they pull from external sources — Trustpilot, Clutch, G2, industry publications, directories, brand sites. The citation agent crawls every URL cited in your results, classifies the source type, and tells you which third-party platforms are deciding your AI visibility. Fix those sources, move the score.
+
+Q-005
+RUNTIME
+RESOLVED
+›
+How long does a full agent run take?
+Typically 3 to 8 minutes end-to-end — from URL drop to full scored report. That covers site extraction, prompt network generation, multi-engine firing, citation crawling, source classification, and authority scoring across all segments. The crawl phase is the variable; the agents run in parallel to keep it tight.
+
+ANSWERMONK
+·
+CITATION INTELLIGENCE
+·
+GEO SCORING
+© 2026 ANSWERMONK. ALL RIGHTS RESERVED.
