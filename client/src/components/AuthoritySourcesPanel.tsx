@@ -634,19 +634,36 @@ function useCrawlProgress(sessionId: number, active: boolean) {
   return progress;
 }
 
+const ANALYSIS_STREAM_LABELS = [
+  ["reading citation graph", "scoring domain authority", "extracting brand signals"],
+  ["classifying page types", "mapping AI mention patterns", "ranking GEO tactics"],
+  ["building source profile", "cross-checking engines", "finalising tactic report"],
+];
+const ANALYSIS_STATUSES = ["READING", "SCORING", "INDEXING", "MAPPING"];
+
 function MissionControlLoader({
   sessionId,
   crawlPending,
   insightsPending,
+  rowCount = 0,
+  modelLabel = "AI MODEL",
+  failed = false,
+  onRetry,
 }: {
   sessionId: number;
   crawlPending: boolean;
   insightsPending: boolean;
+  rowCount?: number;
+  modelLabel?: string;
+  failed?: boolean;
+  onRetry?: () => void;
 }) {
   const progress = useCrawlProgress(sessionId, crawlPending);
   const { displayed: quipText, opacity: quipOpacity } = useQuips();
   const [streamDomains, setStreamDomains] = useState(STREAM_POOLS.map(p => p[0]));
   const [streamStatus, setStreamStatus] = useState([0, 1, 2]);
+  const [analysisStreams, setAnalysisStreams] = useState(ANALYSIS_STREAM_LABELS[0]);
+  const [analysisStatuses, setAnalysisStatuses] = useState([0, 1, 2]);
   const tick = useRef(0);
 
   // Parse real numbers from progress detail string
@@ -661,7 +678,7 @@ function MissionControlLoader({
   const [animClassified, setAnimClassified] = useState(0);
   const animCrawledRef = useRef(0);
 
-  // Animate stream domains
+  // Animate stream domains (crawl phase)
   useEffect(() => {
     if (!crawlPending) return;
     const id = setInterval(() => {
@@ -685,8 +702,36 @@ function MissionControlLoader({
     return () => clearInterval(id);
   }, [crawlPending, realCrawled, realOk]);
 
+  // Animate analysis streams (insights phase)
+  useEffect(() => {
+    if (!insightsPending) return;
+    let frame = 0;
+    const id = setInterval(() => {
+      frame++;
+      if (frame % 5 === 0) {
+        setAnalysisStreams(ANALYSIS_STREAM_LABELS[Math.floor(Math.random() * ANALYSIS_STREAM_LABELS.length)]);
+        setAnalysisStatuses([Math.floor(Math.random() * 4), Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)]);
+      }
+    }, 700);
+    return () => clearInterval(id);
+  }, [insightsPending]);
+
+  // Oscillating progress ring for insights phase (93–100%, sine wave)
+  const [insightsPct, setInsightsPct] = useState(93);
+  useEffect(() => {
+    if (!insightsPending) return;
+    let frame = 0;
+    const id = setInterval(() => {
+      frame++;
+      setInsightsPct(93 + 5 * Math.abs(Math.sin(frame * 0.04)));
+    }, 150);
+    return () => clearInterval(id);
+  }, [insightsPending]);
+
   const phaseStep = progress?.step ?? "crawling";
-  const phaseLabel = insightsPending
+  const phaseLabel = failed
+    ? "ROADBLOCK"
+    : insightsPending
     ? "AI ANALYSIS"
     : phaseStep === "starting" ? "INITIALIZING"
     : phaseStep === "crawling" ? "CRAWLING"
@@ -696,7 +741,7 @@ function MissionControlLoader({
     : phaseStep === "complete" ? "COMPLETE"
     : "PROCESSING";
 
-  const displayPct = insightsPending ? 100 : (progress?.pct ?? Math.min(95, (animCrawled / (realTotal ?? 600)) * 100));
+  const displayPct = failed ? 0 : insightsPending ? insightsPct : (progress?.pct ?? Math.min(95, (animCrawled / (realTotal ?? 600)) * 100));
   const classifiedPct = animClassified / Math.max(animCrawled, 1);
 
   const streamColors = ["#3b82f6", "#6366f1", "#10b981"];
@@ -711,8 +756,8 @@ function MissionControlLoader({
           <span style={{ color: "#334155", fontSize: 10, fontFamily: "monospace" }}>CITATION INTELLIGENCE</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <div style={{ width: 5, height: 5, borderRadius: "50%", background: insightsPending ? "#f59e0b" : "#ef4444", animation: "mc-blink 0.8s infinite" }} />
-          <span style={{ color: insightsPending ? "#f59e0b" : "#ef4444", fontSize: 10, fontFamily: "monospace", letterSpacing: 1 }}>{phaseLabel}</span>
+          <div style={{ width: 5, height: 5, borderRadius: "50%", background: failed ? "#ef4444" : insightsPending ? "#f59e0b" : "#ef4444", animation: "mc-blink 0.8s infinite" }} />
+          <span style={{ color: failed ? "#ef4444" : insightsPending ? "#f59e0b" : "#ef4444", fontSize: 10, fontFamily: "monospace", letterSpacing: 1 }}>{phaseLabel}</span>
         </div>
       </div>
 
@@ -751,11 +796,11 @@ function MissionControlLoader({
             <svg viewBox="0 0 140 140" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
               <circle cx="70" cy="70" r="62" fill="none" stroke="#1e3a5f" strokeWidth="4" />
               <circle cx="70" cy="70" r="62" fill="none"
-                stroke={insightsPending ? "#f59e0b" : "#3b82f6"} strokeWidth="4"
+                stroke={failed ? "#ef4444" : insightsPending ? "#f59e0b" : "#3b82f6"} strokeWidth="4"
                 strokeDasharray={`${2 * Math.PI * 62}`}
                 strokeDashoffset={`${2 * Math.PI * 62 * (1 - displayPct / 100)}`}
                 strokeLinecap="round"
-                style={{ transition: "stroke-dashoffset 0.8s ease", filter: insightsPending ? "drop-shadow(0 0 8px #f59e0b)" : "drop-shadow(0 0 8px #3b82f6)" }}
+                style={{ transition: "stroke-dashoffset 0.4s ease", filter: failed ? "drop-shadow(0 0 8px #ef4444)" : insightsPending ? "drop-shadow(0 0 8px #f59e0b)" : "drop-shadow(0 0 8px #3b82f6)" }}
               />
             </svg>
             <svg viewBox="0 0 140 140" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
@@ -771,36 +816,72 @@ function MissionControlLoader({
               <div style={{ color: "#e2e8f0", fontSize: 28, fontWeight: 700, lineHeight: 1, fontFamily: "monospace" }}>
                 {Math.round(displayPct)}%
               </div>
-              <div style={{ color: insightsPending ? "#f59e0b" : "#3b82f6", fontSize: 9, letterSpacing: 1, marginTop: 4, fontFamily: "monospace" }}>
-                {insightsPending ? "ANALYSING" : "CRAWLED"}
+              <div style={{ color: failed ? "#ef4444" : insightsPending ? "#f59e0b" : "#3b82f6", fontSize: 9, letterSpacing: 1, marginTop: 4, fontFamily: "monospace" }}>
+                {failed ? "STOPPED" : insightsPending ? "ANALYSING" : "CRAWLED"}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Stream monitors — hidden during insights phase */}
-        {!insightsPending && (
+        {/* Stream monitors — crawl domains OR analysis streams */}
+        {!failed && (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
             {[0, 1, 2].map(i => (
-              <div key={i} style={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 8, padding: "9px 11px" }}>
-                <div style={{ color: "#334155", fontSize: 9, fontFamily: "monospace", marginBottom: 5, letterSpacing: 1 }}>STREAM {i + 1}</div>
-                <div style={{ color: streamColors[i], fontSize: 10, fontFamily: "monospace", marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {streamDomains[i]}
+              <div key={i} style={{ background: "#0a1628", border: `1px solid ${insightsPending ? "rgba(245,158,11,0.2)" : "#1e3a5f"}`, borderRadius: 8, padding: "9px 11px" }}>
+                <div style={{ color: "#334155", fontSize: 9, fontFamily: "monospace", marginBottom: 5, letterSpacing: 1 }}>
+                  {insightsPending ? `AGENT ${i + 1}` : `STREAM ${i + 1}`}
+                </div>
+                <div style={{ color: insightsPending ? "#f59e0b" : streamColors[i], fontSize: 10, fontFamily: "monospace", marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", opacity: insightsPending ? 0.8 : 1 }}>
+                  {insightsPending ? analysisStreams[i] : streamDomains[i]}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <div style={{ width: 4, height: 4, borderRadius: "50%", background: streamColors[streamStatus[i] % 3], animation: "mc-pulse 1.2s infinite" }} />
-                  <span style={{ color: "#475569", fontSize: 9, fontFamily: "monospace" }}>{STATUSES[streamStatus[i]]}</span>
+                  <div style={{ width: 4, height: 4, borderRadius: "50%", background: insightsPending ? "#f59e0b" : streamColors[streamStatus[i] % 3], animation: "mc-pulse 1.2s infinite" }} />
+                  <span style={{ color: "#475569", fontSize: 9, fontFamily: "monospace" }}>
+                    {insightsPending ? ANALYSIS_STATUSES[analysisStatuses[i]] : STATUSES[streamStatus[i]]}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Claude Sonnet analysis message — insights phase */}
+        {/* Roadblock state */}
+        {failed && (
+          <div style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 8, padding: "20px 18px", marginBottom: 14, textAlign: "center" }}>
+            <div style={{ color: "#ef4444", fontSize: 13, fontFamily: "monospace", letterSpacing: 1, marginBottom: 8, fontWeight: 700 }}>⚠ AGENT HIT A ROADBLOCK</div>
+            <div style={{ color: "#64748b", fontSize: 11, fontFamily: "monospace", marginBottom: 16, lineHeight: 1.6 }}>
+              The AI model didn't respond in time.<br />This is usually a network blip — safe to retry.
+            </div>
+            {onRetry && (
+              <button
+                onClick={onRetry}
+                data-testid="button-insights-retry"
+                style={{
+                  background: "rgba(239,68,68,0.15)",
+                  border: "1px solid rgba(239,68,68,0.4)",
+                  borderRadius: 6,
+                  color: "#fca5a5",
+                  fontSize: 11,
+                  fontFamily: "monospace",
+                  letterSpacing: 1,
+                  padding: "8px 20px",
+                  cursor: "pointer",
+                }}
+              >
+                RETRY ANALYSIS →
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Model analysis message — insights phase */}
         {insightsPending && (
-          <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 8, padding: "12px 16px", marginBottom: 14, textAlign: "center" }}>
-            <div style={{ color: "#f59e0b", fontSize: 11, fontFamily: "monospace", letterSpacing: 1, marginBottom: 6 }}>CLAUDE SONNET ANALYSIS</div>
-            <div style={{ color: "#475569", fontSize: 10, fontFamily: "monospace" }}>Analysing {animCrawled.toLocaleString()} citation rows · discovering GEO tactics…</div>
+          <div style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.18)", borderRadius: 8, padding: "10px 16px", marginBottom: 14, display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f59e0b", boxShadow: "0 0 8px #f59e0b", flexShrink: 0, animation: "mc-pulse 1.2s ease-in-out infinite" }} />
+            <div>
+              <div style={{ color: "#f59e0b", fontSize: 11, fontFamily: "monospace", letterSpacing: 1, marginBottom: 3 }}>{modelLabel.toUpperCase()} ANALYSIS</div>
+              <div style={{ color: "#475569", fontSize: 10, fontFamily: "monospace" }}>Analysing {rowCount.toLocaleString()} citation rows · discovering GEO tactics…</div>
+            </div>
           </div>
         )}
 
@@ -825,7 +906,7 @@ function MissionControlLoader({
         <div style={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 8, padding: "11px 15px" }}>
           <div style={{ color: "#334155", fontSize: 9, fontFamily: "monospace", letterSpacing: 1, marginBottom: 7 }}>CURRENT OPERATION</div>
           <div style={{ color: "#475569", fontSize: 10, fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {progress?.detail ?? (insightsPending ? "Running Claude Sonnet 4.5 citation intelligence analysis…" : "Initialising web crawler…")}
+            {failed ? "Analysis stopped — connection dropped or model timed out." : progress?.detail ?? (insightsPending ? `Running ${modelLabel} citation intelligence analysis…` : "Initialising web crawler…")}
           </div>
         </div>
       </div>
@@ -2368,6 +2449,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
   const [activeTab, setActiveTab] = useState<"authority" | "brand">("authority");
   const [crawlError, setCrawlError] = useState<string | null>(null);
   const [isCrawlRunning, setIsCrawlRunning] = useState(false);
+  const [insightsFailed, setInsightsFailed] = useState(false);
   const autoInsightsTriggered = useRef(false);
   const autoCrawlTriggered = useRef(false);
 
@@ -2476,10 +2558,12 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       return res.json();
     },
     onSuccess: () => {
+      setInsightsFailed(false);
       qc.invalidateQueries({
         queryKey: ["/api/multi-segment-sessions", sessionId, "citation-insights"],
       });
     },
+    onError: () => setInsightsFailed(true),
   });
 
   // Manual insights mutation (uses selectedModel + customPrompt from UI state)
@@ -2495,11 +2579,13 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       return res.json();
     },
     onSuccess: (data: any) => {
+      setInsightsFailed(false);
       qc.invalidateQueries({
         queryKey: ["/api/multi-segment-sessions", sessionId, "citation-insights"],
       });
       if (data?.id) setSelectedInsightId(data.id);
     },
+    onError: () => setInsightsFailed(true),
   });
 
   // ── Panel-level progress poll: watches for crawl completion ─────────────────
@@ -2541,6 +2627,12 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
 
   const authorityMax = authoritySources[0]?.appearances ?? 1;
   const brandMax = brandMentions[0]?.appearances ?? 1;
+
+  const activeModelLabel = MODEL_OPTIONS.find(o =>
+    o.value === (insightsMutation.isPending ? "claude-sonnet-4-5" : selectedModel)
+  )?.label ?? "AI Model";
+
+  const anyInsightsPending = insightsMutation.isPending || manualInsightsMutation.isPending;
 
   return (
     <div className="space-y-4">
@@ -2588,25 +2680,27 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       {/* ── Data exists ───────────────────────────────────────────────── */}
       {hasData && (
         <>
-          {/* Claude loading state (auto-run chain, before first result) */}
-          {insightsMutation.isPending && autoRun && !latestInsight && (
-            <MissionControlLoader sessionId={sessionId} crawlPending={false} insightsPending={true} />
+          {/* Full-panel loader: any insights mutation running or roadblock */}
+          {(anyInsightsPending || insightsFailed) && (
+            <MissionControlLoader
+              sessionId={sessionId}
+              crawlPending={false}
+              insightsPending={anyInsightsPending}
+              rowCount={rowCount}
+              modelLabel={activeModelLabel}
+              failed={insightsFailed && !anyInsightsPending}
+              onRetry={() => { setInsightsFailed(false); manualInsightsMutation.mutate(); }}
+            />
           )}
 
-          {/* Generate button — when no insight exists yet */}
-          {!latestInsight && (!insightsMutation.isPending || !autoRun) && (
+          {/* Generate button — when no insight exists yet and not loading/failed */}
+          {!latestInsight && !anyInsightsPending && !insightsFailed && (
             <div className="rounded-xl border border-dashed border-border/60 bg-secondary/10 px-5 py-4 space-y-3">
               <div>
                 <p className="text-sm font-semibold text-foreground">Citation Intelligence Report</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Send {rowCount.toLocaleString()} citation rows to an AI model to extract ranked GEO tactics and source patterns.
                 </p>
-                {(insightsMutation.isError || manualInsightsMutation.isError) && (
-                  <div className="flex items-center gap-1.5 text-xs text-destructive mt-1.5">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                    Generation failed — try again.
-                  </div>
-                )}
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
