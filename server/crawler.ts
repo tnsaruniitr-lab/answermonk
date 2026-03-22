@@ -337,19 +337,7 @@ export async function fetchWithBrowser(url: string): Promise<{ html: string; fin
 
 const SINGLE_URL_TIMEOUT = 8000;
 
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T | null> {
-  return Promise.race([
-    promise,
-    new Promise<null>((resolve) => {
-      setTimeout(() => {
-        console.log(`[crawler] TIMEOUT after ${ms}ms: ${label}`);
-        resolve(null);
-      }, ms);
-    }),
-  ]);
-}
-
-export async function crawlSingleUrl(url: string): Promise<CrawledPage> {
+export async function crawlSingleUrl(url: string, noBrowser = false): Promise<CrawledPage> {
   const failResult: CrawledPage = {
     url,
     resolvedUrl: url,
@@ -368,19 +356,21 @@ export async function crawlSingleUrl(url: string): Promise<CrawledPage> {
     tableRows: [],
   };
 
+  let cancelled = false;
+
   const doWork = async (): Promise<CrawledPage> => {
     let result = await fetchWithHttp(url);
 
-    if (result) {
-      const text = extractTextFromHTML(result.html);
-      if (text.split(/\s+/).length < MIN_TEXT_LENGTH / 5) {
-        const browserResult = await fetchWithBrowser(url);
-        if (browserResult) {
-          result = browserResult;
+    if (!noBrowser && !cancelled) {
+      if (result) {
+        const text = extractTextFromHTML(result.html);
+        if (text.split(/\s+/).length < MIN_TEXT_LENGTH / 5) {
+          const browserResult = await fetchWithBrowser(url);
+          if (browserResult) result = browserResult;
         }
+      } else {
+        result = await fetchWithBrowser(url);
       }
-    } else {
-      result = await fetchWithBrowser(url);
     }
 
     if (!result) return failResult;
@@ -422,7 +412,17 @@ export async function crawlSingleUrl(url: string): Promise<CrawledPage> {
     };
   };
 
-  const result = await withTimeout(doWork(), SINGLE_URL_TIMEOUT, url);
+  const result = await Promise.race([
+    doWork(),
+    new Promise<null>((resolve) => {
+      setTimeout(() => {
+        cancelled = true;
+        console.log(`[crawler] TIMEOUT after ${SINGLE_URL_TIMEOUT}ms: ${url}`);
+        resolve(null);
+      }, SINGLE_URL_TIMEOUT);
+    }),
+  ]);
+
   return result || failResult;
 }
 
@@ -436,7 +436,7 @@ export interface CrawlProgress {
 export async function crawlUrls(
   urls: string[],
   onProgress?: (progress: CrawlProgress) => void,
-  options?: { stripRawHtml?: boolean },
+  options?: { stripRawHtml?: boolean; noBrowser?: boolean },
 ): Promise<CrawledPage[]> {
   const stripHtml = options?.stripRawHtml ?? false;
   const canonicalSeen = new Map<string, number>();
@@ -450,8 +450,10 @@ export async function crawlUrls(
     }
   }
 
-  const concurrency = uniqueUrls.length > LARGE_CRAWL_THRESHOLD ? LARGE_CRAWL_CONCURRENT : MAX_CONCURRENT;
-  console.log(`[crawler] Crawling ${uniqueUrls.length} unique URLs (from ${urls.length} total) — concurrency ${concurrency}`);
+  const isLargeCrawl = uniqueUrls.length > LARGE_CRAWL_THRESHOLD;
+  const noBrowser = options?.noBrowser ?? isLargeCrawl;
+  const concurrency = isLargeCrawl ? LARGE_CRAWL_CONCURRENT : MAX_CONCURRENT;
+  console.log(`[crawler] Crawling ${uniqueUrls.length} unique URLs (from ${urls.length} total) — concurrency ${concurrency} noBrowser=${noBrowser}`);
 
   const results: CrawledPage[] = new Array(uniqueUrls.length);
   let doneCount = 0;
@@ -491,7 +493,7 @@ export async function crawlUrls(
       while (activeCount < concurrency && nextIndex < uniqueUrls.length) {
         const idx = nextIndex++;
         activeCount++;
-        crawlSingleUrl(uniqueUrls[idx])
+        crawlSingleUrl(uniqueUrls[idx], noBrowser)
           .then((page) => onComplete(idx, page))
           .catch(() => {
             onComplete(idx, {

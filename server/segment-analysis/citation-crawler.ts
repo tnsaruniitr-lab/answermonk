@@ -1,4 +1,5 @@
 import { crawlUrls, type CrawledPage, type CrawlProgress } from "../crawler";
+import { resolveGroundingUrls } from "../report/grounding-resolver";
 
 export interface RawRunInput {
   prompt: string;
@@ -29,6 +30,14 @@ export interface SegmentInput {
     };
     raw_runs?: RawRunInput[];
   };
+}
+
+function isVertexAiUrl(url: string): boolean {
+  try {
+    return new URL(url).hostname.includes("vertexaisearch.cloud.google.com");
+  } catch {
+    return false;
+  }
 }
 
 export function extractCitationUrls(segments: SegmentInput[]): string[] {
@@ -73,5 +82,21 @@ export async function crawlCitations(
 ): Promise<CrawledPage[]> {
   const allUrls = extractCitationUrls(segments);
   if (allUrls.length === 0) return [];
-  return crawlUrls(allUrls, onProgress, { stripRawHtml: true });
+
+  const vertexUrls = [...new Set(allUrls.filter(isVertexAiUrl))];
+  const substitutionMap = new Map<string, string>();
+
+  if (vertexUrls.length > 0) {
+    console.log(`[citation-crawler] Pre-resolving ${vertexUrls.length} VertexAI redirect URLs sequentially...`);
+    const resolved = await resolveGroundingUrls(vertexUrls, 5);
+    for (const [orig, info] of resolved) {
+      if (info.resolvedDomain && info.resolvedUrl !== orig) {
+        substitutionMap.set(orig, info.resolvedUrl);
+      }
+    }
+    console.log(`[citation-crawler] Substituted ${substitutionMap.size}/${vertexUrls.length} VertexAI URLs with real destinations`);
+  }
+
+  const substitutedUrls = allUrls.map(url => substitutionMap.get(url) ?? url);
+  return crawlUrls(substitutedUrls, onProgress, { stripRawHtml: true });
 }
