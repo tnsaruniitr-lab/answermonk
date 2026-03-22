@@ -65,6 +65,7 @@ async function buildSitemapIndex(base: string): Promise<string> {
     `${base}/sitemaps/brands.xml`,
     `${base}/sitemaps/hubs.xml`,
     `${base}/sitemaps/comparisons.xml`,
+    `${base}/sitemaps/content-pages.xml`,
   ];
 
   const entries = sitemaps
@@ -243,5 +244,35 @@ export function registerSitemapRoutes(app: Express): void {
       console.error("[sitemap] comparisons error:", err);
       res.status(500).send("Internal server error");
     }
+  });
+
+  // Static SEO content pages
+  app.get("/sitemaps/content-pages.xml", (req: Request, res: Response) => {
+    const base = canonicalBase(req);
+    const now = new Date().toISOString().split("T")[0];
+    const CONTENT_PAGES = [
+      "/methodology",
+      "/ai-search-audit",
+      "/how-ai-search-works",
+      "/how-to-improve-ai-citations",
+      "/use-cases/brands",
+      "/use-cases/agencies",
+      "/use-cases/b2b-saas",
+      "/use-cases/ecommerce",
+      "/use-cases/local-business",
+      "/chatgpt-visibility-audit",
+      "/llm-seo-audit",
+      "/glossary/generative-engine-optimization",
+      "/glossary/ai-visibility-score",
+      "/glossary/ai-search-visibility",
+      "/compare/answermonk-vs-profound",
+      "/compare/answermonk-vs-ahrefs-brand-radar",
+      "/sample-report",
+    ];
+    const urls = CONTENT_PAGES.map(path =>
+      `  <url>\n    <loc>${base}${path}</loc>\n    <lastmod>${now}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`
+    ).join("\n");
+    const xml = `${xmlHeader()}\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
+    respond(res, xml);
   });
 }

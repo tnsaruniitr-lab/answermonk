@@ -1,12 +1,25 @@
 User-agent: *
 
-# Public entry points — index and allow
+# Public entry points
+Allow: /
 Allow: /start
 Allow: /share/
 Allow: /analytics/
 Allow: /audit/
 Allow: /reports/
 Allow: /citations/
+
+# SEO content pages
+Allow: /methodology
+Allow: /ai-search-audit
+Allow: /how-ai-search-works
+Allow: /how-to-improve-ai-citations
+Allow: /use-cases/
+Allow: /chatgpt-visibility-audit
+Allow: /llm-seo-audit
+Allow: /glossary/
+Allow: /compare/
+Allow: /sample-report
 
 # Admin and internal tools — block from all crawlers
 Disallow: /api/
@@ -23,28 +36,58 @@ Disallow: /summary/
 
 # LLM crawlers — explicit allow for AI indexing agents
 User-agent: GPTBot
+Allow: /
 Allow: /start
 Allow: /share/
 Allow: /reports/
+Allow: /methodology
+Allow: /ai-search-audit
+Allow: /how-ai-search-works
+Allow: /how-to-improve-ai-citations
+Allow: /use-cases/
+Allow: /chatgpt-visibility-audit
+Allow: /llm-seo-audit
+Allow: /glossary/
+Allow: /compare/
+Allow: /sample-report
 Allow: /llms.txt
 
 User-agent: ClaudeBot
+Allow: /
 Allow: /start
 Allow: /share/
 Allow: /reports/
+Allow: /methodology
+Allow: /how-ai-search-works
+Allow: /how-to-improve-ai-citations
+Allow: /glossary/
 Allow: /llms.txt
 
 User-agent: PerplexityBot
+Allow: /
 Allow: /start
 Allow: /share/
 Allow: /reports/
+Allow: /methodology
+Allow: /how-ai-search-works
+Allow: /glossary/
 Allow: /llms.txt
 
 User-agent: Google-Extended
+Allow: /
 Allow: /start
 Allow: /share/
 Allow: /reports/
+Allow: /methodology
+Allow: /ai-search-audit
+Allow: /how-ai-search-works
+Allow: /how-to-improve-ai-citations
+Allow: /use-cases/
+Allow: /chatgpt-visibility-audit
+Allow: /llm-seo-audit
+Allow: /glossary/
+Allow: /compare/
+Allow: /sample-report
 Allow: /llms.txt
 
-# Sitemap (add when available)
-# Sitemap: https://app.nexalytics.io/sitemap.xml
+Sitemap: https://answermonk.ai/sitemap.xml

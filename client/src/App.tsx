@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -24,6 +24,23 @@ import GeoLandingPageReport from "@/pages/GeoLandingPageReport";
 import Landing from "@/pages/Landing";
 import DirectoryListing from "@/pages/DirectoryListing";
 import { Loader2 } from "lucide-react";
+
+const Methodology = lazy(() => import("@/pages/seo/Methodology"));
+const AiSearchAudit = lazy(() => import("@/pages/seo/AiSearchAudit"));
+const HowAiSearchWorks = lazy(() => import("@/pages/seo/HowAiSearchWorks"));
+const HowToImproveAiCitations = lazy(() => import("@/pages/seo/HowToImproveAiCitations"));
+const UseCasePage = lazy(() => import("@/pages/seo/UseCasePage"));
+const ChatgptVisibilityAudit = lazy(() => import("@/pages/seo/ChatgptVisibilityAudit"));
+const LlmSeoAudit = lazy(() => import("@/pages/seo/LlmSeoAudit"));
+const GlossaryPage = lazy(() => import("@/pages/seo/GlossaryPage"));
+const ComparePage = lazy(() => import("@/pages/seo/ComparePage"));
+const SampleReport = lazy(() => import("@/pages/seo/SampleReport"));
+
+const SEO_PREFIXES = [
+  "/methodology", "/ai-search-audit", "/how-ai-search-works",
+  "/how-to-improve-ai-citations", "/use-cases", "/chatgpt-visibility-audit",
+  "/llm-seo-audit", "/glossary", "/compare", "/sample-report",
+];
 
 function SlugTeaser({ params }: { params: { slug: string } }) {
   return <ProspectTeaser slug={params.slug} />;
@@ -98,6 +115,30 @@ function AuthGate() {
   return <Login onSuccess={() => window.location.reload()} />;
 }
 
+function SeoRoutes({ path }: { path: string }) {
+  return (
+    <Suspense fallback={null}>
+      {path === "/methodology" && <Methodology />}
+      {path === "/ai-search-audit" && <AiSearchAudit />}
+      {path === "/how-ai-search-works" && <HowAiSearchWorks />}
+      {path === "/how-to-improve-ai-citations" && <HowToImproveAiCitations />}
+      {path === "/chatgpt-visibility-audit" && <ChatgptVisibilityAudit />}
+      {path === "/llm-seo-audit" && <LlmSeoAudit />}
+      {path === "/sample-report" && <SampleReport />}
+      {path === "/use-cases/brands" && <UseCasePage useCase="brands" />}
+      {path === "/use-cases/agencies" && <UseCasePage useCase="agencies" />}
+      {path === "/use-cases/b2b-saas" && <UseCasePage useCase="b2b-saas" />}
+      {path === "/use-cases/ecommerce" && <UseCasePage useCase="ecommerce" />}
+      {path === "/use-cases/local-business" && <UseCasePage useCase="local-business" />}
+      {path === "/glossary/generative-engine-optimization" && <GlossaryPage term="generative-engine-optimization" />}
+      {path === "/glossary/ai-visibility-score" && <GlossaryPage term="ai-visibility-score" />}
+      {path === "/glossary/ai-search-visibility" && <GlossaryPage term="ai-search-visibility" />}
+      {path === "/compare/answermonk-vs-profound" && <ComparePage competitor="answermonk-vs-profound" />}
+      {path === "/compare/answermonk-vs-ahrefs-brand-radar" && <ComparePage competitor="answermonk-vs-ahrefs-brand-radar" />}
+    </Suspense>
+  );
+}
+
 function App() {
   const [path] = useLocation();
 
@@ -108,6 +149,18 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Landing />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  // Public SEO content pages — no auth required
+  const isSeoPath = SEO_PREFIXES.some(p => path === p || path.startsWith(p + "/"));
+  if (isSeoPath) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <SeoRoutes path={path} />
         </TooltipProvider>
       </QueryClientProvider>
     );
