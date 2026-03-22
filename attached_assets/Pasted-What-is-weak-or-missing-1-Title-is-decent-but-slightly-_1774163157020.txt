@@ -1,0 +1,126 @@
+What is weak or missing
+1. Title is decent, but slightly generic
+
+Audit your AI search visibility and rank higher in AI search | AnswerMonk
+
+Problem:
+
+repeats “AI search”
+sounds a bit SEO-generic
+less crisp than it could be
+
+Better options:
+
+AI Search Visibility Audit for Brands and Agencies | AnswerMonk
+Track and Improve Your Brand’s Visibility in ChatGPT and AI Search | AnswerMonk
+AI Visibility Audits for ChatGPT, Gemini, and AI Search | AnswerMonk
+2. Meta description is underspecified
+
+“One-sentence summary” is too vague. It should explicitly include:
+
+what you measure
+where
+who it is for
+outcome
+
+Example:
+Measure how your brand appears in ChatGPT, Gemini, Perplexity, and AI search, benchmark competitors, and find actions to improve citations and visibility.
+
+3. JSON-LD choice is not enough by itself
+
+Organization + SoftwareApplication is good, but I’d also consider:
+
+WebSite
+WebPage
+BreadcrumbList on internal pages
+FAQPage where relevant
+
+Not mandatory, but stronger.
+
+4. Missing proof pages
+
+This is the biggest gap.
+
+You still need at least:
+
+/sample-report
+/case-studies or at least 1–2 case pages
+/examples or /audit-example
+maybe /templates/ai-visibility-report
+
+Without proof, the site remains mostly explanatory, not persuasive.
+
+5. Missing commercial intent pages
+
+You have one feature page, but not enough direct demand capture.
+
+I would add:
+
+/chatgpt-visibility-audit
+/llm-seo-audit
+/ai-visibility-tool
+/brand-mention-tracking-for-ai-search or similar if that is core
+
+Not all at once, but at least 2–3 of these.
+
+6. Missing “for Dubai / GCC / MENA” if that is your wedge
+
+If regional relevance matters, you should not hide it.
+
+Potential pages:
+
+/ai-search-visibility-for-dubai-agencies
+/geo-audit-for-gcc-brands
+
+Only if this is actually your go-to-market wedge.
+
+7. “Want me to go ahead?” is too optimistic unless content quality is real
+
+These 20 changes help only if the pages are:
+
+unique
+useful
+non-thin
+internally linked
+written with actual depth
+
+If they are shallow SEO filler, the gain will be limited.
+
+Priority order I’d use
+Must do now
+title/meta/OG
+robots.txt + sitemap.xml
+JSON-LD
+/methodology
+/ai-search-audit
+/use-cases/brands
+/use-cases/agencies
+/how-ai-search-works
+/how-to-improve-ai-citations
+Next
+glossary pages
+comparison pages
+vertical pages like b2b saas / ecommerce / local business
+Add soon after
+sample report
+audit example
+case study page
+Bottom line
+
+This is a solid Phase 1, not a full solution.
+
+It will likely improve:
+
+crawlability
+entity clarity
+indexable footprint
+category relevance
+
+But it will not be enough on its own to make AnswerMonk look authoritative unless you add:
+
+proof
+examples
+internal linking
+real depth on each page
+
+My direct verdict: go ahead, but add proof pages to the plan before shipping.
