@@ -607,6 +607,26 @@ export async function registerRoutes(
       // Layer 2: Domain deduplication — same domain within 6 hours returns cached submission
       const existing = await storage.getLandingSubmissionByDomain(domain, 6);
       if (existing) {
+        const ageMs = Date.now() - new Date(existing.createdAt).getTime();
+        const isStuckProcessing = existing.status === "processing" && ageMs > 5 * 60 * 1000;
+        const isError = existing.status === "error";
+
+        // If PNC died mid-flight (server restart or crash), re-launch it on the same record
+        if (isStuckProcessing || isError) {
+          console.log(`[Landing] Re-launching PNC for submission ${existing.id} (${existing.status}, age=${Math.round(ageMs / 1000)}s)`);
+          await storage.updateLandingSubmission(existing.id, { status: "processing", pncResult: null });
+          (async () => {
+            try {
+              const { result } = await pncExtract(existing.websiteUrl);
+              await storage.updateLandingSubmission(existing.id, { status: "complete", pncResult: result as any });
+            } catch (err) {
+              console.error("[Landing] PNC re-extraction failed:", err);
+              await storage.updateLandingSubmission(existing.id, { status: "error" });
+            }
+          })();
+          return res.status(200).json({ id: existing.id, cached: true, status: "processing", pncResult: null });
+        }
+
         const normalizedStatus = existing.status === "done" ? "complete" : existing.status;
         return res.status(200).json({ id: existing.id, cached: true, status: normalizedStatus, pncResult: existing.pncResult });
       }
