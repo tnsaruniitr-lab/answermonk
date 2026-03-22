@@ -236,6 +236,9 @@ function LandingInner() {
   const [replayMode, setReplayMode] = useState(false);
   const honeypotRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const crawlCardRef = useRef<HTMLDivElement>(null);
+  const dispatchFeedRef = useRef<HTMLDivElement>(null);
+  const lastSegCardRef = useRef<HTMLDivElement>(null);
   const chipsInitialized = useRef(false);
 
   const [services, setServices] = useState<string[]>([]);
@@ -326,6 +329,10 @@ function LandingInner() {
     const iv = setInterval(() => {
       setAgentStep((prev) => Math.min(prev + 1, AGENT_STEPS.length - 1));
     }, 1800);
+    // Case 1: scroll to crawl card when processing starts
+    setTimeout(() => {
+      crawlCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
     return () => clearInterval(iv);
   }, [submissionId, isProcessing]);
 
@@ -411,6 +418,15 @@ function LandingInner() {
     return () => clearInterval(iv);
   }, [isRunning]);
 
+  // Case 2: scroll to dispatch feed when scoring session first becomes active
+  useEffect(() => {
+    if (activeSessionId !== null) {
+      setTimeout(() => {
+        dispatchFeedRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 250);
+    }
+  }, [activeSessionId]);
+
   useEffect(() => {
     if (scoredSegs.length > 0) {
       setSelectedSegmentIds((prev) => {
@@ -420,9 +436,15 @@ function LandingInner() {
       });
     }
     if (scoredSegs.length === 1) {
+      // First segment: scroll to the top of the results section
       setTimeout(() => {
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 80);
+    } else if (scoredSegs.length > 1) {
+      // Case 4: each subsequent segment card — scroll to the newly-appeared card
+      setTimeout(() => {
+        lastSegCardRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 100);
     }
   }, [scoredSegs.length]);
 
@@ -705,7 +727,7 @@ function LandingInner() {
 
         {/* Processing — PNC extracting */}
         {isProcessing && submissionId && (
-          <div className="mt-8 max-w-md mx-auto" data-testid="status-processing">
+          <div className="mt-8 max-w-md mx-auto" data-testid="status-processing" ref={crawlCardRef}>
             <div className="relative">
               <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-blue-400/30 via-violet-400/20 to-blue-400/30 blur-sm" />
               <div className="relative bg-white/85 backdrop-blur-xl rounded-2xl p-6 border border-white/90 shadow-lg">
@@ -973,18 +995,19 @@ function LandingInner() {
                 Unselect a segment if you think it's irrelevant to your brand
               </p>
             )}
-            {scoredSegs.map((seg) => (
-              <SegmentResultCard
-                key={seg.id}
-                seg={seg}
-                brandName={scoringSession?.brandName || ""}
-                selected={allSegmentsDone ? selectedSegmentIds.has(seg.id) : undefined}
-                onToggle={allSegmentsDone ? () => setSelectedSegmentIds((prev) => {
-                  const next = new Set(prev);
-                  if (next.has(seg.id)) next.delete(seg.id); else next.add(seg.id);
-                  return next;
-                }) : undefined}
-              />
+            {scoredSegs.map((seg, i) => (
+              <div key={seg.id} ref={i === scoredSegs.length - 1 ? lastSegCardRef : undefined}>
+                <SegmentResultCard
+                  seg={seg}
+                  brandName={scoringSession?.brandName || ""}
+                  selected={allSegmentsDone ? selectedSegmentIds.has(seg.id) : undefined}
+                  onToggle={allSegmentsDone ? () => setSelectedSegmentIds((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(seg.id)) next.delete(seg.id); else next.add(seg.id);
+                    return next;
+                  }) : undefined}
+                />
+              </div>
             ))}
 
             {/* Email nudge — LLM scoring phase */}
@@ -1049,12 +1072,14 @@ function LandingInner() {
 
             {/* Live Dispatch Feed — shown while scoring is in progress */}
             {isScoring && (
-              <DispatchFeedLive
-                scoringSegs={scoringSegs}
-                scoredSegs={scoredSegs}
-                brandName={scoringSession?.brandName || ""}
-                brandDomain={scoringSession?.brandDomain || undefined}
-              />
+              <div ref={dispatchFeedRef}>
+                <DispatchFeedLive
+                  scoringSegs={scoringSegs}
+                  scoredSegs={scoredSegs}
+                  brandName={scoringSession?.brandName || ""}
+                  brandDomain={scoringSession?.brandDomain || undefined}
+                />
+              </div>
             )}
 
             {/* Email nudge — citation crawl phase */}
