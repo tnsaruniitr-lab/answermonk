@@ -2454,6 +2454,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
   const [crawlError, setCrawlError] = useState<string | null>(null);
   const [isCrawlRunning, setIsCrawlRunning] = useState(false);
   const [insightsFailed, setInsightsFailed] = useState(false);
+  const [insightsGenerated, setInsightsGenerated] = useState(false);
   const autoInsightsTriggered = useRef(false);
   const autoCrawlTriggered = useRef(false);
 
@@ -2563,6 +2564,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
     },
     onSuccess: () => {
       setInsightsFailed(false);
+      setInsightsGenerated(true);
       qc.invalidateQueries({
         queryKey: ["/api/multi-segment-sessions", sessionId, "citation-insights"],
       });
@@ -2584,6 +2586,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
     },
     onSuccess: (data: any) => {
       setInsightsFailed(false);
+      setInsightsGenerated(true);
       qc.invalidateQueries({
         queryKey: ["/api/multi-segment-sessions", sessionId, "citation-insights"],
       });
@@ -2645,7 +2648,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       {!hasData && (
         <>
           {/* autoRun: show full mission-control loader instead of the manual button */}
-          {(crawlMutation.isPending || isCrawlRunning || (autoRun && !insightsLoading)) ? (
+          {(crawlMutation.isPending || isCrawlRunning || (autoRun && !insightsLoading && !insightsGenerated)) ? (
             <MissionControlLoader
               sessionId={sessionId}
               crawlPending={true}
@@ -2693,11 +2696,11 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       {hasData && (
         <>
           {/* Full-panel loader: any insights mutation running, roadblock, OR autoRun waiting to fire */}
-          {(anyInsightsPending || insightsFailed || (autoRun && !latestInsight)) && (
+          {(anyInsightsPending || insightsFailed || (autoRun && !latestInsight && !insightsGenerated)) && (
             <MissionControlLoader
               sessionId={sessionId}
               crawlPending={false}
-              insightsPending={anyInsightsPending || (autoRun && !latestInsight && !insightsFailed)}
+              insightsPending={anyInsightsPending || (autoRun && !latestInsight && !insightsFailed && !insightsGenerated)}
               rowCount={rowCount}
               modelLabel={activeModelLabel}
               failed={insightsFailed && !anyInsightsPending}
