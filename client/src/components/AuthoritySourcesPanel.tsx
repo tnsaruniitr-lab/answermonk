@@ -2978,7 +2978,31 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
                         if (parsed.factors) return <FactorReport data={parsed} />;
                         return <StructuredReport data={parsed as StructuredReportData} sessionId={sessionId} authoritySources={authoritySources} brandMentions={brandMentions} />;
                       }
-                    } catch { /* fall through */ }
+                    } catch {
+                      /* JSON parse failed — likely truncated response */
+                      const trimmed = displayedInsight.result_text.trim();
+                      const looksLikeJson = trimmed.startsWith("```json") || trimmed.startsWith("{");
+                      if (looksLikeJson) {
+                        return (
+                          <div style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.22)", borderRadius: 10, padding: "16px 20px", display: "flex", gap: 12, alignItems: "flex-start" }}>
+                            <span style={{ fontSize: 18, flexShrink: 0 }}>⚠</span>
+                            <div>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: "#ef4444", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 4 }}>Report generation was cut off</div>
+                              <p style={{ fontSize: 12, color: "#94a3b8", margin: "0 0 12px 0", lineHeight: 1.6 }}>
+                                The AI response was truncated before completing. Re-run the analysis to generate a fresh report.
+                              </p>
+                              <button
+                                onClick={() => manualInsightsMutation.mutate()}
+                                disabled={anyInsightsPending}
+                                style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)", border: "none", borderRadius: 6, color: "#fff", fontSize: 12, fontWeight: 600, padding: "6px 14px", cursor: anyInsightsPending ? "not-allowed" : "pointer", opacity: anyInsightsPending ? 0.6 : 1 }}
+                              >
+                                {anyInsightsPending ? "Regenerating…" : "Re-run Analysis"}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      }
+                    }
                     return <MarkdownReport text={displayedInsight.result_text} />;
                   })()}
                 </motion.div>
