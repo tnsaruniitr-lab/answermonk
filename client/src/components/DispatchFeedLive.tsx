@@ -82,8 +82,19 @@ export function DispatchFeedLive({ scoringSegs, scoredSegs, brandName, brandDoma
   const [lines, setLines] = useState<LogLine[]>([]);
   const [inFlight, setInFlight] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const activePillRef = useRef<HTMLDivElement>(null);
   const lineIdRef  = useRef(0);
   const processedRef = useRef<Set<number | string>>(new Set());
+
+  // Case 3: scroll the active segment pill into view when active segment changes
+  const activeSegIdx = scoringSegs.findIndex((s, i) => !s.scoringResult && i === scoredSegs.length);
+  useEffect(() => {
+    if (activePillRef.current) {
+      setTimeout(() => {
+        activePillRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 100);
+    }
+  }, [activeSegIdx]);
 
   // ── Hydrate from real scored segment data ─────────────────────────────────
 
@@ -400,6 +411,7 @@ export function DispatchFeedLive({ scoringSegs, scoredSegs, brandName, brandDoma
             return (
               <div
                 key={seg.id ?? i}
+                ref={active ? activePillRef : undefined}
                 style={{
                   display: "flex",
                   alignItems: "center",

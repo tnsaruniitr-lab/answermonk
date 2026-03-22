@@ -217,7 +217,7 @@ export function OperatorConsole() {
             <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 5px #10b981" }} />
           </div>
           <div ref={logRef} style={{ height: 80, overflowY: "auto", scrollbarWidth: "none", padding: "6px 12px" }}>
-            {logs.map((l, i) => (
+            {logs.filter(Boolean).map((l, i) => (
               <div key={i} style={{
                 fontSize: 9,
                 lineHeight: "16px",
