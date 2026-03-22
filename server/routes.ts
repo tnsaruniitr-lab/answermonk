@@ -2255,6 +2255,7 @@ export async function registerRoutes(
       }));
 
       analysisProgress.set(progressKey, { step: "starting", detail: "Initializing analysis...", pct: 0, startedAt: Date.now() });
+      if (sessionId && typeof sessionId === "number") spInit(sessionId);
 
       // Respond immediately so the HTTP proxy doesn't time-out the long crawl
       res.json({ progressKey, status: "started" });
@@ -2276,7 +2277,6 @@ export async function registerRoutes(
           }, brandDomain || undefined, typeof sessionId === "number" ? sessionId : undefined);
 
           if (sessionId && typeof sessionId === "number") {
-            spInit(sessionId);
             spStart(sessionId, "persist_db");
             try {
               await storage.updateCitationReport(sessionId, report);
