@@ -2640,14 +2640,22 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       {/* ── No data yet: loading / empty / crawl trigger ──────────────── */}
       {!hasData && (
         <>
-          {(crawlMutation.isPending || isCrawlRunning) ? (
-            <MissionControlLoader sessionId={sessionId} crawlPending={true} insightsPending={false} />
+          {/* autoRun: show full mission-control loader instead of the manual button */}
+          {(crawlMutation.isPending || isCrawlRunning || (autoRun && !insightsLoading)) ? (
+            <MissionControlLoader
+              sessionId={sessionId}
+              crawlPending={true}
+              insightsPending={false}
+              rowCount={rowCount}
+              modelLabel={activeModelLabel}
+            />
           ) : insightsLoading ? (
             <div className="flex items-center justify-center gap-2 py-10 text-xs text-muted-foreground">
               <Loader2 className="w-4 h-4 animate-spin" />
               Checking citation data…
             </div>
           ) : (
+            /* Manual-mode only: show button when autoRun is off */
             <div className="rounded-xl border border-dashed border-border/60 bg-secondary/10 px-6 py-10 text-center space-y-3">
               <Globe className="w-8 h-8 mx-auto text-muted-foreground/40" />
               <div>
@@ -2680,12 +2688,12 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       {/* ── Data exists ───────────────────────────────────────────────── */}
       {hasData && (
         <>
-          {/* Full-panel loader: any insights mutation running or roadblock */}
-          {(anyInsightsPending || insightsFailed) && (
+          {/* Full-panel loader: any insights mutation running, roadblock, OR autoRun waiting to fire */}
+          {(anyInsightsPending || insightsFailed || (autoRun && !latestInsight)) && (
             <MissionControlLoader
               sessionId={sessionId}
               crawlPending={false}
-              insightsPending={anyInsightsPending}
+              insightsPending={anyInsightsPending || (autoRun && !latestInsight && !insightsFailed)}
               rowCount={rowCount}
               modelLabel={activeModelLabel}
               failed={insightsFailed && !anyInsightsPending}
@@ -2693,8 +2701,8 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
             />
           )}
 
-          {/* Generate button — when no insight exists yet and not loading/failed */}
-          {!latestInsight && !anyInsightsPending && !insightsFailed && (
+          {/* Generate button — manual mode only, when no insight exists yet and not loading/failed */}
+          {!latestInsight && !anyInsightsPending && !insightsFailed && !autoRun && (
             <div className="rounded-xl border border-dashed border-border/60 bg-secondary/10 px-5 py-4 space-y-3">
               <div>
                 <p className="text-sm font-semibold text-foreground">Citation Intelligence Report</p>
