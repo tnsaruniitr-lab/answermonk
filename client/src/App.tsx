@@ -23,6 +23,7 @@ import CrawlabilityReport from "@/pages/CrawlabilityReport";
 import GeoLandingPageReport from "@/pages/GeoLandingPageReport";
 import Landing from "@/pages/Landing";
 import DirectoryListing from "@/pages/DirectoryListing";
+import AdminSettings from "@/pages/AdminSettings";
 import { Loader2 } from "lucide-react";
 
 const Methodology = lazy(() => import("@/pages/seo/Methodology"));
@@ -64,6 +65,7 @@ function AdminDashboard() {
       <Route path="/admin" component={Analyzer} />
       <Route path="/admin/history" component={HistoryPage} />
       <Route path="/admin/prompts" component={PromptGenerator} />
+      <Route path="/admin/settings" component={AdminSettings} />
       <Route path="/history" component={HistoryPage} />
       <Route path="/prompts" component={PromptGenerator} />
       <Route path="/scoring/:id" component={ScoringDetail} />

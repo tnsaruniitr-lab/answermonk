@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { getAdminSettings } from "@/hooks/useAdminSettings";
 import { Button } from "@/components/ui/button";
 import {
   ChevronDown,
@@ -2883,8 +2884,8 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
             </>
           )}
 
-          {/* Dev re-run button — visible when idle, triggers crawl → Claude chain */}
-          {!crawlMutation.isPending && !isCrawlRunning && !anyInsightsPending && !insightsFailed && (
+          {/* Dev re-run button — controlled by admin settings */}
+          {getAdminSettings().showDevRerunButton && !crawlMutation.isPending && !isCrawlRunning && !anyInsightsPending && !insightsFailed && (
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => {

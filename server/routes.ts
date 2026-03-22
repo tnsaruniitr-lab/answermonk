@@ -695,8 +695,9 @@ export async function registerRoutes(
         services: z.array(z.string().min(1)).min(1),
         customers: z.array(z.string().min(1)).min(1),
         city: z.string().min(1),
+        engines: z.array(z.enum(["chatgpt", "gemini", "claude"])).min(1).optional(),
       });
-      const { submissionId, services, customers, city } = schema.parse(req.body);
+      const { submissionId, services, customers, city, engines } = schema.parse(req.body);
 
       const submissions = await storage.listLandingSubmissions();
       const submission = submissions.find((s) => s.id === submissionId);
@@ -768,7 +769,7 @@ export async function registerRoutes(
               undefined,
               undefined,
               undefined,
-              ["chatgpt", "gemini", "claude"],
+              engines ?? ["chatgpt", "gemini", "claude"],
             );
             updatedSegments[i] = {
               ...seg,

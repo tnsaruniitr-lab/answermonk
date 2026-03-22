@@ -8,6 +8,7 @@ import {
   Search, TrendingUp, Rocket, ChevronDown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getAdminSettings, getEnabledEngines } from "@/hooks/useAdminSettings";
 import { RecentAnalysisTiles } from "@/components/RecentAnalysisTiles";
 const AuthoritySourcesPanel = lazy(() =>
   import("@/components/AuthoritySourcesPanel").then(m => ({ default: m.AuthoritySourcesPanel }))
@@ -382,7 +383,10 @@ function LandingInner() {
   const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
-  const MAX_SELECTED = 4;
+  const _adminSettings = getAdminSettings();
+  const MAX_SERVICES = _adminSettings.maxServices ?? 4;
+  const MAX_CUSTOMERS = _adminSettings.maxCustomers ?? 4;
+  const MAX_SELECTED = Math.max(MAX_SERVICES, MAX_CUSTOMERS);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -437,8 +441,8 @@ function LandingInner() {
       setServices(svcs);
       setCustomers(custs);
       setCompetitors(comps);
-      setSelectedServices(new Set(svcs.slice(0, MAX_SELECTED)));
-      setSelectedCustomers(new Set(custs.slice(0, MAX_SELECTED)));
+      setSelectedServices(new Set(svcs.slice(0, MAX_SERVICES)));
+      setSelectedCustomers(new Set(custs.slice(0, MAX_CUSTOMERS)));
       setCity(ct);
     }
   }, [submission?.status, submission?.pncResult]);
@@ -471,6 +475,7 @@ function LandingInner() {
         services: Array.from(selectedServices),
         customers: Array.from(selectedCustomers),
         city: city.trim() || "Global",
+        engines: getEnabledEngines(),
       });
       return res.json();
     },
@@ -615,7 +620,7 @@ function LandingInner() {
 
   function toggleService(s: string) {
     setSelectedServices((prev) => {
-      if (!prev.has(s) && prev.size >= MAX_SELECTED) {
+      if (!prev.has(s) && prev.size >= MAX_SERVICES) {
         setServiceLimitError(true);
         return prev;
       }
@@ -628,7 +633,7 @@ function LandingInner() {
 
   function toggleCustomer(c: string) {
     setSelectedCustomers((prev) => {
-      if (!prev.has(c) && prev.size >= MAX_SELECTED) {
+      if (!prev.has(c) && prev.size >= MAX_CUSTOMERS) {
         setCustomerLimitError(true);
         return prev;
       }
@@ -644,7 +649,7 @@ function LandingInner() {
     if (!s || services.includes(s)) { setNewServiceInput(""); return; }
     setServices((prev) => [...prev, s]);
     setSelectedServices((prev) => {
-      if (prev.size >= MAX_SELECTED) { setServiceLimitError(true); return prev; }
+      if (prev.size >= MAX_SERVICES) { setServiceLimitError(true); return prev; }
       return new Set([...prev, s]);
     });
     setNewServiceInput("");
@@ -655,7 +660,7 @@ function LandingInner() {
     if (!c || customers.includes(c)) { setNewCustomerInput(""); return; }
     setCustomers((prev) => [...prev, c]);
     setSelectedCustomers((prev) => {
-      if (prev.size >= MAX_SELECTED) { setCustomerLimitError(true); return prev; }
+      if (prev.size >= MAX_CUSTOMERS) { setCustomerLimitError(true); return prev; }
       return new Set([...prev, c]);
     });
     setNewCustomerInput("");
@@ -1443,7 +1448,7 @@ function LandingInner() {
               <div className="flex flex-wrap gap-2 mb-2">
                 {services.map((s) => {
                   const on = selectedServices.has(s);
-                  const locked = !on && selectedServices.size >= MAX_SELECTED;
+                  const locked = !on && selectedServices.size >= MAX_SERVICES;
                   return (
                     <button
                       key={s}
@@ -1501,7 +1506,7 @@ function LandingInner() {
               <div className="flex flex-wrap gap-2 mb-2">
                 {customers.map((c) => {
                   const on = selectedCustomers.has(c);
-                  const locked = !on && selectedCustomers.size >= MAX_SELECTED;
+                  const locked = !on && selectedCustomers.size >= MAX_CUSTOMERS;
                   return (
                     <button
                       key={c}
