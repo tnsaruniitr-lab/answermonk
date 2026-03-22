@@ -10,6 +10,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { getAdminSettings, getEnabledEngines } from "@/hooks/useAdminSettings";
 import { RecentAnalysisTiles } from "@/components/RecentAnalysisTiles";
+import { AnalysisPipelineHeader } from "@/components/AnalysisPipelineHeader";
 const AuthoritySourcesPanel = lazy(() =>
   import("@/components/AuthoritySourcesPanel").then(m => ({ default: m.AuthoritySourcesPanel }))
 );
@@ -507,6 +508,22 @@ function LandingInner() {
   const allSegmentsDone = scoringSegs.length > 0 && scoringSegs.every((s) => s.scoringResult !== null);
   const isScoring = activeSessionId !== null && !allSegmentsDone;
 
+  const { data: pipelineData } = useQuery<{ rowCount: number; insights: any[] }>({
+    queryKey: ["/api/multi-segment-sessions", activeSessionId, "citation-insights"],
+    queryFn: async () => {
+      const res = await fetch(`/api/multi-segment-sessions/${activeSessionId}/citation-insights`);
+      return res.json();
+    },
+    enabled: allSegmentsDone && activeSessionId !== null,
+    refetchInterval: (q) => {
+      const d = q?.state?.data as any;
+      if ((d?.insights?.length ?? 0) > 0) return false;
+      return 4000;
+    },
+  });
+  const pipelineCrawlDone = (pipelineData?.rowCount ?? 0) > 0;
+  const pipelineReportDone = (pipelineData?.insights?.length ?? 0) > 0;
+
   const isError = submission?.status === "error" || runMutation.isError;
   const isRunning = runMutation.isPending;
 
@@ -656,6 +673,15 @@ function LandingInner() {
       style={{ background: "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)" }}
       data-testid="landing-page"
     >
+      {activeSessionId !== null && (
+        <AnalysisPipelineHeader
+          allSegmentsDone={allSegmentsDone}
+          crawlDone={pipelineCrawlDone}
+          reportDone={pipelineReportDone}
+        />
+      )}
+      {activeSessionId !== null && <div style={{ height: 64, flexShrink: 0 }} />}
+
       {/* Aurora orbs — vh-based positions so they stay in the hero viewport regardless of doc height */}
       <div style={{ position: 'absolute', top: '-10vh', left: '-5vw', width: '39vw', height: '39vw', background: '#fbcfe8', borderRadius: '50%', filter: 'blur(100px)', opacity: 0.35, pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', top: '10vh', right: '-10vw', width: '47vw', height: '47vw', background: '#c4b5fd', borderRadius: '50%', filter: 'blur(120px)', opacity: 0.35, pointerEvents: 'none' }} />
