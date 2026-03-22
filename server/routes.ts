@@ -4377,6 +4377,7 @@ Rules for content:
           baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
         });
         const claudeModel = model === "claude-haiku-4-5" ? "claude-haiku-4-5" : "claude-sonnet-4-5";
+        console.log(`[citation-insights] model received="${model}" → using claudeModel="${claudeModel}"`);
 
         if (webSearch) {
           // Multi-turn loop with Anthropic web_search tool
