@@ -184,6 +184,44 @@ export default function AdminSettings() {
           </div>
         </div>
 
+        {/* Section: Citation Analysis */}
+        <p style={SECTION_TITLE}>CITATION ANALYSIS</p>
+        <div style={{ background: "#0a1628", borderRadius: 10, padding: "0 16px", border: "1px solid rgba(255,255,255,0.06)" }}>
+          {(["url_rows", "domain_aggregated"] as const).map((mode, i, arr) => {
+            const isLast = i === arr.length - 1;
+            const labels: Record<string, { name: string; sub: string }> = {
+              url_rows: { name: "Standard (URL rows)", sub: "Current flow — up to 250 individual URL rows, ~25K tokens, ~150s" },
+              domain_aggregated: { name: "Domain Aggregated (fast)", sub: "One row per domain — ~60 rows, ~4K tokens, ~30–40s" },
+            };
+            const isSelected = settings.citationAnalysisMode === mode;
+            return (
+              <div
+                key={mode}
+                onClick={() => update({ citationAnalysisMode: mode })}
+                style={{
+                  ...ROW_STYLE,
+                  borderBottom: isLast ? "none" : "1px solid rgba(255,255,255,0.06)",
+                  cursor: "pointer",
+                  opacity: isSelected ? 1 : 0.6,
+                }}
+              >
+                <div>
+                  <div style={{ ...LABEL_STYLE, color: isSelected ? "#e2e8f0" : "#94a3b8" }}>{labels[mode].name}</div>
+                  <div style={SUB_STYLE}>{labels[mode].sub}</div>
+                </div>
+                <div style={{
+                  width: 16, height: 16, borderRadius: "50%", flexShrink: 0,
+                  border: `2px solid ${isSelected ? "#3b82f6" : "rgba(255,255,255,0.2)"}`,
+                  background: isSelected ? "#3b82f6" : "transparent",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  {isSelected && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }} />}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
         {/* Section: Dev Tools */}
         <p style={SECTION_TITLE}>DEV TOOLS</p>
         <div style={{ background: "#0a1628", borderRadius: 10, padding: "0 16px", border: "1px solid rgba(255,255,255,0.06)" }}>
@@ -205,6 +243,7 @@ export default function AdminSettings() {
           <div style={{ color: "#475569", fontSize: 11, fontFamily: "monospace", lineHeight: 1.8 }}>
             Engines: {["chatgpt", "gemini", "claude"].filter(e => settings.engines[e as keyof typeof settings.engines]).join(", ") || "none"}<br />
             Classification: {settings.useHeuristicClassification ? "heuristic" : "llm"}<br />
+            Citation analysis: {settings.citationAnalysisMode === "domain_aggregated" ? "domain aggregated" : "standard url rows"}<br />
             Segment limits: {settings.maxServices} services · {settings.maxCustomers} customers<br />
             Dev re-run button: {settings.showDevRerunButton ? "visible" : "hidden"}
           </div>

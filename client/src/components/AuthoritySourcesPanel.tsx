@@ -2652,10 +2652,11 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
   // Auto-run insights mutation (hardcoded claude-sonnet-4-5, used by the auto-run chain)
   const insightsMutation = useMutation({
     mutationFn: async () => {
+      const { citationAnalysisMode } = getAdminSettings();
       const res = await apiRequest(
         "POST",
         `/api/multi-segment-sessions/${sessionId}/citation-insights`,
-        { model: "claude-sonnet-4-5" }
+        { model: "claude-sonnet-4-5", citationAnalysisMode }
       );
       return res.json();
     },
@@ -2674,10 +2675,11 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
     mutationFn: async () => {
       saveCISettings({ model: selectedModel, prompt: customPrompt, schema: customOutputSchema, webSearch: webSearchEnabled, schemaMode });
       const promptToSend = customPrompt.replace(/\[CATEGORY\]/g, brandName);
+      const { citationAnalysisMode } = getAdminSettings();
       const res = await apiRequest(
         "POST",
         `/api/multi-segment-sessions/${sessionId}/citation-insights`,
-        { model: selectedModel, promptOverride: promptToSend, outputSchemaOverride: customOutputSchema, webSearch: webSearchEnabled }
+        { model: selectedModel, promptOverride: promptToSend, outputSchemaOverride: customOutputSchema, webSearch: webSearchEnabled, citationAnalysisMode }
       );
       return res.json();
     },

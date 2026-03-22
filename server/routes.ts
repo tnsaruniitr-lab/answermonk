@@ -4116,11 +4116,12 @@ export async function registerRoutes(
       const sessionId = parseInt(req.params.id, 10);
       if (isNaN(sessionId)) { res.status(400).json({ message: "Invalid session ID" }); return; }
 
-      const { model, promptOverride, outputSchemaOverride, webSearch } = z.object({
+      const { model, promptOverride, outputSchemaOverride, webSearch, citationAnalysisMode } = z.object({
         model: z.string(),
         promptOverride: z.string().optional(),
         outputSchemaOverride: z.string().optional(),
         webSearch: z.boolean().optional(),
+        citationAnalysisMode: z.enum(["url_rows", "domain_aggregated"]).optional(),
       }).parse(req.body);
       const { pool } = await import("./db");
 
@@ -4169,46 +4170,83 @@ export async function registerRoutes(
         console.log(`[citation-insights] mentioned_brands tagging complete`);
       }
 
-      // ── Step 3: Fetch citation_urls (now includes mentioned_brands + brand_context) as CSV ──
+      // ── Step 3: Build CSV for Claude ──────────────────────────────────────────
       await pool.query(`ALTER TABLE citation_urls ADD COLUMN IF NOT EXISTS brand_context JSONB`);
-      const { rows } = await pool.query(
-        `SELECT id, session_id, engine, prompt_text, segment_persona, url, title,
-                created_at, url_category, domain, brand, citation_count,
-                llm_pagetype_classification,
-                COALESCE(mentioned_brands, '') AS mentioned_brands,
-                brand_context
-         FROM citation_urls WHERE session_id = $1 ORDER BY citation_count DESC, id ASC`,
-        [sessionId]
-      );
-      if (!rows.length) { res.status(404).json({ message: "No citation data found for this session" }); return; }
 
-      // Build CSV string — cap at 250 rows (already sorted by citation_count DESC so top rows are most valuable)
-      // 250 rows keeps input tokens ~25K–35K so Claude responds in under 90 seconds
-      const MAX_CSV_ROWS = 250;
-      const BRAND_CONTEXT_CHAR_LIMIT = 120; // per-brand snippet cap to control token count
-      const rowsForCsv = rows.length > MAX_CSV_ROWS ? rows.slice(0, MAX_CSV_ROWS) : rows;
-      const truncated = rows.length > MAX_CSV_ROWS;
-      const csvHeader = "engine,url_category,llm_pagetype_classification,domain,brand,url,title,citation_count,mentioned_brands,brand_context";
-      const csvRows = rowsForCsv.map(r => {
-        // Truncate each brand snippet in brand_context to save tokens
-        let contextObj = r.brand_context as Record<string, string> | null;
-        if (contextObj && typeof contextObj === "object") {
-          const trimmed: Record<string, string> = {};
-          for (const [k, v] of Object.entries(contextObj)) {
-            trimmed[k] = typeof v === "string" ? v.slice(0, BRAND_CONTEXT_CHAR_LIMIT) : String(v).slice(0, BRAND_CONTEXT_CHAR_LIMIT);
+      let csvText: string;
+
+      if (citationAnalysisMode === "domain_aggregated") {
+        // ── Domain-aggregated mode: one row per domain, sum citations, collect page types ──
+        // ~60–80 rows vs 250 URL rows — ~75% fewer tokens, same analytical signal
+        const { rows: domainRows } = await pool.query(
+          `SELECT
+             domain,
+             SUM(citation_count)::int AS total_citations,
+             COUNT(*)::int AS url_count,
+             STRING_AGG(DISTINCT COALESCE(engine, ''), ', ') AS engines_seen,
+             STRING_AGG(DISTINCT COALESCE(url_category, ''), ', ') AS page_types,
+             STRING_AGG(DISTINCT COALESCE(llm_pagetype_classification, ''), ', ') AS llm_classifications,
+             STRING_AGG(DISTINCT COALESCE(mentioned_brands, ''), ', ') AS mentioned_brands,
+             MAX(brand) AS primary_brand
+           FROM citation_urls
+           WHERE session_id = $1 AND domain IS NOT NULL
+           GROUP BY domain
+           ORDER BY total_citations DESC`,
+          [sessionId]
+        );
+        if (!domainRows.length) { res.status(404).json({ message: "No citation data found for this session" }); return; }
+
+        const domainCsvHeader = "domain,total_citations,url_count,engines_seen,page_types,llm_classifications,mentioned_brands,primary_brand";
+        const domainCsvRows = domainRows.map(r =>
+          [r.domain ?? "", r.total_citations ?? 0, r.url_count ?? 0,
+           r.engines_seen ?? "", r.page_types ?? "", r.llm_classifications ?? "",
+           r.mentioned_brands ?? "", r.primary_brand ?? ""]
+          .map(v => `"${String(v).replace(/"/g, '""')}"`)
+          .join(",")
+        );
+        csvText = [domainCsvHeader, ...domainCsvRows].join("\n")
+          + `\n\nNOTE: Domain-aggregated view — ${domainRows.length} unique domains summarised from all citation URLs.`;
+        console.log(`[citation-insights] Domain-aggregated CSV: ${domainRows.length} domain rows`);
+
+      } else {
+        // ── Standard mode: individual URL rows (current behaviour, untouched) ──
+        const { rows } = await pool.query(
+          `SELECT id, session_id, engine, prompt_text, segment_persona, url, title,
+                  created_at, url_category, domain, brand, citation_count,
+                  llm_pagetype_classification,
+                  COALESCE(mentioned_brands, '') AS mentioned_brands,
+                  brand_context
+           FROM citation_urls WHERE session_id = $1 ORDER BY citation_count DESC, id ASC`,
+          [sessionId]
+        );
+        if (!rows.length) { res.status(404).json({ message: "No citation data found for this session" }); return; }
+
+        const MAX_CSV_ROWS = 250;
+        const BRAND_CONTEXT_CHAR_LIMIT = 120;
+        const rowsForCsv = rows.length > MAX_CSV_ROWS ? rows.slice(0, MAX_CSV_ROWS) : rows;
+        const truncated = rows.length > MAX_CSV_ROWS;
+        const csvHeader = "engine,url_category,llm_pagetype_classification,domain,brand,url,title,citation_count,mentioned_brands,brand_context";
+        const csvRows = rowsForCsv.map(r => {
+          let contextObj = r.brand_context as Record<string, string> | null;
+          if (contextObj && typeof contextObj === "object") {
+            const trimmed: Record<string, string> = {};
+            for (const [k, v] of Object.entries(contextObj)) {
+              trimmed[k] = typeof v === "string" ? v.slice(0, BRAND_CONTEXT_CHAR_LIMIT) : String(v).slice(0, BRAND_CONTEXT_CHAR_LIMIT);
+            }
+            contextObj = trimmed;
           }
-          contextObj = trimmed;
-        }
-        const contextStr = contextObj ? JSON.stringify(contextObj) : "";
-        return [r.engine ?? "", r.url_category ?? "", r.llm_pagetype_classification ?? "",
-         r.domain ?? "", r.brand ?? "", r.url ?? "",
-         `"${(r.title ?? "").replace(/"/g, '""')}"`,
-         r.citation_count ?? 0, r.mentioned_brands ?? "", contextStr]
-        .map(v => `"${String(v).replace(/"/g, '""')}"`)
-        .join(",");
-      });
-      const truncationNote = truncated ? `\n\nNOTE: CSV truncated to top ${MAX_CSV_ROWS} rows by citation_count (${rows.length} total rows). All highest-cited URLs are included.` : "";
-      const csvText = [csvHeader, ...csvRows].join("\n") + truncationNote;
+          const contextStr = contextObj ? JSON.stringify(contextObj) : "";
+          return [r.engine ?? "", r.url_category ?? "", r.llm_pagetype_classification ?? "",
+           r.domain ?? "", r.brand ?? "", r.url ?? "",
+           `"${(r.title ?? "").replace(/"/g, '""')}"`,
+           r.citation_count ?? 0, r.mentioned_brands ?? "", contextStr]
+          .map(v => `"${String(v).replace(/"/g, '""')}"`)
+          .join(",");
+        });
+        const truncationNote = truncated ? `\n\nNOTE: CSV truncated to top ${MAX_CSV_ROWS} rows by citation_count (${rows.length} total rows). All highest-cited URLs are included.` : "";
+        csvText = [csvHeader, ...csvRows].join("\n") + truncationNote;
+        console.log(`[citation-insights] Standard CSV: ${rowsForCsv.length}/${rows.length} URL rows`);
+      }
 
       // Replace [BRAND A/B/C] placeholders in prompt with actual top-ranked names
       function injectTopBrands(prompt: string, brands: { name: string; appearances: number }[]): string {

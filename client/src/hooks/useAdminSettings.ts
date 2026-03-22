@@ -11,6 +11,7 @@ export interface AdminSettings {
   showDevRerunButton: boolean;
   maxServices: number;
   maxCustomers: number;
+  citationAnalysisMode: "url_rows" | "domain_aggregated";
 }
 
 const STORAGE_KEY = "answermonk_admin_settings";
@@ -26,6 +27,7 @@ const DEFAULTS: AdminSettings = {
   showDevRerunButton: true,
   maxServices: 4,
   maxCustomers: 4,
+  citationAnalysisMode: "url_rows",
 };
 
 function loadSettings(): AdminSettings {
@@ -39,6 +41,7 @@ function loadSettings(): AdminSettings {
       showDevRerunButton: parsed.showDevRerunButton ?? DEFAULTS.showDevRerunButton,
       maxServices: parsed.maxServices ?? DEFAULTS.maxServices,
       maxCustomers: parsed.maxCustomers ?? DEFAULTS.maxCustomers,
+      citationAnalysisMode: parsed.citationAnalysisMode ?? DEFAULTS.citationAnalysisMode,
     };
   } catch {
     return { ...DEFAULTS, engines: { ...DEFAULTS.engines } };
