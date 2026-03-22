@@ -667,6 +667,21 @@ function MissionControlLoader({
   const [analysisStatuses, setAnalysisStatuses] = useState([0, 1, 2]);
   const tick = useRef(0);
 
+  // ── Sub-process timing log ─────────────────────────────────────────────────
+  const [subProcLog, setSubProcLog] = useState<{ name: string; label: string; startedAt: number | null; completedAt: number | null }[]>([]);
+  useEffect(() => {
+    if (!sessionId || (!crawlPending && !insightsPending)) return;
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/segment-analysis/subprocess-log/${sessionId}`);
+        if (res.ok) setSubProcLog(await res.json());
+      } catch (_) {}
+    };
+    poll();
+    const iv = setInterval(poll, 2000);
+    return () => clearInterval(iv);
+  }, [sessionId, crawlPending, insightsPending]);
+
   // Parse real numbers from progress detail string
   const crawledMatch = progress?.detail?.match(/(\d+)\/(\d+)/);
   const okMatch = progress?.detail?.match(/(\d+) ok/);
@@ -914,6 +929,41 @@ function MissionControlLoader({
             {failed ? "Analysis stopped — connection dropped or model timed out." : progress?.detail ?? (insightsPending ? `Running ${modelLabel} citation intelligence analysis…` : "Initialising web crawler…")}
           </div>
         </div>
+
+        {/* Sub-process log panel */}
+        {subProcLog.length > 0 && (
+          <div style={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 8, padding: "11px 15px", marginTop: 10 }}>
+            <div style={{ color: "#334155", fontSize: 9, fontFamily: "monospace", letterSpacing: 1, marginBottom: 8 }}>PIPELINE STAGES</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {subProcLog.map((p) => {
+                const running = p.startedAt !== null && p.completedAt === null;
+                const done = p.completedAt !== null;
+                const pending = !p.startedAt;
+                const elapsed = done
+                  ? ((p.completedAt! - p.startedAt!) / 1000).toFixed(1)
+                  : running
+                  ? ((Date.now() - p.startedAt!) / 1000).toFixed(0)
+                  : null;
+                const dotColor = done ? "#10b981" : running ? "#f59e0b" : "#1e3a5f";
+                const labelColor = done ? "#10b981" : running ? "#f59e0b" : "#334155";
+                return (
+                  <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{
+                      width: 6, height: 6, borderRadius: "50%", flexShrink: 0,
+                      background: dotColor,
+                      boxShadow: running ? `0 0 6px ${dotColor}` : "none",
+                      animation: running ? "mc-pulse 1.2s ease-in-out infinite" : "none",
+                    }} />
+                    <div style={{ color: labelColor, fontSize: 10, fontFamily: "monospace", flex: 1 }}>{p.label}</div>
+                    <div style={{ color: "#334155", fontSize: 9, fontFamily: "monospace", flexShrink: 0 }}>
+                      {done ? `${elapsed}s` : running ? `${elapsed}s…` : pending ? "queued" : ""}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       <style>{`

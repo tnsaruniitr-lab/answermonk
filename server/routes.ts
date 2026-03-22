@@ -2173,6 +2173,30 @@ export async function registerRoutes(
 
   const analysisProgress = new Map<string, { step: string; detail: string; pct: number; startedAt: number; crawlDone?: number; crawlTotal?: number; crawlSuccess?: number; crawlFailed?: number }>();
 
+  // ── Sub-process timing log (per session) ──────────────────────────────────
+  const subProcessLog = new Map<number, { name: string; label: string; startedAt: number | null; completedAt: number | null }[]>();
+  function spInit(sId: number) {
+    subProcessLog.set(sId, [
+      { name: "persist_db",       label: "Persist to DB",         startedAt: null, completedAt: null },
+      { name: "domain_classify",  label: "Domain Classification",  startedAt: null, completedAt: null },
+      { name: "tag_brands",       label: "Tag Brand Mentions",     startedAt: null, completedAt: null },
+      { name: "claude_insights",  label: "AI Insights",            startedAt: null, completedAt: null },
+    ]);
+    setTimeout(() => subProcessLog.delete(sId), 10 * 60 * 1000);
+  }
+  function spStart(sId: number, name: string) {
+    const log = subProcessLog.get(sId);
+    if (!log) return;
+    const p = log.find(e => e.name === name);
+    if (p) p.startedAt = Date.now();
+  }
+  function spDone(sId: number, name: string) {
+    const log = subProcessLog.get(sId);
+    if (!log) return;
+    const p = log.find(e => e.name === name);
+    if (p && !p.completedAt) p.completedAt = Date.now();
+  }
+
   (globalThis as any).__getActiveAnalyses = () => {
     const active: any[] = [];
     analysisProgress.forEach((v, k) => {
@@ -2191,6 +2215,12 @@ export async function registerRoutes(
       return;
     }
     res.json(progress);
+  });
+
+  app.get("/api/segment-analysis/subprocess-log/:sessionId", (req, res) => {
+    const sid = parseInt(req.params.sessionId, 10);
+    if (isNaN(sid)) { res.status(400).json({ message: "Invalid session ID" }); return; }
+    res.json(subProcessLog.get(sid) ?? []);
   });
 
   app.post("/api/segment-analysis/analyze", async (req, res) => {
@@ -2246,6 +2276,8 @@ export async function registerRoutes(
           }, brandDomain || undefined, typeof sessionId === "number" ? sessionId : undefined);
 
           if (sessionId && typeof sessionId === "number") {
+            spInit(sessionId);
+            spStart(sessionId, "persist_db");
             try {
               await storage.updateCitationReport(sessionId, report);
               console.log(`[segment-analysis] Persisted citation report for session ${sessionId}`);
@@ -2261,12 +2293,15 @@ export async function registerRoutes(
             } catch (citErr) {
               console.error("Failed to populate citation_urls:", citErr);
             }
+            spDone(sessionId, "persist_db");
+            spStart(sessionId, "domain_classify");
             try {
               const classifyResult = await runLlmClassification(sessionId);
               console.log(`[segment-analysis] Auto-classified ${classifyResult.updated}/${classifyResult.total} URLs for session ${sessionId} ($${classifyResult.costUsd})`);
             } catch (classifyErr) {
               console.error("Failed to auto-classify citation URLs:", classifyErr);
             }
+            spDone(sessionId, "domain_classify");
           } else if (groupKey && typeof groupKey === "string") {
             try {
               const cacheKey = `group:${groupKey}:citation`;
@@ -4128,7 +4163,9 @@ export async function registerRoutes(
       const brandNamesToTag = top3Brands.map(b => b.name);
       if (brandNamesToTag.length > 0) {
         console.log(`[citation-insights] Tagging mentioned_brands for session ${sessionId} with brands:`, brandNamesToTag);
+        spStart(sessionId, "tag_brands");
         await tagMentionedBrands(sessionId, brandNamesToTag);
+        spDone(sessionId, "tag_brands");
         console.log(`[citation-insights] mentioned_brands tagging complete`);
       }
 
@@ -4291,6 +4328,7 @@ Rules for content:
       let inputTokens: number | null = null;
       let outputTokens: number | null = null;
 
+      spStart(sessionId, "claude_insights");
       if (model.startsWith("claude")) {
         const Anthropic = (await import("@anthropic-ai/sdk")).default;
         const anthropic = new Anthropic({
@@ -4408,6 +4446,7 @@ Rules for content:
       } else {
         res.status(400).json({ message: `Unknown model: ${model}` }); return;
       }
+      spDone(sessionId, "claude_insights");
 
       // Persist the result
       const insertResult = await pool.query(
