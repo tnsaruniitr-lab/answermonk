@@ -186,7 +186,7 @@ export async function runSegmentAnalysis(
   );
 
   onProgress?.("crawling", "Crawling citation URLs...", 15);
-  const pages = await crawlCitations(validSegments, (progress) => {
+  const { pages, substitutionMap } = await crawlCitations(validSegments, (progress) => {
     const pct = 15 + Math.round((progress.done / progress.total) * 40);
     onProgress?.(
       "crawling",
@@ -195,6 +195,21 @@ export async function runSegmentAnalysis(
       { done: progress.done, total: progress.total, success: progress.success, failed: progress.failed },
     );
   });
+
+  if (substitutionMap.size > 0) {
+    for (const seg of validSegments) {
+      const runs = seg.scoringResult?.raw_runs;
+      if (!runs) continue;
+      for (const run of runs) {
+        if (!run.citations) continue;
+        for (const cit of run.citations) {
+          const resolved = substitutionMap.get(cit.url);
+          if (resolved) cit.url = resolved;
+        }
+      }
+    }
+    console.log(`[segment-analysis] Applied ${substitutionMap.size} URL substitutions to raw_runs citations`);
+  }
 
   const totalCitationsCrawled = pages.length;
   const totalAccessible = pages.filter(p => p.accessible).length;

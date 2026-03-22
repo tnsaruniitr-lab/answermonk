@@ -76,12 +76,17 @@ export function extractCitationUrlsPerSegment(segments: SegmentInput[]): Map<str
   return map;
 }
 
+export interface CrawlCitationsResult {
+  pages: CrawledPage[];
+  substitutionMap: Map<string, string>;
+}
+
 export async function crawlCitations(
   segments: SegmentInput[],
   onProgress?: (progress: CrawlProgress) => void,
-): Promise<CrawledPage[]> {
+): Promise<CrawlCitationsResult> {
   const allUrls = extractCitationUrls(segments);
-  if (allUrls.length === 0) return [];
+  if (allUrls.length === 0) return { pages: [], substitutionMap: new Map() };
 
   const vertexUrls = [...new Set(allUrls.filter(isVertexAiUrl))];
   const substitutionMap = new Map<string, string>();
@@ -98,5 +103,6 @@ export async function crawlCitations(
   }
 
   const substitutedUrls = allUrls.map(url => substitutionMap.get(url) ?? url);
-  return crawlUrls(substitutedUrls, onProgress, { stripRawHtml: true });
+  const pages = await crawlUrls(substitutedUrls, onProgress, { stripRawHtml: true });
+  return { pages, substitutionMap };
 }
