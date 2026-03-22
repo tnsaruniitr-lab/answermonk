@@ -2457,6 +2457,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
   const [insightsGenerated, setInsightsGenerated] = useState(false);
   const autoInsightsTriggered = useRef(false);
   const autoCrawlTriggered = useRef(false);
+  const rerunMode = useRef(false);
 
   const _saved = loadCISettings();
   const [selectedModel, setSelectedModel] = useState<string>(_saved?.model ?? "claude-sonnet-4-5");
@@ -2604,8 +2605,9 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       setIsCrawlRunning(false);
       qc.invalidateQueries({ queryKey: ["/api/multi-segment-sessions", sessionId, "citation-insights"] });
       qc.invalidateQueries({ queryKey: ["/api/multi-segment-sessions", sessionId, "citation-sources"] });
-      if (autoRun && !autoInsightsTriggered.current) {
+      if ((autoRun || rerunMode.current) && !autoInsightsTriggered.current) {
         autoInsightsTriggered.current = true;
+        rerunMode.current = false;
         insightsMutation.mutate();
       }
     } else if (panelCrawlProgress?.step === "error") {
@@ -2695,12 +2697,12 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       {/* ── Data exists ───────────────────────────────────────────────── */}
       {hasData && (
         <>
-          {/* Full-panel loader: any insights mutation running, roadblock, OR autoRun waiting to fire */}
-          {(anyInsightsPending || insightsFailed || (autoRun && !latestInsight && !insightsGenerated)) && (
+          {/* Full-panel loader: crawl re-run, insights pending, roadblock, OR autoRun waiting to fire */}
+          {(crawlMutation.isPending || isCrawlRunning || anyInsightsPending || insightsFailed || (autoRun && !latestInsight && !insightsGenerated)) && (
             <MissionControlLoader
               sessionId={sessionId}
-              crawlPending={false}
-              insightsPending={anyInsightsPending || (autoRun && !latestInsight && !insightsFailed && !insightsGenerated)}
+              crawlPending={crawlMutation.isPending || isCrawlRunning}
+              insightsPending={anyInsightsPending || (!crawlMutation.isPending && !isCrawlRunning && autoRun && !latestInsight && !insightsFailed && !insightsGenerated)}
               rowCount={rowCount}
               modelLabel={activeModelLabel}
               failed={insightsFailed && !anyInsightsPending}
@@ -2879,6 +2881,34 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
                 </motion.div>
               </AnimatePresence>
             </>
+          )}
+
+          {/* Dev re-run button — visible when idle, triggers crawl → Claude chain */}
+          {!crawlMutation.isPending && !isCrawlRunning && !anyInsightsPending && !insightsFailed && (
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => {
+                  rerunMode.current = true;
+                  autoInsightsTriggered.current = false;
+                  setInsightsFailed(false);
+                  setInsightsGenerated(false);
+                  crawlMutation.mutate();
+                }}
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 6,
+                  color: "#64748b",
+                  fontSize: 10,
+                  fontFamily: "monospace",
+                  letterSpacing: 1,
+                  padding: "4px 10px",
+                  cursor: "pointer",
+                }}
+              >
+                ↺ RE-RUN CRAWL + ANALYSIS
+              </button>
+            </div>
           )}
 
         </>
