@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef, Component, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, Component, lazy, Suspense, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import {
   ArrowRight, Sparkles, Globe, Activity, BarChart3, Code, Bot, Zap,
   Database, Loader2, AlertCircle, Plus, X, MapPin, CheckCircle2, Brain,
-  Search, TrendingUp, Rocket,
+  Search, TrendingUp, Rocket, ChevronDown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RecentAnalysisTiles } from "@/components/RecentAnalysisTiles";
@@ -59,6 +59,11 @@ function stripPromptPrefix(text: string): string {
   return text.replace(/^find,?\s*list\s*and\s*rank\s*\d+\s*\w+\s*/i, "").trim();
 }
 
+function getDomain(url: string): string {
+  try { return new URL(url).hostname.replace(/^www\./, ""); }
+  catch { return url; }
+}
+
 function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; brandName: string; selected?: boolean; onToggle?: () => void }) {
   const sr = seg.scoringResult;
   const score = sr?.score || {};
@@ -73,6 +78,23 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
 
   const firstPromptText = rawRuns[0]?.prompt_text || (seg.prompts?.[0]?.text ?? "");
   const promptContext = firstPromptText ? stripPromptPrefix(firstPromptText) : "";
+
+  const [showCitations, setShowCitations] = useState(false);
+
+  const aggregatedCitations = useMemo(() => {
+    const map = new Map<string, { url: string; title: string; domain: string; engines: Set<string> }>();
+    for (const run of rawRuns) {
+      const engine = run.engine || "";
+      for (const cit of (run.citations || [])) {
+        if (!cit.url) continue;
+        if (!map.has(cit.url)) {
+          map.set(cit.url, { url: cit.url, title: cit.title || "", domain: getDomain(cit.url), engines: new Set() });
+        }
+        if (engine) map.get(cit.url)!.engines.add(engine);
+      }
+    }
+    return Array.from(map.values());
+  }, [rawRuns]);
 
   const isSelectable = onToggle !== undefined;
   const isSelected = isSelectable ? (selected ?? true) : true;
@@ -227,6 +249,94 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* Citations */}
+      {aggregatedCitations.length > 0 && (
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowCitations(v => !v); }}
+            className="w-full flex items-center justify-between px-3 py-2.5 transition-colors"
+            style={{ background: "transparent" }}
+            data-testid="btn-toggle-citations"
+          >
+            <span className="text-[11px] font-semibold" style={{ color: "rgba(255,255,255,0.55)" }}>
+              Citations · {aggregatedCitations.length} sources
+            </span>
+            <ChevronDown
+              size={13}
+              style={{
+                color: "rgba(255,255,255,0.35)",
+                transform: showCitations ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.2s",
+              }}
+            />
+          </button>
+
+          {showCitations && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{ borderTop: "1px solid rgba(255,255,255,0.05)", maxHeight: 320, overflowY: "auto" }}
+            >
+              {aggregatedCitations.map((cit, i) => (
+                <div
+                  key={cit.url}
+                  className="flex items-start gap-2 px-3 py-2"
+                  style={{
+                    borderBottom: i < aggregatedCitations.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                    background: i % 2 === 0 ? "rgba(255,255,255,0.01)" : "transparent",
+                  }}
+                  data-testid={`row-citation-${i}`}
+                >
+                  <span className="text-[9px] font-mono w-5 text-right flex-shrink-0 mt-0.5" style={{ color: "rgba(255,255,255,0.25)" }}>
+                    {i + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <a
+                      href={cit.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] font-medium hover:underline truncate block"
+                      style={{ color: "#60a5fa" }}
+                      data-testid={`link-citation-domain-${i}`}
+                    >
+                      {cit.domain}
+                    </a>
+                    {cit.title && (
+                      <p className="text-[10px] truncate mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
+                        {cit.title}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {Array.from(cit.engines).map(eng => (
+                      <span
+                        key={eng}
+                        className="text-[8px] px-1 py-0.5 rounded font-medium"
+                        style={{
+                          background: eng === "gemini" ? "rgba(59,130,246,0.2)" : eng === "chatgpt" ? "rgba(34,197,94,0.2)" : "rgba(245,158,11,0.2)",
+                          color: eng === "gemini" ? "#93c5fd" : eng === "chatgpt" ? "#86efac" : "#fcd34d",
+                        }}
+                      >
+                        {eng === "chatgpt" ? "GPT" : eng === "gemini" ? "Gem" : "Cla"}
+                      </span>
+                    ))}
+                    <a
+                      href={cit.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-1"
+                      style={{ color: "rgba(255,255,255,0.25)" }}
+                      data-testid={`link-citation-open-${i}`}
+                    >
+                      <span style={{ fontSize: 11 }}>↗</span>
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
