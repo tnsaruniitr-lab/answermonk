@@ -757,12 +757,14 @@ export async function registerRoutes(
         sessionType: "landing_guided",
       });
 
-      // Fire scoring for each segment asynchronously — no await, returns immediately so UX is fast
+      // Fire scoring for all segments in parallel — 150ms stagger to spread API burst
       (async () => {
         const updatedSegments = segments.map((s: any) => ({ ...s }));
-        for (let i = 0; i < segments.length; i++) {
-          const seg = segments[i];
-          try {
+        const stagger = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+        const results = await Promise.allSettled(
+          segments.map(async (seg: any, i: number) => {
+            await stagger(i * 150);
             const scoringRes = await runScoring(
               seg.prompts as any,
               brandName,
@@ -792,10 +794,11 @@ export async function registerRoutes(
             };
             await storage.updateMultiSegmentSessionSegments(session.id, updatedSegments);
             console.log(`[Landing] Scored segment ${i + 1}/${segments.length} for session ${session.id}`);
-          } catch (segErr) {
-            console.error(`[Landing] Scoring failed for segment ${seg.id}:`, segErr);
-          }
-        }
+          }),
+        );
+
+        const failed = results.filter((r) => r.status === "rejected").length;
+        if (failed > 0) console.warn(`[Landing] ${failed}/${segments.length} segment(s) failed for session ${session.id}`);
         console.log(`[Landing] All segments complete for session ${session.id}`);
         // Mark submission as done so the slot frees up
         storage.updateLandingSubmission(submissionId, { status: "done" } as any).catch(() => {});
