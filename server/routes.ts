@@ -1624,17 +1624,22 @@ export async function registerRoutes(
           break;
         }
 
-        // collect only the top-3 cited brands from the primary (first scorable) segment
-        // — these are exactly the brands shown on the tile card, so search results are predictable
-        const brandSet = new Set<string>();
+        // topBrands: top-3 from primary segment (what's visible on the card)
+        // otherBrands: remaining ranked brands (share > 0) from all segments
+        const topBrandSet = new Set<string>();
+        const otherBrandSet = new Set<string>();
+        let primaryDone = false;
         for (const seg of segments) {
           const sr = seg?.scoringResult ?? {};
           if (!sr.score) continue;
-          const competitors: any[] = (sr.score.competitors ?? []).slice(0, 3);
-          for (const c of competitors) {
-            if (c?.name && (c?.share ?? 0) > 0) brandSet.add(c.name.trim());
-          }
-          break; // primary segment only
+          const competitors: any[] = sr.score.competitors ?? [];
+          competitors.forEach((c: any, idx: number) => {
+            if (!c?.name || (c?.share ?? 0) <= 0) return;
+            const name = c.name.trim();
+            if (!primaryDone && idx < 3) topBrandSet.add(name);
+            else otherBrandSet.add(name);
+          });
+          primaryDone = true; // after first scorable segment, rest go to otherBrands
         }
 
         return {
@@ -1642,7 +1647,8 @@ export async function registerRoutes(
           category,
           query,
           ownBrand: (row.brand_name || "").trim(),
-          citedBrands: Array.from(brandSet),
+          topBrands: Array.from(topBrandSet),
+          otherBrands: Array.from(otherBrandSet).filter(b => !topBrandSet.has(b)),
         };
       }).filter((r: any) => r.category || r.ownBrand);
 
