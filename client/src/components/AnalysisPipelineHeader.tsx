@@ -11,12 +11,14 @@ interface AnalysisPipelineHeaderProps {
   allSegmentsDone: boolean;
   crawlDone: boolean;
   reportDone: boolean;
+  profileActive?: boolean;
 }
 
 export function AnalysisPipelineHeader({
   allSegmentsDone,
   crawlDone,
   reportDone,
+  profileActive = false,
 }: AnalysisPipelineHeaderProps) {
   const [tick, setTick] = useState(0);
 
@@ -25,7 +27,9 @@ export function AnalysisPipelineHeader({
     return () => clearInterval(t);
   }, []);
 
-  const activeStage = !allSegmentsDone
+  const activeStage = profileActive
+    ? 1
+    : !allSegmentsDone
     ? 2
     : !crawlDone
     ? 3
@@ -39,6 +43,10 @@ export function AnalysisPipelineHeader({
   const statusText = (stageId: number) => {
     if (stageId < activeStage) return "Complete";
     if (stageId === activeStage) {
+      if (profileActive) {
+        const cycle = tick % 3;
+        return cycle === 0 ? "Confirm signals" : cycle === 1 ? "Select services" : "Review & run";
+      }
       const cycle = tick % 3;
       return cycle === 0 ? "Running…" : cycle === 1 ? "Working…" : "Processing…";
     }

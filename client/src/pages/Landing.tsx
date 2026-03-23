@@ -681,22 +681,23 @@ function LandingInner() {
       style={{ background: "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)" }}
       data-testid="landing-page"
     >
-      {activeSessionId !== null && (
+      {(isComplete || activeSessionId !== null) && (
         <AnalysisPipelineHeader
           allSegmentsDone={allSegmentsDone}
           crawlDone={pipelineCrawlDone}
           reportDone={pipelineReportDone}
+          profileActive={activeSessionId === null}
         />
       )}
-      {activeSessionId !== null && <div style={{ height: 76, flexShrink: 0 }} />}
+      {(isComplete || activeSessionId !== null) && <div style={{ height: 76, flexShrink: 0 }} />}
 
       {/* Aurora orbs — vh-based positions so they stay in the hero viewport regardless of doc height */}
       <div style={{ position: 'absolute', top: '-10vh', left: '-5vw', width: '39vw', height: '39vw', background: '#fbcfe8', borderRadius: '50%', filter: 'blur(100px)', opacity: 0.35, pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', top: '10vh', right: '-10vw', width: '47vw', height: '47vw', background: '#c4b5fd', borderRadius: '50%', filter: 'blur(120px)', opacity: 0.35, pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', top: '44vh', left: '20vw', width: '39vw', height: '39vw', background: '#a7f3d0', borderRadius: '50%', filter: 'blur(100px)', opacity: 0.35, pointerEvents: 'none' }} />
 
-      {/* Nav — hidden once analysis session is active (pipeline header takes over) */}
-      {activeSessionId === null && (
+      {/* Nav — hidden once signals extracted or analysis session active (pipeline header takes over) */}
+      {!isComplete && activeSessionId === null && (
         <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between relative z-10">
           <div className="flex items-center">
             <span className="text-xl font-bold tracking-tight" style={{ color: "#1e1b4b" }}>
