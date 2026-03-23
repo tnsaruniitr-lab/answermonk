@@ -671,8 +671,8 @@ function LandingInner() {
   const steps = [
     { title: "Signal Extraction", desc: "We crawl your domain and extract brand and sector signals", icon: Brain },
     { title: "LLM Scoring", desc: "ChatGPT, Claude, Gemini and Perplexity are queried across your key prompts", icon: Search },
-    { title: "Authority Crawl", desc: "We identify which authority sources AI trusts for your sector", icon: TrendingUp },
-    { title: "GEO Report", desc: "You receive a full intelligence report with actionable GEO strategies", icon: Rocket },
+    { title: "Audit Analysis", desc: "Authority sources mapped and competitor strategies extracted", icon: TrendingUp },
+    { title: "Deploy Agents", desc: "Agents activated to fix your AI visibility", icon: Rocket },
   ];
 
   return (
