@@ -148,6 +148,17 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
         <div style={{ fontSize: 48, fontWeight: 900, color: "#ffffff", lineHeight: 1, letterSpacing: "-0.02em", flexShrink: 0, textShadow: "0 0 20px rgba(255,255,255,0.3)" }}>
           {appearance}%
         </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
+            Who shows up when customers search for{" "}
+            <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>
+              {seg.serviceType || seg.persona || seg.customerType || label}
+            </span>
+            {seg.location ? <> in <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>{seg.location}</span></> : ""}{" "}
+            — you appear in{" "}
+            <span style={{ color: "#ffffff", fontWeight: 700 }}>{appearance}% of searches</span>
+          </div>
+        </div>
         {/* Selection indicator */}
         {isSelectable && (
           <div style={{ marginLeft: "auto", flexShrink: 0, width: 20, height: 20, borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", background: isSelected ? "#22c55e" : "rgba(255,255,255,0.12)", border: isSelected ? "2px solid #22c55e" : "2px solid rgba(255,255,255,0.2)", transition: "all 0.2s" }}>
