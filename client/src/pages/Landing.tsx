@@ -347,6 +347,7 @@ function LandingInner() {
   const [newServiceInput, setNewServiceInput] = useState("");
   const [newCustomerInput, setNewCustomerInput] = useState("");
   const [intelligenceExpanded, setIntelligenceExpanded] = useState(false);
+  const [scanStarted, setScanStarted] = useState(false);
   const [activeTab, setActiveTab] = useState<"reports" | "directory" | "agents">("reports");
   const { toast } = useToast();
   const [selectedSegmentIds, setSelectedSegmentIds] = useState<Set<string>>(new Set());
@@ -564,6 +565,7 @@ function LandingInner() {
   useEffect(() => {
     setSelectedSegmentIds(new Set());
     setIntelligenceExpanded(false);
+    setScanStarted(false);
     setCitationsExpanded(false);
   }, [activeSessionId]);
 
@@ -586,6 +588,7 @@ function LandingInner() {
     setActiveSessionId(sessionId);
     setReplayMode(true);
     setIntelligenceExpanded(false);
+    setScanStarted(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -593,6 +596,7 @@ function LandingInner() {
     setActiveSessionId(null);
     setReplayMode(false);
     setIntelligenceExpanded(false);
+    setScanStarted(false);
   }
 
   function isValidDomain(input: string): boolean {
@@ -1399,8 +1403,27 @@ function LandingInner() {
               </div>
             )}
 
-            {/* Citation sources preview — collapsible bar, below rankings */}
-            {allSegmentsDone && activeSessionId !== null && (
+            {/* Scan button — shown before scan is started */}
+            {allSegmentsDone && activeSessionId !== null && !scanStarted && (
+              <div className="flex justify-center" style={{ marginTop: 12 }}>
+                <button
+                  data-testid="btn-scan-authority"
+                  onClick={() => { setScanStarted(true); setIntelligenceExpanded(true); }}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 8,
+                    background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
+                    color: "#fff", border: "none", borderRadius: 12,
+                    padding: "11px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                    boxShadow: "0 4px 20px rgba(79,70,229,0.35)",
+                  }}
+                >
+                  {pipelineCrawlDone ? "View Authority Sources →" : "Scan Authority Sources & Analyse →"}
+                </button>
+              </div>
+            )}
+
+            {/* Citation sources preview — collapsible bar, shows only after crawl completes */}
+            {allSegmentsDone && activeSessionId !== null && scanStarted && pipelineCrawlDone && (
               <>
                 <div
                   ref={citationsBarRef}
@@ -1445,8 +1468,8 @@ function LandingInner() {
               </>
             )}
 
-            {/* Citation Intelligence collapsible bar — third sticky bar */}
-            {allSegmentsDone && activeSessionId !== null && (
+            {/* Citation Intelligence collapsible bar — shows only after scan is started */}
+            {allSegmentsDone && activeSessionId !== null && scanStarted && (
               <>
                 <div
                   style={{
@@ -1462,7 +1485,7 @@ function LandingInner() {
                     minHeight: 42,
                     overflow: "hidden",
                     position: "sticky",
-                    top: 160,
+                    top: pipelineCrawlDone ? 160 : 110,
                     zIndex: 50,
                   }}
                   data-testid="btn-analyse-intelligence"
