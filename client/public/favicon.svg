@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <!-- Antenna dot -->
+  <circle cx="16" cy="3" r="2.2" fill="#818cf8"/>
+  <!-- Side arms -->
+  <rect x="1" y="14" width="4" height="7" rx="2" fill="#818cf8"/>
+  <rect x="27" y="14" width="4" height="7" rx="2" fill="#818cf8"/>
+  <!-- Bot body -->
+  <rect x="6" y="7" width="20" height="22" rx="7" fill="url(#bg)"/>
+</svg>
