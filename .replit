@@ -30,7 +30,7 @@ externalPort = 3003
 PORT = "5000"
 
 [deployment]
-deploymentTarget = "gce"
+deploymentTarget = "autoscale"
 run = ["node", "./dist/index.cjs"]
 build = ["npm", "run", "build"]
 
