@@ -725,6 +725,28 @@ function LandingInner() {
           <div className="flex items-center">
             <MonkWordmark size="md" />
           </div>
+          <nav className="flex items-center gap-2">
+            <a
+              href="#how-it-works"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
+              }}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                fontSize: 14, fontWeight: 600, color: "#4f46e5",
+                padding: "7px 16px", borderRadius: 99,
+                background: "rgba(99,102,241,0.07)",
+                border: "1px solid rgba(99,102,241,0.18)",
+                textDecoration: "none", transition: "background 0.15s",
+                cursor: "pointer",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(99,102,241,0.13)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "rgba(99,102,241,0.07)")}
+            >
+              How it works
+            </a>
+          </nav>
         </header>
       )}
 
@@ -1795,7 +1817,7 @@ function LandingInner() {
       </main>
 
       {/* Pipeline visualization */}
-      <section className="relative z-10 py-16" style={{ background: "linear-gradient(180deg, rgba(237,233,254,0.25) 0%, rgba(236,253,245,0.25) 100%)" }}>
+      <section id="how-it-works" className="relative z-10 py-16" style={{ background: "linear-gradient(180deg, rgba(237,233,254,0.25) 0%, rgba(236,253,245,0.25) 100%)" }}>
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-bold" style={{ color: "#1e1b4b", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>The Intelligence Pipeline</h2>
