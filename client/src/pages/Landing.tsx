@@ -1409,38 +1409,9 @@ function LandingInner() {
               </div>
             )}
 
-            {/* Citation sources preview — always visible once scoring completes */}
+            {/* Citation sources preview — collapsible sticky bar */}
             {allSegmentsDone && activeSessionId !== null && (
-              <div className="mt-4">
-                <Suspense fallback={null}>
-                  <CitationSourcesPreview sessionId={activeSessionId} />
-                </Suspense>
-              </div>
-            )}
-
-            {/* All done — single CTA button */}
-            {allSegmentsDone && !showIntelligence && (
-              <div className="flex justify-center mt-4">
-                <button
-                  onClick={() => setShowIntelligence(true)}
-                  disabled={selectedSegmentIds.size === 0}
-                  data-testid="btn-analyse-intelligence"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white hover:opacity-90 transition-all duration-300 shadow-[0_0_20px_rgba(124,58,237,0.25)] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
-                  style={{ backgroundColor: "#7c3aed" }}
-                >
-                  Analyse Citation Intelligence
-                  {selectedSegmentIds.size < scoredSegs.length && selectedSegmentIds.size > 0 && (
-                    <span className="text-xs font-normal opacity-60">· {selectedSegmentIds.size} of {scoredSegs.length}</span>
-                  )}
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-
-            {/* Citation Intelligence panel — revealed after button press */}
-            {allSegmentsDone && showIntelligence && activeSessionId !== null && (
               <>
-                {/* Sticky citations bar — same pattern as rankings bar */}
                 <div
                   ref={citationsBarRef}
                   style={{
@@ -1483,30 +1454,56 @@ function LandingInner() {
                     )}
                   </div>
                 </div>
-
-                {/* Panel body — shown when expanded */}
                 {citationsExpanded && (
                   <div style={{ marginTop: 0 }}>
                     <Suspense fallback={null}>
-                      <AuthoritySourcesPanel
-                        autoRun
-                        sessionId={activeSessionId}
-                        brandName={scoringSession?.brandName || ""}
-                        segments={scoredSegs
-                          .filter((s: any) => selectedSegmentIds.has(s.id))
-                          .map((s: any, i: number) => ({
-                            id: s.id || `seg-${i}`,
-                            persona: s.persona || s.serviceType || s.label || `Segment ${i + 1}`,
-                            seedType: s.seedType || "",
-                            customerType: s.customerType || "",
-                            location: s.location || "",
-                            scoringResult: s.scoringResult,
-                          }))}
-                      />
+                      <CitationSourcesPreview sessionId={activeSessionId} />
                     </Suspense>
                   </div>
                 )}
               </>
+            )}
+
+            {/* All done — single CTA button */}
+            {allSegmentsDone && !showIntelligence && (
+              <div className="flex justify-center mt-4">
+                <button
+                  onClick={() => setShowIntelligence(true)}
+                  disabled={selectedSegmentIds.size === 0}
+                  data-testid="btn-analyse-intelligence"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white hover:opacity-90 transition-all duration-300 shadow-[0_0_20px_rgba(124,58,237,0.25)] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+                  style={{ backgroundColor: "#7c3aed" }}
+                >
+                  Analyse Citation Intelligence
+                  {selectedSegmentIds.size < scoredSegs.length && selectedSegmentIds.size > 0 && (
+                    <span className="text-xs font-normal opacity-60">· {selectedSegmentIds.size} of {scoredSegs.length}</span>
+                  )}
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Citation Intelligence panel — revealed after button press */}
+            {allSegmentsDone && showIntelligence && activeSessionId !== null && (
+              <div className="mt-2">
+                <Suspense fallback={null}>
+                  <AuthoritySourcesPanel
+                    autoRun
+                    sessionId={activeSessionId}
+                    brandName={scoringSession?.brandName || ""}
+                    segments={scoredSegs
+                      .filter((s: any) => selectedSegmentIds.has(s.id))
+                      .map((s: any, i: number) => ({
+                        id: s.id || `seg-${i}`,
+                        persona: s.persona || s.serviceType || s.label || `Segment ${i + 1}`,
+                        seedType: s.seedType || "",
+                        customerType: s.customerType || "",
+                        location: s.location || "",
+                        scoringResult: s.scoringResult,
+                      }))}
+                  />
+                </Suspense>
+              </div>
             )}
           </div>
         )}
