@@ -734,7 +734,7 @@ function LandingInner() {
         <div
           className={`flex flex-col items-center px-4 ${(activeSessionId !== null && !isRunning) ? "pt-0 pb-0" : `pb-8 ${(isComplete || activeSessionId !== null) ? "pt-4" : "pt-12"}`}`}
         >
-        <div className="space-y-5 max-w-3xl flex flex-col items-center w-full">
+        <div className="max-w-3xl flex flex-col items-center w-full">
 
             {!replayMode && activeSessionId === null && !isComplete && (
               <>
@@ -750,7 +750,7 @@ function LandingInner() {
                 {/* Heading */}
                 <h1
                   className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight"
-                  style={{ color: "#1e1b4b" }}
+                  style={{ color: "#1e1b4b", marginTop: 10 }}
                 >
                   When customers ask AI -{" "}
                   <span style={{ background: "linear-gradient(to right, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
@@ -759,7 +759,7 @@ function LandingInner() {
                 </h1>
 
                 {/* Subtext */}
-                <p className="text-lg md:text-xl max-w-xl mx-auto leading-relaxed" style={{ color: "#374151" }}>
+                <p className="text-lg md:text-xl max-w-xl mx-auto leading-relaxed" style={{ color: "#374151", marginTop: 14 }}>
                   <span style={{ fontWeight: 600 }}>Answer<span style={{ color: "#6366f1" }}>Monk</span> makes AI recommend you.</span>
                 </p>
               </>
@@ -767,7 +767,7 @@ function LandingInner() {
 
             {/* URL Input — hidden once complete or in replay mode */}
             {!isComplete && !isError && !replayMode && (
-              <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto space-y-4">
+              <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto space-y-4" style={{ marginTop: 40 }}>
                 <input
                   ref={honeypotRef}
                   name="_hp"
@@ -817,7 +817,7 @@ function LandingInner() {
 
         {/* ── Mode tab switcher ── */}
         {!replayMode && !isComplete && activeSessionId === null && (
-          <div className="w-full max-w-7xl mx-auto px-6 flex justify-center mt-6 mb-2">
+          <div className="w-full max-w-7xl mx-auto px-6 flex justify-center mt-8 mb-3">
             <div
               style={{
                 display: "inline-flex",
