@@ -23,46 +23,20 @@ interface Props {
 
 const ENGINE_META: Record<string, { label: string; color: string; key: string }> = {
   chatgpt:  { label: "ChatGPT", color: "#10b981", key: "chatgpt"  },
-  gemini:   { label: "Gemini",  color: "#3b82f6", key: "gemini"   },
-  claude:   { label: "Claude",  color: "#f59e0b", key: "claude"   },
+  gemini:   { label: "Gemini",  color: "#60a5fa", key: "gemini"   },
+  claude:   { label: "Claude",  color: "#fbbf24", key: "claude"   },
 };
-
-function ScoreRing({ score }: { score: number }) {
-  const size = 110;
-  const r = size * 0.42;
-  const circ = 2 * Math.PI * r;
-  const cx = size / 2, cy = size / 2;
-  const ringColor = score >= 60 ? "#10b981" : score >= 35 ? "#60a5fa" : "#f59e0b";
-  return (
-    <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: "rotate(-90deg)" }}>
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#1e3a5f" strokeWidth="7" />
-        <circle
-          cx={cx} cy={cy} r={r} fill="none"
-          stroke={ringColor} strokeWidth="7"
-          strokeDasharray={circ}
-          strokeDashoffset={circ * (1 - score / 100)}
-          strokeLinecap="round"
-          style={{ filter: `drop-shadow(0 0 8px ${ringColor})`, transition: "stroke-dashoffset 1s ease" }}
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-white font-bold font-mono leading-none" style={{ fontSize: 26 }}>{score}%</span>
-        <span className="font-mono tracking-widest" style={{ fontSize: 8, color: ringColor, marginTop: 5 }}>VISIBILITY</span>
-      </div>
-    </div>
-  );
-}
 
 function avg(vals: number[]) {
   if (!vals.length) return 0;
   return vals.reduce((a, b) => a + b, 0) / vals.length;
 }
 
-function visibilityLabel(pct: number) {
-  if (pct >= 60) return "High";
-  if (pct >= 30) return "Moderate";
-  return "Low";
+function alarmLevel(pct: number): { label: string; color: string; bg: string } | null {
+  if (pct >= 60) return null;
+  if (pct >= 30) return { label: "Below Average", color: "#fbbf24", bg: "rgba(251,191,36,0.12)" };
+  if (pct >= 10) return { label: "Very Low", color: "#f87171", bg: "rgba(248,113,113,0.12)" };
+  return { label: "Critical", color: "#ef4444", bg: "rgba(239,68,68,0.15)" };
 }
 
 export function SessionSummaryHero({ brandName, scoredSegs, totalSegs }: Props) {
@@ -93,7 +67,6 @@ export function SessionSummaryHero({ brandName, scoredSegs, totalSegs }: Props) 
       };
     }).filter(e => e.pct > 0 || scoredSegs.length > 0);
 
-    // Competitor rank: aggregate share across all segs, rank the brand
     const compMap: Record<string, number[]> = {};
     scoredSegs.forEach(s => {
       (s.scoringResult?.score?.competitors || []).forEach((c: { name: string; share: number }) => {
@@ -115,7 +88,7 @@ export function SessionSummaryHero({ brandName, scoredSegs, totalSegs }: Props) 
   }, [scoredSegs, brandName]);
 
   const initial = brandName.trim().charAt(0).toUpperCase() || "?";
-  const label   = visibilityLabel(stats.appearance);
+  const alarm   = alarmLevel(stats.appearance);
 
   return (
     <div
@@ -126,99 +99,110 @@ export function SessionSummaryHero({ brandName, scoredSegs, totalSegs }: Props) 
         boxShadow: "0 0 0 1px rgba(255,255,255,0.04), 0 20px 60px rgba(0,0,0,0.5)",
       }}
     >
-      {/* ── Appearance banner ── */}
+      {/* ── Brand + Appearance Rate banner ── */}
       <div
         style={{
           background: "linear-gradient(100deg, #3730a3 0%, #4f46e5 45%, #6d28d9 100%)",
-          borderBottom: "1px solid rgba(255,255,255,0.12)",
+          borderBottom: "1px solid rgba(255,255,255,0.10)",
+          padding: "16px 22px",
         }}
-        className="flex items-center gap-4 px-6 py-4"
       >
-        <span
-          className="font-black leading-none flex-shrink-0"
-          style={{ fontSize: 44, color: "#ffffff", letterSpacing: "-0.02em", textShadow: "0 0 20px rgba(255,255,255,0.3)" }}
-        >
-          {stats.appearance}%
-        </span>
-        <div style={{ width: 1, height: 40, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
-        <div>
-          <p className="font-bold leading-snug" style={{ fontSize: 14, color: "#ffffff" }}>of the time you appear</p>
-          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginTop: 2 }}>
-            when potential customers search across all your tracked services
-          </p>
-        </div>
-      </div>
-
-      {/* ── Brand identity row ── */}
-      <div className="flex items-center gap-3 px-6 pt-6 pb-5 border-b border-white/5">
-        <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 font-extrabold text-white"
-          style={{
-            background: "linear-gradient(135deg, #3b82f6, #6366f1)",
-            boxShadow: "0 0 16px rgba(99,102,241,0.4)",
-            fontSize: 16,
-          }}
-        >
-          {initial}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-white font-bold text-sm leading-tight truncate">{brandName}</p>
-          <p className="text-slate-500 text-xs mt-0.5 truncate">
-            {stats.location ? `${stats.location} · ` : ""}{scoredSegs.length}/{totalSegs} segments · {stats.totalResponses} responses
-          </p>
-        </div>
-        {stats.brandRank > 0 && (
-          <span
-            className="flex-shrink-0 text-xs font-bold px-3 py-1 rounded-full"
+        {/* Brand row */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <div
             style={{
-              background: "rgba(99,102,241,0.12)",
-              border: "1px solid rgba(99,102,241,0.3)",
-              color: "#818cf8",
+              width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+              background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.25)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 15, fontWeight: 800, color: "#fff",
             }}
           >
-            #{stats.brandRank} of {stats.totalBrands} brands
+            {initial}
+          </div>
+          <span style={{ fontSize: 17, fontWeight: 800, color: "#ffffff", letterSpacing: "-0.02em", lineHeight: 1 }}>
+            {brandName}
           </span>
-        )}
+          {stats.brandRank > 0 && (
+            <span style={{
+              marginLeft: "auto", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)",
+              background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
+              borderRadius: 20, padding: "3px 10px", flexShrink: 0,
+            }}>
+              #{stats.brandRank} of {stats.totalBrands} brands
+            </span>
+          )}
+        </div>
+
+        {/* Appearance rate row */}
+        <div>
+          <p style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>
+            Appearance Rate
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 42, fontWeight: 900, color: "#ffffff", letterSpacing: "-0.03em", lineHeight: 1 }}>
+              {stats.appearance}%
+            </span>
+            {alarm && (
+              <span style={{
+                fontSize: 11, fontWeight: 700, color: alarm.color,
+                background: alarm.bg, border: `1px solid ${alarm.color}44`,
+                borderRadius: 20, padding: "4px 10px", flexShrink: 0,
+              }}>
+                ⚠ {alarm.label}
+              </span>
+            )}
+          </div>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", marginTop: 4 }}>
+            You appear in {stats.appearance}% of AI searches when customers look for your services
+          </p>
+        </div>
       </div>
 
-      {/* ── Score ring + stats + engine bars ── */}
-      <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 items-center sm:items-start px-5 sm:px-6 py-5">
-        <ScoreRing score={stats.appearance} />
-
-        <div className="flex-1 min-w-0">
-          {/* Stats row */}
-          <div className="flex gap-5 mb-4">
-            {[
-              { label: "Top 3 Rate", value: `${stats.top3}%` },
-              { label: "Avg Rank",   value: stats.avgRank    },
-              { label: "Rating",     value: label            },
-            ].map(s => (
-              <div key={s.label}>
-                <p className="text-white text-sm font-bold">{s.value}</p>
-                <p className="text-slate-600 text-xs mt-0.5">{s.label}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Engine bars */}
-          <div className="space-y-2">
-            {stats.engines.map(e => (
-              <div key={e.key} className="flex items-center gap-3">
-                <span className="text-slate-500 text-xs w-14 flex-shrink-0">{e.label}</span>
-                <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "#1e293b" }}>
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{
-                      width: `${e.pct}%`,
-                      background: `linear-gradient(90deg, ${e.color}, ${e.color}88)`,
-                    }}
-                  />
-                </div>
-                <span className="text-slate-400 text-xs font-mono w-8 text-right flex-shrink-0">{e.pct}%</span>
-              </div>
-            ))}
-          </div>
+      {/* ── Stats + engine breakdown ── */}
+      <div style={{ padding: "16px 22px" }}>
+        {/* Stats row */}
+        <div style={{ display: "flex", gap: 24, marginBottom: 16 }}>
+          {[
+            { label: "Top 3 Rate", value: `${stats.top3}%` },
+            { label: "Avg Rank",   value: stats.avgRank    },
+            { label: "Segments",   value: `${scoredSegs.length}/${totalSegs}` },
+            { label: "Responses",  value: stats.totalResponses },
+          ].map(s => (
+            <div key={s.label} style={{ textAlign: "left" }}>
+              <p style={{ fontSize: 16, fontWeight: 800, color: "#f1f5f9", marginBottom: 2 }}>{s.value}</p>
+              <p style={{ fontSize: 11, color: "#94a3b8" }}>{s.label}</p>
+            </div>
+          ))}
         </div>
+
+        {/* Engine bars */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {stats.engines.map(e => (
+            <div key={e.key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#cbd5e1", width: 56, flexShrink: 0 }}>{e.label}</span>
+              <div style={{ flex: 1, height: 6, borderRadius: 99, overflow: "hidden", background: "#1e293b" }}>
+                <div
+                  style={{
+                    height: "100%", borderRadius: 99,
+                    width: `${e.pct}%`,
+                    background: `linear-gradient(90deg, ${e.color}, ${e.color}88)`,
+                    transition: "width 0.7s ease",
+                  }}
+                />
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", width: 34, textAlign: "right", flexShrink: 0, fontFamily: "monospace" }}>
+                {e.pct}%
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Location / meta */}
+        {stats.location && (
+          <p style={{ fontSize: 11, color: "#475569", marginTop: 12 }}>
+            {stats.location}
+          </p>
+        )}
       </div>
     </div>
   );
