@@ -319,6 +319,11 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
     staleTime: 60_000,
   });
 
+  const { data: stats } = useQuery<{ auditsCompleted: number }>({
+    queryKey: ["/api/stats"],
+    staleTime: 5 * 60_000,
+  });
+
   // Deferred background fetch — starts after tiles render
   useEffect(() => {
     let cancelled = false;
@@ -425,21 +430,32 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
           )}
         </div>
 
-        {/* View all button — hidden while searching */}
-        {!isLoading && tiles.length > INITIAL_COUNT && !expanded && !isSearching && (
-          <button
-            onClick={() => setExpanded(true)}
-            data-testid="button-directory-view-all"
-            style={{
-              color: "#6366f1", fontSize: 12, fontWeight: 600,
-              background: "rgba(99,102,241,0.08)",
-              border: "1px solid rgba(99,102,241,0.2)",
-              borderRadius: 8, padding: "5px 14px", cursor: "pointer", flexShrink: 0,
-            }}
-          >
-            View all {tiles.length}
-          </button>
-        )}
+        {/* Right side: audit count + view all */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          {stats && stats.auditsCompleted > 0 && (
+            <span style={{
+              fontSize: 11, fontWeight: 600, color: "#6366f1",
+              display: "flex", alignItems: "center", gap: 4,
+            }}>
+              <span style={{ color: "#22c55e", fontWeight: 800 }}>✓</span>
+              {stats.auditsCompleted.toLocaleString()} audits
+            </span>
+          )}
+          {!isLoading && tiles.length > INITIAL_COUNT && !expanded && !isSearching && (
+            <button
+              onClick={() => setExpanded(true)}
+              data-testid="button-directory-view-all"
+              style={{
+                color: "#6366f1", fontSize: 12, fontWeight: 600,
+                background: "rgba(99,102,241,0.08)",
+                border: "1px solid rgba(99,102,241,0.2)",
+                borderRadius: 8, padding: "5px 14px", cursor: "pointer",
+              }}
+            >
+              View all {tiles.length}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Responsive grid */}
