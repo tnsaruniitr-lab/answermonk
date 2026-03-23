@@ -387,15 +387,20 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
       {/* Header row: trust signal + search left, view-all right */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {/* Audit trust signal */}
-          <span style={{
-            fontSize: 12, fontWeight: 700, color: "#16a34a",
-            display: "flex", alignItems: "center", gap: 5,
-            whiteSpace: "nowrap", flexShrink: 0,
-          }}>
-            <span style={{ fontSize: 14 }}>✓</span>
-            {stats ? `${stats.auditsCompleted.toLocaleString()} audits completed!` : "—"}
-          </span>
+          {/* Audit trust signal — only render once number is known */}
+          {stats && (
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 5,
+              fontSize: 12, fontWeight: 600, color: "#4f46e5",
+              background: "rgba(99,102,241,0.07)",
+              border: "1px solid rgba(99,102,241,0.18)",
+              borderRadius: 20, padding: "5px 12px",
+              whiteSpace: "nowrap", flexShrink: 0,
+            }}>
+              <span style={{ color: "#6366f1", fontWeight: 800, fontSize: 11 }}>✓</span>
+              {stats.auditsCompleted.toLocaleString()} audits completed
+            </span>
+          )}
 
           {/* Search pill */}
           <div style={{
