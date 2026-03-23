@@ -1745,7 +1745,7 @@ function LandingInner() {
 
         {/* Trust bar */}
         {!isComplete && !isRunning && (
-          <div className="mt-14 pt-8">
+          <div className="mt-8 pt-4">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-5">
               Analyzing signals across primary intelligence engines
             </p>
