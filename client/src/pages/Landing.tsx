@@ -1126,58 +1126,13 @@ function LandingInner() {
 
             {/* Scored segment cards — appear one by one as they complete, with skeletons for pending */}
 
-            {/* Citation sources preview — sticky collapsible bar, sits above rankings bar */}
-            {allSegmentsDone && activeSessionId !== null && (
-              <>
-                <div
-                  ref={citationsBarRef}
-                  style={{
-                    position: "sticky",
-                    top: 60,
-                    zIndex: 51,
-                    borderRadius: citationsExpanded ? "14px 14px 0 0" : 14,
-                    background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
-                    padding: "10px 14px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    boxShadow: "0 4px 20px rgba(79,70,229,0.3)",
-                    minHeight: 42,
-                    overflow: "hidden",
-                  }}
-                  onClick={() => setCitationsExpanded(v => !v)}
-                >
-                  <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", minWidth: 0, overflow: "hidden" }}>
-                    <span style={{ fontSize: 12, color: "#ffffff", fontWeight: 700, letterSpacing: "-0.01em", flexShrink: 0 }}>See authority sources in your category</span>
-                    <span style={{ width: 1, height: 10, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
-                    <span style={{ fontSize: 10.5, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 20, padding: "2px 8px", color: "#c7d2fe", fontWeight: 500, flexShrink: 0 }}>LLMs cites</span>
-                  </div>
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "4px 11px", fontSize: 11.5, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
-                    {citationsExpanded ? (
-                      <><ChevronDown style={{ width: 12, height: 12, transform: "rotate(180deg)", display: "inline" }} /> Collapse</>
-                    ) : (
-                      <>All sources →</>
-                    )}
-                  </div>
-                </div>
-                {citationsExpanded && (
-                  <div style={{ marginTop: 0 }}>
-                    <Suspense fallback={null}>
-                      <CitationSourcesPreview sessionId={activeSessionId} />
-                    </Suspense>
-                  </div>
-                )}
-              </>
-            )}
-
             {/* Sticky slim rankings bar — always visible once all segments done */}
             {allSegmentsDone && scoredSegs.length > 0 && (
               <div
                 ref={rankingsBarRef}
                 style={{
                   position: "sticky",
-                  top: 103,
+                  top: 60,
                   zIndex: 50,
                   borderRadius: rankingsExpanded ? "14px 14px 0 0" : 14,
                   background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
@@ -1443,6 +1398,51 @@ function LandingInner() {
                   ✓ We'll send the full report to <strong>{waitlistEmail}</strong>.
                 </p>
               </div>
+            )}
+
+            {/* Citation sources preview — collapsible bar, below rankings */}
+            {allSegmentsDone && activeSessionId !== null && (
+              <>
+                <div
+                  ref={citationsBarRef}
+                  style={{
+                    borderRadius: citationsExpanded ? "14px 14px 0 0" : 14,
+                    background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
+                    padding: "10px 14px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    boxShadow: "0 4px 20px rgba(79,70,229,0.3)",
+                    marginTop: 8,
+                    minHeight: 42,
+                    overflow: "hidden",
+                    position: "relative",
+                    zIndex: 51,
+                  }}
+                  onClick={() => setCitationsExpanded(v => !v)}
+                >
+                  <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", minWidth: 0, overflow: "hidden" }}>
+                    <span style={{ fontSize: 12, color: "#ffffff", fontWeight: 700, letterSpacing: "-0.01em", flexShrink: 0 }}>See authority sources in your category</span>
+                    <span style={{ width: 1, height: 10, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
+                    <span style={{ fontSize: 10.5, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 20, padding: "2px 8px", color: "#c7d2fe", fontWeight: 500, flexShrink: 0 }}>LLMs cites</span>
+                  </div>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "4px 11px", fontSize: 11.5, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+                    {citationsExpanded ? (
+                      <><ChevronDown style={{ width: 12, height: 12, transform: "rotate(180deg)", display: "inline" }} /> Collapse</>
+                    ) : (
+                      <>All sources →</>
+                    )}
+                  </div>
+                </div>
+                {citationsExpanded && (
+                  <div style={{ marginTop: 0 }}>
+                    <Suspense fallback={null}>
+                      <CitationSourcesPreview sessionId={activeSessionId} />
+                    </Suspense>
+                  </div>
+                )}
+              </>
             )}
 
             {/* All done — single CTA button */}
