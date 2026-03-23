@@ -157,7 +157,7 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
             fontSize: 9.5, fontWeight: 700, letterSpacing: "0.07em",
             color: accent, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>
-            {tile.category.toUpperCase()}
+            {tile.category.charAt(0).toUpperCase() + tile.category.slice(1).toLowerCase()}
           </span>
           <span style={{ color: "#9ca3af", fontSize: 9.5, marginLeft: "auto", flexShrink: 0 }}>
             {timeAgo(tile.createdAt)}
