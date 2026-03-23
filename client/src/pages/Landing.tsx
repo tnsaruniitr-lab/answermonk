@@ -59,7 +59,12 @@ const RUN_STEPS = [
 ];
 
 function stripPromptPrefix(text: string): string {
-  return text.replace(/^find,?\s*list\s*and\s*rank\s*\d+\s*\w+\s*/i, "").trim();
+  // Strip "Find, list and rank N" and any trailing qualifier words (most/best/top/highest + adjective)
+  return text
+    .replace(/^find,?\s*list\s*and\s*rank\s*\d+\s*/i, "")
+    .replace(/^(most|best|top|highest|well-reviewed)\s+/i, "")
+    .replace(/^(trusted|reliable|affordable|rated|experienced|reviewed|recommended)\s+/i, "")
+    .trim();
 }
 
 function getDomain(url: string): string {
