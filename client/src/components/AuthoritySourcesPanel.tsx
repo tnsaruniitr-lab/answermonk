@@ -1139,18 +1139,18 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
             exit={{ opacity: 0, height: 0 }}
             style={{ overflow: "hidden" }}
           >
-            <div style={{ padding: "16px 16px 20px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "#060f1e" }}>
+            <div style={{ padding: "16px 16px 20px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "#060f1e", textAlign: "left" }}>
 
               {/* Mechanism text */}
               {(mechanism || whyItWorks.length > 0) && (
                 <div style={{ marginBottom: 18 }}>
-                  {mechanism && <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.65, margin: "0 0 8px" }}>{mechanism}</p>}
+                  {mechanism && <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.65, margin: "0 0 10px", textAlign: "left" }}>{mechanism}</p>}
                   {whyItWorks.length > 0 && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       {whyItWorks.map((w, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
                           <span style={{ fontSize: 12, color: accent.badgeText, flexShrink: 0, marginTop: 2 }}>✓</span>
-                          <span style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>{w}</span>
+                          <span style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.5, textAlign: "left" }}>{w}</span>
                         </div>
                       ))}
                     </div>
@@ -1161,7 +1161,7 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
               {/* Source pages with descriptions */}
               {examples.some(e => e.description) && (
                 <div style={{ marginBottom: 20 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#334155", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>What these sources look like</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#475569", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>What these sources look like</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {examples.filter(e => e.description).map((ex, i) => (
                       <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 12px", display: "flex", gap: 10, alignItems: "flex-start", border: "1px solid rgba(255,255,255,0.06)" }}>
@@ -1171,7 +1171,7 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
                             style={{ fontSize: 11, color: "#818cf8", fontFamily: "monospace", display: "block", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {ex.url}
                           </a>
-                          {ex.description && <p style={{ fontSize: 12, color: "#64748b", margin: 0, lineHeight: 1.5 }}>{ex.description}</p>}
+                          {ex.description && <p style={{ fontSize: 12, color: "#94a3b8", margin: 0, lineHeight: 1.5, textAlign: "left" }}>{ex.description}</p>}
                         </div>
                       </div>
                     ))}
@@ -1182,7 +1182,7 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
               {/* Brand performance — the main section */}
               {brandPerf.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#334155", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Brand performance on this tactic</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#475569", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Brand performance on this tactic</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     {brandPerf.map((bp: any, bpIdx: number) => {
                       const bName = bp.brand ?? bp.brand_name ?? bp.name ?? "";
@@ -1241,8 +1241,8 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
                           <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
                             {bDo && (
                               <div>
-                                <span style={{ fontSize: 10, fontWeight: 700, color: "#334155", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 4 }}>What they do</span>
-                                <p style={{ fontSize: 13, color: "#94a3b8", margin: 0, lineHeight: 1.6 }}>{bDo}</p>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 4 }}>What they do</span>
+                                <p style={{ fontSize: 13, color: "#94a3b8", margin: 0, lineHeight: 1.6, textAlign: "left" }}>{bDo}</p>
                               </div>
                             )}
                             {bAppearClean && (
@@ -1256,7 +1256,7 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
                             )}
                             {bEvidence.length > 0 && (
                               <div>
-                                <span style={{ fontSize: 10, fontWeight: 700, color: "#334155", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 6 }}>Evidence</span>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 6 }}>Evidence</span>
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                                   {bEvidence.map((ev: any, ei: number) => {
                                     const evUrl = ev.url ?? "";
