@@ -1133,7 +1133,7 @@ function LandingInner() {
                 style={{
                   position: "sticky",
                   top: 60,
-                  zIndex: 50,
+                  zIndex: 52,
                   borderRadius: rankingsExpanded ? "14px 14px 0 0" : 14,
                   background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
                   padding: "10px 14px",
@@ -1417,7 +1417,8 @@ function LandingInner() {
                     marginTop: 8,
                     minHeight: 42,
                     overflow: "hidden",
-                    position: "relative",
+                    position: "sticky",
+                    top: 110,
                     zIndex: 51,
                   }}
                   onClick={() => setCitationsExpanded(v => !v)}
