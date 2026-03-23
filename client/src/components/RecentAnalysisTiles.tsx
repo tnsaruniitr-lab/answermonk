@@ -384,9 +384,19 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", marginTop: 56 }}>
 
-      {/* Header row: title left, search + view-all right */}
+      {/* Header row: trust signal + search left, view-all right */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {/* Audit trust signal */}
+          <span style={{
+            fontSize: 12, fontWeight: 700, color: "#16a34a",
+            display: "flex", alignItems: "center", gap: 5,
+            whiteSpace: "nowrap", flexShrink: 0,
+          }}>
+            <span style={{ fontSize: 14 }}>✓</span>
+            {stats ? `${stats.auditsCompleted.toLocaleString()} audits completed!` : "—"}
+          </span>
+
           {/* Search pill */}
           <div style={{
             display: "flex", alignItems: "center", gap: 7,
@@ -430,32 +440,21 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
           )}
         </div>
 
-        {/* Right side: audit count + view all */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-          {stats && stats.auditsCompleted > 0 && (
-            <span style={{
-              fontSize: 11, fontWeight: 600, color: "#6366f1",
-              display: "flex", alignItems: "center", gap: 4,
-            }}>
-              <span style={{ color: "#22c55e", fontWeight: 800 }}>✓</span>
-              {stats.auditsCompleted.toLocaleString()} audits
-            </span>
-          )}
-          {!isLoading && tiles.length > INITIAL_COUNT && !expanded && !isSearching && (
-            <button
-              onClick={() => setExpanded(true)}
-              data-testid="button-directory-view-all"
-              style={{
-                color: "#6366f1", fontSize: 12, fontWeight: 600,
-                background: "rgba(99,102,241,0.08)",
-                border: "1px solid rgba(99,102,241,0.2)",
-                borderRadius: 8, padding: "5px 14px", cursor: "pointer",
-              }}
-            >
-              View all {tiles.length}
-            </button>
-          )}
-        </div>
+        {/* View all button — hidden while searching */}
+        {!isLoading && tiles.length > INITIAL_COUNT && !expanded && !isSearching && (
+          <button
+            onClick={() => setExpanded(true)}
+            data-testid="button-directory-view-all"
+            style={{
+              color: "#6366f1", fontSize: 12, fontWeight: 600,
+              background: "rgba(99,102,241,0.08)",
+              border: "1px solid rgba(99,102,241,0.2)",
+              borderRadius: 8, padding: "5px 14px", cursor: "pointer", flexShrink: 0,
+            }}
+          >
+            View all {tiles.length}
+          </button>
+        )}
       </div>
 
       {/* Responsive grid */}
