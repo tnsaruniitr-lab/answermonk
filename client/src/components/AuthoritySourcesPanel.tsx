@@ -2036,27 +2036,6 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
         </div>
       )}
 
-      {/* Header card — only shown when we have real summary stats */}
-      {data.summary && (
-        <div className="rounded-xl overflow-hidden" style={{ background: "#0d1526", border: "1px solid rgba(255,255,255,0.08)" }}>
-          <div className="px-5 py-4">
-            <div className="text-[10px] tracking-widest mb-1 uppercase" style={{ color: "#6366f1" }}>Citation Intelligence Report</div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-3">
-              {[
-                { label: "Total Citations", value: data.summary?.total_citations?.toLocaleString() ?? "—" },
-                { label: "Domains Analysed", value: data.summary?.domains_analysed?.toLocaleString() ?? "—" },
-                { label: "Cross-Engine Brands", value: data.summary?.cross_engine_brands?.toString() ?? "—" },
-                { label: "AI Tactics Found", value: data.tactics?.length?.toString() ?? "—" },
-              ].map((s) => (
-                <div key={s.label}>
-                  <div className="text-lg font-bold leading-tight" style={{ color: "#e2e8f0" }}>{s.value}</div>
-                  <div className="text-[10px] mt-0.5" style={{ color: "#475569" }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* GEO Insights — primary section for the insights format */}
       {isInsightsFormat && (
