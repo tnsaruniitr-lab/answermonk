@@ -1257,18 +1257,22 @@ function LandingInner() {
                 zIndex: 60,
                 background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
                 borderRadius: 14,
-                padding: "10px 14px",
+                padding: "9px 14px",
                 boxShadow: "0 4px 20px rgba(79,70,229,0.3)",
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
-                minHeight: 42,
                 marginBottom: 8,
                 overflow: "hidden",
               }}>
-                <span style={{ fontSize: 13.5, color: "#ffffff", fontWeight: 800, letterSpacing: "-0.02em", flexShrink: 0 }}>
-                  Get this report emailed
-                </span>
+                <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: 1 }}>
+                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontWeight: 500, letterSpacing: "0.01em", lineHeight: 1.2 }}>
+                    ~2–3 min per stage
+                  </span>
+                  <span style={{ fontSize: 13, color: "#ffffff", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.2 }}>
+                    Email me the report
+                  </span>
+                </div>
                 <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                   <input
                     value={waitlistEmail}
@@ -1297,7 +1301,6 @@ function LandingInner() {
                     {waitlistSubmitting ? "…" : "Send →"}
                   </button>
                 </div>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", flexShrink: 0 }}>No account needed</span>
               </div>
             )}
 
