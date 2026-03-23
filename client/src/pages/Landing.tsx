@@ -385,7 +385,7 @@ function HeroFlipperText() {
       Analyse and improve how you're recommended{" "}
       <span style={{ whiteSpace: "nowrap" }}>
         across{" "}
-        <span style={{ display: "inline-block", perspective: 400, verticalAlign: "middle", minWidth: "5.2em", textAlign: "center" }}>
+        <span style={{ display: "inline-block", perspective: 400, verticalAlign: "middle", minWidth: "5.2em", textAlign: "left" }}>
           <span
             key={engine.name}
             className={flipping ? "am-flip-out" : "am-flip-in"}
