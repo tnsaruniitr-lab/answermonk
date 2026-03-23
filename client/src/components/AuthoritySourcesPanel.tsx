@@ -2270,18 +2270,18 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
 
       {/* ── Variant B: What matters — indigo gradient banner + expandable TacticCards ── */}
       {data.tactics?.length > 0 && (
-        <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(99,102,241,0.3)" }}>
-          <div style={{ padding: "20px 22px", background: "linear-gradient(135deg, rgba(99,102,241,0.22) 0%, rgba(139,92,246,0.12) 100%)", display: "flex", alignItems: "center", gap: 18, borderBottom: "1px solid rgba(99,102,241,0.2)" }}>
-            <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
+        <div style={{ borderRadius: 20, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)", background: "#0d1526", boxShadow: "0 0 0 1px rgba(255,255,255,0.03), 0 24px 60px rgba(0,0,0,0.45)" }}>
+          <div style={{ padding: "18px 22px 16px", background: "linear-gradient(110deg, #1e1b4b 0%, #1e293b 100%)", display: "flex", alignItems: "center", gap: 14, borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+            <div style={{ width: 34, height: 34, borderRadius: 9, background: "linear-gradient(135deg,#6366f1,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>
               🎯
             </div>
             <div>
-              <p style={{ fontSize: 10, fontFamily: "monospace", letterSpacing: "0.12em", textTransform: "uppercase", color: "#818cf8", margin: "0 0 2px" }}>Ranked by citation evidence</p>
-              <h3 style={{ fontSize: 22, fontWeight: 800, color: "#e2e8f0", lineHeight: 1.2, letterSpacing: "-0.02em", margin: 0 }}>What matters in this category?</h3>
-              <p style={{ fontSize: 12, color: "#64748b", marginTop: 4, marginBottom: 0 }}>{data.tactics.length} proven tactics from top-appearing brands</p>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#818cf8", margin: "0 0 3px" }}>Ranked by citation evidence</p>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: "#ffffff", lineHeight: 1.2, letterSpacing: "-0.025em", margin: 0 }}>What matters in this category?</h3>
+              <p style={{ fontSize: 12, color: "#64748b", marginTop: 3, marginBottom: 0 }}>{data.tactics.length} proven tactics from top-appearing brands</p>
             </div>
           </div>
-          <div style={{ background: "#060f1e" }}>
+          <div style={{ background: "#0d1526", display: "flex", flexDirection: "column", gap: 10, padding: "12px 12px" }}>
             {data.tactics.map((t, i) => <TacticCard key={t.rank ?? (t as any).tactic_number ?? (t as any).number ?? i} tactic={t} />)}
           </div>
         </div>
@@ -2300,15 +2300,15 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
 
       {/* Unusual findings — collapsible */}
       {data.unusual_findings?.length > 0 && (
-        <div>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(167,139,250,0.13)", border: "1px solid rgba(167,139,250,0.28)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>🔬</div>
+        <div style={{ background: "#0d1526", borderRadius: 20, border: "1px solid rgba(255,255,255,0.08)", overflow: "hidden", boxShadow: "0 0 0 1px rgba(255,255,255,0.03)" }}>
+          <div style={{ padding: "18px 22px 14px", background: "linear-gradient(110deg, #1e1b4b 0%, #1e293b 100%)", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 9, background: "rgba(167,139,250,0.15)", border: "1px solid rgba(167,139,250,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>🔬</div>
             <div>
               <div style={{ fontSize: 10, fontWeight: 700, color: "#a78bfa", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 3 }}>Anomaly detection</div>
-              <h4 style={{ fontSize: 15, fontWeight: 800, color: "#e2e8f0", lineHeight: 1.25, margin: 0 }}>Patterns the data didn't expect</h4>
+              <h4 style={{ fontSize: 18, fontWeight: 800, color: "#ffffff", lineHeight: 1.25, margin: 0 }}>Patterns the data didn't expect</h4>
             </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: "12px 12px" }}>
             {data.unusual_findings.map((f, i) => (
               <ActionCollapseItem
                 key={i}
