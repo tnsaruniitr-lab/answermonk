@@ -352,6 +352,10 @@ const AM_FLIPPER_CSS = `
   @keyframes amFlipOut { from { transform: rotateX(0deg); opacity: 1 } to { transform: rotateX(-90deg); opacity: 0 } }
   .am-flip-in  { animation: amFlipIn  0.2s ease-out forwards; }
   .am-flip-out { animation: amFlipOut 0.18s ease-in  forwards; }
+  @keyframes amBotPulse  { 0%,100% { opacity:1; transform:scale(1) } 50% { opacity:0.55; transform:scale(0.82) } }
+  @keyframes amBotBounce { 0%,100% { transform:translateY(0) } 35% { transform:translateY(-4px) } 65% { transform:translateY(1px) } }
+  .am-bot-pulse  { animation: amBotPulse  1.5s ease-in-out infinite; }
+  .am-bot-bounce { animation: amBotBounce 0.65s ease-in-out infinite; }
 `;
 
 function HeroFlipperText() {
@@ -1250,52 +1254,78 @@ function LandingInner() {
             </div>
 
             {/* Sticky email bar — visible during scoring and after, above all analysis boxes */}
-            {emailBarVisible && (
-              <div style={{
-                position: "sticky",
-                top: 60,
-                zIndex: 60,
-                background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
-                borderRadius: 14,
-                padding: "9px 14px",
-                boxShadow: "0 4px 20px rgba(79,70,229,0.3)",
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                marginBottom: 8,
-                overflow: "hidden",
-              }}>
-                <span style={{ fontSize: 12, color: "#fff", fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 }}>
-                  wait 2–3 mins or get the report emailed
-                </span>
-                <input
-                  value={waitlistEmail}
-                  onChange={e => setWaitlistEmail(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && handleWaitlistSubmit()}
-                  placeholder="you@email.com"
-                  data-sticky-email
-                  style={{
-                    background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
-                    borderRadius: 7, padding: "3px 8px", fontSize: 11, color: "#fff",
-                    outline: "none", width: 110, flexShrink: 0, marginLeft: "auto",
-                  }}
-                />
-                <button
-                  onClick={handleWaitlistSubmit}
-                  disabled={waitlistSubmitting || !waitlistEmail.includes("@")}
-                  style={{
-                    display: "inline-flex", alignItems: "center",
-                    background: waitlistEmail.includes("@") ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.15)",
-                    color: waitlistEmail.includes("@") ? "#3730a3" : "rgba(255,255,255,0.4)",
-                    border: "none", borderRadius: 7, padding: "3px 10px",
-                    fontSize: 12, fontWeight: 800, cursor: waitlistEmail.includes("@") ? "pointer" : "not-allowed",
-                    whiteSpace: "nowrap", flexShrink: 0,
-                  }}
-                >
-                  {waitlistSubmitting ? "…" : "→"}
-                </button>
-              </div>
-            )}
+            {emailBarVisible && (() => {
+              const needsAction = allSegmentsDone && !scanStarted;
+              const BotIcon = (
+                <svg viewBox="0 0 32 32" width={17} height={17} fill="none" style={{ display: "block", flexShrink: 0 }}>
+                  <circle cx="16" cy="3" r="2.2" fill="rgba(255,255,255,0.7)" />
+                  <rect x="1" y="14" width="4" height="7" rx="2" fill="rgba(255,255,255,0.5)" />
+                  <rect x="27" y="14" width="4" height="7" rx="2" fill="rgba(255,255,255,0.5)" />
+                  <rect x="6" y="7" width="20" height="22" rx="7" fill="rgba(255,255,255,0.9)" />
+                </svg>
+              );
+              return (
+                <div style={{
+                  position: "sticky",
+                  top: 60,
+                  zIndex: 60,
+                  background: needsAction
+                    ? "linear-gradient(110deg, #1e1b4b 0%, #3730a3 50%, #4f46e5 100%)"
+                    : "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
+                  borderRadius: 14,
+                  padding: "9px 14px",
+                  boxShadow: needsAction
+                    ? "0 4px 24px rgba(55,48,163,0.5)"
+                    : "0 4px 20px rgba(79,70,229,0.3)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  marginBottom: 8,
+                  overflow: "hidden",
+                }}>
+                  <span className={needsAction ? "am-bot-bounce" : "am-bot-pulse"} style={{ display: "flex", alignItems: "center" }}>
+                    {BotIcon}
+                  </span>
+                  {needsAction ? (
+                    <span style={{ fontSize: 12, color: "#fff", fontWeight: 700, whiteSpace: "nowrap" }}>
+                      click button below for final report ↓
+                    </span>
+                  ) : (
+                    <>
+                      <span style={{ fontSize: 12, color: "#fff", fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 }}>
+                        wait 2–3 mins or get the report emailed
+                      </span>
+                      <input
+                        value={waitlistEmail}
+                        onChange={e => setWaitlistEmail(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && handleWaitlistSubmit()}
+                        placeholder="you@email.com"
+                        data-sticky-email
+                        style={{
+                          background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
+                          borderRadius: 7, padding: "3px 8px", fontSize: 11, color: "#fff",
+                          outline: "none", width: 110, flexShrink: 0, marginLeft: "auto",
+                        }}
+                      />
+                      <button
+                        onClick={handleWaitlistSubmit}
+                        disabled={waitlistSubmitting || !waitlistEmail.includes("@")}
+                        style={{
+                          display: "inline-flex", alignItems: "center",
+                          background: waitlistEmail.includes("@") ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.15)",
+                          color: waitlistEmail.includes("@") ? "#3730a3" : "rgba(255,255,255,0.4)",
+                          border: "none", borderRadius: 7, padding: "3px 10px",
+                          fontSize: 12, fontWeight: 800, cursor: waitlistEmail.includes("@") ? "pointer" : "not-allowed",
+                          whiteSpace: "nowrap", flexShrink: 0,
+                        }}
+                      >
+                        {waitlistSubmitting ? "…" : "→"}
+                      </button>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Session summary hero — appears once all segments are scored */}
             {allSegmentsDone && scoredSegs.length > 0 && (
