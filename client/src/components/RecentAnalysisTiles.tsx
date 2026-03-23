@@ -189,68 +189,31 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
           background: "rgba(0,0,0,0.025)", borderRadius: 10,
           padding: "9px 10px", marginBottom: 10, flex: 1,
         }}>
-          {/* #1 */}
-          <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: tile.rivals.length > 0 ? 8 : 0 }}>
-            <ScoreRing score={tile.topScore} accent={accent} />
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
-                <span style={{
-                  fontSize: 9, fontWeight: 700, color: "#fff",
-                  background: accent, borderRadius: 3, padding: "1px 5px", flexShrink: 0,
-                }}>#1</span>
-                <span style={{
-                  color: "#111827", fontSize: 13, fontWeight: 800,
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}>
-                  {displayBrand}
-                </span>
-              </div>
-              <span style={{ color: "#9ca3af", fontSize: 10 }}>Most cited in AI responses</span>
-            </div>
-          </div>
-
-          {/* #2 and #3 */}
-          {tile.rivals.length > 0 && (
-            <div style={{ borderTop: "1px solid rgba(0,0,0,0.06)", paddingTop: 7, display: "flex", flexDirection: "column", gap: 5 }}>
-              {tile.rivals.slice(0, 2).map((rival, i) => (
-                <div key={rival.name}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: rival.share > 0 ? 4 : 0 }}>
-                    <span style={{
-                      fontSize: 10, fontWeight: 800, color: "#6b7280",
-                      background: "#f3f4f6", border: "1px solid #e5e7eb",
-                      borderRadius: 4, padding: "2px 6px", flexShrink: 0,
-                    }}>
-                      #{i + 2}
+          {/* All rankings — unified row format */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+            {[{ rank: 1, name: displayBrand, share: tile.topScore, solid: true }, ...tile.rivals.slice(0, 2).map((r, i) => ({ rank: i + 2, name: r.name, share: r.share, solid: false }))].map((row, i) => (
+              <div key={row.rank} style={{ borderTop: i > 0 ? "1px solid rgba(0,0,0,0.05)" : "none", paddingTop: i > 0 ? 6 : 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: row.share > 0 ? 4 : 0 }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: row.solid ? "#fff" : "#6b7280", background: row.solid ? accent : "#f3f4f6", border: row.solid ? "none" : "1px solid #e5e7eb", borderRadius: 4, padding: "2px 6px", flexShrink: 0 }}>
+                    #{row.rank}
+                  </span>
+                  <span style={{ color: "#111827", fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+                    {row.name}
+                  </span>
+                  {row.share > 0 && (
+                    <span style={{ fontSize: 10.5, fontWeight: 800, flexShrink: 0, color: accent, background: `${accent}15`, border: `1px solid ${accent}30`, borderRadius: 20, padding: "2px 7px" }}>
+                      {row.share}%
                     </span>
-                    <span style={{
-                      color: "#1f2937", fontSize: 12.5, fontWeight: 700,
-                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0,
-                    }}>
-                      {rival.name}
-                    </span>
-                    {rival.share > 0 && (
-                      <span style={{
-                        fontSize: 10.5, fontWeight: 800, flexShrink: 0,
-                        color: accent, background: `${accent}15`,
-                        border: `1px solid ${accent}30`,
-                        borderRadius: 20, padding: "2px 7px",
-                      }}>
-                        {rival.share}%
-                      </span>
-                    )}
-                  </div>
-                  {rival.share > 0 && (
-                    <div style={{ height: 3, borderRadius: 99, background: "rgba(0,0,0,0.06)", overflow: "hidden" }}>
-                      <div style={{
-                        height: "100%", borderRadius: 99, width: `${rival.share}%`,
-                        background: `linear-gradient(90deg, ${accent}88, ${accent})`,
-                      }} />
-                    </div>
                   )}
                 </div>
-              ))}
-            </div>
-          )}
+                {row.share > 0 && (
+                  <div style={{ height: 3, borderRadius: 99, background: "rgba(0,0,0,0.06)", overflow: "hidden" }}>
+                    <div style={{ height: "100%", borderRadius: 99, width: `${row.share}%`, background: `linear-gradient(90deg, ${accent}88, ${accent})` }} />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Engine badges — always visible, fixed per-engine colors */}

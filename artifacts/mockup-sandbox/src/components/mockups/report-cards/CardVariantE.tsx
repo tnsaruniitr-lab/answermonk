@@ -86,56 +86,31 @@ export default function CardVariantE() {
                 {tile.query.replace(/^best\s+/i, "")}
               </p>
 
-              {/* Score ring + brand info */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                <ScoreRing score={tile.score} accent={tile.accent} />
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
-                    <span style={{ fontSize: 9, fontWeight: 800, color: "#fff", background: tile.accent, borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>#1</span>
-                    <span style={{ color: "#111827", fontSize: 13, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {tile.topBrand}
-                    </span>
-                  </div>
-                  <span style={{ color: "#9ca3af", fontSize: 10 }}>Most cited in AI responses</span>
-                </div>
-              </div>
-
-              {/* #2 and #3 rivals — bigger, bolder */}
-              {tile.rivals.length > 0 && (
-                <div style={{ borderTop: "1px solid rgba(0,0,0,0.05)", paddingTop: 8, display: "flex", flexDirection: "column", gap: 7, marginBottom: 10 }}>
-                  {tile.rivals.slice(0, 2).map((r, i) => (
-                    <div key={r.name}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, color: "#6b7280", background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 4, padding: "2px 6px", flexShrink: 0 }}>
-                          #{i + 2}
+              {/* All rankings — unified row format */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 10 }}>
+                {[{ rank: 1, name: tile.topBrand, share: tile.score, solid: true }, ...tile.rivals.slice(0, 2).map((r, i) => ({ rank: i + 2, name: r.name, share: r.share, solid: false }))].map((row, i) => (
+                  <div key={row.rank} style={{ borderTop: i > 0 ? "1px solid rgba(0,0,0,0.05)" : "none", paddingTop: i > 0 ? 6 : 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: row.share > 0 ? 4 : 0 }}>
+                      <span style={{ fontSize: 10, fontWeight: 800, color: row.solid ? "#fff" : "#6b7280", background: row.solid ? tile.accent : "#f3f4f6", border: row.solid ? "none" : "1px solid #e5e7eb", borderRadius: 4, padding: "2px 6px", flexShrink: 0 }}>
+                        #{row.rank}
+                      </span>
+                      <span style={{ color: "#111827", fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+                        {row.name}
+                      </span>
+                      {row.share > 0 && (
+                        <span style={{ fontSize: 10.5, fontWeight: 800, flexShrink: 0, color: tile.accent, background: `${tile.accent}15`, border: `1px solid ${tile.accent}30`, borderRadius: 20, padding: "2px 7px" }}>
+                          {row.share}%
                         </span>
-                        <span style={{ color: "#1f2937", fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>{r.name}</span>
-                        {r.share > 0 && (
-                          <span style={{
-                            fontSize: 10.5, fontWeight: 800, flexShrink: 0,
-                            color: tile.accent,
-                            background: `${tile.accent}15`,
-                            border: `1px solid ${tile.accent}30`,
-                            borderRadius: 20, padding: "2px 7px",
-                            letterSpacing: "0.01em",
-                          }}>
-                            {r.share}%
-                          </span>
-                        )}
-                      </div>
-                      {r.share > 0 && (
-                        <div style={{ height: 3, borderRadius: 99, background: "rgba(0,0,0,0.06)", overflow: "hidden" }}>
-                          <div style={{
-                            height: "100%", borderRadius: 99,
-                            width: `${r.share}%`,
-                            background: `linear-gradient(90deg, ${tile.accent}88, ${tile.accent})`,
-                          }} />
-                        </div>
                       )}
                     </div>
-                  ))}
-                </div>
-              )}
+                    {row.share > 0 && (
+                      <div style={{ height: 3, borderRadius: 99, background: "rgba(0,0,0,0.06)", overflow: "hidden" }}>
+                        <div style={{ height: "100%", borderRadius: 99, width: `${row.share}%`, background: `linear-gradient(90deg, ${tile.accent}88, ${tile.accent})` }} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
 
               {/* CTA */}
               <button style={{
