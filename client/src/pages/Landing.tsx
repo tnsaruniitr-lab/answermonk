@@ -1347,7 +1347,7 @@ function LandingInner() {
                 <div
                   ref={citationsBarRef}
                   style={{
-                    borderRadius: citationsExpanded ? "14px 14px 0 0" : 14,
+                    borderRadius: 14,
                     background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
                     padding: "10px 14px",
                     cursor: "pointer",
@@ -1378,7 +1378,7 @@ function LandingInner() {
                   </div>
                 </div>
                 {citationsExpanded && (
-                  <div style={{ marginTop: 0 }}>
+                  <div style={{ marginTop: 8 }}>
                     <Suspense fallback={null}>
                       <CitationSourcesPreview sessionId={activeSessionId} />
                     </Suspense>
@@ -1392,7 +1392,7 @@ function LandingInner() {
               <>
                 <div
                   style={{
-                    borderRadius: intelligenceExpanded ? "14px 14px 0 0" : 14,
+                    borderRadius: 14,
                     background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
                     padding: "10px 14px",
                     cursor: "pointer",
@@ -1422,7 +1422,7 @@ function LandingInner() {
                   </div>
                 </div>
                 {intelligenceExpanded && (
-                  <div style={{ marginTop: 0 }}>
+                  <div style={{ marginTop: 8 }}>
                     <Suspense fallback={null}>
                       <AuthoritySourcesPanel
                         autoRun
