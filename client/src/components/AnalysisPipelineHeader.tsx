@@ -1,9 +1,9 @@
 
 const STAGES = [
-  { id: 1, shortLabel: "Profile", fullLabel: "Profile Generated" },
-  { id: 2, shortLabel: "LLM Rank", fullLabel: "Calculating LLM Rank" },
-  { id: 3, shortLabel: "Authority", fullLabel: "Fetching Authority Domains" },
-  { id: 4, shortLabel: "Report", fullLabel: "Generating Action Report" },
+  { id: 1, shortLabel: "Profile", fullLabel: "Build Brand Profile" },
+  { id: 2, shortLabel: "LLM Score", fullLabel: "Score LLM Rankings" },
+  { id: 3, shortLabel: "Authority", fullLabel: "Scan Authority Sources" },
+  { id: 4, shortLabel: "Report", fullLabel: "Draft Action Report" },
 ];
 
 interface AnalysisPipelineHeaderProps {
