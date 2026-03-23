@@ -31,14 +31,6 @@ export function AnalysisPipelineHeader({
 
   const allDone = activeStage > 4;
 
-  const statusText = (stageId: number) => {
-    if (stageId < activeStage) return "Complete";
-    if (stageId === activeStage) {
-      return profileActive ? "Confirm signals" : "Running…";
-    }
-    return "Waiting";
-  };
-
   return (
     <div
       style={{
@@ -130,29 +122,17 @@ export function AnalysisPipelineHeader({
                     s.id
                   )}
                 </div>
-                <div>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      lineHeight: 1,
-                      color: done ? "#1e293b" : active ? "#4f46e5" : "#94a3b8",
-                      transition: "color 0.4s",
-                    }}
-                  >
-                    {s.shortLabel}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      marginTop: 2,
-                      lineHeight: 1,
-                      color: active ? "#7c3aed" : "#94a3b8",
-                      transition: "color 0.4s",
-                    }}
-                  >
-                    {statusText(s.id)}
-                  </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    lineHeight: 1,
+                    color: done ? "#1e293b" : active ? "#4f46e5" : "#94a3b8",
+                    transition: "color 0.4s",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {s.fullLabel}
                 </div>
               </div>
             </div>
