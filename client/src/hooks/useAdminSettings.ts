@@ -26,8 +26,8 @@ const DEFAULTS: AdminSettings = {
   },
   useHeuristicClassification: false,
   showDevRerunButton: true,
-  maxServices: 4,
-  maxCustomers: 4,
+  maxServices: 3,
+  maxCustomers: 2,
   citationAnalysisMode: "url_rows",
   insightsModel: "claude-sonnet-4-5",
 };
@@ -41,8 +41,8 @@ function loadSettings(): AdminSettings {
       engines: { ...DEFAULTS.engines, ...parsed.engines },
       useHeuristicClassification: parsed.useHeuristicClassification ?? DEFAULTS.useHeuristicClassification,
       showDevRerunButton: parsed.showDevRerunButton ?? DEFAULTS.showDevRerunButton,
-      maxServices: parsed.maxServices ?? DEFAULTS.maxServices,
-      maxCustomers: parsed.maxCustomers ?? DEFAULTS.maxCustomers,
+      maxServices: Math.max(parsed.maxServices ?? DEFAULTS.maxServices, DEFAULTS.maxServices),
+      maxCustomers: Math.max(parsed.maxCustomers ?? DEFAULTS.maxCustomers, DEFAULTS.maxCustomers),
       citationAnalysisMode: parsed.citationAnalysisMode ?? DEFAULTS.citationAnalysisMode,
       insightsModel: (parsed.insightsModel === "claude-haiku-4-5" || parsed.insightsModel === "claude-sonnet-4-5")
         ? parsed.insightsModel
