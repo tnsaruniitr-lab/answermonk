@@ -189,7 +189,7 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
                   borderRadius: 9, padding: "7px 9px",
                   boxShadow: `inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 6px ${accent}12`,
                 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: row.share > 0 ? 5 : 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
                     <span style={{
                       fontSize: 10, fontWeight: 800, color: "#fff",
                       background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
@@ -201,21 +201,17 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
                     <span style={{ color: "#111827", fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
                       {row.name}
                     </span>
-                    {row.share > 0 && (
-                      <span style={{
-                        fontSize: 10.5, fontWeight: 800, flexShrink: 0, color: accent,
-                        background: "rgba(255,255,255,0.7)", border: `1px solid ${accent}35`,
-                        borderRadius: 20, padding: "2px 7px",
-                      }}>
-                        {row.share}%
-                      </span>
-                    )}
+                    <span style={{
+                      fontSize: 10.5, fontWeight: 800, flexShrink: 0, color: accent,
+                      background: "rgba(255,255,255,0.7)", border: `1px solid ${accent}35`,
+                      borderRadius: 20, padding: "2px 7px",
+                    }}>
+                      {row.share}%
+                    </span>
                   </div>
-                  {row.share > 0 && (
-                    <div style={{ height: 3, borderRadius: 99, background: "rgba(255,255,255,0.4)", overflow: "hidden" }}>
-                      <div style={{ height: "100%", borderRadius: 99, width: `${row.share}%`, background: `linear-gradient(90deg, ${accent}80, ${accent})`, boxShadow: `0 0 6px ${accent}60` }} />
-                    </div>
-                  )}
+                  <div style={{ height: 3, borderRadius: 99, background: "rgba(255,255,255,0.4)", overflow: "hidden" }}>
+                    <div style={{ height: "100%", borderRadius: 99, width: `${row.share}%`, background: `linear-gradient(90deg, ${accent}80, ${accent})`, boxShadow: `0 0 6px ${accent}60` }} />
+                  </div>
                 </div>
                 {/* Bubble pointer */}
                 <div style={{ position: "absolute", bottom: -7, left: 18, width: 0, height: 0, borderLeft: "7px solid transparent", borderRight: "7px solid transparent", borderTop: `7px solid ${accent}35` }} />
