@@ -1791,20 +1791,6 @@ function LandingInner() {
           </div>
         )}
 
-        {/* Trust bar */}
-        {!isComplete && !isRunning && (
-          <div className="mt-8 pt-4">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-5">
-              Analyzing signals across primary intelligence engines
-            </p>
-            <div className="flex flex-wrap justify-center gap-8 md:gap-14 opacity-50 hover:opacity-80 transition-opacity duration-500">
-              <div className="flex items-center gap-2 font-medium"><Bot className="w-5 h-5" /> ChatGPT</div>
-              <div className="flex items-center gap-2 font-medium"><Zap className="w-5 h-5" /> Claude</div>
-              <div className="flex items-center gap-2 font-medium"><Sparkles className="w-5 h-5" /> Gemini</div>
-              <div className="flex items-center gap-2 font-medium"><Database className="w-5 h-5" /> Perplexity</div>
-            </div>
-          </div>
-        )}
           </>
         )}
 
@@ -1845,6 +1831,19 @@ function LandingInner() {
                   <p className="text-sm text-slate-400 text-center">{item.desc}</p>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Engine trust strip — always visible in this section */}
+          <div className="mt-12 pt-8 border-t" style={{ borderColor: "rgba(99,102,241,0.12)" }}>
+            <p className="text-xs font-semibold uppercase tracking-wider text-center mb-5" style={{ color: "#94a3b8" }}>
+              Analyzing signals across primary intelligence engines
+            </p>
+            <div className="flex flex-wrap justify-center gap-8 md:gap-14" style={{ color: "#64748b", opacity: 0.65 }}>
+              <div className="flex items-center gap-2 font-medium"><Bot className="w-5 h-5" /> ChatGPT</div>
+              <div className="flex items-center gap-2 font-medium"><Zap className="w-5 h-5" /> Claude</div>
+              <div className="flex items-center gap-2 font-medium"><Sparkles className="w-5 h-5" /> Gemini</div>
+              <div className="flex items-center gap-2 font-medium"><Database className="w-5 h-5" /> Perplexity</div>
             </div>
           </div>
         </div>
