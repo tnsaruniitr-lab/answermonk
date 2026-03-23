@@ -144,10 +144,10 @@ function SegmentResultCard({ seg, brandName, detectedService, selected, onToggle
       {/* ── Gradient banner ── */}
       <div style={{
         background: "linear-gradient(100deg, #3730a3 0%, #4f46e5 45%, #6d28d9 100%)",
-        padding: "18px 24px",
+        padding: "14px clamp(14px, 4vw, 24px)",
         display: "flex",
         alignItems: "center",
-        gap: 16,
+        gap: 12,
         borderBottom: "1px solid rgba(255,255,255,0.12)",
       }}>
         <div style={{ fontSize: 48, fontWeight: 900, color: "#ffffff", lineHeight: 1, letterSpacing: "-0.02em", flexShrink: 0, textShadow: "0 0 20px rgba(255,255,255,0.3)" }}>
@@ -191,7 +191,7 @@ function SegmentResultCard({ seg, brandName, detectedService, selected, onToggle
       </div>
 
       {/* ── Card identity ── */}
-      <div style={{ padding: "18px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div style={{ padding: "14px clamp(14px, 4vw, 24px)", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <div style={{ display: "inline-block", backgroundColor: isCustomer ? "rgba(139,92,246,0.15)" : "rgba(59,130,246,0.15)", color: isCustomer ? "#c4b5fd" : "#93c5fd", padding: "2px 8px", borderRadius: 4, fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 6, border: isCustomer ? "1px solid rgba(139,92,246,0.25)" : "1px solid rgba(59,130,246,0.25)" }}>
             {isCustomer ? "Customer" : "Service"}
@@ -201,7 +201,7 @@ function SegmentResultCard({ seg, brandName, detectedService, selected, onToggle
             <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>"{promptContext}"</div>
           )}
         </div>
-        <div style={{ display: "flex", gap: 20, fontSize: 12, color: "#64748b", textAlign: "center", flexShrink: 0, marginLeft: 16 }}>
+        <div style={{ display: "flex", gap: 12, fontSize: 12, color: "#64748b", textAlign: "center", flexShrink: 0, marginLeft: 8 }}>
           <div>
             <div style={{ fontSize: 16, fontWeight: 700, color: "#e2e8f0" }}>{primary}%</div>
             <div>Top 3</div>
@@ -219,7 +219,7 @@ function SegmentResultCard({ seg, brandName, detectedService, selected, onToggle
 
       {/* ── Engine breakdown — horizontal bars ── */}
       {engineList.length > 0 && (
-        <div style={{ padding: "18px 24px", display: "flex", gap: 20, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        <div style={{ padding: "12px clamp(14px, 4vw, 24px)", display: "flex", gap: 10, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           {engineList.map((eng) => {
             const data = enginesBreakdown[eng];
             const pct = Math.round((data?.appearance_rate ?? 0) * 100);
@@ -241,7 +241,7 @@ function SegmentResultCard({ seg, brandName, detectedService, selected, onToggle
 
       {/* ── Rankings ── */}
       {allRankings.length > 0 && (
-        <div style={{ padding: "20px 24px" }}>
+        <div style={{ padding: "16px clamp(14px, 4vw, 24px)" }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>
             AI Search Rankings
           </div>
@@ -265,7 +265,7 @@ function SegmentResultCard({ seg, brandName, detectedService, selected, onToggle
                   <div style={{ width: 20, fontSize: 12, fontWeight: 700, color: c.isBrand ? "#a5b4fc" : "#64748b", textAlign: "right", flexShrink: 0 }}>
                     {idx + 1}
                   </div>
-                  <div style={{ width: 148, fontSize: 13, fontWeight: 700, color: c.isBrand ? "#ffffff" : "#f1f5f9", flexShrink: 0, display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>
+                  <div style={{ width: "clamp(80px, 38%, 148px)", fontSize: 13, fontWeight: 700, color: c.isBrand ? "#ffffff" : "#f1f5f9", flexShrink: 0, display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</span>
                     {c.isBrand && <span style={{ backgroundColor: "#4338ca", color: "white", fontSize: 9, padding: "2px 6px", borderRadius: 100, fontWeight: "bold", flexShrink: 0 }}>YOU</span>}
                   </div>
@@ -291,13 +291,13 @@ function SegmentResultCard({ seg, brandName, detectedService, selected, onToggle
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
           <button
             onClick={(e) => { e.stopPropagation(); setShowCitations(v => !v); }}
-            style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 24px", background: "transparent", border: "none", cursor: "pointer" }}
+            style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px clamp(14px, 4vw, 24px)", background: "transparent", border: "none", cursor: "pointer" }}
             data-testid="btn-toggle-citations"
           >
             <span style={{ fontSize: 12.5, fontWeight: 700, color: "rgba(255,255,255,0.9)", letterSpacing: "0.01em" }}>
               Citations · {aggregatedCitations.length} sources
             </span>
-            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11.5, fontWeight: 700, color: "rgba(255,255,255,0.75)", transition: "color 0.2s" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11.5, fontWeight: 700, color: "rgba(255,255,255,0.75)", transition: "color 0.2s", flexShrink: 1, textAlign: "right" }}>
               {showCitations ? "Hide" : "View all URLs referred to by LLMs"}
               <ChevronDown
                 size={12}
@@ -311,7 +311,7 @@ function SegmentResultCard({ seg, brandName, detectedService, selected, onToggle
               {aggregatedCitations.map((cit, i) => (
                 <div
                   key={cit.url}
-                  style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 24px", borderBottom: i < aggregatedCitations.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none", background: i % 2 === 0 ? "rgba(255,255,255,0.01)" : "transparent" }}
+                  style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "8px clamp(14px, 4vw, 24px)", borderBottom: i < aggregatedCitations.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none", background: i % 2 === 0 ? "rgba(255,255,255,0.01)" : "transparent" }}
                   data-testid={`row-citation-${i}`}
                 >
                   <span style={{ fontSize: 9, fontFamily: "monospace", width: 20, textAlign: "right", flexShrink: 0, marginTop: 2, color: "rgba(255,255,255,0.25)" }}>{i + 1}</span>
