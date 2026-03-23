@@ -40,7 +40,6 @@ type AlarmLevel = {
   borderColor: string;
   percentColor: string;
   descColor: string;
-  ctaBg: string;
 };
 
 function getAlarmLevel(pct: number): AlarmLevel {
@@ -52,7 +51,6 @@ function getAlarmLevel(pct: number): AlarmLevel {
     borderColor: "rgba(239,68,68,0.3)",
     percentColor: "#fca5a5",
     descColor: "rgba(252,165,165,0.6)",
-    ctaBg: "linear-gradient(110deg,#dc2626,#b91c1c)",
   };
   if (pct < 30) return {
     label: "⚠ Very Low",
@@ -62,7 +60,6 @@ function getAlarmLevel(pct: number): AlarmLevel {
     borderColor: "rgba(245,158,11,0.3)",
     percentColor: "#fcd34d",
     descColor: "rgba(252,211,77,0.6)",
-    ctaBg: "linear-gradient(110deg,#d97706,#b45309)",
   };
   if (pct < 60) return {
     label: "Below Average",
@@ -72,7 +69,6 @@ function getAlarmLevel(pct: number): AlarmLevel {
     borderColor: "rgba(99,102,241,0.3)",
     percentColor: "#c7d2fe",
     descColor: "rgba(199,210,254,0.6)",
-    ctaBg: "linear-gradient(110deg,#4f46e5,#6d28d9)",
   };
   return {
     label: "Good",
@@ -82,14 +78,7 @@ function getAlarmLevel(pct: number): AlarmLevel {
     borderColor: "rgba(16,185,129,0.3)",
     percentColor: "#6ee7b7",
     descColor: "rgba(110,231,183,0.6)",
-    ctaBg: "linear-gradient(110deg,#059669,#047857)",
   };
-}
-
-function focusStickyEmail() {
-  const el = document.querySelector<HTMLInputElement>("[data-sticky-email]");
-  el?.focus();
-  el?.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 export function SessionSummaryHero({ brandName, brandDomain, scoredSegs, totalSegs }: Props) {
@@ -123,10 +112,9 @@ export function SessionSummaryHero({ brandName, brandDomain, scoredSegs, totalSe
     return { appearance, top3, avgRank, totalResponses, engines, brandRank, totalBrands };
   }, [scoredSegs, brandName]);
 
-  const initial = brandName.trim().charAt(0).toUpperCase() || "?";
-  const alarm   = getAlarmLevel(stats.appearance);
-
-  const maxEnginePct = Math.max(...stats.engines.map(e => e.pct), 20);
+  const initial       = brandName.trim().charAt(0).toUpperCase() || "?";
+  const alarm         = getAlarmLevel(stats.appearance);
+  const maxEnginePct  = Math.max(...stats.engines.map(e => e.pct), 20);
 
   return (
     <div
@@ -140,17 +128,17 @@ export function SessionSummaryHero({ brandName, brandDomain, scoredSegs, totalSe
       }}
     >
       {/* ── Brand header ── */}
-      <div style={{ background: "#0f172a", padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ background: "#0f172a", padding: "12px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 10 }}>
         <div style={{
-          width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+          width: 34, height: 34, borderRadius: 9, flexShrink: 0,
           background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 16, fontWeight: 900, color: "#fff",
+          fontSize: 15, fontWeight: 900, color: "#fff",
         }}>
           {initial}
         </div>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 17, fontWeight: 800, color: "#f1f5f9", letterSpacing: "-0.025em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#f1f5f9", letterSpacing: "-0.025em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {brandName}
           </div>
           {brandDomain && (
@@ -167,32 +155,31 @@ export function SessionSummaryHero({ brandName, brandDomain, scoredSegs, totalSe
       </div>
 
       {/* ── Alarm panel ── */}
-      <div style={{ background: alarm.panelBg, padding: "18px 20px", borderBottom: `1px solid ${alarm.borderColor}` }}>
-        <p style={{ fontSize: 11, fontWeight: 700, color: `${alarm.textColor}99`, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
-          Appearance Rate
-        </p>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 10 }}>
-          <span style={{ fontSize: 52, fontWeight: 900, color: alarm.percentColor, letterSpacing: "-0.04em", lineHeight: 1 }}>
+      <div style={{ background: alarm.panelBg, padding: "12px 20px 14px", borderBottom: `1px solid ${alarm.borderColor}` }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 6 }}>
+          <span style={{ fontSize: 44, fontWeight: 900, color: alarm.percentColor, letterSpacing: "-0.04em", lineHeight: 1 }}>
             {stats.appearance}%
           </span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: `${alarm.textColor}80`, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Appearance Rate
+          </span>
           <span style={{
-            display: "inline-flex", alignItems: "center", gap: 5,
+            display: "inline-flex", alignItems: "center",
             background: `${alarm.color}26`, border: `1px solid ${alarm.color}80`,
-            color: alarm.color, borderRadius: 20, padding: "4px 11px",
-            fontSize: 11, fontWeight: 700, letterSpacing: "0.04em",
+            color: alarm.color, borderRadius: 20, padding: "3px 10px",
+            fontSize: 11, fontWeight: 700, letterSpacing: "0.03em",
           }}>
             {alarm.label}
           </span>
         </div>
-        <p style={{ fontSize: 12, color: alarm.descColor, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 11.5, color: alarm.descColor, lineHeight: 1.4 }}>
           You appear in <strong style={{ color: alarm.textColor }}>{stats.appearance}% of AI searches</strong> when customers look for your services.
-          {stats.appearance < 50 ? " Your competitors are capturing the rest." : " Keep building on this position."}
         </p>
       </div>
 
       {/* ── Stats row ── */}
       <div style={{
-        background: "#0f172a", padding: "14px 20px",
+        background: "#0f172a", padding: "11px 20px",
         display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8,
         borderBottom: "1px solid rgba(255,255,255,0.05)",
       }}>
@@ -203,18 +190,18 @@ export function SessionSummaryHero({ brandName, brandDomain, scoredSegs, totalSe
           { label: "Responses",  value: String(stats.totalResponses || "—") },
         ].map(s => (
           <div key={s.label}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#e2e8f0", fontFamily: "monospace" }}>{s.value}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#e2e8f0", fontFamily: "monospace" }}>{s.value}</div>
             <div style={{ fontSize: 10.5, color: "#64748b", marginTop: 2 }}>{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* ── Engine breakdown ── */}
-      <div style={{ background: "#0f172a", padding: "14px 20px 18px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-        <p style={{ fontSize: 10.5, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 10 }}>
+      <div style={{ background: "#0f172a", padding: "11px 20px 15px" }}>
+        <p style={{ fontSize: 10, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>
           By Engine
         </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
           {stats.engines.map(e => (
             <div key={e.key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 12, fontWeight: 600, color: "#94a3b8", width: 52, flexShrink: 0 }}>{e.label}</span>
@@ -232,28 +219,6 @@ export function SessionSummaryHero({ brandName, brandDomain, scoredSegs, totalSe
             </div>
           ))}
         </div>
-      </div>
-
-      {/* ── CTA ── */}
-      <div style={{ background: "#0f172a", padding: "14px 20px" }}>
-        <button
-          onClick={focusStickyEmail}
-          data-testid="btn-hero-email-cta"
-          style={{
-            width: "100%", background: alarm.ctaBg, border: "none", borderRadius: 10,
-            padding: "11px 0", fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer",
-            letterSpacing: "-0.01em",
-          }}
-        >
-          {stats.appearance < 10
-            ? "Get Full Report Emailed — Fix This Now →"
-            : stats.appearance < 30
-            ? "Email Me the Full Intelligence Report →"
-            : "Email Me the Full Report →"}
-        </button>
-        <p style={{ fontSize: 10.5, color: "#475569", textAlign: "center", marginTop: 8 }}>
-          Authority sources scan running · Full analysis in ~4 min
-        </p>
       </div>
     </div>
   );
