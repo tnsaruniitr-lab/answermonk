@@ -140,20 +140,12 @@ export function AnalysisPipelineHeader({
         })}
 
         {allDone && (
-          <div
-            style={{
-              marginLeft: 14,
-              paddingLeft: 14,
-              borderLeft: "1px solid rgba(226,232,240,0.9)",
-              fontSize: 10.5,
-              fontWeight: 700,
-              color: "#10b981",
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              flexShrink: 0,
-            }}
-          >
-            ✓ Complete
+          <div style={{ marginLeft: 14, paddingLeft: 14, borderLeft: "1px solid rgba(226,232,240,0.9)", flexShrink: 0 }}>
+            <div style={{ width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(135deg,#10b981,#059669)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 6l2.5 2.5 4.5-5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
           </div>
         )}
       </div>
