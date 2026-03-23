@@ -382,7 +382,7 @@ function HeroFlipperText() {
 
   return (
     <>
-      Measure and improve how you rank on{" "}
+      Analyse and improve how you're recommended across{" "}
       <span style={{ display: "inline-block", perspective: 400, verticalAlign: "middle" }}>
         <span
           key={engine.name}
@@ -391,8 +391,6 @@ function HeroFlipperText() {
             display: "inline-block",
             color: engine.color,
             fontWeight: 700,
-            borderBottom: `2px solid ${engine.color}55`,
-            paddingBottom: 1,
             minWidth: 108,
           }}
         >
