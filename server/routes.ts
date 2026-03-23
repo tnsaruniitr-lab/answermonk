@@ -1561,7 +1561,7 @@ export async function registerRoutes(
             brandName:   row.brand_name,
             brandDomain: row.brand_domain,
             topBrand:    competitors[0]?.name ?? null,
-            topScore:    Math.round((score.appearance_rate ?? 0) * 100),
+            topScore:    Math.round((competitors[0]?.share ?? 0) * 100),
             rivals:      competitors.slice(1, 3).map((c: any) => ({ name: c.name, share: Math.round((c.share ?? 0) * 100) })).filter((c: any) => c.name),
             engines: {
               chatgpt: (eb.chatgpt?.appearance_rate ?? 0) > 0,
