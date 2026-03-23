@@ -1257,23 +1257,21 @@ function LandingInner() {
                 zIndex: 60,
                 background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
                 borderRadius: 14,
-                padding: "9px 14px",
+                padding: "10px 14px",
                 boxShadow: "0 4px 20px rgba(79,70,229,0.3)",
                 display: "flex",
-                alignItems: "center",
-                gap: 10,
+                flexDirection: "column",
+                gap: 5,
                 marginBottom: 8,
                 overflow: "hidden",
               }}>
-                <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: 1 }}>
-                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontWeight: 500, letterSpacing: "0.01em", lineHeight: 1.2 }}>
-                    ~2–3 min per stage
+                <span style={{ fontSize: 12, color: "#fff", fontWeight: 800, letterSpacing: "-0.01em", lineHeight: 1 }}>
+                  ~2–3 min per stage
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.7)", fontWeight: 500, whiteSpace: "nowrap" }}>
+                    wait · or get
                   </span>
-                  <span style={{ fontSize: 13, color: "#ffffff", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.2 }}>
-                    Email me the report
-                  </span>
-                </div>
-                <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                   <input
                     value={waitlistEmail}
                     onChange={e => setWaitlistEmail(e.target.value)}
@@ -1282,23 +1280,26 @@ function LandingInner() {
                     data-sticky-email
                     style={{
                       background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
-                      borderRadius: 8, padding: "4px 10px", fontSize: 12, color: "#fff",
-                      outline: "none", flex: 1, minWidth: 0, maxWidth: 200,
+                      borderRadius: 7, padding: "3px 9px", fontSize: 11.5, color: "#fff",
+                      outline: "none", flex: 1, minWidth: 100, maxWidth: 180,
                     }}
                   />
+                  <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.7)", fontWeight: 500, whiteSpace: "nowrap" }}>
+                    when done
+                  </span>
                   <button
                     onClick={handleWaitlistSubmit}
                     disabled={waitlistSubmitting || !waitlistEmail.includes("@")}
                     style={{
-                      display: "inline-flex", alignItems: "center", gap: 5,
+                      display: "inline-flex", alignItems: "center",
                       background: waitlistEmail.includes("@") ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.15)",
-                      color: waitlistEmail.includes("@") ? "#3730a3" : "rgba(255,255,255,0.5)",
-                      border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "4px 11px",
-                      fontSize: 11.5, fontWeight: 700, cursor: waitlistEmail.includes("@") ? "pointer" : "not-allowed",
+                      color: waitlistEmail.includes("@") ? "#3730a3" : "rgba(255,255,255,0.4)",
+                      border: "none", borderRadius: 7, padding: "3px 10px",
+                      fontSize: 12, fontWeight: 800, cursor: waitlistEmail.includes("@") ? "pointer" : "not-allowed",
                       whiteSpace: "nowrap", flexShrink: 0,
                     }}
                   >
-                    {waitlistSubmitting ? "…" : "Send →"}
+                    {waitlistSubmitting ? "…" : "→"}
                   </button>
                 </div>
               </div>
