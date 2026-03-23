@@ -2195,17 +2195,18 @@ function StructuredReport({ data, sessionId, authoritySources = [], brandMention
                 <div key={b.label} title={`${b.label}: ${b.pct}%`} style={{ width: `${b.pct}%`, background: b.color, minWidth: 4, borderRadius: 4 }} />
               ))}
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 18px", marginBottom: data.page_type_distribution?.summary ? 12 : 0 }}>
-              {bars.map((b) => (
-                <div key={b.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: data.page_type_distribution?.summary ? 12 : 0 }}>
+              {bars.map((b, i) => (
+                <div key={b.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 2, background: b.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: 10, color: "#475569", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.label}</span>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: "#94a3b8" }}>{b.pct}%</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: b.color, width: 20, flexShrink: 0 }}>#{i + 1}</span>
+                  <span style={{ fontSize: 11, color: "#cbd5e1", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.label}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#e2e8f0", flexShrink: 0 }}>{b.pct}%</span>
                 </div>
               ))}
             </div>
             {data.page_type_distribution?.summary && (
-              <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.65, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 12, margin: 0 }}>
+              <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.55, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 10, margin: 0, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                 {data.page_type_distribution.summary}
               </p>
             )}
