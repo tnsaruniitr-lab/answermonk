@@ -531,6 +531,7 @@ function LandingInner() {
   useEffect(() => {
     if (!isRunning) { setRunStep(0); return; }
     setRunStep(0);
+    window.scrollTo({ top: 0, behavior: "smooth" });
     const iv = setInterval(() => {
       setRunStep((prev) => Math.min(prev + 1, RUN_STEPS.length - 1));
     }, 1400);
