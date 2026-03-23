@@ -715,7 +715,7 @@ function LandingInner() {
         >
         <div className="space-y-5 max-w-3xl flex flex-col items-center w-full">
 
-            {!replayMode && activeSessionId === null && (
+            {!replayMode && activeSessionId === null && !isComplete && (
               <>
                 {/* Eyebrow */}
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-violet-200 text-violet-700 text-sm font-medium shadow-sm">
@@ -795,7 +795,7 @@ function LandingInner() {
         </div>
 
         {/* ── Mode tab switcher ── */}
-        {!replayMode && (
+        {!replayMode && !isComplete && activeSessionId === null && (
           <div className="w-full max-w-7xl mx-auto px-6 flex justify-center mt-6 mb-2">
             <div
               style={{
