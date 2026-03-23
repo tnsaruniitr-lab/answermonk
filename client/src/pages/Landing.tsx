@@ -1273,13 +1273,14 @@ function LandingInner() {
                     ? "linear-gradient(110deg, #1e1b4b 0%, #3730a3 50%, #4f46e5 100%)"
                     : "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
                   borderRadius: 14,
-                  padding: "9px 14px",
+                  padding: "10px 14px",
                   boxShadow: needsAction
                     ? "0 4px 24px rgba(55,48,163,0.5)"
                     : "0 4px 20px rgba(79,70,229,0.3)",
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
+                  minHeight: 42,
                   marginBottom: 8,
                   overflow: "hidden",
                 }}>
