@@ -173,7 +173,7 @@ export function HireAgentsPanel() {
   }
 
   return (
-    <div style={{ maxWidth: 720, margin: "0 auto", padding: "8px 0 32px" }} data-testid="hire-agents-panel">
+    <div style={{ maxWidth: 720, margin: "0 auto", padding: "8px 0 32px", textAlign: "left" }} data-testid="hire-agents-panel">
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         {agents.map((agent) => {
           const isHovered = hovered === agent.id;
