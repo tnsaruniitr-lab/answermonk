@@ -160,29 +160,24 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
 
       <div style={{ padding: "12px 13px", flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
 
-        {/* Category + time */}
-        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 6 }}>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: accent, flexShrink: 0 }} />
-          <span style={{
-            fontSize: 9.5, fontWeight: 700, letterSpacing: "0.07em",
-            color: accent, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }}>
-            {tile.category.charAt(0).toUpperCase() + tile.category.slice(1).toLowerCase()}
-          </span>
-          <span style={{ color: "#9ca3af", fontSize: 9.5, marginLeft: "auto", flexShrink: 0 }}>
+        {/* Dot + full query headline + time — single row, no repetition */}
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 6, marginBottom: 10 }}>
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: accent, flexShrink: 0, marginTop: 3 }} />
+          <p style={{
+            margin: 0, flex: 1, minWidth: 0,
+            fontSize: 13, fontWeight: 700, lineHeight: 1.35,
+            display: "-webkit-box", WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical", overflow: "hidden",
+            background: `linear-gradient(90deg, ${accent}, #111827 55%)`,
+            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          } as React.CSSProperties}>
+            {tile.query.replace(/^best\s+/i, "")}
+          </p>
+          <span style={{ color: "#9ca3af", fontSize: 9.5, flexShrink: 0, marginTop: 2 }}>
             {timeAgo(tile.createdAt)}
           </span>
         </div>
-
-        {/* Query headline */}
-        <p style={{
-          color: "#111827", fontSize: 13, fontWeight: 700,
-          margin: "0 0 10px", lineHeight: 1.35,
-          display: "-webkit-box", WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical", overflow: "hidden",
-        } as React.CSSProperties}>
-          {tile.query.replace(/^best\s+/i, "")}
-        </p>
 
         {/* Rankings */}
         <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 10, flex: 1 }}>
