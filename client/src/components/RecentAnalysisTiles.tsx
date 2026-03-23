@@ -69,12 +69,6 @@ function timeAgo(dateStr: string): string {
   return days === 1 ? "1d ago" : `${days}d ago`;
 }
 
-const ENGINES = [
-  { key: "chatgpt" as const, short: "CHA", color: "#10b981" },
-  { key: "gemini"  as const, short: "GEM", color: "#3b82f6" },
-  { key: "claude"  as const, short: "CLA", color: "#f59e0b" },
-];
-
 // ── Skeleton tile ─────────────────────────────────────────────────────────────
 
 function SkeletonTile() {
@@ -195,11 +189,6 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
                   borderRadius: 9, padding: "7px 9px",
                   boxShadow: `inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 6px ${accent}12`,
                 }}>
-                  <div style={{ marginBottom: 5 }}>
-                    <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: "0.08em", color: accent, textTransform: "uppercase" as const }}>
-                      ★ AI Leader
-                    </span>
-                  </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: row.share > 0 ? 5 : 0 }}>
                     <span style={{
                       fontSize: 10, fontWeight: 800, color: "#fff",
@@ -264,26 +253,6 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
               </div>
             )
           ))}
-        </div>
-
-        {/* Engine badges */}
-        <div style={{ display: "flex", gap: 5, marginBottom: 10 }}>
-          {ENGINES.map(e => {
-            const on = tile.engines[e.key];
-            return (
-              <div key={e.key} style={{
-                flex: 1, height: 24, borderRadius: 6,
-                background: on ? `${e.color}12` : "#f3f4f6",
-                border: `1.5px solid ${on ? e.color + "50" : "#e5e7eb"}`,
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
-              }}>
-                <div style={{ width: 5, height: 5, borderRadius: "50%", background: on ? e.color : "#d1d5db" }} />
-                <span style={{ color: on ? e.color : "#9ca3af", fontSize: 9, fontWeight: 700, letterSpacing: "0.04em" }}>
-                  {e.short}
-                </span>
-              </div>
-            );
-          })}
         </div>
 
         {/* CTA */}
