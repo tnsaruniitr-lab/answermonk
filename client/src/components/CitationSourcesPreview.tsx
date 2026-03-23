@@ -205,9 +205,9 @@ export function CitationSourcesPreview({ sessionId }: Props) {
                   }}>›</div>
 
                   <div style={{ fontSize: 16, fontWeight: 900, color: PODIUM_COLOR[i], lineHeight: 1 }}>#{i + 1}</div>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", marginTop: 5, lineHeight: 1.3, wordBreak: "break-all" }}>{s.domain}</div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: PODIUM_COLOR[i], marginTop: 6 }}>{s.appearances}</div>
-                  <div style={{ fontSize: 9, color: "#475569", marginTop: 1 }}>citations</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#ffffff", marginTop: 6, lineHeight: 1.3, wordBreak: "break-word", textAlign: "center" }}>{s.domain}</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: PODIUM_COLOR[i], marginTop: 8 }}>{s.appearances}</div>
+                  <div style={{ fontSize: 9, color: "#64748b", marginTop: 1 }}>citations</div>
                   <div style={{ display: "flex", justifyContent: "center", marginTop: 8 }}>
                     <EngineBadges gpt={s.inChatgpt} gem={s.inGemini} claude={s.inClaude} />
                   </div>
@@ -281,8 +281,8 @@ export function CitationSourcesPreview({ sessionId }: Props) {
                       transition: "background 0.12s",
                     }}
                   >
-                    <span style={{ fontSize: 10, fontWeight: 600, color: isExpanded ? "#6366f1" : "#3d4f6e", width: 18, textAlign: "right", flexShrink: 0 }}>{i + 4}</span>
-                    <span style={{ fontSize: 12, fontWeight: 500, color: isExpanded ? "#e2e8f0" : "#94a3b8", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: isExpanded ? "#6366f1" : "#64748b", width: 18, textAlign: "right", flexShrink: 0 }}>{i + 4}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: isExpanded ? "#ffffff" : "#e2e8f0", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {s.domain}
                     </span>
                     <div style={{ width: 90, height: 5, background: "rgba(99,102,241,0.12)", borderRadius: 3, overflow: "hidden", flexShrink: 0, display: "flex" }}>
