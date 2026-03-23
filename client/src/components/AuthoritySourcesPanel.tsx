@@ -1091,7 +1091,7 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
   const accent = RANK_ACCENT[rank] ?? DEFAULT_RANK_ACCENT;
 
   return (
-    <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid rgba(255,255,255,0.08)`, background: "#0d1526", borderLeft: `3px solid ${accent.border}` }}>
+    <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid rgba(255,255,255,0.14)`, background: "#131f35", borderLeft: `3px solid ${accent.border}` }}>
       {/* Header — always visible, clickable to collapse */}
       <button
         onClick={() => setOpen((o) => !o)}
@@ -1120,9 +1120,9 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
           {examples.map((ex, i) => {
             const domain = ex.url.replace(/^https?:\/\//, "").split("/")[0];
             return (
-              <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, background: "rgba(255,255,255,0.04)", color: "#475569", border: "1px solid rgba(255,255,255,0.08)" }}>
-                <strong style={{ color: "#94a3b8" }}>{domain}</strong>
-                <span style={{ color: "#334155", margin: "0 3px" }}>·</span>
+              <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, background: "rgba(255,255,255,0.08)", color: "#94a3b8", border: "1px solid rgba(255,255,255,0.16)" }}>
+                <strong style={{ color: "#e2e8f0" }}>{domain}</strong>
+                <span style={{ color: "#64748b", margin: "0 3px" }}>·</span>
                 <span style={{ color: accent.badgeText, fontWeight: 700 }}>{ex.count}</span>
               </span>
             );
