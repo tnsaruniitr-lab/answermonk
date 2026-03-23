@@ -1142,6 +1142,8 @@ function LandingInner() {
                   alignItems: "center",
                   gap: 10,
                   boxShadow: "0 4px 20px rgba(79,70,229,0.3)",
+                  minHeight: 42,
+                  overflow: "hidden",
                 }}
                 onClick={() => {
                   const wasExpanded = rankingsExpanded;
@@ -1156,7 +1158,7 @@ function LandingInner() {
                   }
                 }}
               >
-                <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
+                <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", minWidth: 0, overflow: "hidden" }}>
                   <span style={{ fontSize: 12, color: "#ffffff", fontWeight: 700, letterSpacing: "-0.01em", flexShrink: 0 }}>Who ranks when your customers search</span>
                   <span style={{ width: 1, height: 10, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
                   {scoredSegs.map((s: any) => {
@@ -1413,10 +1415,12 @@ function LandingInner() {
                     gap: 10,
                     boxShadow: "0 4px 20px rgba(79,70,229,0.3)",
                     marginTop: 8,
+                    minHeight: 42,
+                    overflow: "hidden",
                   }}
                   onClick={() => setCitationsExpanded(v => !v)}
                 >
-                  <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
+                  <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", minWidth: 0, overflow: "hidden" }}>
                     <span style={{ fontSize: 12, color: "#ffffff", fontWeight: 700, letterSpacing: "-0.01em", flexShrink: 0 }}>See authority sources in your category</span>
                     <span style={{ width: 1, height: 10, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
                     <span style={{ fontSize: 10.5, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 20, padding: "2px 8px", color: "#c7d2fe", fontWeight: 500, flexShrink: 0 }}>LLMs cites</span>
