@@ -349,7 +349,7 @@ function LandingInner() {
   const [activeTab, setActiveTab] = useState<"reports" | "directory" | "agents">("reports");
   const { toast } = useToast();
   const [selectedSegmentIds, setSelectedSegmentIds] = useState<Set<string>>(new Set());
-  const [collapsedSegIds, setCollapsedSegIds] = useState<Set<string>>(new Set());
+  const [rankingsExpanded, setRankingsExpanded] = useState<boolean>(false);
   const [customerLimitError, setCustomerLimitError] = useState(false);
   const [serviceLimitError, setServiceLimitError] = useState(false);
   const [queuedData, setQueuedData] = useState<{ website: string; submissionId: number } | null>(null);
@@ -568,13 +568,13 @@ function LandingInner() {
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 150);
       setTimeout(() => {
-        setCollapsedSegIds(new Set(scoredSegs.map((s: any) => String(s.id))));
+        setRankingsExpanded(false);
       }, 600);
     }
   }, [allSegmentsDone]);
 
   useEffect(() => {
-    setCollapsedSegIds(new Set());
+    setRankingsExpanded(false);
   }, [activeSessionId]);
 
   function handleTileSelect(sessionId: number) {
@@ -1121,48 +1121,50 @@ function LandingInner() {
 
             {/* Scored segment cards — appear one by one as they complete, with skeletons for pending */}
 
-            {/* When all segments are done AND all are collapsed → show single consolidated CTA card */}
-            {allSegmentsDone && scoredSegs.length > 0 && collapsedSegIds.size >= scoredSegs.length && (
+            {/* Sticky slim rankings bar — always visible once all segments done */}
+            {allSegmentsDone && scoredSegs.length > 0 && (
               <div
                 style={{
-                  borderRadius: 18,
-                  overflow: "hidden",
+                  position: "sticky",
+                  top: 60,
+                  zIndex: 50,
+                  borderRadius: rankingsExpanded ? "14px 14px 0 0" : 14,
                   background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
-                  padding: "28px 28px 24px",
+                  padding: "10px 14px",
                   cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  boxShadow: "0 4px 20px rgba(79,70,229,0.3)",
                 }}
-                onClick={() => setCollapsedSegIds(new Set())}
+                onClick={() => setRankingsExpanded(v => !v)}
               >
-                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.55)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 10, fontWeight: 600 }}>
-                  ◈ AI Ranking Results
-                </div>
-                <h3 style={{ fontSize: 21, fontWeight: 800, color: "#fff", lineHeight: 1.25, marginBottom: 8 }}>
-                  Who does AI recommend when customers search your market?
-                </h3>
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginBottom: 20, lineHeight: 1.5 }}>
-                  {scoredSegs.length} {scoredSegs.length === 1 ? "segment" : "segments"} scored across ChatGPT, Gemini &amp; Claude
-                </p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 24 }}>
+                <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
+                  <span style={{ fontSize: 9.5, color: "rgba(255,255,255,0.5)", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", flexShrink: 0 }}>◈ Rankings</span>
+                  <span style={{ width: 1, height: 10, background: "rgba(255,255,255,0.2)", flexShrink: 0 }} />
                   {scoredSegs.map((s: any) => {
-                    const lbl = s.persona || s.serviceType || s.customerType || s.label || "Segment";
+                    const lbl = s.persona || s.serviceType || s.customerType || s.label || "Seg";
                     const app = Math.round((s.scoringResult?.score?.appearance_rate ?? 0) * 100);
                     return (
-                      <span key={s.id} style={{ fontSize: 11.5, background: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 20, padding: "4px 12px", color: "#e0e7ff", fontWeight: 500 }}>
-                        {lbl} · <span style={{ color: app >= 50 ? "#6ee7b7" : app >= 25 ? "#fde68a" : "#fca5a5" }}>{app}%</span>
+                      <span key={s.id} style={{ fontSize: 10.5, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 20, padding: "2px 8px", color: "#c7d2fe", fontWeight: 500, flexShrink: 0 }}>
+                        {lbl} <span style={{ color: app >= 50 ? "#6ee7b7" : app >= 25 ? "#fde68a" : "#fca5a5" }}>{app}%</span>
                       </span>
                     );
                   })}
                 </div>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", borderRadius: 10, padding: "10px 20px", fontSize: 13, fontWeight: 700, color: "#3730a3" }}>
-                  View all rankings
-                  <span style={{ fontSize: 15 }}>→</span>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "4px 11px", fontSize: 11.5, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+                  {rankingsExpanded ? (
+                    <><ChevronDown style={{ width: 12, height: 12, transform: "rotate(180deg)", display: "inline" }} /> Collapse</>
+                  ) : (
+                    <>View all rankings →</>
+                  )}
                 </div>
               </div>
             )}
 
-            {/* Individual segment cards (expanded or mixed state) */}
-            {allSegmentsDone && scoredSegs.length > 0 && collapsedSegIds.size < scoredSegs.length && (
-              <p className="text-[10px] font-mono tracking-wider uppercase text-slate-500 px-1">
+            {/* Individual segment cards — shown during scoring or when expanded */}
+            {allSegmentsDone && rankingsExpanded && scoredSegs.length > 0 && (
+              <p className="text-[10px] font-mono tracking-wider uppercase text-slate-500 px-1" style={{ marginTop: 2 }}>
                 Unselect a segment if you think it's irrelevant to your brand
               </p>
             )}
@@ -1177,72 +1179,12 @@ function LandingInner() {
                 animation: am-shimmer 1.8s infinite linear;
               }
             `}</style>
-            {collapsedSegIds.size < scoredSegs.length && scoringSegs.map((seg, i) => {
+            {(isScoring || rankingsExpanded) && scoringSegs.map((seg, i) => {
               const isDone = seg.scoringResult !== null;
               const doneIndex = scoredSegs.findIndex((s) => s.id === seg.id);
               if (isDone) {
-                const segIdStr = String(seg.id);
-                const isCollapsed = collapsedSegIds.has(segIdStr);
-                const isSelected = allSegmentsDone ? selectedSegmentIds.has(seg.id) : true;
-                const sr = seg.scoringResult;
-                const score = sr?.score || {};
-                const appearance = Math.round((score.appearance_rate ?? 0) * 100);
-                const avgRank = score.avg_rank != null ? `#${score.avg_rank.toFixed(1)}` : "—";
-                const segLabel = seg.persona || seg.serviceType || seg.customerType || seg.label || "Segment";
-
-                if (isCollapsed) {
-                  return (
-                    <div
-                      key={seg.id}
-                      ref={doneIndex === scoredSegs.length - 1 ? lastSegCardRef : undefined}
-                      onClick={() => setCollapsedSegIds((prev) => { const n = new Set(prev); n.delete(segIdStr); return n; })}
-                      style={{
-                        background: "#0d1526",
-                        border: `1px solid ${isSelected ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.07)"}`,
-                        borderRadius: 12,
-                        padding: "10px 16px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        cursor: "pointer",
-                        transition: "border-color 0.2s",
-                      }}
-                    >
-                      <div style={{ width: 7, height: 7, borderRadius: "50%", background: isSelected ? "#22c55e" : "#374151", flexShrink: 0 }} />
-                      <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "#e2e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {segLabel}
-                      </div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: appearance >= 50 ? "#34d399" : appearance >= 25 ? "#fbbf24" : "#f87171", flexShrink: 0 }}>
-                        {appearance}%
-                      </div>
-                      <div style={{ fontSize: 11, color: "#6366f1", flexShrink: 0, marginLeft: 4 }}>{avgRank}</div>
-                      <ChevronDown style={{ width: 14, height: 14, color: "#475569", flexShrink: 0, marginLeft: 4 }} />
-                    </div>
-                  );
-                }
-
                 return (
                   <div key={seg.id} ref={doneIndex === scoredSegs.length - 1 ? lastSegCardRef : undefined}>
-                    {allSegmentsDone && (
-                      <button
-                        onClick={() => setCollapsedSegIds((prev) => new Set([...prev, segIdStr]))}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 5,
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          color: "#475569",
-                          fontSize: 11,
-                          padding: "0 4px 6px",
-                          marginLeft: "auto",
-                        }}
-                      >
-                        <ChevronDown style={{ width: 12, height: 12, transform: "rotate(180deg)" }} />
-                        Collapse
-                      </button>
-                    )}
                     <SegmentResultCard
                       seg={seg}
                       brandName={scoringSession?.brandName || ""}
