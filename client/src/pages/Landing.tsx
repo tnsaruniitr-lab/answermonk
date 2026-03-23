@@ -347,9 +347,25 @@ const FLIPPER_ENGINES = [
   { name: "Perplexity", color: "#6366f1" },
 ];
 
+const AM_FLIPPER_CSS = `
+  @keyframes amFlipIn  { from { transform: rotateX(90deg); opacity: 0 } to { transform: rotateX(0deg); opacity: 1 } }
+  @keyframes amFlipOut { from { transform: rotateX(0deg); opacity: 1 } to { transform: rotateX(-90deg); opacity: 0 } }
+  .am-flip-in  { animation: amFlipIn  0.2s ease-out forwards; }
+  .am-flip-out { animation: amFlipOut 0.18s ease-in  forwards; }
+`;
+
 function HeroFlipperText() {
   const [idx, setIdx] = useState(0);
   const [flipping, setFlipping] = useState(false);
+
+  useEffect(() => {
+    if (!document.getElementById("am-flipper-styles")) {
+      const el = document.createElement("style");
+      el.id = "am-flipper-styles";
+      el.textContent = AM_FLIPPER_CSS;
+      document.head.appendChild(el);
+    }
+  }, []);
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -366,12 +382,6 @@ function HeroFlipperText() {
 
   return (
     <>
-      <style>{`
-        @keyframes amFlipIn  { from { transform: rotateX(90deg); opacity: 0 } to { transform: rotateX(0deg); opacity: 1 } }
-        @keyframes amFlipOut { from { transform: rotateX(0deg); opacity: 1 } to { transform: rotateX(-90deg); opacity: 0 } }
-        .am-flip-in  { animation: amFlipIn  0.2s ease-out forwards; }
-        .am-flip-out { animation: amFlipOut 0.18s ease-in  forwards; }
-      `}</style>
       Measure and improve how you rank on{" "}
       <span style={{ display: "inline-block", perspective: 400, verticalAlign: "middle" }}>
         <span
