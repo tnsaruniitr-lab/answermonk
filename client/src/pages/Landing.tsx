@@ -72,7 +72,7 @@ function isVertexAiUrl(url: string): boolean {
   catch { return false; }
 }
 
-function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; brandName: string; selected?: boolean; onToggle?: () => void }) {
+function SegmentResultCard({ seg, brandName, detectedService, selected, onToggle }: { seg: any; brandName: string; detectedService?: string; selected?: boolean; onToggle?: () => void }) {
   const sr = seg.scoringResult;
   const score = sr?.score || {};
   const appearance = Math.round((score.appearance_rate ?? 0) * 100);
@@ -82,8 +82,7 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
   const rawRuns = sr?.raw_runs || [];
   const citationCount = rawRuns.reduce((s: number, r: any) => s + (r.citations?.length || 0), 0);
   const label = seg.persona || seg.serviceType || seg.customerType || seg.label || "Segment";
-  const type = seg.seedType || seg.type || "service";
-  const isCustomer = type === "customer";
+  const isCustomer = !!seg.customerType || seg.customerTypeEnabled === true;
 
   const firstPromptText = rawRuns[0]?.prompt_text || (seg.prompts?.[0]?.text ?? "");
   const promptContext = firstPromptText ? stripPromptPrefix(firstPromptText) : "";
@@ -151,13 +150,27 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
-            Who shows up when customers search for{" "}
-            <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>
-              {seg.serviceType || seg.persona || seg.customerType || label}
-            </span>
-            {seg.location ? <> in <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>{seg.location}</span></> : ""}{" "}
-            — you appear in{" "}
-            <span style={{ color: "#ffffff", fontWeight: 700 }}>{appearance}% of searches</span>
+            {isCustomer ? (
+              <>
+                Who shows up when{" "}
+                <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>{seg.customerType}</span>
+                {" "}search for{" "}
+                {detectedService && <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>{detectedService}</span>}
+                {seg.location ? <> in <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>{seg.location}</span></> : ""}{" "}
+                — you appear in{" "}
+                <span style={{ color: "#ffffff", fontWeight: 700 }}>{appearance}% of searches</span>
+              </>
+            ) : (
+              <>
+                Who shows up when customers search for{" "}
+                <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>
+                  {seg.serviceType || seg.persona || label}
+                </span>
+                {seg.location ? <> in <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>{seg.location}</span></> : ""}{" "}
+                — you appear in{" "}
+                <span style={{ color: "#ffffff", fontWeight: 700 }}>{appearance}% of searches</span>
+              </>
+            )}
           </div>
         </div>
         {/* Selection indicator */}
@@ -511,6 +524,8 @@ function LandingInner() {
   const scoringSegs: any[] = scoringSession ? (Array.isArray(scoringSession.segments) ? scoringSession.segments : []) : [];
   const scoredSegs = scoringSegs.filter((s) => s.scoringResult !== null);
   const allSegmentsDone = scoringSegs.length > 0 && scoringSegs.every((s) => s.scoringResult !== null);
+  // The detected service name — used in customer-segment headline ("when [CustomerType] search for [detectedService]")
+  const detectedService: string = scoringSegs.find((s: any) => s.serviceType && !s.customerType)?.serviceType || "";
   const isScoring = activeSessionId !== null && !allSegmentsDone;
   const emailBarVisible = (isScoring || allSegmentsDone) && !waitlistSubmitted;
 
@@ -1245,6 +1260,7 @@ function LandingInner() {
                     <SegmentResultCard
                       seg={seg}
                       brandName={scoringSession?.brandName || ""}
+                      detectedService={detectedService}
                     />
                   </div>
                 );
