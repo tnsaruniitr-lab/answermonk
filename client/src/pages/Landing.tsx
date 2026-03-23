@@ -1142,6 +1142,7 @@ function LandingInner() {
                     onChange={e => setWaitlistEmail(e.target.value)}
                     onKeyDown={e => e.key === "Enter" && handleWaitlistSubmit()}
                     placeholder="your@email.com"
+                    data-sticky-email
                     style={{
                       background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.18)",
                       borderRadius: 8, padding: "5px 10px", fontSize: 12, color: "#fff",

@@ -21,188 +21,239 @@ interface Props {
   totalSegs: number;
 }
 
-const ENGINE_META: Record<string, { label: string; color: string; key: string }> = {
-  chatgpt:  { label: "ChatGPT", color: "#10b981", key: "chatgpt"  },
-  gemini:   { label: "Gemini",  color: "#60a5fa", key: "gemini"   },
-  claude:   { label: "Claude",  color: "#fbbf24", key: "claude"   },
-};
+const ENGINE_META = [
+  { key: "chatgpt", label: "ChatGPT", color: "#10b981" },
+  { key: "gemini",  label: "Gemini",  color: "#60a5fa" },
+  { key: "claude",  label: "Claude",  color: "#fbbf24" },
+];
 
 function avg(vals: number[]) {
   if (!vals.length) return 0;
   return vals.reduce((a, b) => a + b, 0) / vals.length;
 }
 
-function alarmLevel(pct: number): { label: string; color: string; bg: string } | null {
-  if (pct >= 60) return null;
-  if (pct >= 30) return { label: "Below Average", color: "#fbbf24", bg: "rgba(251,191,36,0.12)" };
-  if (pct >= 10) return { label: "Very Low", color: "#f87171", bg: "rgba(248,113,113,0.12)" };
-  return { label: "Critical", color: "#ef4444", bg: "rgba(239,68,68,0.15)" };
+type AlarmLevel = {
+  label: string;
+  color: string;
+  textColor: string;
+  panelBg: string;
+  borderColor: string;
+  percentColor: string;
+  descColor: string;
+  ctaBg: string;
+};
+
+function getAlarmLevel(pct: number): AlarmLevel {
+  if (pct < 10) return {
+    label: "⚠ Critical",
+    color: "#ef4444",
+    textColor: "#fca5a5",
+    panelBg: "linear-gradient(110deg,#450a0a,#7f1d1d)",
+    borderColor: "rgba(239,68,68,0.3)",
+    percentColor: "#fca5a5",
+    descColor: "rgba(252,165,165,0.6)",
+    ctaBg: "linear-gradient(110deg,#dc2626,#b91c1c)",
+  };
+  if (pct < 30) return {
+    label: "⚠ Very Low",
+    color: "#f59e0b",
+    textColor: "#fcd34d",
+    panelBg: "linear-gradient(110deg,#451a03,#78350f)",
+    borderColor: "rgba(245,158,11,0.3)",
+    percentColor: "#fcd34d",
+    descColor: "rgba(252,211,77,0.6)",
+    ctaBg: "linear-gradient(110deg,#d97706,#b45309)",
+  };
+  if (pct < 60) return {
+    label: "Below Average",
+    color: "#818cf8",
+    textColor: "#c7d2fe",
+    panelBg: "linear-gradient(110deg,#1e1b4b,#312e81)",
+    borderColor: "rgba(99,102,241,0.3)",
+    percentColor: "#c7d2fe",
+    descColor: "rgba(199,210,254,0.6)",
+    ctaBg: "linear-gradient(110deg,#4f46e5,#6d28d9)",
+  };
+  return {
+    label: "Good",
+    color: "#10b981",
+    textColor: "#6ee7b7",
+    panelBg: "linear-gradient(110deg,#052e16,#064e3b)",
+    borderColor: "rgba(16,185,129,0.3)",
+    percentColor: "#6ee7b7",
+    descColor: "rgba(110,231,183,0.6)",
+    ctaBg: "linear-gradient(110deg,#059669,#047857)",
+  };
 }
 
-export function SessionSummaryHero({ brandName, scoredSegs, totalSegs }: Props) {
+function focusStickyEmail() {
+  const el = document.querySelector<HTMLInputElement>("[data-sticky-email]");
+  el?.focus();
+  el?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+export function SessionSummaryHero({ brandName, brandDomain, scoredSegs, totalSegs }: Props) {
   const stats = useMemo(() => {
     const appearance  = Math.round(avg(scoredSegs.map(s => (s.scoringResult?.score?.appearance_rate ?? 0) * 100)));
     const top3        = Math.round(avg(scoredSegs.map(s => (s.scoringResult?.score?.primary_rate    ?? 0) * 100)));
     const rawAvgRank  = avg(scoredSegs.filter(s => s.scoringResult?.score?.avg_rank != null).map(s => s.scoringResult!.score!.avg_rank!));
     const avgRank     = rawAvgRank > 0 ? `#${rawAvgRank % 1 === 0 ? rawAvgRank : rawAvgRank.toFixed(1)}` : "—";
     const totalResponses = scoredSegs.reduce((sum, s) => sum + (s.scoringResult?.raw_runs?.length ?? 0), 0);
-    const location    = scoredSegs[0]?.location || "";
 
-    const engineKeys = ["chatgpt", "gemini", "claude"];
-    const engines = engineKeys.map(key => {
+    const engines = ENGINE_META.map(e => {
       const vals = scoredSegs
-        .map(s => s.scoringResult?.score?.engine_breakdown?.[key]?.appearance_rate)
+        .map(s => s.scoringResult?.score?.engine_breakdown?.[e.key]?.appearance_rate)
         .filter((v): v is number => v != null);
-      const top3Vals = scoredSegs
-        .map(s => s.scoringResult?.score?.engine_breakdown?.[key]?.primary_rate)
-        .filter((v): v is number => v != null);
-      const respVals = scoredSegs
-        .map(s => s.scoringResult?.score?.engine_breakdown?.[key]?.responses)
-        .filter((v): v is number => v != null);
-      return {
-        ...ENGINE_META[key],
-        pct:      Math.round(avg(vals) * 100),
-        top3:     Math.round(avg(top3Vals) * 100),
-        responses: respVals.length ? Math.round(avg(respVals)) * scoredSegs.length : null,
-      };
-    }).filter(e => e.pct > 0 || scoredSegs.length > 0);
+      return { ...e, pct: Math.round(avg(vals) * 100) };
+    });
 
     const compMap: Record<string, number[]> = {};
     scoredSegs.forEach(s => {
       (s.scoringResult?.score?.competitors || []).forEach((c: { name: string; share: number }) => {
-        const key = c.name.toLowerCase();
-        compMap[key] = [...(compMap[key] || []), c.share];
+        const k = c.name.toLowerCase();
+        compMap[k] = [...(compMap[k] || []), c.share];
       });
     });
     const brandKey = brandName.toLowerCase();
-    const brandShare = avg(scoredSegs.map(s => s.scoringResult?.score?.appearance_rate ?? 0));
-    compMap[brandKey] = [brandShare];
-
-    const sorted = Object.entries(compMap)
-      .map(([name, shares]) => ({ name, share: avg(shares) }))
-      .sort((a, b) => b.share - a.share);
-    const brandRank = sorted.findIndex(c => c.name === brandKey) + 1;
+    compMap[brandKey] = [avg(scoredSegs.map(s => s.scoringResult?.score?.appearance_rate ?? 0))];
+    const sorted = Object.entries(compMap).map(([name, shares]) => ({ name, share: avg(shares) })).sort((a, b) => b.share - a.share);
+    const brandRank   = sorted.findIndex(c => c.name === brandKey) + 1;
     const totalBrands = sorted.length;
 
-    return { appearance, top3, avgRank, totalResponses, location, engines, brandRank, totalBrands };
+    return { appearance, top3, avgRank, totalResponses, engines, brandRank, totalBrands };
   }, [scoredSegs, brandName]);
 
   const initial = brandName.trim().charAt(0).toUpperCase() || "?";
-  const alarm   = alarmLevel(stats.appearance);
+  const alarm   = getAlarmLevel(stats.appearance);
+
+  const maxEnginePct = Math.max(...stats.engines.map(e => e.pct), 20);
 
   return (
     <div
-      className="rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-500"
+      className="animate-in fade-in slide-in-from-bottom-2 duration-500"
       style={{
-        background: "linear-gradient(135deg, #0f1a35 0%, #111827 60%, #0f172a 100%)",
-        border: "1px solid rgba(99,102,241,0.25)",
-        boxShadow: "0 0 0 1px rgba(255,255,255,0.04), 0 20px 60px rgba(0,0,0,0.5)",
+        borderRadius: 20,
+        overflow: "hidden",
+        border: `1px solid ${alarm.borderColor}`,
+        boxShadow: "0 0 0 1px rgba(255,255,255,0.03), 0 24px 60px rgba(0,0,0,0.6)",
+        fontFamily: "system-ui, -apple-system, sans-serif",
       }}
     >
-      {/* ── Brand + Appearance Rate banner ── */}
-      <div
-        style={{
-          background: "linear-gradient(100deg, #3730a3 0%, #4f46e5 45%, #6d28d9 100%)",
-          borderBottom: "1px solid rgba(255,255,255,0.10)",
-          padding: "16px 22px",
-        }}
-      >
-        {/* Brand row */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-          <div
-            style={{
-              width: 34, height: 34, borderRadius: 10, flexShrink: 0,
-              background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.25)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 15, fontWeight: 800, color: "#fff",
-            }}
-          >
-            {initial}
-          </div>
-          <span style={{ fontSize: 17, fontWeight: 800, color: "#ffffff", letterSpacing: "-0.02em", lineHeight: 1 }}>
+      {/* ── Brand header ── */}
+      <div style={{ background: "#0f172a", padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+          background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 16, fontWeight: 900, color: "#fff",
+        }}>
+          {initial}
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 17, fontWeight: 800, color: "#f1f5f9", letterSpacing: "-0.025em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {brandName}
-          </span>
-          {stats.brandRank > 0 && (
-            <span style={{
-              marginLeft: "auto", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)",
-              background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
-              borderRadius: 20, padding: "3px 10px", flexShrink: 0,
-            }}>
-              #{stats.brandRank} of {stats.totalBrands} brands
-            </span>
+          </div>
+          {brandDomain && (
+            <div style={{ fontSize: 11, color: "#64748b", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {brandDomain} · GEO Intelligence Scan
+            </div>
           )}
         </div>
-
-        {/* Appearance rate row */}
-        <div>
-          <p style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>
-            Appearance Rate
-          </p>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 42, fontWeight: 900, color: "#ffffff", letterSpacing: "-0.03em", lineHeight: 1 }}>
-              {stats.appearance}%
-            </span>
-            {alarm && (
-              <span style={{
-                fontSize: 11, fontWeight: 700, color: alarm.color,
-                background: alarm.bg, border: `1px solid ${alarm.color}44`,
-                borderRadius: 20, padding: "4px 10px", flexShrink: 0,
-              }}>
-                ⚠ {alarm.label}
-              </span>
-            )}
+        {stats.brandRank > 0 && (
+          <div style={{ marginLeft: "auto", fontSize: 10, color: "#64748b", background: "#1e293b", border: "1px solid #334155", borderRadius: 6, padding: "3px 8px", fontWeight: 600, flexShrink: 0, whiteSpace: "nowrap" }}>
+            #{stats.brandRank} of {stats.totalBrands} brands
           </div>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", marginTop: 4 }}>
-            You appear in {stats.appearance}% of AI searches when customers look for your services
-          </p>
-        </div>
+        )}
       </div>
 
-      {/* ── Stats + engine breakdown ── */}
-      <div style={{ padding: "16px 22px" }}>
-        {/* Stats row */}
-        <div style={{ display: "flex", gap: 24, marginBottom: 16 }}>
-          {[
-            { label: "Top 3 Rate", value: `${stats.top3}%` },
-            { label: "Avg Rank",   value: stats.avgRank    },
-            { label: "Segments",   value: `${scoredSegs.length}/${totalSegs}` },
-            { label: "Responses",  value: stats.totalResponses },
-          ].map(s => (
-            <div key={s.label} style={{ textAlign: "left" }}>
-              <p style={{ fontSize: 16, fontWeight: 800, color: "#f1f5f9", marginBottom: 2 }}>{s.value}</p>
-              <p style={{ fontSize: 11, color: "#94a3b8" }}>{s.label}</p>
-            </div>
-          ))}
+      {/* ── Alarm panel ── */}
+      <div style={{ background: alarm.panelBg, padding: "18px 20px", borderBottom: `1px solid ${alarm.borderColor}` }}>
+        <p style={{ fontSize: 11, fontWeight: 700, color: `${alarm.textColor}99`, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
+          Appearance Rate
+        </p>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 10 }}>
+          <span style={{ fontSize: 52, fontWeight: 900, color: alarm.percentColor, letterSpacing: "-0.04em", lineHeight: 1 }}>
+            {stats.appearance}%
+          </span>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            background: `${alarm.color}26`, border: `1px solid ${alarm.color}80`,
+            color: alarm.color, borderRadius: 20, padding: "4px 11px",
+            fontSize: 11, fontWeight: 700, letterSpacing: "0.04em",
+          }}>
+            {alarm.label}
+          </span>
         </div>
+        <p style={{ fontSize: 12, color: alarm.descColor, lineHeight: 1.5 }}>
+          You appear in <strong style={{ color: alarm.textColor }}>{stats.appearance}% of AI searches</strong> when customers look for your services.
+          {stats.appearance < 50 ? " Your competitors are capturing the rest." : " Keep building on this position."}
+        </p>
+      </div>
 
-        {/* Engine bars */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {/* ── Stats row ── */}
+      <div style={{
+        background: "#0f172a", padding: "14px 20px",
+        display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8,
+        borderBottom: "1px solid rgba(255,255,255,0.05)",
+      }}>
+        {[
+          { label: "Top 3 Rate", value: `${stats.top3}%` },
+          { label: "Avg Rank",   value: stats.avgRank },
+          { label: "Segments",   value: `${scoredSegs.length}/${totalSegs}` },
+          { label: "Responses",  value: String(stats.totalResponses || "—") },
+        ].map(s => (
+          <div key={s.label}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#e2e8f0", fontFamily: "monospace" }}>{s.value}</div>
+            <div style={{ fontSize: 10.5, color: "#64748b", marginTop: 2 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Engine breakdown ── */}
+      <div style={{ background: "#0f172a", padding: "14px 20px 18px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 10 }}>
+          By Engine
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {stats.engines.map(e => (
             <div key={e.key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: "#cbd5e1", width: 56, flexShrink: 0 }}>{e.label}</span>
-              <div style={{ flex: 1, height: 6, borderRadius: 99, overflow: "hidden", background: "#1e293b" }}>
-                <div
-                  style={{
-                    height: "100%", borderRadius: 99,
-                    width: `${e.pct}%`,
-                    background: `linear-gradient(90deg, ${e.color}, ${e.color}88)`,
-                    transition: "width 0.7s ease",
-                  }}
-                />
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#94a3b8", width: 52, flexShrink: 0 }}>{e.label}</span>
+              <div style={{ flex: 1, height: 5, background: "#1e293b", borderRadius: 99, overflow: "hidden" }}>
+                <div style={{
+                  height: "100%",
+                  width: `${maxEnginePct > 0 ? (e.pct / maxEnginePct) * 100 : 0}%`,
+                  background: e.color, borderRadius: 99,
+                  transition: "width 0.7s ease",
+                }} />
               </div>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", width: 34, textAlign: "right", flexShrink: 0, fontFamily: "monospace" }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", fontFamily: "monospace", width: 28, textAlign: "right", flexShrink: 0 }}>
                 {e.pct}%
               </span>
             </div>
           ))}
         </div>
+      </div>
 
-        {/* Location / meta */}
-        {stats.location && (
-          <p style={{ fontSize: 11, color: "#475569", marginTop: 12 }}>
-            {stats.location}
-          </p>
-        )}
+      {/* ── CTA ── */}
+      <div style={{ background: "#0f172a", padding: "14px 20px" }}>
+        <button
+          onClick={focusStickyEmail}
+          data-testid="btn-hero-email-cta"
+          style={{
+            width: "100%", background: alarm.ctaBg, border: "none", borderRadius: 10,
+            padding: "11px 0", fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer",
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {stats.appearance < 10
+            ? "Get Full Report Emailed — Fix This Now →"
+            : stats.appearance < 30
+            ? "Email Me the Full Intelligence Report →"
+            : "Email Me the Full Report →"}
+        </button>
+        <p style={{ fontSize: 10.5, color: "#475569", textAlign: "center", marginTop: 8 }}>
+          Authority sources scan running · Full analysis in ~4 min
+        </p>
       </div>
     </div>
   );
