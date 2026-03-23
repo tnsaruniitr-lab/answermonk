@@ -148,18 +148,6 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
         <div style={{ fontSize: 48, fontWeight: 900, color: "#ffffff", lineHeight: 1, letterSpacing: "-0.02em", flexShrink: 0, textShadow: "0 0 20px rgba(255,255,255,0.3)" }}>
           {appearance}%
         </div>
-        <div style={{ width: 1, height: 44, backgroundColor: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
-        <div style={{
-          flex: 1,
-          background: "rgba(234,179,8,0.13)",
-          border: "1px solid rgba(234,179,8,0.38)",
-          borderRadius: 10,
-          padding: "9px 14px",
-        }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#fde047", lineHeight: 1.5, textAlign: "left" }}>
-            Ranking list of brands which appear when customers search for this {isCustomer ? "customer type" : "service"} — you appear <strong style={{ color: "#fff" }}>{appearance}%</strong> of the time
-          </div>
-        </div>
         {/* Selection indicator */}
         {isSelectable && (
           <div style={{ marginLeft: "auto", flexShrink: 0, width: 20, height: 20, borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", background: isSelected ? "#22c55e" : "rgba(255,255,255,0.12)", border: isSelected ? "2px solid #22c55e" : "2px solid rgba(255,255,255,0.2)", transition: "all 0.2s" }}>
