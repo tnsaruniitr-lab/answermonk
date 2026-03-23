@@ -1,10 +1,10 @@
 const MOCK_TILES = [
-  { id: 1, category: "AT-HOME BLOOD TESTS", query: "At-home blood tests in Dubai", score: 0, topBrand: "Vesta Care", rivals: ["HealthHub", "Medcare"], ago: "2d ago", accent: "#6366f1" },
-  { id: 2, category: "DIGITAL ASSETS", query: "Digital assets as a service in UAE", score: 21, topBrand: "BitOasis", rivals: ["Binance", "Crypto.com"], ago: "2d ago", accent: "#10b981" },
-  { id: 3, category: "SUPPLY CHAIN", query: "Supply Chain Management in UAE", score: 0, topBrand: "Aramex", rivals: ["DP World", "Blue Yonder"], ago: "2d ago", accent: "#f59e0b" },
-  { id: 4, category: "OTC CRYPTO DESK", query: "OTC crypto desk in UAE", score: 13, topBrand: "Kraken", rivals: ["Binance", "BitOasis"], ago: "2d ago", accent: "#3b82f6" },
-  { id: 5, category: "SEED FUNDING", query: "Seed funding in MENA", score: 75, topBrand: "Flat6Labs", rivals: ["Wamda", "Shorooq"], ago: "3d ago", accent: "#8b5cf6" },
-  { id: 6, category: "CRYPTO API", query: "Crypto API infrastructure in UAE", score: 4, topBrand: "Alchemy", rivals: ["Binance", "BitOasis"], ago: "2d ago", accent: "#ec4899" },
+  { id: 1, category: "AT-HOME BLOOD TESTS", query: "At-home blood tests in Dubai", score: 0, topBrand: "Vesta Care", rivals: [{ name: "HealthHub", share: 0 }, { name: "Medcare", share: 0 }], ago: "2d ago", accent: "#6366f1" },
+  { id: 2, category: "DIGITAL ASSETS", query: "Digital assets as a service in UAE", score: 21, topBrand: "BitOasis", rivals: [{ name: "Binance", share: 47 }, { name: "Crypto.com", share: 33 }], ago: "2d ago", accent: "#10b981" },
+  { id: 3, category: "SUPPLY CHAIN", query: "Supply Chain Management in UAE", score: 0, topBrand: "Aramex", rivals: [{ name: "DP World", share: 38 }, { name: "Blue Yonder", share: 22 }], ago: "2d ago", accent: "#f59e0b" },
+  { id: 4, category: "OTC CRYPTO DESK", query: "OTC crypto desk in UAE", score: 13, topBrand: "Kraken", rivals: [{ name: "Binance", share: 61 }, { name: "BitOasis", share: 44 }], ago: "2d ago", accent: "#3b82f6" },
+  { id: 5, category: "SEED FUNDING", query: "Seed funding in MENA", score: 75, topBrand: "Flat6Labs", rivals: [{ name: "Wamda", share: 58 }, { name: "Shorooq", share: 41 }], ago: "3d ago", accent: "#8b5cf6" },
+  { id: 6, category: "CRYPTO API", query: "Crypto API infrastructure in UAE", score: 4, topBrand: "Alchemy", rivals: [{ name: "Binance", share: 72 }, { name: "BitOasis", share: 55 }], ago: "2d ago", accent: "#ec4899" },
 ];
 
 function ScoreRing({ score, accent }: { score: number; accent: string }) {
@@ -104,11 +104,14 @@ export default function CardVariantE() {
               {tile.rivals.length > 0 && (
                 <div style={{ borderTop: "1px solid rgba(0,0,0,0.05)", paddingTop: 8, display: "flex", flexDirection: "column", gap: 5, marginBottom: 10 }}>
                   {tile.rivals.slice(0, 2).map((r, i) => (
-                    <div key={r} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                    <div key={r.name} style={{ display: "flex", alignItems: "center", gap: 7 }}>
                       <span style={{ fontSize: 10, fontWeight: 800, color: "#6b7280", background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 4, padding: "2px 6px", flexShrink: 0 }}>
                         #{i + 2}
                       </span>
-                      <span style={{ color: "#1f2937", fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r}</span>
+                      <span style={{ color: "#1f2937", fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>{r.name}</span>
+                      {r.share > 0 && (
+                        <span style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", flexShrink: 0 }}>{r.share}%</span>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -13,7 +13,7 @@ interface DirectoryTile {
   brandDomain: string | null;
   topBrand: string | null;
   topScore: number;
-  rivals: string[];
+  rivals: { name: string; share: number }[];
   engines: { chatgpt: boolean; gemini: boolean; claude: boolean };
   createdAt: string;
 }
@@ -213,20 +213,25 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
           {tile.rivals.length > 0 && (
             <div style={{ borderTop: "1px solid rgba(0,0,0,0.06)", paddingTop: 7, display: "flex", flexDirection: "column", gap: 5 }}>
               {tile.rivals.slice(0, 2).map((rival, i) => (
-                <div key={rival} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                <div key={rival.name} style={{ display: "flex", alignItems: "center", gap: 7 }}>
                   <span style={{
-                    fontSize: 9, fontWeight: 700, color: "#6b7280",
+                    fontSize: 10, fontWeight: 800, color: "#6b7280",
                     background: "#f3f4f6", border: "1px solid #e5e7eb",
-                    borderRadius: 3, padding: "1px 5px", flexShrink: 0,
+                    borderRadius: 4, padding: "2px 6px", flexShrink: 0,
                   }}>
                     #{i + 2}
                   </span>
                   <span style={{
-                    color: "#374151", fontSize: 12, fontWeight: 600,
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    color: "#1f2937", fontSize: 12.5, fontWeight: 700,
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0,
                   }}>
-                    {rival}
+                    {rival.name}
                   </span>
+                  {rival.share > 0 && (
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", flexShrink: 0 }}>
+                      {rival.share}%
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
