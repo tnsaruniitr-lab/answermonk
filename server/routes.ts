@@ -1624,13 +1624,17 @@ export async function registerRoutes(
           break;
         }
 
-        // collect all cited brands (share > 0) across all segments
+        // collect only the top-3 cited brands from the primary (first scorable) segment
+        // — these are exactly the brands shown on the tile card, so search results are predictable
         const brandSet = new Set<string>();
         for (const seg of segments) {
-          const competitors: any[] = seg?.scoringResult?.score?.competitors ?? [];
+          const sr = seg?.scoringResult ?? {};
+          if (!sr.score) continue;
+          const competitors: any[] = (sr.score.competitors ?? []).slice(0, 3);
           for (const c of competitors) {
             if (c?.name && (c?.share ?? 0) > 0) brandSet.add(c.name.trim());
           }
+          break; // primary segment only
         }
 
         return {

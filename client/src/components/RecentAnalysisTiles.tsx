@@ -347,19 +347,27 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
     [searchIndex, indexReady],
   );
 
-  // Matched session IDs — null means "no search active"
-  const matchedIds = useMemo<Set<number> | null>(() => {
+  // Ordered match results — null means "no search active"
+  // Maintains Fuse score order so best match appears first
+  const matchedOrder = useMemo<Map<number, number> | null>(() => {
     const q = searchQuery.trim();
     if (!q || !fuse) return null;
-    return new Set(fuse.search(q).map(r => r.item.id));
+    const results = fuse.search(q);
+    const order = new Map<number, number>();
+    results.forEach((r, i) => order.set(r.item.id, i));
+    return order;
   }, [searchQuery, fuse]);
 
-  // When searching: show ALL tiles that match (ignore pagination)
+  // When searching: show ALL matching tiles sorted by relevance
   // When not searching: respect expand/collapse
   const visible = useMemo(() => {
-    if (matchedIds !== null) return tiles.filter(t => matchedIds.has(t.id));
+    if (matchedOrder !== null) {
+      return tiles
+        .filter(t => matchedOrder.has(t.id))
+        .sort((a, b) => (matchedOrder.get(a.id) ?? 999) - (matchedOrder.get(b.id) ?? 999));
+    }
     return expanded ? tiles : tiles.slice(0, INITIAL_COUNT);
-  }, [tiles, matchedIds, expanded]);
+  }, [tiles, matchedOrder, expanded]);
 
   const hiddenCount = tiles.length - INITIAL_COUNT;
   const isSearching = searchQuery.trim().length > 0;
