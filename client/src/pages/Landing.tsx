@@ -1088,7 +1088,7 @@ function LandingInner() {
 
         {/* ── Live Scoring Feed — shown after run-analysis returns ── */}
         {activeSessionId !== null && !isRunning && (
-          <div className="mt-2 max-w-xl mx-auto space-y-4" ref={resultsRef}>
+          <div className="mt-2 max-w-xl mx-auto space-y-4" ref={resultsRef} style={{ scrollMarginTop: 72 }}>
 
             {/* Replay mode header — back button + brand context */}
             {replayMode && (
@@ -1140,8 +1140,8 @@ function LandingInner() {
                 onClick={() => setRankingsExpanded(v => !v)}
               >
                 <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
-                  <span style={{ fontSize: 9.5, color: "rgba(255,255,255,0.5)", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", flexShrink: 0 }}>◈ Rankings</span>
-                  <span style={{ width: 1, height: 10, background: "rgba(255,255,255,0.2)", flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, color: "#ffffff", fontWeight: 700, letterSpacing: "-0.01em", flexShrink: 0 }}>Who ranks when your customers search</span>
+                  <span style={{ width: 1, height: 10, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
                   {scoredSegs.map((s: any) => {
                     const lbl = s.persona || s.serviceType || s.customerType || s.label || "Seg";
                     const app = Math.round((s.scoringResult?.score?.appearance_rate ?? 0) * 100);
