@@ -351,6 +351,8 @@ function LandingInner() {
   const { toast } = useToast();
   const [selectedSegmentIds, setSelectedSegmentIds] = useState<Set<string>>(new Set());
   const [rankingsExpanded, setRankingsExpanded] = useState<boolean>(false);
+  const [citationsExpanded, setCitationsExpanded] = useState<boolean>(false);
+  const citationsBarRef = useRef<HTMLDivElement>(null);
   const [customerLimitError, setCustomerLimitError] = useState(false);
   const [serviceLimitError, setServiceLimitError] = useState(false);
   const [queuedData, setQueuedData] = useState<{ website: string; submissionId: number } | null>(null);
@@ -562,6 +564,7 @@ function LandingInner() {
   useEffect(() => {
     setSelectedSegmentIds(new Set());
     setShowIntelligence(false);
+    setCitationsExpanded(false);
   }, [activeSessionId]);
 
   useEffect(() => {
@@ -1436,25 +1439,74 @@ function LandingInner() {
 
             {/* Citation Intelligence panel — revealed after button press */}
             {allSegmentsDone && showIntelligence && activeSessionId !== null && (
-              <div className="mt-2">
-                <Suspense fallback={null}>
-                  <AuthoritySourcesPanel
-                    autoRun
-                    sessionId={activeSessionId}
-                    brandName={scoringSession?.brandName || ""}
-                    segments={scoredSegs
-                      .filter((s: any) => selectedSegmentIds.has(s.id))
-                      .map((s: any, i: number) => ({
-                        id: s.id || `seg-${i}`,
-                        persona: s.persona || s.serviceType || s.label || `Segment ${i + 1}`,
-                        seedType: s.seedType || "",
-                        customerType: s.customerType || "",
-                        location: s.location || "",
-                        scoringResult: s.scoringResult,
-                      }))}
-                  />
-                </Suspense>
-              </div>
+              <>
+                {/* Sticky citations bar — same pattern as rankings bar */}
+                <div
+                  ref={citationsBarRef}
+                  style={{
+                    position: "sticky",
+                    top: 60,
+                    zIndex: 50,
+                    borderRadius: citationsExpanded ? "14px 14px 0 0" : 14,
+                    background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
+                    padding: "10px 14px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    boxShadow: "0 4px 20px rgba(79,70,229,0.3)",
+                    marginTop: 8,
+                  }}
+                  onClick={() => {
+                    const wasExpanded = citationsExpanded;
+                    setCitationsExpanded(v => !v);
+                    if (wasExpanded) {
+                      setTimeout(() => {
+                        const bar = citationsBarRef.current;
+                        if (!bar) return;
+                        const top = bar.getBoundingClientRect().top + window.scrollY - 72;
+                        window.scrollTo({ top, behavior: "smooth" });
+                      }, 50);
+                    }
+                  }}
+                >
+                  <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
+                    <span style={{ fontSize: 12, color: "#ffffff", fontWeight: 700, letterSpacing: "-0.01em", flexShrink: 0 }}>See authority sources in your category</span>
+                    <span style={{ width: 1, height: 10, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
+                    <span style={{ fontSize: 10.5, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 20, padding: "2px 8px", color: "#c7d2fe", fontWeight: 500, flexShrink: 0 }}>LLMs cites</span>
+                  </div>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "4px 11px", fontSize: 11.5, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+                    {citationsExpanded ? (
+                      <><ChevronDown style={{ width: 12, height: 12, transform: "rotate(180deg)", display: "inline" }} /> Collapse</>
+                    ) : (
+                      <>All sources →</>
+                    )}
+                  </div>
+                </div>
+
+                {/* Panel body — shown when expanded */}
+                {citationsExpanded && (
+                  <div style={{ marginTop: 0 }}>
+                    <Suspense fallback={null}>
+                      <AuthoritySourcesPanel
+                        autoRun
+                        sessionId={activeSessionId}
+                        brandName={scoringSession?.brandName || ""}
+                        segments={scoredSegs
+                          .filter((s: any) => selectedSegmentIds.has(s.id))
+                          .map((s: any, i: number) => ({
+                            id: s.id || `seg-${i}`,
+                            persona: s.persona || s.serviceType || s.label || `Segment ${i + 1}`,
+                            seedType: s.seedType || "",
+                            customerType: s.customerType || "",
+                            location: s.location || "",
+                            scoringResult: s.scoringResult,
+                          }))}
+                      />
+                    </Suspense>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
