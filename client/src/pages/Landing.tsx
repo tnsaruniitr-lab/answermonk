@@ -1088,7 +1088,7 @@ function LandingInner() {
 
         {/* ── Live Scoring Feed — shown after run-analysis returns ── */}
         {activeSessionId !== null && !isRunning && (
-          <div className="mt-8 max-w-xl mx-auto space-y-4" ref={resultsRef}>
+          <div className="mt-2 max-w-xl mx-auto space-y-4" ref={resultsRef}>
 
             {/* Replay mode header — back button + brand context */}
             {replayMode && (
