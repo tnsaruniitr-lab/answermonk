@@ -1597,8 +1597,8 @@ export async function registerRoutes(
         SELECT id, brand_name, segments
         FROM multi_segment_sessions
         WHERE session_type IS DISTINCT FROM 'competitor'
-          AND segments IS NOT NULL
-          AND jsonb_array_length(segments) > 0
+          AND brand_name IS NOT NULL
+          AND brand_name != ''
         ORDER BY created_at DESC
         LIMIT 500
       `);

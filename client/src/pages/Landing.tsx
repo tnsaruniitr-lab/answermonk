@@ -669,10 +669,10 @@ function LandingInner() {
   const canRun = selectedServices.size > 0 && selectedCustomers.size > 0 && city.trim().length > 0;
 
   const steps = [
-    { title: "Business Understanding", desc: "Web ingestion and brand understanding", icon: Brain },
-    { title: "Detailed Audit", desc: "Collect authority domains for your sector, scan LLMs for the answers they give customers", icon: Search },
-    { title: "Comp Analysis", desc: "Discover what competitors do better and extract their strategy", icon: TrendingUp },
-    { title: "Agents Deployed", desc: "AI agents activated to improve your AI search rank", icon: Rocket },
+    { title: "Signal Extraction", desc: "We crawl your domain and extract brand and sector signals", icon: Brain },
+    { title: "LLM Scoring", desc: "ChatGPT, Claude, Gemini and Perplexity are queried across your key prompts", icon: Search },
+    { title: "Authority Crawl", desc: "We identify which authority sources AI trusts for your sector", icon: TrendingUp },
+    { title: "GEO Report", desc: "You receive a full intelligence report with actionable GEO strategies", icon: Rocket },
   ];
 
   return (
@@ -1098,22 +1098,22 @@ function LandingInner() {
         {activeSessionId !== null && !isRunning && (
           <div className="mt-2 max-w-xl mx-auto space-y-4" ref={resultsRef} style={{ scrollMarginTop: 72 }}>
 
-            {/* Replay mode header — back button + brand context */}
-            {replayMode && (
-              <div className="flex items-center justify-between mb-2">
-                <button
-                  onClick={exitReplay}
-                  data-testid="button-exit-replay"
-                  className="flex items-center gap-2 text-slate-400 hover:text-white text-sm transition-colors"
-                >
-                  <ArrowRight className="w-4 h-4 rotate-180" />
-                  Back to analyses
-                </button>
+            {/* Back button — always visible once results are showing */}
+            <div className="flex items-center justify-between mb-2">
+              <button
+                onClick={exitReplay}
+                data-testid="button-exit-replay"
+                className="flex items-center gap-2 text-slate-400 hover:text-white text-sm transition-colors"
+              >
+                <ArrowRight className="w-4 h-4 rotate-180" />
+                {replayMode ? "Back to analyses" : "← New analysis"}
+              </button>
+              {replayMode && (
                 <span className="text-xs text-slate-600 font-mono">
                   {scoringSession?.brandName || ""}
                 </span>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Sticky email bar — visible during scoring and after, above all analysis boxes */}
             {emailBarVisible && (
@@ -1745,7 +1745,7 @@ function LandingInner() {
 
         {/* Trust bar */}
         {!isComplete && !isRunning && (
-          <div className="mt-14 pt-8 border-t border-white/5">
+          <div className="mt-14 pt-8">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-5">
               Analyzing signals across primary intelligence engines
             </p>
