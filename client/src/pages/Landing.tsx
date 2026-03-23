@@ -154,26 +154,26 @@ function SegmentResultCard({ seg, brandName, detectedService, selected, onToggle
           {appearance}%
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.9)", lineHeight: 1.6, fontWeight: 500 }}>
             {isCustomer ? (
               <>
                 Who shows up when{" "}
-                <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>{seg.customerType}</span>
+                <span style={{ display: "inline-block", background: "rgba(167,139,250,0.35)", border: "1px solid rgba(167,139,250,0.5)", color: "#f5f3ff", fontWeight: 700, borderRadius: 6, padding: "0px 7px", lineHeight: 1.7 }}>{seg.customerType}</span>
                 {" "}search for{" "}
-                {detectedService && <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>{detectedService}</span>}
-                {seg.location ? <> in <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>{seg.location}</span></> : ""}{" "}
+                {detectedService && <span style={{ display: "inline-block", background: "rgba(167,139,250,0.35)", border: "1px solid rgba(167,139,250,0.5)", color: "#f5f3ff", fontWeight: 700, borderRadius: 6, padding: "0px 7px", lineHeight: 1.7 }}>{detectedService}</span>}
+                {seg.location ? <> in <span style={{ display: "inline-block", background: "rgba(99,102,241,0.35)", border: "1px solid rgba(99,102,241,0.5)", color: "#e0e7ff", fontWeight: 700, borderRadius: 6, padding: "0px 7px", lineHeight: 1.7 }}>{seg.location}</span></> : ""}{" "}
                 — you appear in{" "}
-                <span style={{ color: "#ffffff", fontWeight: 700 }}>{appearance}% of searches</span>
+                <span style={{ display: "inline-block", background: "rgba(255,255,255,0.22)", border: "1px solid rgba(255,255,255,0.3)", color: "#ffffff", fontWeight: 800, borderRadius: 6, padding: "0px 7px", lineHeight: 1.7 }}>{appearance}% of searches</span>
               </>
             ) : (
               <>
                 Who shows up when customers search for{" "}
-                <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>
+                <span style={{ display: "inline-block", background: "rgba(167,139,250,0.35)", border: "1px solid rgba(167,139,250,0.5)", color: "#f5f3ff", fontWeight: 700, borderRadius: 6, padding: "0px 7px", lineHeight: 1.7 }}>
                   {seg.serviceType || seg.persona || label}
                 </span>
-                {seg.location ? <> in <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>{seg.location}</span></> : ""}{" "}
+                {seg.location ? <> in <span style={{ display: "inline-block", background: "rgba(99,102,241,0.35)", border: "1px solid rgba(99,102,241,0.5)", color: "#e0e7ff", fontWeight: 700, borderRadius: 6, padding: "0px 7px", lineHeight: 1.7 }}>{seg.location}</span></> : ""}{" "}
                 — you appear in{" "}
-                <span style={{ color: "#ffffff", fontWeight: 700 }}>{appearance}% of searches</span>
+                <span style={{ display: "inline-block", background: "rgba(255,255,255,0.22)", border: "1px solid rgba(255,255,255,0.3)", color: "#ffffff", fontWeight: 800, borderRadius: 6, padding: "0px 7px", lineHeight: 1.7 }}>{appearance}% of searches</span>
               </>
             )}
           </div>
@@ -226,9 +226,9 @@ function SegmentResultCard({ seg, brandName, detectedService, selected, onToggle
             const meta = engMeta[eng];
             return (
               <div key={eng} style={{ flex: 1 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 5 }}>
-                  <span style={{ color: "#e2e8f0" }}>{meta.label}</span>
-                  <span style={{ color: "#ffffff", fontWeight: 700 }}>{pct}%</span>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
+                  <span style={{ color: "#ffffff" }}>{meta.label}</span>
+                  <span style={{ color: "#ffffff", fontWeight: 800 }}>{pct}%</span>
                 </div>
                 <div style={{ height: 5, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
                   <div style={{ width: `${pct}%`, height: "100%", backgroundColor: meta.color, borderRadius: 3 }} />
