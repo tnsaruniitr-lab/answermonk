@@ -1144,13 +1144,13 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
               {/* Mechanism text */}
               {(mechanism || whyItWorks.length > 0) && (
                 <div style={{ marginBottom: 18 }}>
-                  {mechanism && <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.65, margin: "0 0 10px", textAlign: "left" }}>{mechanism}</p>}
+                  {mechanism && <p style={{ fontSize: 13, color: "#e2e8f0", lineHeight: 1.65, margin: "0 0 10px", textAlign: "left" }}>{mechanism}</p>}
                   {whyItWorks.length > 0 && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       {whyItWorks.map((w, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
                           <span style={{ fontSize: 12, color: accent.badgeText, flexShrink: 0, marginTop: 2 }}>✓</span>
-                          <span style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.5, textAlign: "left" }}>{w}</span>
+                          <span style={{ fontSize: 12, color: "#e2e8f0", lineHeight: 1.5, textAlign: "left" }}>{w}</span>
                         </div>
                       ))}
                     </div>
