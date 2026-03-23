@@ -1107,8 +1107,8 @@ function LandingInner() {
               </div>
             )}
 
-            {/* Session summary hero — appears as soon as the first segment scores */}
-            {scoredSegs.length > 0 && (
+            {/* Session summary hero — appears once all segments are scored */}
+            {allSegmentsDone && scoredSegs.length > 0 && (
               <Suspense fallback={null}>
                 <SessionSummaryHero
                   brandName={scoringSession?.brandName || ""}
@@ -1179,7 +1179,7 @@ function LandingInner() {
                 animation: am-shimmer 1.8s infinite linear;
               }
             `}</style>
-            {(isScoring || rankingsExpanded) && scoringSegs.map((seg, i) => {
+            {rankingsExpanded && scoringSegs.map((seg, i) => {
               const isDone = seg.scoringResult !== null;
               const doneIndex = scoredSegs.findIndex((s) => s.id === seg.id);
               if (isDone) {
