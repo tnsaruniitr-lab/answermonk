@@ -43,7 +43,10 @@ export function AnalysisPipelineHeader({
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        background: "transparent",
+        background: "rgba(246,244,255,0.82)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
+        borderBottom: "1px solid rgba(139,92,246,0.08)",
         pointerEvents: "none",
       }}
     >
