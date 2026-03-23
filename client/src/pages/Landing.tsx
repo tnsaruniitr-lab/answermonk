@@ -1214,17 +1214,7 @@ function LandingInner() {
                 }}
               >
                 <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", minWidth: 0, overflow: "hidden" }}>
-                  <span style={{ fontSize: 13.5, color: "#ffffff", fontWeight: 800, letterSpacing: "-0.02em", flexShrink: 0 }}>See which competitors dominate ranking for your category</span>
-                  <span style={{ width: 1, height: 10, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
-                  {scoredSegs.map((s: any) => {
-                    const lbl = s.persona || s.serviceType || s.customerType || s.label || "Seg";
-                    const app = Math.round((s.scoringResult?.score?.appearance_rate ?? 0) * 100);
-                    return (
-                      <span key={s.id} style={{ fontSize: 10.5, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 20, padding: "2px 8px", color: "#c7d2fe", fontWeight: 500, flexShrink: 0 }}>
-                        {lbl} <span style={{ color: app >= 50 ? "#6ee7b7" : app >= 25 ? "#fde68a" : "#fca5a5" }}>{app}%</span>
-                      </span>
-                    );
-                  })}
+                  <span style={{ fontSize: 13.5, color: "#ffffff", fontWeight: 800, letterSpacing: "-0.02em", flexShrink: 0 }}>See competitor rankings</span>
                 </div>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "4px 11px", fontSize: 11.5, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
                   {rankingsExpanded ? (
@@ -1421,9 +1411,7 @@ function LandingInner() {
                   onClick={() => setIntelligenceExpanded(v => !v)}
                 >
                   <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", minWidth: 0, overflow: "hidden" }}>
-                    <span style={{ fontSize: 13.5, color: "#ffffff", fontWeight: 800, letterSpacing: "-0.02em", flexShrink: 0 }}>What are competitors doing better, and actions for me?</span>
-                    <span style={{ width: 1, height: 10, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
-                    <span style={{ fontSize: 10.5, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 20, padding: "2px 8px", color: "#c7d2fe", fontWeight: 500, flexShrink: 0 }}>Draft Action Report</span>
+                    <span style={{ fontSize: 13.5, color: "#ffffff", fontWeight: 800, letterSpacing: "-0.02em", flexShrink: 0 }}>What are competitors doing better?</span>
                   </div>
                   <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "4px 11px", fontSize: 11.5, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
                     {intelligenceExpanded ? (
