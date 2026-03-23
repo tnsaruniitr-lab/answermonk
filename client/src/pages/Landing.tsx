@@ -1556,8 +1556,8 @@ function LandingInner() {
               </>
             )}
 
-            {/* Citation Intelligence collapsible bar — shows only after scan is started */}
-            {allSegmentsDone && activeSessionId !== null && scanStarted && (
+            {/* Citation Intelligence collapsible bar — shows only after crawl completes */}
+            {allSegmentsDone && activeSessionId !== null && scanStarted && pipelineCrawlDone && (
               <>
                 <div
                   style={{
