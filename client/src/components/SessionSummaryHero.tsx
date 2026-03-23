@@ -138,7 +138,7 @@ export function SessionSummaryHero({ brandName, brandDomain, scoredSegs, totalSe
           {initial}
         </div>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: "#f1f5f9", letterSpacing: "-0.025em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <div style={{ fontSize: 20, fontWeight: 900, color: "#ffffff", letterSpacing: "-0.03em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {brandName}
           </div>
           {brandDomain && (
@@ -156,8 +156,8 @@ export function SessionSummaryHero({ brandName, brandDomain, scoredSegs, totalSe
 
       {/* ── Alarm panel ── */}
       <div style={{ background: alarm.panelBg, padding: "12px 20px 14px", borderBottom: `1px solid ${alarm.borderColor}` }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 6 }}>
-          <span style={{ fontSize: 44, fontWeight: 900, color: alarm.percentColor, letterSpacing: "-0.04em", lineHeight: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+          <span style={{ fontSize: 38, fontWeight: 900, color: alarm.percentColor, letterSpacing: "-0.04em", lineHeight: 1 }}>
             {stats.appearance}%
           </span>
           <span style={{ fontSize: 11, fontWeight: 700, color: `${alarm.textColor}80`, textTransform: "uppercase", letterSpacing: "0.08em" }}>
