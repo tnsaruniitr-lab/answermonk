@@ -711,13 +711,15 @@ export async function registerRoutes(
 
   app.get("/api/stats", async (_req: Request, res: Response) => {
     try {
+      const { pool } = await import("./db");
       const result = await pool.query(
         `SELECT COUNT(*) AS total FROM multi_segment_sessions
          WHERE parent_session_id IS NULL`
       );
       const total = parseInt(result.rows[0]?.total ?? "0", 10);
       return res.json({ auditsCompleted: total });
-    } catch {
+    } catch (err) {
+      console.error("[stats] query failed:", err);
       return res.json({ auditsCompleted: 0 });
     }
   });
