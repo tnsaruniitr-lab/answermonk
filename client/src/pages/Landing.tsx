@@ -1144,18 +1144,19 @@ function LandingInner() {
                 position: "sticky",
                 top: 60,
                 zIndex: 60,
-                background: "linear-gradient(110deg, #1e1b4b 0%, #312e81 50%, #3730a3 100%)",
+                background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
                 borderRadius: 14,
-                padding: "9px 14px",
-                boxShadow: "0 4px 20px rgba(30,27,75,0.5)",
+                padding: "10px 14px",
+                boxShadow: "0 4px 20px rgba(79,70,229,0.3)",
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
                 minHeight: 42,
                 marginBottom: 8,
+                overflow: "hidden",
               }}>
-                <span style={{ fontSize: 11.5, color: "#a5b4fc", fontWeight: 600, flexShrink: 0 }}>
-                  📬 Get this report emailed:
+                <span style={{ fontSize: 13.5, color: "#ffffff", fontWeight: 800, letterSpacing: "-0.02em", flexShrink: 0 }}>
+                  Get this report emailed
                 </span>
                 <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                   <input
@@ -1165,8 +1166,8 @@ function LandingInner() {
                     placeholder="your@email.com"
                     data-sticky-email
                     style={{
-                      background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.18)",
-                      borderRadius: 8, padding: "5px 10px", fontSize: 12, color: "#fff",
+                      background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
+                      borderRadius: 8, padding: "4px 10px", fontSize: 12, color: "#fff",
                       outline: "none", flex: 1, minWidth: 0, maxWidth: 200,
                     }}
                   />
@@ -1174,17 +1175,18 @@ function LandingInner() {
                     onClick={handleWaitlistSubmit}
                     disabled={waitlistSubmitting || !waitlistEmail.includes("@")}
                     style={{
-                      background: waitlistEmail.includes("@") ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.12)",
-                      color: waitlistEmail.includes("@") ? "#3730a3" : "rgba(255,255,255,0.35)",
-                      border: "none", borderRadius: 8, padding: "5px 14px",
-                      fontSize: 12, fontWeight: 700, cursor: waitlistEmail.includes("@") ? "pointer" : "not-allowed",
+                      display: "inline-flex", alignItems: "center", gap: 5,
+                      background: waitlistEmail.includes("@") ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.15)",
+                      color: waitlistEmail.includes("@") ? "#3730a3" : "rgba(255,255,255,0.5)",
+                      border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "4px 11px",
+                      fontSize: 11.5, fontWeight: 700, cursor: waitlistEmail.includes("@") ? "pointer" : "not-allowed",
                       whiteSpace: "nowrap", flexShrink: 0,
                     }}
                   >
                     {waitlistSubmitting ? "…" : "Send →"}
                   </button>
                 </div>
-                <span style={{ fontSize: 10.5, color: "rgba(165,180,252,0.5)", flexShrink: 0 }}>No account needed</span>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", flexShrink: 0 }}>No account needed</span>
               </div>
             )}
 
