@@ -1177,11 +1177,6 @@ function LandingInner() {
             )}
 
             {/* Individual segment cards — shown during scoring or when expanded */}
-            {allSegmentsDone && rankingsExpanded && scoredSegs.length > 0 && (
-              <p className="text-[10px] font-mono tracking-wider uppercase text-slate-500 px-1" style={{ marginTop: 2 }}>
-                Unselect a segment if you think it's irrelevant to your brand
-              </p>
-            )}
             <style>{`
               @keyframes am-shimmer {
                 0% { background-position: -400px 0; }
@@ -1202,12 +1197,6 @@ function LandingInner() {
                     <SegmentResultCard
                       seg={seg}
                       brandName={scoringSession?.brandName || ""}
-                      selected={allSegmentsDone ? selectedSegmentIds.has(seg.id) : undefined}
-                      onToggle={allSegmentsDone ? () => setSelectedSegmentIds((prev) => {
-                        const next = new Set(prev);
-                        if (next.has(seg.id)) next.delete(seg.id); else next.add(seg.id);
-                        return next;
-                      }) : undefined}
                     />
                   </div>
                 );
