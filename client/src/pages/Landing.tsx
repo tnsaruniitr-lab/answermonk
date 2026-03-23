@@ -346,7 +346,7 @@ function LandingInner() {
   const [city, setCity] = useState("");
   const [newServiceInput, setNewServiceInput] = useState("");
   const [newCustomerInput, setNewCustomerInput] = useState("");
-  const [showIntelligence, setShowIntelligence] = useState(false);
+  const [intelligenceExpanded, setIntelligenceExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<"reports" | "directory" | "agents">("reports");
   const { toast } = useToast();
   const [selectedSegmentIds, setSelectedSegmentIds] = useState<Set<string>>(new Set());
@@ -563,7 +563,7 @@ function LandingInner() {
 
   useEffect(() => {
     setSelectedSegmentIds(new Set());
-    setShowIntelligence(false);
+    setIntelligenceExpanded(false);
     setCitationsExpanded(false);
   }, [activeSessionId]);
 
@@ -585,14 +585,14 @@ function LandingInner() {
   function handleTileSelect(sessionId: number) {
     setActiveSessionId(sessionId);
     setReplayMode(true);
-    setShowIntelligence(false);
+    setIntelligenceExpanded(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function exitReplay() {
     setActiveSessionId(null);
     setReplayMode(false);
-    setShowIntelligence(false);
+    setIntelligenceExpanded(false);
   }
 
   function isValidDomain(input: string): boolean {
@@ -1446,42 +1446,64 @@ function LandingInner() {
               </>
             )}
 
-            {/* All done — single CTA button */}
-            {allSegmentsDone && !showIntelligence && (
-              <div className="flex justify-center mt-4">
-                <button
-                  onClick={() => setShowIntelligence(true)}
+            {/* Citation Intelligence collapsible bar — third sticky bar */}
+            {allSegmentsDone && activeSessionId !== null && (
+              <>
+                <div
+                  style={{
+                    borderRadius: intelligenceExpanded ? "14px 14px 0 0" : 14,
+                    background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
+                    padding: "10px 14px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    boxShadow: "0 4px 20px rgba(79,70,229,0.3)",
+                    marginTop: 8,
+                    minHeight: 42,
+                    overflow: "hidden",
+                    position: "sticky",
+                    top: 160,
+                    zIndex: 50,
+                  }}
                   data-testid="btn-analyse-intelligence"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white hover:opacity-90 transition-all duration-300 shadow-[0_0_20px_rgba(124,58,237,0.25)]"
-                  style={{ backgroundColor: "#7c3aed" }}
+                  onClick={() => setIntelligenceExpanded(v => !v)}
                 >
-                  Analyse Citation Intelligence
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-
-            {/* Citation Intelligence panel — revealed after button press */}
-            {allSegmentsDone && showIntelligence && activeSessionId !== null && (
-              <div className="mt-2">
-                <Suspense fallback={null}>
-                  <AuthoritySourcesPanel
-                    autoRun
-                    sessionId={activeSessionId}
-                    brandName={scoringSession?.brandName || ""}
-                    segments={scoredSegs
-                      .filter((s: any) => selectedSegmentIds.has(s.id))
-                      .map((s: any, i: number) => ({
-                        id: s.id || `seg-${i}`,
-                        persona: s.persona || s.serviceType || s.label || `Segment ${i + 1}`,
-                        seedType: s.seedType || "",
-                        customerType: s.customerType || "",
-                        location: s.location || "",
-                        scoringResult: s.scoringResult,
-                      }))}
-                  />
-                </Suspense>
-              </div>
+                  <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", minWidth: 0, overflow: "hidden" }}>
+                    <span style={{ fontSize: 12, color: "#ffffff", fontWeight: 700, letterSpacing: "-0.01em", flexShrink: 0 }}>Citation Intelligence Report</span>
+                    <span style={{ width: 1, height: 10, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
+                    <span style={{ fontSize: 10.5, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 20, padding: "2px 8px", color: "#c7d2fe", fontWeight: 500, flexShrink: 0 }}>Draft Action Report</span>
+                  </div>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "4px 11px", fontSize: 11.5, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+                    {intelligenceExpanded ? (
+                      <><ChevronDown style={{ width: 12, height: 12, transform: "rotate(180deg)", display: "inline" }} /> Collapse</>
+                    ) : (
+                      <>Run analysis →</>
+                    )}
+                  </div>
+                </div>
+                {intelligenceExpanded && (
+                  <div style={{ marginTop: 0 }}>
+                    <Suspense fallback={null}>
+                      <AuthoritySourcesPanel
+                        autoRun
+                        sessionId={activeSessionId}
+                        brandName={scoringSession?.brandName || ""}
+                        segments={scoredSegs
+                          .filter((s: any) => selectedSegmentIds.has(s.id))
+                          .map((s: any, i: number) => ({
+                            id: s.id || `seg-${i}`,
+                            persona: s.persona || s.serviceType || s.label || `Segment ${i + 1}`,
+                            seedType: s.seedType || "",
+                            customerType: s.customerType || "",
+                            location: s.location || "",
+                            scoringResult: s.scoringResult,
+                          }))}
+                      />
+                    </Suspense>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
