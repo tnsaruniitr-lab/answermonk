@@ -2,12 +2,12 @@
 type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/action-report/IntelligencePanelRedesign.tsx": () => import("../components/mockups/action-report/IntelligencePanelRedesign.tsx"),
+  "./components/mockups/agent-card/NeuralIntercept.tsx": () => import("../components/mockups/agent-card/NeuralIntercept.tsx"),
+  "./components/mockups/agent-card/OperatorConsole.tsx": () => import("../components/mockups/agent-card/OperatorConsole.tsx"),
   "./components/mockups/authority-table/CitationLedger.tsx": () => import("../components/mockups/authority-table/CitationLedger.tsx"),
   "./components/mockups/authority-table/EvidenceMap.tsx": () => import("../components/mockups/authority-table/EvidenceMap.tsx"),
   "./components/mockups/authority-table/SourceSignal.tsx": () => import("../components/mockups/authority-table/SourceSignal.tsx"),
   "./components/mockups/button-preview/AnalyseButton.tsx": () => import("../components/mockups/button-preview/AnalyseButton.tsx"),
-  "./components/mockups/agent-card/NeuralIntercept.tsx": () => import("../components/mockups/agent-card/NeuralIntercept.tsx"),
-  "./components/mockups/agent-card/OperatorConsole.tsx": () => import("../components/mockups/agent-card/OperatorConsole.tsx"),
   "./components/mockups/crawl-loading/CrawlingQuips.tsx": () => import("../components/mockups/crawl-loading/CrawlingQuips.tsx"),
   "./components/mockups/crawl-loading/GlassPulse.tsx": () => import("../components/mockups/crawl-loading/GlassPulse.tsx"),
   "./components/mockups/crawl-loading/MissionControl.tsx": () => import("../components/mockups/crawl-loading/MissionControl.tsx"),
@@ -45,6 +45,7 @@ export const modules: ModuleMap = {
   "./components/mockups/logo-variants/LogoB.tsx": () => import("../components/mockups/logo-variants/LogoB.tsx"),
   "./components/mockups/logo-variants/LogoC.tsx": () => import("../components/mockups/logo-variants/LogoC.tsx"),
   "./components/mockups/logo-variants/LogoD.tsx": () => import("../components/mockups/logo-variants/LogoD.tsx"),
+  "./components/mockups/monk-logos/MonkLogoOptions.tsx": () => import("../components/mockups/monk-logos/MonkLogoOptions.tsx"),
   "./components/mockups/pipeline-header/FrostedGlass.tsx": () => import("../components/mockups/pipeline-header/FrostedGlass.tsx"),
   "./components/mockups/pipeline-header/LavenderBand.tsx": () => import("../components/mockups/pipeline-header/LavenderBand.tsx"),
   "./components/mockups/pipeline-header/StepBar.tsx": () => import("../components/mockups/pipeline-header/StepBar.tsx"),
