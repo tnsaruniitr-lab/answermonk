@@ -1214,7 +1214,7 @@ function LandingInner() {
                 }}
               >
                 <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", minWidth: 0, overflow: "hidden" }}>
-                  <span style={{ fontSize: 12, color: "#ffffff", fontWeight: 700, letterSpacing: "-0.01em", flexShrink: 0 }}>Who ranks when your customers search</span>
+                  <span style={{ fontSize: 13.5, color: "#ffffff", fontWeight: 800, letterSpacing: "-0.02em", flexShrink: 0 }}>See which competitors dominate ranking for your category</span>
                   <span style={{ width: 1, height: 10, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
                   {scoredSegs.map((s: any) => {
                     const lbl = s.persona || s.serviceType || s.customerType || s.label || "Seg";
@@ -1375,7 +1375,7 @@ function LandingInner() {
                   onClick={() => setCitationsExpanded(v => !v)}
                 >
                   <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", minWidth: 0, overflow: "hidden" }}>
-                    <span style={{ fontSize: 12, color: "#ffffff", fontWeight: 700, letterSpacing: "-0.01em", flexShrink: 0 }}>See authority sources in your category</span>
+                    <span style={{ fontSize: 13.5, color: "#ffffff", fontWeight: 800, letterSpacing: "-0.02em", flexShrink: 0 }}>See authority domains which LLMs refer to</span>
                     <span style={{ width: 1, height: 10, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
                     <span style={{ fontSize: 10.5, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 20, padding: "2px 8px", color: "#c7d2fe", fontWeight: 500, flexShrink: 0 }}>LLMs cites</span>
                   </div>
@@ -1421,7 +1421,7 @@ function LandingInner() {
                   onClick={() => setIntelligenceExpanded(v => !v)}
                 >
                   <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", minWidth: 0, overflow: "hidden" }}>
-                    <span style={{ fontSize: 12, color: "#ffffff", fontWeight: 700, letterSpacing: "-0.01em", flexShrink: 0 }}>Citation Intelligence Report</span>
+                    <span style={{ fontSize: 13.5, color: "#ffffff", fontWeight: 800, letterSpacing: "-0.02em", flexShrink: 0 }}>What are competitors doing better, and actions for me?</span>
                     <span style={{ width: 1, height: 10, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
                     <span style={{ fontSize: 10.5, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 20, padding: "2px 8px", color: "#c7d2fe", fontWeight: 500, flexShrink: 0 }}>Draft Action Report</span>
                   </div>
