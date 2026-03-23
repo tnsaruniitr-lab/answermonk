@@ -1,7 +1,7 @@
-// AnswerMonk brand wordmark — "Answer M[monk-face]nk"
-// The "o" in Monk is a clean monk head icon; "M" matches "onk" in indigo
+// AnswerMonk brand wordmark — "Answer M[bot-body]nk"
+// The "o" in Monk is a clean bot-body icon (rounded rect, antenna dot, side arms)
 
-function MonkFaceO({ size = 24 }: { size?: number }) {
+function BotO({ size = 24 }: { size?: number }) {
   return (
     <svg
       viewBox="0 0 32 32"
@@ -11,23 +11,18 @@ function MonkFaceO({ size = 24 }: { size?: number }) {
       style={{ display: "inline-block", verticalAlign: "middle", position: "relative", top: -1 }}
     >
       <defs>
-        <linearGradient id="mfo-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#6366f1" />
+        <linearGradient id="bot-bg" x1="20%" y1="0%" x2="80%" y2="100%">
+          <stop offset="0%" stopColor="#60a5fa" />
           <stop offset="100%" stopColor="#7c3aed" />
         </linearGradient>
       </defs>
-      {/* Face circle */}
-      <circle cx="16" cy="17" r="13" fill="url(#mfo-bg)" />
-      {/* Ushnisha / topknot */}
-      <ellipse cx="16" cy="5.5" rx="7" ry="4.5" fill="#4f46e5" />
-      {/* Elongated earlobes */}
-      <ellipse cx="3" cy="18" rx="1.8" ry="3" fill="#4f46e5" stroke="#a5b4fc" strokeWidth="0.6" />
-      <ellipse cx="29" cy="18" rx="1.8" ry="3" fill="#4f46e5" stroke="#a5b4fc" strokeWidth="0.6" />
-      {/* Closed eyes — peaceful downward arcs */}
-      <path d="M8 16 Q11 12 14 16" stroke="white" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-      <path d="M18 16 Q21 12 24 16" stroke="white" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-      {/* Serene smile */}
-      <path d="M10 22 Q16 26 22 22" stroke="white" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.9" />
+      {/* Antenna dot */}
+      <circle cx="16" cy="3" r="2.2" fill="#818cf8" />
+      {/* Side arms */}
+      <rect x="1" y="14" width="4" height="7" rx="2" fill="#818cf8" />
+      <rect x="27" y="14" width="4" height="7" rx="2" fill="#818cf8" />
+      {/* Bot body — rounded rect */}
+      <rect x="6" y="7" width="20" height="22" rx="7" fill="url(#bot-bg)" />
     </svg>
   );
 }
@@ -56,7 +51,7 @@ export function MonkWordmark({
     }}>
       <span style={{ color: "#1e1b4b" }}>Answer</span>
       <span style={{ color: "#6366f1" }}>M</span>
-      <MonkFaceO size={config.iconSize} />
+      <BotO size={config.iconSize} />
       <span style={{ color: "#6366f1" }}>nk</span>
     </span>
   );
