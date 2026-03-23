@@ -537,12 +537,12 @@ function LandingInner() {
     return () => clearInterval(iv);
   }, [isRunning]);
 
-  // Case 2: scroll to dispatch feed when scoring session first becomes active
+  // Case 2: scroll to top when scoring session first becomes active so pipeline header is visible
   useEffect(() => {
     if (activeSessionId !== null) {
       setTimeout(() => {
-        dispatchFeedRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 250);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, 150);
     }
   }, [activeSessionId]);
 
