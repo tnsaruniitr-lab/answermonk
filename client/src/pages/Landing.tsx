@@ -1216,9 +1216,12 @@ function LandingInner() {
               <button
                 onClick={exitReplay}
                 data-testid="button-exit-replay"
-                className="flex items-center gap-2 text-slate-400 hover:text-white text-sm transition-colors"
+                className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
+                style={{ color: "#818cf8" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "#a5b4fc")}
+                onMouseLeave={e => (e.currentTarget.style.color = "#818cf8")}
               >
-                <ArrowRight className="w-4 h-4 rotate-180" />
+                <ArrowRight className="w-4 h-4 rotate-180" style={{ strokeWidth: 2.5 }} />
                 {replayMode ? "Back to analyses" : "← New analysis"}
               </button>
               {replayMode && (
