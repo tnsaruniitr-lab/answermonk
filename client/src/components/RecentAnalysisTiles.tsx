@@ -25,6 +25,28 @@ const ACCENT_PALETTE = [
   "#8b5cf6", "#ec4899", "#14b8a6", "#f97316",
 ];
 
+const G1_MAP: Record<string, string> = {
+  "#6366f1": "#ede9fe",
+  "#3b82f6": "#dbeafe",
+  "#10b981": "#d1fae5",
+  "#f59e0b": "#fef9c3",
+  "#8b5cf6": "#ede9fe",
+  "#ec4899": "#fce7f3",
+  "#14b8a6": "#ccfbf1",
+  "#f97316": "#ffedd5",
+};
+
+const G2_MAP: Record<string, string> = {
+  "#6366f1": "#dbeafe",
+  "#3b82f6": "#ede9fe",
+  "#10b981": "#ecfdf5",
+  "#f59e0b": "#fef3c7",
+  "#8b5cf6": "#fce7f3",
+  "#ec4899": "#ede9fe",
+  "#14b8a6": "#d1fae5",
+  "#f97316": "#fef9c3",
+};
+
 function accentFor(category: string): string {
   let hash = 0;
   for (const c of (category || "x").toLowerCase()) {
@@ -32,6 +54,9 @@ function accentFor(category: string): string {
   }
   return ACCENT_PALETTE[Math.abs(hash) % ACCENT_PALETTE.length];
 }
+
+function g1For(accent: string): string { return G1_MAP[accent] ?? "#ede9fe"; }
+function g2For(accent: string): string { return G2_MAP[accent] ?? "#dbeafe"; }
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -50,66 +75,38 @@ const ENGINES = [
   { key: "claude"  as const, short: "CLA", color: "#f59e0b" },
 ];
 
-// ── Score Ring ────────────────────────────────────────────────────────────────
-
-function ScoreRing({ score, accent }: { score: number; accent: string }) {
-  const r = 20;
-  const circ = 2 * Math.PI * r;
-  const label = score === 0 ? "—" : `${score}`;
-  return (
-    <div style={{ position: "relative", width: 50, height: 50, flexShrink: 0 }}>
-      <svg viewBox="0 0 50 50" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
-        <circle cx="25" cy="25" r={r} fill="none" stroke="#f1f5f9" strokeWidth="3.5" />
-        {score > 0 && (
-          <circle
-            cx="25" cy="25" r={r} fill="none"
-            stroke={accent} strokeWidth="3.5"
-            strokeDasharray={circ}
-            strokeDashoffset={circ * (1 - score / 100)}
-            strokeLinecap="round"
-            style={{ filter: `drop-shadow(0 0 4px ${accent}80)`, transition: "stroke-dashoffset 0.6s ease" }}
-          />
-        )}
-      </svg>
-      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ color: score > 0 ? accent : "#9ca3af", fontSize: score > 0 ? 13 : 17, fontWeight: 900, lineHeight: 1 }}>{label}</span>
-        {score > 0 && <span style={{ color: "#9ca3af", fontSize: 7, fontWeight: 600, marginTop: 1 }}>/ 100</span>}
-      </div>
-    </div>
-  );
-}
-
 // ── Skeleton tile ─────────────────────────────────────────────────────────────
 
 function SkeletonTile() {
   return (
     <div style={{
-      background: "rgba(255,255,255,0.88)",
-      border: "1px solid rgba(0,0,0,0.07)",
+      background: "linear-gradient(160deg, #ffffff 0%, #ede9fe33 100%)",
+      border: "1px solid rgba(99,102,241,0.1)",
       borderRadius: 14,
       overflow: "hidden",
-      boxShadow: "0 2px 12px rgba(99,102,241,0.06), 0 1px 3px rgba(0,0,0,0.04)",
+      boxShadow: "0 1px 8px rgba(99,102,241,0.08)",
+      display: "flex",
     }}>
-      <div style={{ height: 3, background: "rgba(99,102,241,0.15)" }} />
-      <div style={{ padding: "12px 14px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-          <div style={{ height: 18, width: 90, background: "rgba(0,0,0,0.06)", borderRadius: 4 }} />
-          <div style={{ height: 10, width: 40, background: "rgba(0,0,0,0.04)", borderRadius: 3 }} />
+      <div style={{ width: 4, flexShrink: 0, background: "linear-gradient(180deg, rgba(99,102,241,0.3) 0%, rgba(99,102,241,0.08) 100%)" }} />
+      <div style={{ padding: "12px 14px", flex: 1 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, alignItems: "center" }}>
+          <div style={{ height: 9, width: 110, background: "rgba(0,0,0,0.07)", borderRadius: 4 }} />
+          <div style={{ height: 9, width: 36, background: "rgba(0,0,0,0.04)", borderRadius: 3 }} />
         </div>
-        <div style={{ height: 13, width: "90%", background: "rgba(0,0,0,0.05)", borderRadius: 4, marginBottom: 5 }} />
-        <div style={{ height: 13, width: "65%", background: "rgba(0,0,0,0.04)", borderRadius: 4, marginBottom: 10 }} />
-        <div style={{ background: "rgba(0,0,0,0.025)", borderRadius: 10, padding: "9px 10px", marginBottom: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 8 }}>
-            <div style={{ width: 50, height: 50, borderRadius: "50%", background: "rgba(0,0,0,0.06)", flexShrink: 0 }} />
-            <div>
-              <div style={{ height: 10, width: 80, background: "rgba(0,0,0,0.06)", borderRadius: 3, marginBottom: 5 }} />
-              <div style={{ height: 9, width: 110, background: "rgba(0,0,0,0.04)", borderRadius: 3 }} />
-            </div>
+        <div style={{ height: 13, width: "90%", background: "rgba(0,0,0,0.06)", borderRadius: 4, marginBottom: 5 }} />
+        <div style={{ height: 13, width: "65%", background: "rgba(0,0,0,0.04)", borderRadius: 4, marginBottom: 12 }} />
+        <div style={{ borderRadius: 9, padding: "8px 9px", background: "rgba(99,102,241,0.05)", border: "1.5px solid rgba(99,102,241,0.1)", marginBottom: 10 }}>
+          <div style={{ height: 8, width: 55, background: "rgba(0,0,0,0.05)", borderRadius: 3, marginBottom: 6 }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <div style={{ width: 30, height: 20, background: "rgba(0,0,0,0.06)", borderRadius: 4 }} />
+            <div style={{ height: 12, flex: 1, background: "rgba(0,0,0,0.05)", borderRadius: 3 }} />
           </div>
-          <div style={{ borderTop: "1px solid rgba(0,0,0,0.05)", paddingTop: 7, display: "flex", flexDirection: "column" as const, gap: 5 }}>
-            <div style={{ height: 20, width: "75%", background: "rgba(0,0,0,0.04)", borderRadius: 4 }} />
-            <div style={{ height: 20, width: "60%", background: "rgba(0,0,0,0.04)", borderRadius: 4 }} />
-          </div>
+        </div>
+        <div style={{ borderTop: "1px solid rgba(0,0,0,0.05)", paddingTop: 7, marginBottom: 5 }}>
+          <div style={{ height: 12, width: "70%", background: "rgba(0,0,0,0.04)", borderRadius: 3 }} />
+        </div>
+        <div style={{ borderTop: "1px solid rgba(0,0,0,0.05)", paddingTop: 7, marginBottom: 10 }}>
+          <div style={{ height: 12, width: "55%", background: "rgba(0,0,0,0.04)", borderRadius: 3 }} />
         </div>
         <div style={{ display: "flex", gap: 5, marginBottom: 10 }}>
           {[1, 2, 3].map(i => (
@@ -126,50 +123,49 @@ function SkeletonTile() {
 
 function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
   const accent = accentFor(tile.category);
+  const g1 = g1For(accent);
+  const g2 = g2For(accent);
   const displayBrand = tile.topBrand || tile.brandDomain || tile.brandName;
 
   return (
     <div
       data-testid={`card-directory-tile-${tile.id}`}
       style={{
-        background: "rgba(255,255,255,0.88)",
-        border: "1px solid rgba(0,0,0,0.07)",
-        backdropFilter: "blur(12px)",
+        background: `linear-gradient(160deg, #ffffff 0%, ${g1}55 100%)`,
+        border: `1px solid ${accent}18`,
         borderRadius: 14,
         overflow: "hidden",
         cursor: "pointer",
-        boxShadow: "0 2px 12px rgba(99,102,241,0.06), 0 1px 3px rgba(0,0,0,0.04)",
-        transition: "box-shadow 0.2s, border-color 0.2s",
+        boxShadow: `0 1px 8px ${accent}14`,
         display: "flex",
-        flexDirection: "column",
+        transition: "box-shadow 0.18s, transform 0.15s",
       }}
       onMouseEnter={e => {
         const el = e.currentTarget as HTMLDivElement;
-        el.style.boxShadow = `0 4px 24px ${accent}20, 0 1px 6px rgba(0,0,0,0.06)`;
-        el.style.borderColor = `${accent}40`;
+        el.style.boxShadow = `0 6px 28px ${accent}28, 0 1px 6px ${accent}12`;
+        el.style.transform = "translateY(-2px)";
       }}
       onMouseLeave={e => {
         const el = e.currentTarget as HTMLDivElement;
-        el.style.boxShadow = "0 2px 12px rgba(99,102,241,0.06), 0 1px 3px rgba(0,0,0,0.04)";
-        el.style.borderColor = "rgba(0,0,0,0.07)";
+        el.style.boxShadow = `0 1px 8px ${accent}14`;
+        el.style.transform = "translateY(0)";
       }}
     >
-      {/* Top accent stripe */}
-      <div style={{ height: 3, background: `linear-gradient(90deg, ${accent}, ${accent}44)`, flexShrink: 0 }} />
+      {/* Left accent bar */}
+      <div style={{ width: 4, flexShrink: 0, background: `linear-gradient(180deg, ${accent} 0%, ${accent}33 100%)` }} />
 
-      <div style={{ padding: "12px 14px", flex: 1, display: "flex", flexDirection: "column" }}>
+      <div style={{ padding: "12px 13px", flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
 
         {/* Category + time */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 6 }}>
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: accent, flexShrink: 0 }} />
           <span style={{
-            fontSize: 10, fontWeight: 700, letterSpacing: "0.06em",
-            color: accent, background: `${accent}14`,
-            padding: "2px 8px", borderRadius: 4,
-            maxWidth: 135, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            fontSize: 9.5, fontWeight: 700, letterSpacing: "0.07em",
+            color: accent, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>
             {tile.category.toUpperCase()}
           </span>
-          <span style={{ color: "#9ca3af", fontSize: 10, flexShrink: 0 }}>
+          <span style={{ color: "#9ca3af", fontSize: 9.5, marginLeft: "auto", flexShrink: 0 }}>
             {timeAgo(tile.createdAt)}
           </span>
         </div>
@@ -184,69 +180,93 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
           {tile.query.replace(/^best\s+/i, "")}
         </p>
 
-        {/* Rankings block */}
-        <div style={{
-          background: "rgba(0,0,0,0.025)", borderRadius: 10,
-          padding: "9px 10px", marginBottom: 10, flex: 1,
-        }}>
-          {/* All rankings — unified row format */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-            {[{ rank: 1, name: displayBrand, share: tile.topScore, solid: true }, ...tile.rivals.slice(0, 2).map((r, i) => ({ rank: i + 2, name: r.name, share: r.share, solid: false }))].map((row, i) => (
-              row.solid ? (
-                <div key={row.rank} style={{ position: "relative", marginBottom: 10 }}>
-                  <div style={{ background: `${accent}10`, border: `1.5px solid ${accent}40`, borderRadius: 9, padding: "7px 9px" }}>
-                    <div style={{ display: "flex", alignItems: "center", marginBottom: 5 }}>
-                      <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: "0.08em", color: accent, opacity: 0.7, textTransform: "uppercase" } as React.CSSProperties}>
-                        ★ AI Leader
-                      </span>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: row.share > 0 ? 5 : 0 }}>
-                      <span style={{ fontSize: 10, fontWeight: 800, color: "#fff", background: accent, borderRadius: 4, padding: "2px 6px", flexShrink: 0 }}>#1</span>
-                      <span style={{ color: "#111827", fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
-                        {row.name}
-                      </span>
-                      {row.share > 0 && (
-                        <span style={{ fontSize: 10.5, fontWeight: 800, flexShrink: 0, color: accent, background: `${accent}20`, border: `1px solid ${accent}40`, borderRadius: 20, padding: "2px 7px" }}>
-                          {row.share}%
-                        </span>
-                      )}
-                    </div>
-                    {row.share > 0 && (
-                      <div style={{ height: 3, borderRadius: 99, background: "rgba(0,0,0,0.08)", overflow: "hidden" }}>
-                        <div style={{ height: "100%", borderRadius: 99, width: `${row.share}%`, background: `linear-gradient(90deg, ${accent}88, ${accent})` }} />
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ position: "absolute", bottom: -7, left: 18, width: 0, height: 0, borderLeft: "7px solid transparent", borderRight: "7px solid transparent", borderTop: `7px solid ${accent}40` }} />
-                  <div style={{ position: "absolute", bottom: -5, left: 19, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: `6px solid ${accent}10` }} />
-                </div>
-              ) : (
-                <div key={row.rank} style={{ borderTop: "1px solid rgba(0,0,0,0.05)", paddingTop: 6 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: row.share > 0 ? 4 : 0 }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: "#6b7280", background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 4, padding: "2px 6px", flexShrink: 0 }}>
-                      #{row.rank}
+        {/* Rankings */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 10, flex: 1 }}>
+          {[
+            { rank: 1, name: displayBrand, share: tile.topScore, solid: true },
+            ...tile.rivals.slice(0, 2).map((r, i) => ({ rank: i + 2, name: r.name, share: r.share, solid: false })),
+          ].map(row => (
+            row.solid ? (
+              /* Winner gradient bubble */
+              <div key={row.rank} style={{ position: "relative", marginBottom: 10 }}>
+                <div style={{
+                  background: `linear-gradient(135deg, ${accent}20 0%, ${g1}cc 60%, ${g2}88 100%)`,
+                  border: `1.5px solid ${accent}35`,
+                  borderRadius: 9, padding: "7px 9px",
+                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 6px ${accent}12`,
+                }}>
+                  <div style={{ marginBottom: 5 }}>
+                    <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: "0.08em", color: accent, textTransform: "uppercase" as const }}>
+                      ★ AI Leader
                     </span>
-                    <span style={{ color: "#374151", fontSize: 12, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: row.share > 0 ? 5 : 0 }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 800, color: "#fff",
+                      background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+                      borderRadius: 4, padding: "2px 6px", flexShrink: 0,
+                      boxShadow: `0 1px 4px ${accent}50`,
+                    }}>
+                      #1
+                    </span>
+                    <span style={{ color: "#111827", fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
                       {row.name}
                     </span>
                     {row.share > 0 && (
-                      <span style={{ fontSize: 10.5, fontWeight: 800, flexShrink: 0, color: accent, background: `${accent}15`, border: `1px solid ${accent}30`, borderRadius: 20, padding: "2px 7px" }}>
+                      <span style={{
+                        fontSize: 10.5, fontWeight: 800, flexShrink: 0, color: accent,
+                        background: "rgba(255,255,255,0.7)", border: `1px solid ${accent}35`,
+                        borderRadius: 20, padding: "2px 7px",
+                      }}>
                         {row.share}%
                       </span>
                     )}
                   </div>
                   {row.share > 0 && (
-                    <div style={{ height: 3, borderRadius: 99, background: "rgba(0,0,0,0.06)", overflow: "hidden" }}>
-                      <div style={{ height: "100%", borderRadius: 99, width: `${row.share}%`, background: `linear-gradient(90deg, ${accent}88, ${accent})` }} />
+                    <div style={{ height: 3, borderRadius: 99, background: "rgba(255,255,255,0.4)", overflow: "hidden" }}>
+                      <div style={{ height: "100%", borderRadius: 99, width: `${row.share}%`, background: `linear-gradient(90deg, ${accent}80, ${accent})`, boxShadow: `0 0 6px ${accent}60` }} />
                     </div>
                   )}
                 </div>
-              )
-            ))}
-          </div>
+                {/* Bubble pointer */}
+                <div style={{ position: "absolute", bottom: -7, left: 18, width: 0, height: 0, borderLeft: "7px solid transparent", borderRight: "7px solid transparent", borderTop: `7px solid ${accent}35` }} />
+                <div style={{ position: "absolute", bottom: -5, left: 19, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: `6px solid ${g1}` }} />
+              </div>
+            ) : (
+              /* #2 / #3 rows */
+              <div key={row.rank} style={{ borderTop: "1px solid rgba(0,0,0,0.05)", paddingTop: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: row.share > 0 ? 4 : 0 }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 800, color: "#6b7280",
+                    background: `linear-gradient(135deg, #f3f4f6, ${g1}66)`,
+                    border: "1px solid #e5e7eb", borderRadius: 4, padding: "2px 6px", flexShrink: 0,
+                  }}>
+                    #{row.rank}
+                  </span>
+                  <span style={{ color: "#374151", fontSize: 12, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+                    {row.name}
+                  </span>
+                  {row.share > 0 && (
+                    <span style={{
+                      fontSize: 10.5, fontWeight: 800, flexShrink: 0, color: accent,
+                      background: `linear-gradient(135deg, ${accent}12, ${g1}80)`,
+                      border: `1px solid ${accent}25`, borderRadius: 20, padding: "2px 7px",
+                    }}>
+                      {row.share}%
+                    </span>
+                  )}
+                </div>
+                {row.share > 0 && (
+                  <div style={{ height: 3, borderRadius: 99, background: `linear-gradient(90deg, rgba(0,0,0,0.04), ${g1}88)`, overflow: "hidden" }}>
+                    <div style={{ height: "100%", borderRadius: 99, width: `${row.share}%`, background: `linear-gradient(90deg, ${accent}70, ${accent}cc)` }} />
+                  </div>
+                )}
+              </div>
+            )
+          ))}
         </div>
 
-        {/* Engine badges — always visible, fixed per-engine colors */}
+        {/* Engine badges */}
         <div style={{ display: "flex", gap: 5, marginBottom: 10 }}>
           {ENGINES.map(e => {
             const on = tile.engines[e.key];
@@ -272,8 +292,8 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
           data-testid={`button-view-analysis-${tile.id}`}
           style={{
             width: "100%", padding: "7px 0", borderRadius: 8,
-            border: `1.5px solid ${accent}33`,
-            background: `${accent}08`,
+            border: `1.5px solid ${accent}30`,
+            background: `linear-gradient(135deg, ${accent}10, ${g1}66)`,
             color: accent, fontSize: 11, fontWeight: 700,
             cursor: "pointer", display: "flex", alignItems: "center",
             justifyContent: "center", gap: 5, letterSpacing: "0.01em",
@@ -281,13 +301,13 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
           }}
           onMouseEnter={e => {
             const el = e.currentTarget as HTMLButtonElement;
-            el.style.background = `${accent}14`;
+            el.style.background = `linear-gradient(135deg, ${accent}1a, ${g1}99)`;
             el.style.borderColor = `${accent}55`;
           }}
           onMouseLeave={e => {
             const el = e.currentTarget as HTMLButtonElement;
-            el.style.background = `${accent}08`;
-            el.style.borderColor = `${accent}33`;
+            el.style.background = `linear-gradient(135deg, ${accent}10, ${g1}66)`;
+            el.style.borderColor = `${accent}30`;
           }}
         >
           View full analysis
@@ -349,7 +369,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
         )}
       </div>
 
-      {/* Responsive grid — 3-col desktop, 2-col tablet, 1-col mobile */}
+      {/* Responsive grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
         {isLoading
           ? Array.from({ length: INITIAL_COUNT }, (_, i) => <SkeletonTile key={i} />)
@@ -375,9 +395,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
               padding: "9px 28px", borderRadius: 10, cursor: "pointer",
             }}
           >
-            {expanded
-              ? "Show less ↑"
-              : `Show ${hiddenCount} more analyses ↓`}
+            {expanded ? "Show less ↑" : `Show ${hiddenCount} more analyses ↓`}
           </button>
         </div>
       )}
