@@ -697,10 +697,10 @@ function LandingInner() {
   const canRun = selectedServices.size > 0 && selectedCustomers.size > 0 && city.trim().length > 0;
 
   const steps = [
-    { title: "Signal Extraction", desc: "We crawl your domain and extract brand and sector signals", icon: Brain },
-    { title: "LLM Scoring", desc: "ChatGPT, Claude, Gemini and Perplexity are queried across your key prompts", icon: Search },
-    { title: "Audit Analysis", desc: "Authority sources mapped and competitor strategies extracted", icon: TrendingUp },
-    { title: "Deploy Agents", desc: "Agents activated to fix your AI visibility", icon: Rocket },
+    { title: "Signal Extraction", desc: "Your site, category, and competitors are ingested — we identify the signals AI engines use to decide who gets cited", icon: Brain },
+    { title: "LLM Scoring", desc: "Real buyer prompts are fired at ChatGPT, Claude, Gemini, and Perplexity — we record exactly where your brand appears (or doesn't)", icon: Search },
+    { title: "Audit Analysis", desc: "We map which domains, sources, and content patterns are driving your competitors' AI citations right now", icon: TrendingUp },
+    { title: "Deploy Agents", desc: "You get a prioritised action plan — the exact content and authority fixes that move your brand into AI answers", icon: Rocket },
   ];
 
   return (
