@@ -176,12 +176,12 @@ export function CitationSourcesPreview({ sessionId }: Props) {
         </div>
 
         {/* Top 3 podium cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10, marginBottom: 14 }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
           {top3.map((s, i) => {
             const isExpanded = expandedDomain === s.domain;
             const isLoadingThis = loadingDomain === s.domain;
             return (
-              <div key={s.domain}>
+              <div key={s.domain} style={{ width: 160, flexShrink: 0 }}>
                 <button
                   onClick={() => toggleDomain(s.domain)}
                   style={{
