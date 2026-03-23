@@ -319,11 +319,6 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
     staleTime: 60_000,
   });
 
-  const { data: stats } = useQuery<{ auditsCompleted: number }>({
-    queryKey: ["/api/stats"],
-    staleTime: 5 * 60_000,
-  });
-
   // Deferred background fetch — starts after tiles render
   useEffect(() => {
     let cancelled = false;
@@ -387,8 +382,8 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
       {/* Header row: trust signal + search left, view-all right */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {/* Audit trust signal — only render once number is known */}
-          {stats && (
+          {/* Audit trust signal — derived from search index so always in sync */}
+          {indexReady && searchIndex.length > 0 && (
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 5,
               fontSize: 12, fontWeight: 600, color: "#4f46e5",
@@ -398,7 +393,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
               whiteSpace: "nowrap", flexShrink: 0,
             }}>
               <span style={{ color: "#6366f1", fontWeight: 800, fontSize: 11 }}>✓</span>
-              {stats.auditsCompleted.toLocaleString()} audits completed
+              {searchIndex.length.toLocaleString()} audits completed
             </span>
           )}
 
@@ -457,7 +452,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
               borderRadius: 8, padding: "5px 14px", cursor: "pointer", flexShrink: 0,
             }}
           >
-            View all {tiles.length}
+            View all
           </button>
         )}
       </div>
