@@ -297,7 +297,7 @@ function SegmentResultCard({ seg, brandName, detectedService, selected, onToggle
             <span style={{ fontSize: 12.5, fontWeight: 700, color: "rgba(255,255,255,0.9)", letterSpacing: "0.01em" }}>
               Citations · {aggregatedCitations.length} sources
             </span>
-            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.45)", transition: "color 0.2s" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11.5, fontWeight: 700, color: "rgba(255,255,255,0.75)", transition: "color 0.2s" }}>
               {showCitations ? "Hide" : "View all URLs referred to by LLMs"}
               <ChevronDown
                 size={12}
