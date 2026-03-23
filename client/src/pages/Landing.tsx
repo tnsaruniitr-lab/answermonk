@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getAdminSettings, getEnabledEngines } from "@/hooks/useAdminSettings";
 import { RecentAnalysisTiles } from "@/components/RecentAnalysisTiles";
 import { AnalysisPipelineHeader } from "@/components/AnalysisPipelineHeader";
+import { MonkWordmark } from "@/components/MonkWordmark";
 const AuthoritySourcesPanel = lazy(() =>
   import("@/components/AuthoritySourcesPanel").then(m => ({ default: m.AuthoritySourcesPanel }))
 );
@@ -699,9 +700,7 @@ function LandingInner() {
       {!isComplete && activeSessionId === null && (
         <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between relative z-10">
           <div className="flex items-center">
-            <span className="text-xl font-bold tracking-tight" style={{ color: "#1e1b4b" }}>
-              Answer<span style={{ color: "#6366f1" }}>Monk</span>
-            </span>
+            <MonkWordmark size="md" />
           </div>
         </header>
       )}
@@ -738,7 +737,7 @@ function LandingInner() {
 
                 {/* Subtext */}
                 <p className="text-lg md:text-xl max-w-xl mx-auto leading-relaxed" style={{ color: "#374151" }}>
-                  <span style={{ color: "#1e1b4b", fontWeight: 600 }}>Answer<span style={{ color: "#6366f1" }}>Monk</span> makes AI recommend you.</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 600 }}><MonkWordmark size="sm" /> makes AI recommend you.</span>
                 </p>
               </>
             )}
