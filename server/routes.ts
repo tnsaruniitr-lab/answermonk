@@ -709,6 +709,21 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/stats", async (_req: Request, res: Response) => {
+    try {
+      const result = await pool.query(
+        `SELECT COUNT(*) AS total FROM multi_segment_sessions
+         WHERE cached_report IS NOT NULL
+           AND session_type = 'brand'
+           AND parent_session_id IS NULL`
+      );
+      const total = parseInt(result.rows[0]?.total ?? "0", 10);
+      return res.json({ auditsCompleted: total });
+    } catch {
+      return res.json({ auditsCompleted: 0 });
+    }
+  });
+
   app.post("/api/waitlist", async (req: Request, res: Response) => {
     try {
       const schema = z.object({

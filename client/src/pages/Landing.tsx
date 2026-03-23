@@ -412,6 +412,11 @@ function LandingInner() {
     },
   });
 
+  const { data: stats } = useQuery<{ auditsCompleted: number }>({
+    queryKey: ["/api/stats"],
+    staleTime: 5 * 60 * 1000,
+  });
+
   const { data: submission } = useQuery({
     queryKey: ["/api/landing/submission", submissionId],
     queryFn: async () => {
@@ -787,9 +792,25 @@ function LandingInner() {
               </>
             )}
 
+            {/* Trust signal — audit count */}
+            {!isComplete && !replayMode && activeSessionId === null && stats && stats.auditsCompleted > 0 && (
+              <div style={{ marginTop: 20, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  fontSize: 13, fontWeight: 500, color: "#4f46e5",
+                  background: "rgba(99,102,241,0.07)",
+                  border: "1px solid rgba(99,102,241,0.15)",
+                  borderRadius: 99, padding: "4px 12px",
+                }}>
+                  <span style={{ color: "#22c55e", fontWeight: 700 }}>✓</span>
+                  {stats.auditsCompleted.toLocaleString()} brand audits completed
+                </span>
+              </div>
+            )}
+
             {/* URL Input — hidden once complete or in replay mode */}
             {!isComplete && !isError && !replayMode && (
-              <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto space-y-4" style={{ marginTop: 40 }}>
+              <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto space-y-4" style={{ marginTop: 20 }}>
                 <input
                   ref={honeypotRef}
                   name="_hp"
