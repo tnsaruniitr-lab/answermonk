@@ -737,7 +737,7 @@ function LandingInner() {
 
                 {/* Subtext */}
                 <p className="text-lg md:text-xl max-w-xl mx-auto leading-relaxed" style={{ color: "#374151" }}>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 600 }}><MonkWordmark size="sm" /> makes AI recommend you.</span>
+                  <span style={{ fontWeight: 600 }}>Answer<span style={{ color: "#6366f1" }}>Monk</span> makes AI recommend you.</span>
                 </p>
               </>
             )}
