@@ -667,7 +667,7 @@ function LandingInner() {
 
   return (
     <div
-      className="relative min-h-screen w-full overflow-hidden flex flex-col font-sans"
+      className="relative min-h-screen w-full overflow-clip flex flex-col font-sans"
       style={{ background: "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)" }}
       data-testid="landing-page"
     >
