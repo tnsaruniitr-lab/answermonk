@@ -793,8 +793,8 @@ function LandingInner() {
             )}
 
             {/* Trust signal — audit count */}
-            {!isComplete && !replayMode && activeSessionId === null && stats && stats.auditsCompleted > 0 && (
-              <div style={{ marginTop: 20, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            {!isComplete && !replayMode && activeSessionId === null && (
+              <div style={{ marginTop: 20, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <span style={{
                   display: "inline-flex", alignItems: "center", gap: 6,
                   fontSize: 13, fontWeight: 500, color: "#4f46e5",
@@ -803,7 +803,9 @@ function LandingInner() {
                   borderRadius: 99, padding: "4px 12px",
                 }}>
                   <span style={{ color: "#22c55e", fontWeight: 700 }}>✓</span>
-                  {stats.auditsCompleted.toLocaleString()} brand audits completed
+                  {stats && stats.auditsCompleted > 0
+                    ? `${stats.auditsCompleted.toLocaleString()} brand audits completed`
+                    : "Free to start · No account needed"}
                 </span>
               </div>
             )}
