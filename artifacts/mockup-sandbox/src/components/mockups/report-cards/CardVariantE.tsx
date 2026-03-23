@@ -87,7 +87,7 @@ export default function CardVariantE() {
               </p>
 
               {/* Score ring + brand info */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                 <ScoreRing score={tile.score} accent={tile.accent} />
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
@@ -96,11 +96,35 @@ export default function CardVariantE() {
                       {tile.topBrand}
                     </span>
                   </div>
-                  <div style={{ color: "#6b7280", fontSize: 10.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {tile.rivals.slice(0, 2).map((r, i) => `#${i + 2} ${r}`).join(" · ")}
-                  </div>
+                  <span style={{ color: "#9ca3af", fontSize: 10 }}>Most cited in AI responses</span>
                 </div>
               </div>
+
+              {/* #2 and #3 rivals — bigger, bolder */}
+              {tile.rivals.length > 0 && (
+                <div style={{ borderTop: "1px solid rgba(0,0,0,0.05)", paddingTop: 8, display: "flex", flexDirection: "column", gap: 5, marginBottom: 10 }}>
+                  {tile.rivals.slice(0, 2).map((r, i) => (
+                    <div key={r} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                      <span style={{ fontSize: 10, fontWeight: 800, color: "#6b7280", background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 4, padding: "2px 6px", flexShrink: 0 }}>
+                        #{i + 2}
+                      </span>
+                      <span style={{ color: "#1f2937", fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* CTA */}
+              <button style={{
+                width: "100%", padding: "7px 0", borderRadius: 8,
+                border: `1.5px solid ${tile.accent}33`,
+                background: `${tile.accent}08`,
+                color: tile.accent, fontSize: 11, fontWeight: 700,
+                cursor: "pointer", display: "flex", alignItems: "center",
+                justifyContent: "center", gap: 5,
+              }}>
+                View full analysis <span style={{ fontSize: 13 }}>→</span>
+              </button>
             </div>
           </div>
         ))}
