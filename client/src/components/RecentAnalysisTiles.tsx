@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import Fuse from "fuse.js";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -16,6 +17,14 @@ interface DirectoryTile {
   rivals: { name: string; share: number }[];
   engines: { chatgpt: boolean; gemini: boolean; claude: boolean };
   createdAt: string;
+}
+
+interface SearchIndexEntry {
+  id: number;
+  category: string;
+  query: string;
+  ownBrand: string;
+  citedBrands: string[];
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -287,6 +296,18 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
 
 const INITIAL_COUNT = 6;
 
+const FUSE_OPTIONS: Fuse.IFuseOptions<SearchIndexEntry> = {
+  keys: [
+    { name: "category",     weight: 0.35 },
+    { name: "query",        weight: 0.25 },
+    { name: "ownBrand",     weight: 0.25 },
+    { name: "citedBrands",  weight: 0.15 },
+  ],
+  threshold: 0.35,
+  includeScore: false,
+  minMatchCharLength: 2,
+};
+
 interface RecentAnalysisTilesProps {
   onSelect?: (sessionId: number) => void;
 }
@@ -294,14 +315,54 @@ interface RecentAnalysisTilesProps {
 export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
   const [, navigate] = useLocation();
   const [expanded, setExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchIndex, setSearchIndex] = useState<SearchIndexEntry[]>([]);
+  const [indexReady, setIndexReady] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: tiles = [], isLoading } = useQuery<DirectoryTile[]>({
     queryKey: ["/api/directory/recent"],
     staleTime: 60_000,
   });
 
-  const visible = expanded ? tiles : tiles.slice(0, INITIAL_COUNT);
+  // Deferred background fetch — starts after tiles render
+  useEffect(() => {
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      fetch("/api/directory/search-index")
+        .then(r => r.json())
+        .then((data: SearchIndexEntry[]) => {
+          if (!cancelled) {
+            setSearchIndex(Array.isArray(data) ? data : []);
+            setIndexReady(true);
+          }
+        })
+        .catch(() => { if (!cancelled) setIndexReady(true); });
+    }, 800);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, []);
+
+  const fuse = useMemo(
+    () => indexReady ? new Fuse(searchIndex, FUSE_OPTIONS) : null,
+    [searchIndex, indexReady],
+  );
+
+  // Matched session IDs — null means "no search active"
+  const matchedIds = useMemo<Set<number> | null>(() => {
+    const q = searchQuery.trim();
+    if (!q || !fuse) return null;
+    return new Set(fuse.search(q).map(r => r.item.id));
+  }, [searchQuery, fuse]);
+
+  // When searching: show ALL tiles that match (ignore pagination)
+  // When not searching: respect expand/collapse
+  const visible = useMemo(() => {
+    if (matchedIds !== null) return tiles.filter(t => matchedIds.has(t.id));
+    return expanded ? tiles : tiles.slice(0, INITIAL_COUNT);
+  }, [tiles, matchedIds, expanded]);
+
   const hiddenCount = tiles.length - INITIAL_COUNT;
+  const isSearching = searchQuery.trim().length > 0;
 
   if (!isLoading && tiles.length === 0) return null;
 
@@ -315,18 +376,63 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
 
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", marginTop: 56 }}>
-      {/* Section header */}
-      <div style={{ textAlign: "center", marginBottom: 24, position: "relative" }}>
-        {!isLoading && tiles.length > INITIAL_COUNT && !expanded && (
+
+      {/* Header row: title left, search + view-all right */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {/* Search pill */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 7,
+            background: "rgba(255,255,255,0.85)",
+            border: `1px solid ${isSearching ? "rgba(99,102,241,0.4)" : "rgba(0,0,0,0.1)"}`,
+            borderRadius: 20, padding: "5px 12px",
+            boxShadow: isSearching ? "0 0 0 3px rgba(99,102,241,0.1)" : "0 1px 4px rgba(0,0,0,0.06)",
+            transition: "border-color 0.15s, box-shadow 0.15s",
+            backdropFilter: "blur(8px)",
+          }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={isSearching ? "#6366f1" : "#9ca3af"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              ref={inputRef}
+              data-testid="input-search-directory"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder={indexReady ? "Search category or brand…" : "Loading search…"}
+              disabled={!indexReady}
+              style={{
+                border: "none", outline: "none", background: "transparent",
+                fontSize: 12, color: "#111827", width: 180,
+                fontFamily: "system-ui, sans-serif",
+                "::placeholder": { color: "#9ca3af" } as any,
+              }}
+            />
+            {isSearching && (
+              <button
+                onClick={() => setSearchQuery("")}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "#9ca3af", fontSize: 14, lineHeight: 1 }}
+              >×</button>
+            )}
+          </div>
+
+          {/* Search result count */}
+          {isSearching && (
+            <span style={{ fontSize: 11, color: "#6b7280" }}>
+              {visible.length === 0 ? "No results" : `${visible.length} result${visible.length === 1 ? "" : "s"}`}
+            </span>
+          )}
+        </div>
+
+        {/* View all button — hidden while searching */}
+        {!isLoading && tiles.length > INITIAL_COUNT && !expanded && !isSearching && (
           <button
             onClick={() => setExpanded(true)}
             data-testid="button-directory-view-all"
             style={{
-              position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)",
               color: "#6366f1", fontSize: 12, fontWeight: 600,
               background: "rgba(99,102,241,0.08)",
               border: "1px solid rgba(99,102,241,0.2)",
-              borderRadius: 8, padding: "5px 14px", cursor: "pointer",
+              borderRadius: 8, padding: "5px 14px", cursor: "pointer", flexShrink: 0,
             }}
           >
             View all {tiles.length}
@@ -338,7 +444,15 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
         {isLoading
           ? Array.from({ length: INITIAL_COUNT }, (_, i) => <SkeletonTile key={i} />)
-          : visible.map(tile => (
+          : visible.length === 0 && isSearching
+            ? (
+              <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "48px 0", color: "#9ca3af" }}>
+                <div style={{ fontSize: 32, marginBottom: 10 }}>🔍</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "#6b7280", marginBottom: 4 }}>No analyses found</div>
+                <div style={{ fontSize: 12 }}>Try a different brand name or category</div>
+              </div>
+            )
+            : visible.map(tile => (
               <Tile
                 key={tile.id}
                 tile={tile}
@@ -347,8 +461,8 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
             ))}
       </div>
 
-      {/* Expand / collapse */}
-      {!isLoading && tiles.length > INITIAL_COUNT && (
+      {/* Expand / collapse — hidden while searching */}
+      {!isLoading && !isSearching && tiles.length > INITIAL_COUNT && (
         <div style={{ textAlign: "center", marginTop: 20 }}>
           <button
             onClick={() => setExpanded(x => !x)}

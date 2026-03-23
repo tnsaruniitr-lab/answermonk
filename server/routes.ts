@@ -1581,6 +1581,76 @@ export async function registerRoutes(
     }
   });
 
+  // ── Search index — lightweight payload for client-side fuzzy search ──────────
+  let _searchIndexCache: { data: any[]; ts: number } | null = null;
+  const SEARCH_INDEX_TTL_MS = 5 * 60 * 1000;
+
+  app.get("/api/directory/search-index", async (_req, res) => {
+    try {
+      if (_searchIndexCache && Date.now() - _searchIndexCache.ts < SEARCH_INDEX_TTL_MS) {
+        res.setHeader("Cache-Control", "public, max-age=300");
+        return res.json(_searchIndexCache.data);
+      }
+
+      const { pool } = await import("./db");
+      const result = await pool.query(`
+        SELECT id, brand_name, segments
+        FROM multi_segment_sessions
+        WHERE session_type IS DISTINCT FROM 'competitor'
+          AND segments IS NOT NULL
+          AND jsonb_array_length(segments) > 0
+        ORDER BY created_at DESC
+        LIMIT 500
+      `);
+
+      const GENERIC = ["service", "customer", "providers", "provider"];
+
+      const index = result.rows.map((row: any) => {
+        const segments: any[] = Array.isArray(row.segments) ? row.segments : [];
+
+        // derive category + query from first scorable segment
+        let category = "";
+        let query = "";
+        for (const seg of segments) {
+          const sr = seg?.scoringResult ?? {};
+          if (!sr.score) continue;
+          const rawSeed = (seg?.seedType || "").trim();
+          const seedType = GENERIC.includes(rawSeed.toLowerCase())
+            ? (seg?.serviceType || seg?.customerType || seg?.persona || rawSeed).trim()
+            : (rawSeed || seg?.serviceType || seg?.customerType || seg?.persona || "").trim();
+          const location = (seg?.location || "").trim();
+          category = seedType || (seg?.persona || "").trim();
+          query = seedType && location ? `${seedType} in ${location}` : seedType || location;
+          break;
+        }
+
+        // collect all cited brands (share > 0) across all segments
+        const brandSet = new Set<string>();
+        for (const seg of segments) {
+          const competitors: any[] = seg?.scoringResult?.score?.competitors ?? [];
+          for (const c of competitors) {
+            if (c?.name && (c?.share ?? 0) > 0) brandSet.add(c.name.trim());
+          }
+        }
+
+        return {
+          id: row.id,
+          category,
+          query,
+          ownBrand: (row.brand_name || "").trim(),
+          citedBrands: Array.from(brandSet),
+        };
+      }).filter((r: any) => r.category || r.ownBrand);
+
+      _searchIndexCache = { data: index, ts: Date.now() };
+      res.setHeader("Cache-Control", "public, max-age=300");
+      res.json(index);
+    } catch (err) {
+      console.error("[directory/search-index] error:", err);
+      res.status(500).json({ message: "Failed to build search index" });
+    }
+  });
+
   app.get("/api/multisegment/sessions", async (_req, res) => {
     try {
       const sessions = await storage.listMultiSegmentSessions();
