@@ -701,7 +701,7 @@ function LandingInner() {
 
         {/* Hero — vertically centered with same -mt-20 trick as mockup */}
         <div
-          className={`flex flex-col items-center px-4 pb-8 ${(isComplete || activeSessionId !== null) ? "pt-4" : "pt-12"}`}
+          className={`flex flex-col items-center px-4 ${(activeSessionId !== null && !isRunning) ? "pt-0 pb-0" : `pb-8 ${(isComplete || activeSessionId !== null) ? "pt-4" : "pt-12"}`}`}
         >
         <div className="space-y-5 max-w-3xl flex flex-col items-center w-full">
 
