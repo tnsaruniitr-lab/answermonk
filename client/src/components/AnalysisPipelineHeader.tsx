@@ -38,7 +38,6 @@ export function AnalysisPipelineHeader({
     : 5;
 
   const allDone = activeStage > 4;
-  const pulse = tick % 2 === 0;
 
   const statusText = (stageId: number) => {
     if (stageId < activeStage) return "Complete";
@@ -61,153 +60,136 @@ export function AnalysisPipelineHeader({
         left: 0,
         right: 0,
         zIndex: 100,
-        padding: "8px 12px",
+        padding: "10px 16px",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
         background: "transparent",
         pointerEvents: "none",
       }}
     >
       <div
         style={{
-          background: "linear-gradient(180deg, #0d1526 0%, #080e1d 100%)",
-          border: "1px solid rgba(255,255,255,0.10)",
-          borderRadius: 14,
-          padding: "0 20px",
-          display: "flex",
+          display: "inline-flex",
           alignItems: "center",
-          height: 60,
-          gap: 8,
-          boxShadow: "0 4px 24px rgba(0,0,0,0.65), 0 1px 0 rgba(255,255,255,0.04) inset",
-          backdropFilter: "blur(12px)",
+          gap: 0,
+          background: "#ffffff",
+          border: "1px solid rgba(226,232,240,0.95)",
+          borderRadius: 12,
+          padding: "10px 20px",
+          boxShadow: "0 1px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(226,232,240,0.5)",
           pointerEvents: "auto",
         }}
       >
-        <div
-          style={{
-            fontSize: 10,
-            fontWeight: 800,
-            color: allDone ? "#10b981" : "#6366f1",
-            marginRight: 8,
-            letterSpacing: "0.15em",
-            textTransform: "uppercase",
-            flexShrink: 0,
-            transition: "color 0.6s",
-          }}
-        >
-          ◈ AM
-        </div>
+        {STAGES.map((s, i) => {
+          const done = s.id < activeStage;
+          const active = s.id === activeStage;
 
-        <div style={{ display: "flex", alignItems: "center", flex: 1, gap: 6 }}>
-          {STAGES.map((s, i) => {
-            const done = s.id < activeStage;
-            const active = s.id === activeStage;
-
-            return (
-              <div key={s.id} style={{ display: "flex", alignItems: "center", flex: 1 }}>
+          return (
+            <div key={s.id} style={{ display: "flex", alignItems: "center" }}>
+              {i > 0 && (
                 <div
                   style={{
-                    flex: 1,
+                    width: 32,
+                    height: 2,
+                    margin: "0 6px",
+                    borderRadius: 1,
                     background: done
-                      ? "linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.07) 100%)"
+                      ? "linear-gradient(90deg, #4f46e5, #7c3aed)"
                       : active
-                      ? `linear-gradient(135deg, rgba(79,70,229,${pulse ? 0.22 : 0.16}) 0%, rgba(109,40,217,0.12) 100%)`
-                      : "rgba(255,255,255,0.03)",
-                    border: done
-                      ? "1px solid rgba(16,185,129,0.3)"
-                      : active
-                      ? `1px solid rgba(99,102,241,${pulse ? 0.5 : 0.3})`
-                      : "1px solid rgba(255,255,255,0.07)",
-                    borderRadius: 8,
-                    padding: "7px 12px",
+                      ? "linear-gradient(90deg, #7c3aed, rgba(203,213,225,0.35))"
+                      : "rgba(203,213,225,0.5)",
+                    transition: "background 0.5s",
+                  }}
+                />
+              )}
+              <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                <div
+                  style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: "50%",
                     display: "flex",
                     alignItems: "center",
-                    gap: 8,
-                    transition: "border-color 0.4s, background 0.4s",
-                    boxShadow: active
-                      ? `0 0 12px rgba(99,102,241,${pulse ? 0.18 : 0.08})`
-                      : "none",
+                    justifyContent: "center",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    flexShrink: 0,
+                    transition: "all 0.4s",
+                    ...(done
+                      ? { background: "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "#fff" }
+                      : active
+                      ? { background: "#fff", border: "2px solid #4f46e5", color: "#4f46e5" }
+                      : { background: "rgba(226,232,240,0.7)", border: "2px solid rgba(203,213,225,0.8)", color: "#94a3b8" }),
                   }}
                 >
+                  {done ? (
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M2.5 6l2.5 2.5 4.5-5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : active ? (
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        background: "#4f46e5",
+                        display: "block",
+                        animation: "am-blink 1.2s ease-in-out infinite",
+                      }}
+                    />
+                  ) : (
+                    s.id
+                  )}
+                </div>
+                <div>
                   <div
                     style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: 4,
-                      background: done
-                        ? "rgba(16,185,129,0.2)"
-                        : active
-                        ? "rgba(79,70,229,0.3)"
-                        : "rgba(255,255,255,0.05)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 10,
-                      color: done ? "#10b981" : active ? "#818cf8" : "#374151",
-                      flexShrink: 0,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      lineHeight: 1,
+                      color: done ? "#1e293b" : active ? "#4f46e5" : "#94a3b8",
+                      transition: "color 0.4s",
                     }}
                   >
-                    {done ? "✓" : s.id}
+                    {s.shortLabel}
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 10.5,
-                        fontWeight: done ? 500 : active ? 600 : 400,
-                        color: done ? "#34d399" : active ? "#e2e8f0" : "#374151",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {s.shortLabel}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 9,
-                        color: done ? "#10b981" : active ? "#6366f1" : "#1f2937",
-                        marginTop: 1,
-                      }}
-                    >
-                      {statusText(s.id)}
-                    </div>
-                  </div>
-                </div>
-                {i < STAGES.length - 1 && (
                   <div
                     style={{
-                      width: 10,
-                      height: 1,
-                      flexShrink: 0,
-                      background: done
-                        ? "rgba(16,185,129,0.4)"
-                        : "rgba(255,255,255,0.07)",
-                      transition: "background 0.6s",
+                      fontSize: 10,
+                      marginTop: 2,
+                      lineHeight: 1,
+                      color: active ? "#7c3aed" : "#94a3b8",
+                      transition: "color 0.4s",
                     }}
-                  />
-                )}
+                  >
+                    {statusText(s.id)}
+                  </div>
+                </div>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
 
         {allDone && (
           <div
             style={{
-              marginLeft: 12,
-              fontSize: 10,
+              marginLeft: 14,
+              paddingLeft: 14,
+              borderLeft: "1px solid rgba(226,232,240,0.9)",
+              fontSize: 10.5,
+              fontWeight: 700,
               color: "#10b981",
-              background: "rgba(16,185,129,0.1)",
-              border: "1px solid rgba(16,185,129,0.25)",
-              borderRadius: 5,
-              padding: "3px 9px",
-              fontWeight: 600,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
               flexShrink: 0,
-              letterSpacing: "0.05em",
             }}
           >
-            COMPLETE
+            ✓ Complete
           </div>
         )}
       </div>
+      <style>{`@keyframes am-blink { 0%,100%{opacity:1} 50%{opacity:0.25} }`}</style>
     </div>
   );
 }
