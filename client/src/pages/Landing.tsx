@@ -1874,7 +1874,7 @@ function LandingInner() {
       <section id="how-it-works" className="relative z-10 py-16" style={{ background: "linear-gradient(180deg, rgba(237,233,254,0.25) 0%, rgba(236,253,245,0.25) 100%)" }}>
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold" style={{ color: "#1e1b4b", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>The Intelligence Pipeline</h2>
+            <h2 className="text-2xl font-bold" style={{ color: "#1e1b4b" }}>The Intelligence Pipeline</h2>
             <p className="text-sm mt-2" style={{ color: "#64748b" }}>From raw domain to actionable GEO insights in minutes.</p>
           </div>
           <div className="relative">
@@ -1963,7 +1963,7 @@ function LandingInner() {
           </span>
           <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#7c3aed", boxShadow: "0 0 8px rgba(124,58,237,0.5)" }} className="animate-pulse" />
         </div>
-        <h2 id="faq-heading" className="text-2xl font-bold text-center mb-1" style={{ color: "#1e1b4b", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <h2 id="faq-heading" className="text-2xl font-bold text-center mb-1" style={{ color: "#1e1b4b" }}>
           How the agents work
         </h2>
         <p className="text-center text-sm mb-10" style={{ color: "#64748b" }}>

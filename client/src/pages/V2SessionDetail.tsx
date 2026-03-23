@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useRoute, Link, useLocation } from "wouter";
+import { MonkWordmark } from "@/components/MonkWordmark";
 import { useMultiSegmentSession, useV2GroupDetail } from "@/hooks/use-analysis";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -94,9 +95,11 @@ export default function V2SessionDetail() {
   const isLoading = isGroupKey ? groupLoading : sessionLoading;
   const error = isGroupKey ? groupError : sessionError;
 
+  const pageBg = { background: "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)" };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen" style={pageBg}>
         <Nav />
         <main className="max-w-3xl mx-auto px-6 py-10 space-y-4">
           <Skeleton className="h-8 w-48" />
@@ -110,7 +113,7 @@ export default function V2SessionDetail() {
 
   if (error || !session) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen" style={pageBg}>
         <Nav />
         <main className="max-w-3xl mx-auto px-6 py-20 text-center">
           <p className="text-muted-foreground">Session not found.</p>
@@ -126,7 +129,7 @@ export default function V2SessionDetail() {
   const parentSessionId = (session as any).parentSessionId;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen" style={pageBg}>
       <Nav />
       <main className="max-w-3xl mx-auto px-6 py-8">
         <div className="pb-6 space-y-2">
@@ -271,10 +274,12 @@ export default function V2SessionDetail() {
 
 function Nav() {
   return (
-    <nav className="w-full border-b border-border sticky top-0 z-50 bg-background">
+    <nav className="w-full sticky top-0 z-50" style={{ borderBottom: "1px solid rgba(0,0,0,0.07)", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)" }}>
       <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
         <Link href="/">
-          <span className="text-base font-semibold tracking-tight" data-testid="text-logo">BrandSense</span>
+          <span style={{ cursor: "pointer", display: "inline-flex", alignItems: "center" }} data-testid="text-logo">
+            <MonkWordmark size="sm" />
+          </span>
         </Link>
         <Link href="/history">
           <Button variant="ghost" size="sm" className="gap-1.5 text-sm" data-testid="button-back-history">

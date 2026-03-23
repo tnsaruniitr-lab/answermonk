@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
+import { MonkWordmark } from "@/components/MonkWordmark";
 
 interface SEOLayoutProps {
   title: string;
@@ -22,18 +23,25 @@ export function SEOLayout({ title, description, children, canonical }: SEOLayout
   }, [title, description]);
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)", fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)", fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <header style={{ borderBottom: "1px solid rgba(0,0,0,0.07)", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px", height: 58, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/start">
-            <span style={{ fontWeight: 700, fontSize: 16, color: "#1e1b4b", letterSpacing: "-0.02em", cursor: "pointer" }}>AnswerMonk</span>
+            <span style={{ cursor: "pointer", display: "inline-flex", alignItems: "center" }}>
+              <MonkWordmark size="sm" />
+            </span>
           </Link>
-          <nav style={{ display: "flex", gap: 24, alignItems: "center" }}>
-            <Link href="/methodology"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer", textDecoration: "none" }}>Methodology</span></Link>
-            <Link href="/ai-search-audit"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>Audit</span></Link>
-            <Link href="/use-cases/brands"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>Use Cases</span></Link>
+          <nav style={{ display: "flex", gap: 20, alignItems: "center" }}>
+            <Link href="/methodology"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer", textDecoration: "none", fontWeight: 500 }}>Methodology</span></Link>
+            <Link href="/ai-search-audit"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer", fontWeight: 500 }}>Audit</span></Link>
+            <Link href="/use-cases/brands"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer", fontWeight: 500 }}>Use Cases</span></Link>
             <Link href="/start">
-              <span style={{ fontSize: 13, fontWeight: 600, background: "#4f46e5", color: "#fff", padding: "7px 16px", borderRadius: 8, cursor: "pointer" }}>
+              <span style={{
+                fontSize: 13, fontWeight: 600,
+                background: "linear-gradient(135deg, #6366f1, #7c3aed)",
+                color: "#fff", padding: "7px 16px", borderRadius: 99, cursor: "pointer",
+                display: "inline-block",
+              }}>
                 Run free audit →
               </span>
             </Link>
@@ -51,44 +59,44 @@ export function SEOLayout({ title, description, children, canonical }: SEOLayout
             <div>
               <div style={{ fontWeight: 600, fontSize: 12, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Product</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <Link href="/ai-search-audit"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>AI Search Audit</span></Link>
-                <Link href="/methodology"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>Methodology</span></Link>
-                <Link href="/sample-report"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>Sample Report</span></Link>
-                <Link href="/chatgpt-visibility-audit"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>ChatGPT Audit</span></Link>
-                <Link href="/llm-seo-audit"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>LLM SEO Audit</span></Link>
+                <Link href="/ai-search-audit"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>AI Search Audit</span></Link>
+                <Link href="/methodology"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Methodology</span></Link>
+                <Link href="/sample-report"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Sample Report</span></Link>
+                <Link href="/chatgpt-visibility-audit"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>ChatGPT Audit</span></Link>
+                <Link href="/llm-seo-audit"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>LLM SEO Audit</span></Link>
               </div>
             </div>
             <div>
               <div style={{ fontWeight: 600, fontSize: 12, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Use Cases</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <Link href="/use-cases/brands"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>For Brands</span></Link>
-                <Link href="/use-cases/agencies"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>For Agencies</span></Link>
-                <Link href="/use-cases/b2b-saas"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>B2B SaaS</span></Link>
-                <Link href="/use-cases/ecommerce"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>Ecommerce</span></Link>
-                <Link href="/use-cases/local-business"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>Local Business</span></Link>
+                <Link href="/use-cases/brands"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>For Brands</span></Link>
+                <Link href="/use-cases/agencies"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>For Agencies</span></Link>
+                <Link href="/use-cases/b2b-saas"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>B2B SaaS</span></Link>
+                <Link href="/use-cases/ecommerce"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Ecommerce</span></Link>
+                <Link href="/use-cases/local-business"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Local Business</span></Link>
               </div>
             </div>
             <div>
               <div style={{ fontWeight: 600, fontSize: 12, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Learn</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <Link href="/how-ai-search-works"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>How AI Search Works</span></Link>
-                <Link href="/how-to-improve-ai-citations"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>Improve AI Citations</span></Link>
-                <Link href="/glossary/generative-engine-optimization"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>What is GEO?</span></Link>
-                <Link href="/glossary/ai-visibility-score"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>AI Visibility Score</span></Link>
-                <Link href="/glossary/ai-search-visibility"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>AI Search Visibility</span></Link>
+                <Link href="/how-ai-search-works"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>How AI Search Works</span></Link>
+                <Link href="/how-to-improve-ai-citations"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Improve AI Citations</span></Link>
+                <Link href="/glossary/generative-engine-optimization"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>What is GEO?</span></Link>
+                <Link href="/glossary/ai-visibility-score"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>AI Visibility Score</span></Link>
+                <Link href="/glossary/ai-search-visibility"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>AI Search Visibility</span></Link>
               </div>
             </div>
             <div>
               <div style={{ fontWeight: 600, fontSize: 12, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Compare</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <Link href="/compare/answermonk-vs-profound"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>vs Profound</span></Link>
-                <Link href="/compare/answermonk-vs-ahrefs-brand-radar"><span style={{ fontSize: 13, color: "#4c1d95", cursor: "pointer" }}>vs Ahrefs Brand Radar</span></Link>
+                <Link href="/compare/answermonk-vs-profound"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>vs Profound</span></Link>
+                <Link href="/compare/answermonk-vs-ahrefs-brand-radar"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>vs Ahrefs Brand Radar</span></Link>
               </div>
             </div>
           </div>
           <div style={{ borderTop: "1px solid rgba(0,0,0,0.06)", paddingTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 12, color: "#9ca3af" }}>© 2026 AnswerMonk. AI search visibility audits for brands and agencies.</span>
-            <Link href="/start"><span style={{ fontSize: 12, color: "#4c1d95", cursor: "pointer" }}>Run a free audit →</span></Link>
+            <Link href="/start"><span style={{ fontSize: 12, color: "#4f46e5", cursor: "pointer" }}>Run a free audit →</span></Link>
           </div>
         </div>
       </footer>
