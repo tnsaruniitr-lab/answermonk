@@ -363,8 +363,8 @@ function LandingInner() {
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
   const _adminSettings = getAdminSettings();
-  const MAX_SERVICES = _adminSettings.maxServices ?? 4;
-  const MAX_CUSTOMERS = _adminSettings.maxCustomers ?? 4;
+  const MAX_SERVICES = _adminSettings.maxServices ?? 3;
+  const MAX_CUSTOMERS = _adminSettings.maxCustomers ?? 2;
   const MAX_SELECTED = Math.max(MAX_SERVICES, MAX_CUSTOMERS);
 
   useEffect(() => {
@@ -1588,7 +1588,7 @@ function LandingInner() {
               {serviceLimitError && (
                 <p className="text-xs text-amber-600 mb-2 flex items-center gap-1.5">
                   <span className="inline-block w-3.5 h-3.5 rounded-full border border-amber-500 text-center leading-none" style={{fontSize:"9px"}}>!</span>
-                  Max 4 segments on the free scan — unlock more in the full audit.
+                  Max {MAX_SERVICES} services on the free scan — unlock more in the full audit.
                 </p>
               )}
               <div className="flex items-center gap-2">
@@ -1646,7 +1646,7 @@ function LandingInner() {
               {customerLimitError && (
                 <p className="text-xs text-amber-600 mb-2 flex items-center gap-1.5">
                   <span className="inline-block w-3.5 h-3.5 rounded-full border border-amber-500 text-center leading-none" style={{fontSize:"9px"}}>!</span>
-                  Max 4 segments on the free scan — unlock more in the full audit.
+                  Max {MAX_CUSTOMERS} customer types on the free scan — unlock more in the full audit.
                 </p>
               )}
               <div className="flex items-center gap-2">
