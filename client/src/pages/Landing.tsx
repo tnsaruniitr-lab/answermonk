@@ -1277,7 +1277,7 @@ function LandingInner() {
                   style={{
                     background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
                     borderRadius: 7, padding: "3px 8px", fontSize: 11, color: "#fff",
-                    outline: "none", width: 110, flexShrink: 0,
+                    outline: "none", width: 110, flexShrink: 0, marginLeft: "auto",
                   }}
                 />
                 <button
