@@ -165,7 +165,7 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: accent, flexShrink: 0, marginTop: 3 }} />
           <p style={{
             margin: 0, flex: 1, minWidth: 0,
-            fontSize: 13, fontWeight: 700, lineHeight: 1.35, color: "#111827",
+            fontSize: 13, fontWeight: 700, lineHeight: 1.35, color: accent,
             display: "-webkit-box", WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical", overflow: "hidden",
           } as React.CSSProperties}>
