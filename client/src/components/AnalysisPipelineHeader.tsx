@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 
 const STAGES = [
   { id: 1, shortLabel: "Profile", fullLabel: "Profile Generated" },
@@ -20,13 +19,6 @@ export function AnalysisPipelineHeader({
   reportDone,
   profileActive = false,
 }: AnalysisPipelineHeaderProps) {
-  const [tick, setTick] = useState(0);
-
-  useEffect(() => {
-    const t = setInterval(() => setTick((k) => k + 1), 600);
-    return () => clearInterval(t);
-  }, []);
-
   const activeStage = profileActive
     ? 1
     : !allSegmentsDone
@@ -42,12 +34,7 @@ export function AnalysisPipelineHeader({
   const statusText = (stageId: number) => {
     if (stageId < activeStage) return "Complete";
     if (stageId === activeStage) {
-      if (profileActive) {
-        const cycle = tick % 3;
-        return cycle === 0 ? "Confirm signals" : cycle === 1 ? "Select services" : "Review & run";
-      }
-      const cycle = tick % 3;
-      return cycle === 0 ? "Running…" : cycle === 1 ? "Working…" : "Processing…";
+      return profileActive ? "Confirm signals" : "Running…";
     }
     return "Waiting";
   };
@@ -70,13 +57,14 @@ export function AnalysisPipelineHeader({
     >
       <div
         style={{
-          display: "inline-flex",
+          display: "flex",
           alignItems: "center",
-          gap: 0,
+          justifyContent: "space-between",
+          width: "min(820px, 92vw)",
           background: "#ffffff",
           border: "1px solid rgba(226,232,240,0.95)",
           borderRadius: 12,
-          padding: "10px 20px",
+          padding: "10px 24px",
           boxShadow: "0 1px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(226,232,240,0.5)",
           pointerEvents: "auto",
         }}

@@ -689,7 +689,7 @@ function LandingInner() {
           profileActive={activeSessionId === null}
         />
       )}
-      {(isComplete || activeSessionId !== null) && <div style={{ height: 76, flexShrink: 0 }} />}
+      {(isComplete || activeSessionId !== null) && <div style={{ height: 64, flexShrink: 0 }} />}
 
       {/* Aurora orbs — vh-based positions so they stay in the hero viewport regardless of doc height */}
       <div style={{ position: 'absolute', top: '-10vh', left: '-5vw', width: '39vw', height: '39vw', background: '#fbcfe8', borderRadius: '50%', filter: 'blur(100px)', opacity: 0.35, pointerEvents: 'none' }} />
@@ -711,7 +711,7 @@ function LandingInner() {
 
         {/* Hero — vertically centered with same -mt-20 trick as mockup */}
         <div
-          className="flex flex-col items-center px-4 pt-12 pb-8"
+          className={`flex flex-col items-center px-4 pb-8 ${(isComplete || activeSessionId !== null) ? "pt-4" : "pt-12"}`}
         >
         <div className="space-y-5 max-w-3xl flex flex-col items-center w-full">
 
