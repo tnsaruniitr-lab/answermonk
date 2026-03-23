@@ -89,26 +89,66 @@ export default function CardVariantE() {
               {/* All rankings — unified row format */}
               <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 10 }}>
                 {[{ rank: 1, name: tile.topBrand, share: tile.score, solid: true }, ...tile.rivals.slice(0, 2).map((r, i) => ({ rank: i + 2, name: r.name, share: r.share, solid: false }))].map((row, i) => (
-                  <div key={row.rank} style={{ borderTop: i > 0 ? "1px solid rgba(0,0,0,0.05)" : "none", paddingTop: i > 0 ? 6 : 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: row.share > 0 ? 4 : 0 }}>
-                      <span style={{ fontSize: 10, fontWeight: 800, color: row.solid ? "#fff" : "#6b7280", background: row.solid ? tile.accent : "#f3f4f6", border: row.solid ? "none" : "1px solid #e5e7eb", borderRadius: 4, padding: "2px 6px", flexShrink: 0 }}>
-                        #{row.rank}
-                      </span>
-                      <span style={{ color: "#111827", fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
-                        {row.name}
-                      </span>
-                      {row.share > 0 && (
-                        <span style={{ fontSize: 10.5, fontWeight: 800, flexShrink: 0, color: tile.accent, background: `${tile.accent}15`, border: `1px solid ${tile.accent}30`, borderRadius: 20, padding: "2px 7px" }}>
-                          {row.share}%
+                  row.solid ? (
+                    /* Winner bubble box */
+                    <div key={row.rank} style={{ position: "relative", marginBottom: 10 }}>
+                      <div style={{
+                        background: `${tile.accent}10`,
+                        border: `1.5px solid ${tile.accent}40`,
+                        borderRadius: 9, padding: "7px 9px",
+                      }}>
+                        {/* WINNER label */}
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
+                          <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: "0.08em", color: tile.accent, opacity: 0.7, textTransform: "uppercase" }}>
+                            ★ AI Leader
+                          </span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: row.share > 0 ? 5 : 0 }}>
+                          <span style={{ fontSize: 10, fontWeight: 800, color: "#fff", background: tile.accent, borderRadius: 4, padding: "2px 6px", flexShrink: 0 }}>
+                            #1
+                          </span>
+                          <span style={{ color: "#111827", fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+                            {row.name}
+                          </span>
+                          {row.share > 0 && (
+                            <span style={{ fontSize: 10.5, fontWeight: 800, flexShrink: 0, color: tile.accent, background: `${tile.accent}20`, border: `1px solid ${tile.accent}40`, borderRadius: 20, padding: "2px 7px" }}>
+                              {row.share}%
+                            </span>
+                          )}
+                        </div>
+                        {row.share > 0 && (
+                          <div style={{ height: 3, borderRadius: 99, background: "rgba(0,0,0,0.08)", overflow: "hidden" }}>
+                            <div style={{ height: "100%", borderRadius: 99, width: `${row.share}%`, background: `linear-gradient(90deg, ${tile.accent}88, ${tile.accent})` }} />
+                          </div>
+                        )}
+                      </div>
+                      {/* Bubble pointer triangle */}
+                      <div style={{ position: "absolute", bottom: -7, left: 18, width: 0, height: 0, borderLeft: "7px solid transparent", borderRight: "7px solid transparent", borderTop: `7px solid ${tile.accent}40` }} />
+                      <div style={{ position: "absolute", bottom: -5, left: 19, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: `6px solid ${tile.accent}10` }} />
+                    </div>
+                  ) : (
+                    /* #2 / #3 rows */
+                    <div key={row.rank} style={{ borderTop: i > 0 ? "1px solid rgba(0,0,0,0.05)" : "none", paddingTop: i > 0 ? 6 : 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: row.share > 0 ? 4 : 0 }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, color: "#6b7280", background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 4, padding: "2px 6px", flexShrink: 0 }}>
+                          #{row.rank}
                         </span>
+                        <span style={{ color: "#374151", fontSize: 12, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+                          {row.name}
+                        </span>
+                        {row.share > 0 && (
+                          <span style={{ fontSize: 10.5, fontWeight: 800, flexShrink: 0, color: tile.accent, background: `${tile.accent}15`, border: `1px solid ${tile.accent}30`, borderRadius: 20, padding: "2px 7px" }}>
+                            {row.share}%
+                          </span>
+                        )}
+                      </div>
+                      {row.share > 0 && (
+                        <div style={{ height: 3, borderRadius: 99, background: "rgba(0,0,0,0.06)", overflow: "hidden" }}>
+                          <div style={{ height: "100%", borderRadius: 99, width: `${row.share}%`, background: `linear-gradient(90deg, ${tile.accent}88, ${tile.accent})` }} />
+                        </div>
                       )}
                     </div>
-                    {row.share > 0 && (
-                      <div style={{ height: 3, borderRadius: 99, background: "rgba(0,0,0,0.06)", overflow: "hidden" }}>
-                        <div style={{ height: "100%", borderRadius: 99, width: `${row.share}%`, background: `linear-gradient(90deg, ${tile.accent}88, ${tile.accent})` }} />
-                      </div>
-                    )}
-                  </div>
+                  )
                 ))}
               </div>
 
