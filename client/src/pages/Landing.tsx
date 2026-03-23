@@ -554,17 +554,7 @@ function LandingInner() {
         return next;
       });
     }
-    if (scoredSegs.length === 1) {
-      // First segment: scroll to the top of the results section
-      setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 80);
-    } else if (scoredSegs.length > 1) {
-      // Case 4: each subsequent segment card — scroll to the newly-appeared card
-      setTimeout(() => {
-        lastSegCardRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }, 100);
-    }
+    // Scrolling removed — user stays anchored on dispatch feed; final scroll fires on allSegmentsDone
   }, [scoredSegs.length]);
 
   useEffect(() => {
@@ -1362,6 +1352,25 @@ function LandingInner() {
             {/* Live Dispatch Feed — shown while scoring is in progress */}
             {isScoring && (
               <div ref={dispatchFeedRef}>
+                {scoredSegs.length > 0 && (
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+                    <div style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      fontSize: 11.5,
+                      fontWeight: 600,
+                      color: "#4f46e5",
+                      background: "rgba(99,102,241,0.08)",
+                      border: "1px solid rgba(99,102,241,0.18)",
+                      borderRadius: 20,
+                      padding: "3px 10px",
+                    }}>
+                      <span style={{ color: "#10b981" }}>✓</span>
+                      {scoredSegs.length} of {scoringSegs.length} segments ranked
+                    </div>
+                  </div>
+                )}
                 <Suspense fallback={null}>
                   <DispatchFeedLive
                     scoringSegs={scoringSegs}
