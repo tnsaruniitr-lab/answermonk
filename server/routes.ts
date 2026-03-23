@@ -2287,6 +2287,7 @@ export async function registerRoutes(
             syncSessionToDirectory(sessionId).then((r) => {
               console.log(`[dir-sync] Citation hook session ${sessionId}: published=${r.published} skipped=${r.skipped}`);
             }).catch((e) => console.error("[dir-sync] Citation hook error:", e));
+            analysisProgress.set(progressKey, { step: "labeling", detail: "Indexing citation URLs…", pct: 99, startedAt: analysisProgress.get(progressKey)?.startedAt || Date.now() });
             try {
               await populateCitationUrls(sessionId);
               console.log(`[segment-analysis] Populated citation_urls for session ${sessionId}`);
@@ -2295,6 +2296,7 @@ export async function registerRoutes(
             }
             spDone(sessionId, "persist_db");
             spStart(sessionId, "domain_classify");
+            analysisProgress.set(progressKey, { step: "classifying_urls", detail: "Classifying citation page types with AI…", pct: 99.5, startedAt: analysisProgress.get(progressKey)?.startedAt || Date.now() });
             try {
               const classifyResult = await runLlmClassification(sessionId);
               console.log(`[segment-analysis] Auto-classified ${classifyResult.updated}/${classifyResult.total} URLs for session ${sessionId} ($${classifyResult.costUsd})`);

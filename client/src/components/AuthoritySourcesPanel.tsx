@@ -650,6 +650,7 @@ function MissionControlLoader({
   modelLabel = "AI MODEL",
   failed = false,
   onRetry,
+  reportsCount = 0,
 }: {
   sessionId: number;
   crawlPending: boolean;
@@ -657,6 +658,7 @@ function MissionControlLoader({
   rowCount?: number;
   modelLabel?: string;
   failed?: boolean;
+  reportsCount?: number;
   onRetry?: () => void;
 }) {
   const progress = useCrawlProgress(sessionId, crawlPending);
@@ -754,6 +756,8 @@ function MissionControlLoader({
     : phaseStep === "snippets" ? "EXTRACTING"
     : phaseStep === "classifying" ? "CLASSIFYING"
     : phaseStep === "scoring" || phaseStep === "global" || phaseStep === "indexing" ? "INDEXING"
+    : phaseStep === "labeling" ? "LABELING"
+    : phaseStep === "classifying_urls" ? "CLASSIFYING"
     : phaseStep === "complete" ? "COMPLETE"
     : "PROCESSING";
 
@@ -906,7 +910,7 @@ function MissionControlLoader({
           {(insightsPending ? [
             { label: "CITATION ROWS", value: rowCount, suffix: "", color: "#f59e0b" },
             { label: "TOKEN ESTIMATE", value: Math.round((rowCount * 62) / 1000), suffix: "K", color: "#6366f1" },
-            { label: "REPORTS DONE", value: 0, suffix: "", color: "#10b981" },
+            { label: "REPORTS DONE", value: reportsCount, suffix: "", color: "#10b981" },
           ] : [
             { label: "PAGES FOUND", value: realCrawled ?? animCrawled, suffix: realTotal ? `/${realTotal}` : "", color: "#3b82f6" },
             { label: "ACCESSIBLE", value: realOk ?? animOk, suffix: "", color: "#10b981" },
@@ -2801,7 +2805,7 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
       {hasData && (
         <>
           {/* Full-panel loader: crawl re-run, insights pending, roadblock, OR autoRun waiting to fire */}
-          {(crawlMutation.isPending || isCrawlRunning || anyInsightsPending || insightsFailed || (autoRun && !latestInsight && !insightsGenerated)) && (
+          {!displayedInsight && (crawlMutation.isPending || isCrawlRunning || anyInsightsPending || insightsFailed || (autoRun && !latestInsight && !insightsGenerated)) && (
             <MissionControlLoader
               sessionId={sessionId}
               crawlPending={crawlMutation.isPending || isCrawlRunning}
@@ -2810,7 +2814,14 @@ export function AuthoritySourcesPanel({ sessionId, brandName, segments, groupKey
               modelLabel={activeModelLabel}
               failed={insightsFailed && !anyInsightsPending}
               onRetry={() => { setInsightsFailed(false); manualInsightsMutation.mutate(); }}
+              reportsCount={pastInsights.length}
             />
+          )}
+          {displayedInsight && anyInsightsPending && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 8, marginBottom: 8 }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6366f1", animation: "mc-pulse 1.2s ease-in-out infinite", flexShrink: 0 }} />
+              <span style={{ fontSize: 11, color: "#6366f1", fontWeight: 600 }}>Updating analysis…</span>
+            </div>
           )}
 
           {/* Generate button — manual mode only, when no insight exists yet and not loading/failed */}
