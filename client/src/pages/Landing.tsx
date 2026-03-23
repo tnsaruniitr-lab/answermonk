@@ -340,6 +340,59 @@ function SegmentResultCard({ seg, brandName, detectedService, selected, onToggle
   );
 }
 
+const FLIPPER_ENGINES = [
+  { name: "ChatGPT",    color: "#10a37f" },
+  { name: "Gemini",     color: "#4285f4" },
+  { name: "Claude",     color: "#d97706" },
+  { name: "Perplexity", color: "#6366f1" },
+];
+
+function HeroFlipperText() {
+  const [idx, setIdx] = useState(0);
+  const [flipping, setFlipping] = useState(false);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setFlipping(true);
+      setTimeout(() => {
+        setIdx(i => (i + 1) % FLIPPER_ENGINES.length);
+        setFlipping(false);
+      }, 200);
+    }, 2200);
+    return () => clearInterval(t);
+  }, []);
+
+  const engine = FLIPPER_ENGINES[idx];
+
+  return (
+    <>
+      <style>{`
+        @keyframes amFlipIn  { from { transform: rotateX(90deg); opacity: 0 } to { transform: rotateX(0deg); opacity: 1 } }
+        @keyframes amFlipOut { from { transform: rotateX(0deg); opacity: 1 } to { transform: rotateX(-90deg); opacity: 0 } }
+        .am-flip-in  { animation: amFlipIn  0.2s ease-out forwards; }
+        .am-flip-out { animation: amFlipOut 0.18s ease-in  forwards; }
+      `}</style>
+      Measure and improve how you rank on{" "}
+      <span style={{ display: "inline-block", perspective: 400, verticalAlign: "middle" }}>
+        <span
+          key={engine.name}
+          className={flipping ? "am-flip-out" : "am-flip-in"}
+          style={{
+            display: "inline-block",
+            color: engine.color,
+            fontWeight: 700,
+            borderBottom: `2px solid ${engine.color}55`,
+            paddingBottom: 1,
+            minWidth: 108,
+          }}
+        >
+          {engine.name}
+        </span>
+      </span>
+    </>
+  );
+}
+
 function LandingInner() {
   const [, navigate] = useLocation();
   const [url, setUrl] = useState("");
@@ -787,7 +840,7 @@ function LandingInner() {
 
                 {/* Subtext */}
                 <p className="text-lg md:text-xl max-w-xl mx-auto leading-relaxed" style={{ color: "#374151", marginTop: 14 }}>
-                  <span style={{ fontWeight: 600 }}>Answer<span style={{ color: "#6366f1" }}>Monk</span> makes AI recommend you.</span>
+                  <HeroFlipperText />
                 </p>
               </>
             )}
