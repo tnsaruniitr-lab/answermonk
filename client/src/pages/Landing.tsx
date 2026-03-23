@@ -420,7 +420,7 @@ function LandingInner() {
   const dispatchFeedRef = useRef<HTMLDivElement>(null);
   const lastSegCardRef = useRef<HTMLDivElement>(null);
   const rankingsBarRef = useRef<HTMLDivElement>(null);
-  const chipsInitialized = useRef(false);
+  const lastInitializedId = useRef<number | null>(null);
 
   const [services, setServices] = useState<string[]>([]);
   const [customers, setCustomers] = useState<string[]>([]);
@@ -495,8 +495,13 @@ function LandingInner() {
   const isComplete = submission?.status === "complete";
 
   useEffect(() => {
-    if (!chipsInitialized.current && submission?.status === "complete" && submission?.pncResult) {
-      chipsInitialized.current = true;
+    if (
+      submission?.status === "complete" &&
+      submission?.pncResult &&
+      submissionId !== null &&
+      lastInitializedId.current !== submissionId
+    ) {
+      lastInitializedId.current = submissionId;
       const svcs: string[] = submission.pncResult.service_types || submission.pncResult.serviceTypes || [];
       const custs: string[] = submission.pncResult.customer_types || submission.pncResult.customerTypes || [];
       const ct: string = submission.pncResult.city || "";
@@ -513,7 +518,20 @@ function LandingInner() {
       setSelectedCustomers(new Set(custs.slice(0, MAX_CUSTOMERS)));
       setCity(ct);
     }
-  }, [submission?.status, submission?.pncResult]);
+  }, [submission?.status, submission?.pncResult, submissionId]);
+
+  // Clear stale chip state whenever the user resets to a new URL
+  useEffect(() => {
+    if (!submissionId) {
+      lastInitializedId.current = null;
+      setServices([]);
+      setCustomers([]);
+      setCompetitors([]);
+      setSelectedServices(new Set());
+      setSelectedCustomers(new Set());
+      setCity("");
+    }
+  }, [submissionId]);
 
   useEffect(() => {
     if (!submissionId) { setAgentStep(0); return; }
