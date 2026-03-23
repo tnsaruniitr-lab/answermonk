@@ -1180,11 +1180,6 @@ function LandingInner() {
             )}
 
             {/* Individual segment cards — shown during scoring or when expanded */}
-            {allSegmentsDone && rankingsExpanded && scoredSegs.length > 0 && (
-              <p className="text-[10px] font-mono tracking-wider uppercase text-slate-500 px-1" style={{ marginTop: 2 }}>
-                Unselect a segment if you think it's irrelevant to your brand
-              </p>
-            )}
             <style>{`
               @keyframes am-shimmer {
                 0% { background-position: -400px 0; }
@@ -1205,12 +1200,6 @@ function LandingInner() {
                     <SegmentResultCard
                       seg={seg}
                       brandName={scoringSession?.brandName || ""}
-                      selected={allSegmentsDone ? selectedSegmentIds.has(seg.id) : undefined}
-                      onToggle={allSegmentsDone ? () => setSelectedSegmentIds((prev) => {
-                        const next = new Set(prev);
-                        if (next.has(seg.id)) next.delete(seg.id); else next.add(seg.id);
-                        return next;
-                      }) : undefined}
                     />
                   </div>
                 );
@@ -1415,9 +1404,6 @@ function LandingInner() {
                 <div
                   ref={citationsBarRef}
                   style={{
-                    position: "sticky",
-                    top: 60,
-                    zIndex: 50,
                     borderRadius: citationsExpanded ? "14px 14px 0 0" : 14,
                     background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
                     padding: "10px 14px",
@@ -1428,18 +1414,7 @@ function LandingInner() {
                     boxShadow: "0 4px 20px rgba(79,70,229,0.3)",
                     marginTop: 8,
                   }}
-                  onClick={() => {
-                    const wasExpanded = citationsExpanded;
-                    setCitationsExpanded(v => !v);
-                    if (wasExpanded) {
-                      setTimeout(() => {
-                        const bar = citationsBarRef.current;
-                        if (!bar) return;
-                        const top = bar.getBoundingClientRect().top + window.scrollY - 72;
-                        window.scrollTo({ top, behavior: "smooth" });
-                      }, 50);
-                    }
-                  }}
+                  onClick={() => setCitationsExpanded(v => !v)}
                 >
                   <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
                     <span style={{ fontSize: 12, color: "#ffffff", fontWeight: 700, letterSpacing: "-0.01em", flexShrink: 0 }}>See authority sources in your category</span>
