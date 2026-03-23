@@ -291,16 +291,19 @@ function SegmentResultCard({ seg, brandName, detectedService, selected, onToggle
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
           <button
             onClick={(e) => { e.stopPropagation(); setShowCitations(v => !v); }}
-            style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 24px", background: "transparent", border: "none", cursor: "pointer" }}
+            style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 24px", background: "transparent", border: "none", cursor: "pointer" }}
             data-testid="btn-toggle-citations"
           >
-            <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.45)" }}>
+            <span style={{ fontSize: 12.5, fontWeight: 700, color: "rgba(255,255,255,0.9)", letterSpacing: "0.01em" }}>
               Citations · {aggregatedCitations.length} sources
             </span>
-            <ChevronDown
-              size={13}
-              style={{ color: "rgba(255,255,255,0.3)", transform: showCitations ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
-            />
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.45)", transition: "color 0.2s" }}>
+              {showCitations ? "Hide" : "View all URLs referred to by LLMs"}
+              <ChevronDown
+                size={12}
+                style={{ color: "rgba(255,255,255,0.35)", transform: showCitations ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }}
+              />
+            </span>
           </button>
 
           {showCitations && (
