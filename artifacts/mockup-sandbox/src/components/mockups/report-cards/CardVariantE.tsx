@@ -102,15 +102,35 @@ export default function CardVariantE() {
 
               {/* #2 and #3 rivals — bigger, bolder */}
               {tile.rivals.length > 0 && (
-                <div style={{ borderTop: "1px solid rgba(0,0,0,0.05)", paddingTop: 8, display: "flex", flexDirection: "column", gap: 5, marginBottom: 10 }}>
+                <div style={{ borderTop: "1px solid rgba(0,0,0,0.05)", paddingTop: 8, display: "flex", flexDirection: "column", gap: 7, marginBottom: 10 }}>
                   {tile.rivals.slice(0, 2).map((r, i) => (
-                    <div key={r.name} style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                      <span style={{ fontSize: 10, fontWeight: 800, color: "#6b7280", background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 4, padding: "2px 6px", flexShrink: 0 }}>
-                        #{i + 2}
-                      </span>
-                      <span style={{ color: "#1f2937", fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>{r.name}</span>
+                    <div key={r.name}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, color: "#6b7280", background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 4, padding: "2px 6px", flexShrink: 0 }}>
+                          #{i + 2}
+                        </span>
+                        <span style={{ color: "#1f2937", fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>{r.name}</span>
+                        {r.share > 0 && (
+                          <span style={{
+                            fontSize: 10.5, fontWeight: 800, flexShrink: 0,
+                            color: tile.accent,
+                            background: `${tile.accent}15`,
+                            border: `1px solid ${tile.accent}30`,
+                            borderRadius: 20, padding: "2px 7px",
+                            letterSpacing: "0.01em",
+                          }}>
+                            {r.share}%
+                          </span>
+                        )}
+                      </div>
                       {r.share > 0 && (
-                        <span style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", flexShrink: 0 }}>{r.share}%</span>
+                        <div style={{ height: 3, borderRadius: 99, background: "rgba(0,0,0,0.06)", overflow: "hidden" }}>
+                          <div style={{
+                            height: "100%", borderRadius: 99,
+                            width: `${r.share}%`,
+                            background: `linear-gradient(90deg, ${tile.accent}88, ${tile.accent})`,
+                          }} />
+                        </div>
                       )}
                     </div>
                   ))}

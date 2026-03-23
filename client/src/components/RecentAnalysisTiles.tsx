@@ -213,24 +213,39 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
           {tile.rivals.length > 0 && (
             <div style={{ borderTop: "1px solid rgba(0,0,0,0.06)", paddingTop: 7, display: "flex", flexDirection: "column", gap: 5 }}>
               {tile.rivals.slice(0, 2).map((rival, i) => (
-                <div key={rival.name} style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                  <span style={{
-                    fontSize: 10, fontWeight: 800, color: "#6b7280",
-                    background: "#f3f4f6", border: "1px solid #e5e7eb",
-                    borderRadius: 4, padding: "2px 6px", flexShrink: 0,
-                  }}>
-                    #{i + 2}
-                  </span>
-                  <span style={{
-                    color: "#1f2937", fontSize: 12.5, fontWeight: 700,
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0,
-                  }}>
-                    {rival.name}
-                  </span>
-                  {rival.share > 0 && (
-                    <span style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", flexShrink: 0 }}>
-                      {rival.share}%
+                <div key={rival.name}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: rival.share > 0 ? 4 : 0 }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 800, color: "#6b7280",
+                      background: "#f3f4f6", border: "1px solid #e5e7eb",
+                      borderRadius: 4, padding: "2px 6px", flexShrink: 0,
+                    }}>
+                      #{i + 2}
                     </span>
+                    <span style={{
+                      color: "#1f2937", fontSize: 12.5, fontWeight: 700,
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0,
+                    }}>
+                      {rival.name}
+                    </span>
+                    {rival.share > 0 && (
+                      <span style={{
+                        fontSize: 10.5, fontWeight: 800, flexShrink: 0,
+                        color: accent, background: `${accent}15`,
+                        border: `1px solid ${accent}30`,
+                        borderRadius: 20, padding: "2px 7px",
+                      }}>
+                        {rival.share}%
+                      </span>
+                    )}
+                  </div>
+                  {rival.share > 0 && (
+                    <div style={{ height: 3, borderRadius: 99, background: "rgba(0,0,0,0.06)", overflow: "hidden" }}>
+                      <div style={{
+                        height: "100%", borderRadius: 99, width: `${rival.share}%`,
+                        background: `linear-gradient(90deg, ${accent}88, ${accent})`,
+                      }} />
+                    </div>
                   )}
                 </div>
               ))}
