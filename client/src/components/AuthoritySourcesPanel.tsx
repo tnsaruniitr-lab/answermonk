@@ -1109,8 +1109,17 @@ function TacticCard({ tactic }: { tactic: Tactic }) {
             {tactic.confidence && <span style={{ fontSize: 10, color: "#475569" }}>· {tactic.confidence} confidence</span>}
           </div>
         </div>
-        <div style={{ width: 28, height: 28, borderRadius: 8, background: open ? "rgba(99,102,241,0.12)" : "rgba(255,255,255,0.04)", border: `1px solid ${open ? "rgba(99,102,241,0.3)" : "rgba(255,255,255,0.08)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.2s" }}>
-          <ChevronDown style={{ width: 18, height: 18, color: open ? "#818cf8" : "#475569", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s, color 0.2s" }} />
+        <div style={{
+          flexShrink: 0, display: "flex", alignItems: "center", gap: 4,
+          padding: "5px 11px", borderRadius: 99,
+          background: open ? "rgba(99,102,241,0.22)" : "rgba(255,255,255,0.10)",
+          border: `1px solid ${open ? "rgba(99,102,241,0.5)" : "rgba(255,255,255,0.22)"}`,
+          color: open ? "#a5b4fc" : "#e2e8f0",
+          fontSize: 11, fontWeight: 700, whiteSpace: "nowrap",
+          transition: "all 0.2s",
+        }}>
+          {open ? "Hide" : "See details"}
+          <ChevronDown style={{ width: 12, height: 12, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }} />
         </div>
       </button>
 
@@ -1685,8 +1694,17 @@ function ActionCollapseItem({
           {ind && <div style={{ fontSize: 9, fontWeight: 700, color: textCol, letterSpacing: "0.09em", textTransform: "uppercase", marginBottom: 2 }}>Bonus · Quick Win</div>}
           <span style={{ fontSize: 13, fontWeight: 600, color: ind ? "#fcd34d" : vio ? "#c4b5fd" : "#a5b4fc", lineHeight: 1.4 }}>{summary}</span>
         </div>
-        <div style={{ width: 26, height: 26, borderRadius: 7, background: chevBg, border: `1px solid ${chevBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
-          <ChevronDown style={{ width: 15, height: 15, color: open ? textCol : "#475569", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.18s, color 0.15s" }} />
+        <div style={{
+          flexShrink: 0, display: "flex", alignItems: "center", gap: 4,
+          padding: "5px 11px", borderRadius: 99,
+          background: open ? bgCol : "rgba(255,255,255,0.10)",
+          border: `1px solid ${open ? borderCol : "rgba(255,255,255,0.22)"}`,
+          color: open ? textCol : "#e2e8f0",
+          fontSize: 11, fontWeight: 700, whiteSpace: "nowrap",
+          transition: "all 0.15s",
+        }}>
+          {open ? "Hide" : "See details"}
+          <ChevronDown style={{ width: 12, height: 12, color: "currentColor", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.18s", flexShrink: 0 }} />
         </div>
       </button>
       <AnimatePresence initial={false}>
