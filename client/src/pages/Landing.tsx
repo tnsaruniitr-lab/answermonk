@@ -243,17 +243,17 @@ function SegmentResultCard({ seg, brandName, selected, onToggle }: { seg: any; b
                     border: "1px solid rgba(67,56,202,0.3)",
                   } : {}),
                 }}>
-                  <div style={{ width: 20, fontSize: 12, fontWeight: "bold", color: c.isBrand ? "#a5b4fc" : "#475569", textAlign: "right", flexShrink: 0 }}>
+                  <div style={{ width: 20, fontSize: 12, fontWeight: 700, color: c.isBrand ? "#a5b4fc" : "#64748b", textAlign: "right", flexShrink: 0 }}>
                     {idx + 1}
                   </div>
-                  <div style={{ width: 148, fontSize: 13, fontWeight: c.isBrand ? 700 : 500, color: c.isBrand ? "#ffffff" : "#cbd5e1", flexShrink: 0, display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>
+                  <div style={{ width: 148, fontSize: 13, fontWeight: 700, color: c.isBrand ? "#ffffff" : "#f1f5f9", flexShrink: 0, display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</span>
                     {c.isBrand && <span style={{ backgroundColor: "#4338ca", color: "white", fontSize: 9, padding: "2px 6px", borderRadius: 100, fontWeight: "bold", flexShrink: 0 }}>YOU</span>}
                   </div>
-                  <div style={{ flex: 1, height: 6, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
-                    <div style={{ width: `${barWidth}%`, height: "100%", background: c.isBrand ? "linear-gradient(90deg,#4338ca,#818cf8)" : "#1e3a5f", borderRadius: 3, boxShadow: c.isBrand ? "0 0 8px rgba(67,56,202,0.4)" : "none", transition: "width 0.7s ease" }} />
+                  <div style={{ flex: 1, height: 6, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ width: `${barWidth}%`, height: "100%", background: c.isBrand ? "linear-gradient(90deg,#4338ca,#818cf8)" : "linear-gradient(90deg,#3b82f6,#6366f1)", borderRadius: 3, boxShadow: c.isBrand ? "0 0 8px rgba(67,56,202,0.4)" : "0 0 6px rgba(59,130,246,0.3)", transition: "width 0.7s ease" }} />
                   </div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: c.isBrand ? "#c7d2fe" : "#475569", width: 36, textAlign: "right", flexShrink: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: c.isBrand ? "#c7d2fe" : "#94a3b8", width: 36, textAlign: "right", flexShrink: 0 }}>
                     {pct}%
                   </div>
                 </div>
