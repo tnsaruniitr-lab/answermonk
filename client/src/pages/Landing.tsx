@@ -1256,6 +1256,12 @@ function LandingInner() {
             {/* Sticky email bar — visible during scoring and after, above all analysis boxes */}
             {emailBarVisible && (() => {
               const needsAction = allSegmentsDone && !scanStarted;
+              const BOT_ANIM_CSS = `
+                @keyframes amBotPulse2  { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.55;transform:scale(0.82)} }
+                @keyframes amBotBounce2 { 0%,100%{transform:translateY(0)} 35%{transform:translateY(-4px)} 65%{transform:translateY(1px)} }
+                .am-bot-pulse2  { animation: amBotPulse2  1.5s ease-in-out infinite; }
+                .am-bot-bounce2 { animation: amBotBounce2 0.65s ease-in-out infinite; }
+              `;
               const BotIcon = (
                 <svg viewBox="0 0 32 32" width={17} height={17} fill="none" style={{ display: "block", flexShrink: 0 }}>
                   <circle cx="16" cy="3" r="2.2" fill="rgba(255,255,255,0.7)" />
@@ -1284,7 +1290,8 @@ function LandingInner() {
                   marginBottom: 8,
                   overflow: "hidden",
                 }}>
-                  <span className={needsAction ? "am-bot-bounce" : "am-bot-pulse"} style={{ display: "flex", alignItems: "center" }}>
+                  <style>{BOT_ANIM_CSS}</style>
+                  <span className={needsAction ? "am-bot-bounce2" : "am-bot-pulse2"} style={{ display: "flex", alignItems: "center" }}>
                     {BotIcon}
                   </span>
                   {needsAction ? (
