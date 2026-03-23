@@ -382,19 +382,22 @@ function HeroFlipperText() {
 
   return (
     <>
-      Analyse and improve how you're recommended across{" "}
-      <span style={{ display: "inline-block", perspective: 400, verticalAlign: "middle" }}>
-        <span
-          key={engine.name}
-          className={flipping ? "am-flip-out" : "am-flip-in"}
-          style={{
-            display: "inline-block",
-            color: engine.color,
-            fontWeight: 700,
-            minWidth: 108,
-          }}
-        >
-          {engine.name}
+      Analyse and improve how you're recommended{" "}
+      <span style={{ whiteSpace: "nowrap" }}>
+        across{" "}
+        <span style={{ display: "inline-block", perspective: 400, verticalAlign: "middle" }}>
+          <span
+            key={engine.name}
+            className={flipping ? "am-flip-out" : "am-flip-in"}
+            style={{
+              display: "inline-block",
+              color: engine.color,
+              fontWeight: 700,
+              minWidth: 108,
+            }}
+          >
+            {engine.name}
+          </span>
         </span>
       </span>
     </>
