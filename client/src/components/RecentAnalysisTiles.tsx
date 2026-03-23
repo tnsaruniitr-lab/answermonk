@@ -165,12 +165,9 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: accent, flexShrink: 0, marginTop: 3 }} />
           <p style={{
             margin: 0, flex: 1, minWidth: 0,
-            fontSize: 13, fontWeight: 700, lineHeight: 1.35,
+            fontSize: 13, fontWeight: 700, lineHeight: 1.35, color: "#111827",
             display: "-webkit-box", WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical", overflow: "hidden",
-            background: `linear-gradient(90deg, ${accent}, #111827 55%)`,
-            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
           } as React.CSSProperties}>
             {tile.query.replace(/^best\s+/i, "")}
           </p>
