@@ -393,7 +393,6 @@ function HeroFlipperText() {
               display: "inline-block",
               color: engine.color,
               fontWeight: 700,
-              minWidth: 108,
             }}
           >
             {engine.name}
