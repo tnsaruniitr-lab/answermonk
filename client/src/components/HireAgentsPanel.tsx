@@ -341,7 +341,7 @@ export function HireAgentsPanel() {
                       whiteSpace: "nowrap" as const,
                     }}
                   >
-                    {agent.status === "Soon" ? "Notify me" : "Activate"}
+                    {agent.status === "Soon" ? "Notify me" : agent.status === "Beta" ? "Explore" : "Activate"}
                   </button>
                 </div>
               )}
