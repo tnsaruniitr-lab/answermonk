@@ -1,0 +1,251 @@
+
+Back to analyses
+Pemo
+wait about 2 mins to see how you rank, or get the report emailed
+you@email.com
+→
+✓
+1 of 3 segments ranked
+⚡
+GEO Agent · Prompt Dispatch
+pemo.io · ChatGPT + Gemini · parallel
+LIVE
+48
+DISPATCHED
+16
+COMPLETE
+2
+IN FLIGHT
+0
+MENTIONS
+LIVE DISPATCH LOG
+· 2 segments running in parallel
+→
+[ChatGPT]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[ChatGPT]
+0.8s ·
+(no result)
+→
+[ChatGPT]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[ChatGPT]
+2.1s ·
+(no result)
+→
+[ChatGPT]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[ChatGPT]
+1.8s ·
+(no result)
+→
+[ChatGPT]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[ChatGPT]
+1.3s ·
+(no result)
+→
+[ChatGPT]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[ChatGPT]
+2.5s ·
+(no result)
+→
+[ChatGPT]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[ChatGPT]
+1s ·
+(no result)
+→
+[ChatGPT]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[ChatGPT]
+1.3s ·
+(no result)
+→
+[ChatGPT]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[ChatGPT]
+1.5s ·
+(no result)
+→
+[Gemini]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[Gemini]
+1.6s ·
+(no result)
+→
+[Gemini]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[Gemini]
+1.4s ·
+(no result)
+→
+[Gemini]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[Gemini]
+1.5s ·
+(no result)
+→
+[Gemini]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[Gemini]
+2.3s ·
+(no result)
+→
+[Gemini]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[Gemini]
+1.9s ·
+(no result)
+→
+[Gemini]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[Gemini]
+1.7s ·
+(no result)
+→
+[Gemini]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[Gemini]
+1.6s ·
+(no result)
+→
+[Gemini]
+"Who leads "small and medium-sized enterprises (SMEs)"?"
+←
+[Gemini]
+1.1s ·
+(no result)
+→
+[ChatGPT]
+"Who leads "corporate cards (physical and virtual)"?"
+→
+[Gemini]
+"Who leads "expense tracking and management"?"
+←
+[ChatGPT]
+1.1s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "corporate cards (physical and virtual)"?"
+→
+[Gemini]
+"Who leads "expense tracking and management"?"
+→
+[ChatGPT]
+"Who leads "corporate cards (physical and virtual)"?"
+←
+[Gemini]
+2s ·
+…scanning
+←
+[Gemini]
+1.1s ·
+…scanning
+→
+[Gemini]
+"Who leads "expense tracking and management"?"
+←
+[ChatGPT]
+2.1s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "corporate cards (physical and virtual)"?"
+→
+[Gemini]
+"Who leads "expense tracking and management"?"
+←
+[ChatGPT]
+1.9s ·
+…scanning
+←
+[Gemini]
+1.8s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "corporate cards (physical and virtual)"?"
+→
+[Gemini]
+"Who leads "expense tracking and management"?"
+→
+[ChatGPT]
+"Who leads "corporate cards (physical and virtual)"?"
+←
+[ChatGPT]
+2.6s ·
+…scanning
+←
+[Gemini]
+2s ·
+…scanning
+→
+[Gemini]
+"Who leads "expense tracking and management"?"
+←
+[ChatGPT]
+1.9s ·
+…scanning
+←
+[Gemini]
+1.7s ·
+…scanning
+←
+[ChatGPT]
+1.1s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "corporate cards (physical and virtual)"?"
+→
+[Gemini]
+"Who leads "expense tracking and management"?"
+←
+[Gemini]
+1.6s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "corporate cards (physical and virtual)"?"
+→
+[Gemini]
+"Who leads "expense tracking and management"?"
+←
+[ChatGPT]
+2.3s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "corporate cards (physical and virtual)"?"
+←
+[Gemini]
+2s ·
+…scanning
+→
+[Gemini]
+"Who leads "expense tracking and management"?"
+←
+[ChatGPT]
+1s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "corporate cards (physical and virtual)"?"
