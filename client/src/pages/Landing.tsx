@@ -835,10 +835,42 @@ function LandingInner() {
   const canRun = selectedServices.size > 0 && selectedCustomers.size > 0 && city.trim().length > 0;
 
   const steps = [
-    { title: "Signal Extraction", desc: "Your site, category, and competitors are ingested — we identify the signals AI engines use to decide who gets cited", icon: Brain },
-    { title: "LLM Scoring", desc: "Real buyer prompts are fired at ChatGPT, Claude, Gemini, and Perplexity — we record exactly where your brand appears (or doesn't)", icon: Search },
-    { title: "Audit Analysis", desc: "We map which domains, sources, and content patterns are driving your competitors' AI citations right now", icon: TrendingUp },
-    { title: "Deploy Agents", desc: "You get a prioritised action plan — the exact content and authority fixes that move your brand into AI answers", icon: Rocket },
+    {
+      title: "Signal Extraction",
+      bullets: [
+        "Understand your business",
+        "Define services & customer types",
+        "Build the optimal prompt set",
+      ],
+      icon: Brain,
+    },
+    {
+      title: "LLM Scoring",
+      bullets: [
+        "Set prompt sample size",
+        "Query ChatGPT, Gemini & Claude live",
+        "Capture every URL they cite",
+      ],
+      icon: Search,
+    },
+    {
+      title: "Authority Crawl",
+      bullets: [
+        "Identify authority sources in your category",
+        "Analyse cited URLs & content patterns",
+        "Decode what makes competitors dominate",
+      ],
+      icon: TrendingUp,
+    },
+    {
+      title: "Action Report",
+      bullets: [
+        "Score your presence on authority domains",
+        "Track brand signals across web & social",
+        "Generate targeted content recommendations",
+      ],
+      icon: Rocket,
+    },
   ];
 
   return (
@@ -2091,10 +2123,19 @@ function LandingInner() {
                   >
                     <item.icon className="w-7 h-7" />
                   </div>
-                  <h3 className={`font-semibold mb-1 transition-colors text-center ${activeStep === index ? "text-indigo-900" : "text-slate-600"}`}>
+                  <h3 className={`font-semibold mb-2 transition-colors text-center ${activeStep === index ? "text-indigo-900" : "text-slate-600"}`}>
                     {item.title}
                   </h3>
-                  <p className="text-sm text-slate-400 text-center">{item.desc}</p>
+                  <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 5 }}>
+                    {item.bullets.map((pt, bi) => (
+                      <li key={bi} style={{ display: "flex", alignItems: "flex-start", gap: 6, fontSize: 12, color: activeStep === index ? "#4338ca" : "#94a3b8", lineHeight: 1.5 }}>
+                        <span style={{ flexShrink: 0, fontWeight: 700, color: activeStep === index ? "#6366f1" : "#a5b4fc", fontSize: 10, marginTop: 2 }}>
+                          {String.fromCharCode(96 + bi + 1)}.
+                        </span>
+                        <span>{pt}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ))}
             </div>
