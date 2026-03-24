@@ -18,8 +18,8 @@
 
 import type { Express, Request, Response } from "express";
 import { db } from "../db";
-import { directoryPages } from "@shared/schema";
-import { desc, eq, sql } from "drizzle-orm";
+import { directoryPages, multiSegmentSessions } from "@shared/schema";
+import { desc, eq, isNotNull, sql } from "drizzle-orm";
 import { getAllBrandSlugs } from "./brandPageRoute";
 import { getAllComparisonSlugs } from "./comparisonPageRoute";
 
@@ -66,6 +66,7 @@ async function buildSitemapIndex(base: string): Promise<string> {
     `${base}/sitemaps/hubs.xml`,
     `${base}/sitemaps/comparisons.xml`,
     `${base}/sitemaps/content-pages.xml`,
+    `${base}/sitemaps/reports.xml`,
   ];
 
   const entries = sitemaps
@@ -181,6 +182,32 @@ async function buildComparisonsSitemap(base: string): Promise<string> {
   return `${xmlHeader()}\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
 }
 
+// ─── /sitemaps/reports.xml — AI visibility report pages ──────────
+
+async function buildReportsSitemap(base: string): Promise<string> {
+  const sessions = await db
+    .select({ id: multiSegmentSessions.id, slug: multiSegmentSessions.slug, createdAt: multiSegmentSessions.createdAt })
+    .from(multiSegmentSessions)
+    .where(isNotNull(multiSegmentSessions.brandName))
+    .orderBy(desc(multiSegmentSessions.id))
+    .limit(10_000);
+
+  if (sessions.length === 0) {
+    return `${xmlHeader()}\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>`;
+  }
+
+  const today = new Date().toISOString().split("T")[0];
+  const urls = sessions.map((s) => {
+    const path = s.slug ? `/reports/${encodeURIComponent(s.slug)}` : `/reports/${s.id}`;
+    const lastmod = s.createdAt
+      ? new Date(s.createdAt).toISOString().split("T")[0]
+      : today;
+    return `  <url>\n    <loc>${base}${path}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.6</priority>\n  </url>`;
+  }).join("\n");
+
+  return `${xmlHeader()}\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
+}
+
 // ─── Route registration ───────────────────────────────────────────
 
 export function registerSitemapRoutes(app: Express): void {
@@ -242,6 +269,18 @@ export function registerSitemapRoutes(app: Express): void {
       respond(res, xml);
     } catch (err) {
       console.error("[sitemap] comparisons error:", err);
+      res.status(500).send("Internal server error");
+    }
+  });
+
+  // AI visibility report pages
+  app.get("/sitemaps/reports.xml", async (req: Request, res: Response) => {
+    try {
+      const base = canonicalBase(req);
+      const xml  = await buildReportsSitemap(base);
+      respond(res, xml);
+    } catch (err) {
+      console.error("[sitemap] reports error:", err);
       res.status(500).send("Internal server error");
     }
   });
