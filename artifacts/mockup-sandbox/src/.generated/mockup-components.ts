@@ -2,6 +2,9 @@
 type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/action-report/IntelligencePanelRedesign.tsx": () => import("../components/mockups/action-report/IntelligencePanelRedesign.tsx"),
+  "./components/mockups/authority-table/CitationLedger.tsx": () => import("../components/mockups/authority-table/CitationLedger.tsx"),
+  "./components/mockups/authority-table/EvidenceMap.tsx": () => import("../components/mockups/authority-table/EvidenceMap.tsx"),
+  "./components/mockups/authority-table/SourceSignal.tsx": () => import("../components/mockups/authority-table/SourceSignal.tsx"),
   "./components/mockups/agent-card/NeuralIntercept.tsx": () => import("../components/mockups/agent-card/NeuralIntercept.tsx"),
   "./components/mockups/agent-card/OperatorConsole.tsx": () => import("../components/mockups/agent-card/OperatorConsole.tsx"),
   "./components/mockups/bg-options/AuroraOrbs.tsx": () => import("../components/mockups/bg-options/AuroraOrbs.tsx"),
@@ -12,9 +15,6 @@ export const modules: ModuleMap = {
   "./components/mockups/bg-options/RadarPulse.tsx": () => import("../components/mockups/bg-options/RadarPulse.tsx"),
   "./components/mockups/bg-options/ScanlineGlitch.tsx": () => import("../components/mockups/bg-options/ScanlineGlitch.tsx"),
   "./components/mockups/bg-options/TopologyLines.tsx": () => import("../components/mockups/bg-options/TopologyLines.tsx"),
-  "./components/mockups/authority-table/CitationLedger.tsx": () => import("../components/mockups/authority-table/CitationLedger.tsx"),
-  "./components/mockups/authority-table/EvidenceMap.tsx": () => import("../components/mockups/authority-table/EvidenceMap.tsx"),
-  "./components/mockups/authority-table/SourceSignal.tsx": () => import("../components/mockups/authority-table/SourceSignal.tsx"),
   "./components/mockups/brand-logo/BrandLogoOptions.tsx": () => import("../components/mockups/brand-logo/BrandLogoOptions.tsx"),
   "./components/mockups/button-preview/AnalyseButton.tsx": () => import("../components/mockups/button-preview/AnalyseButton.tsx"),
   "./components/mockups/citation-sections/VariantA.tsx": () => import("../components/mockups/citation-sections/VariantA.tsx"),
