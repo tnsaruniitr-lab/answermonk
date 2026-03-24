@@ -856,6 +856,10 @@ export async function registerRoutes(
         await storage.updateMultiSegmentSessionSegments(session.id, updatedSegments);
 
         console.log(`[Landing] All segments complete for session ${session.id}`);
+        // Populate citation_urls from the stored scoring data so the authority scan can run
+        populateCitationUrls(session.id).then(() => {
+          console.log(`[Landing] citation_urls populated for session ${session.id}`);
+        }).catch((e) => console.error(`[Landing] citation_urls populate error for session ${session.id}:`, e));
         // Mark submission as done so the slot frees up
         storage.updateLandingSubmission(submissionId, { status: "done" } as any).catch(() => {});
         // Auto-publish to GEO directory — fire-and-forget, never blocks the response
@@ -4272,6 +4276,16 @@ export async function registerRoutes(
 
       let csvText: string;
       let csvRowCount = 0;
+
+      // Auto-populate citation_urls if empty (e.g. sessions scored before this step was added)
+      const { rows: existingCheck } = await pool.query(
+        `SELECT 1 FROM citation_urls WHERE session_id = $1 LIMIT 1`, [sessionId]
+      );
+      if (existingCheck.length === 0) {
+        console.log(`[citation-insights] citation_urls empty for session ${sessionId} — auto-populating`);
+        await populateCitationUrls(sessionId);
+        console.log(`[citation-insights] auto-populate complete for session ${sessionId}`);
+      }
 
       if (citationAnalysisMode === "domain_aggregated") {
         // ── Domain-aggregated mode: one row per domain, sum citations, collect page types ──
