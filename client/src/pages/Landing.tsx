@@ -390,14 +390,19 @@ function HeroFlipperText() {
       Analyse and improve how you're recommended{" "}
       <span style={{ whiteSpace: "nowrap" }}>
         across{" "}
-        <span style={{ display: "inline-block", perspective: 400, verticalAlign: "middle", minWidth: "5.2em", textAlign: "left" }}>
+        <span style={{ display: "inline-block", perspective: 400, verticalAlign: "middle", minWidth: "5.8em", textAlign: "left" }}>
           <span
             key={engine.name}
             className={flipping ? "am-flip-out" : "am-flip-in"}
             style={{
               display: "inline-block",
               color: engine.color,
-              fontWeight: 700,
+              fontWeight: 800,
+              background: engine.color + "22",
+              border: `1px solid ${engine.color}44`,
+              borderRadius: "0.45em",
+              padding: "0.04em 0.32em",
+              boxShadow: `0 0 16px ${engine.color}44`,
             }}
           >
             {engine.name}
@@ -913,7 +918,7 @@ function LandingInner() {
                 </h1>
 
                 {/* Subtext */}
-                <p className="text-lg md:text-xl max-w-2xl mx-auto leading-relaxed" style={{ color: "#374151", marginTop: 14 }}>
+                <p className="text-2xl md:text-3xl font-semibold max-w-2xl mx-auto leading-snug" style={{ color: "#374151", marginTop: 18 }}>
                   <HeroFlipperText />
                 </p>
               </>
