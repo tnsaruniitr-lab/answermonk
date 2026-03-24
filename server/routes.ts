@@ -4762,6 +4762,15 @@ Rules for content:
     return BOT_UA_RE.test(ua);
   }
 
+  // Catches bots AND tools (curl, LLM fetchers) that don't send browser headers.
+  // Real browsers always send Accept-Language. Tools and AI fetchers typically don't.
+  function isNonBrowserRequest(req: Request): boolean {
+    if (isBotRequest(req)) return true;
+    const hasLang = !!req.headers["accept-language"];
+    const hasSecFetch = !!req.headers["sec-fetch-mode"];
+    return !hasLang && !hasSecFetch;
+  }
+
   function escapeHtml(str: string): string {
     return String(str)
       .replace(/&/g, "&amp;")
@@ -4893,6 +4902,197 @@ Rules for content:
   </footer>
 </body>
 </html>`;
+  }
+
+  // ── Homepage SSR ────────────────────────────────────────────────────────────
+  app.get("/", (req: Request, res: Response, next: NextFunction) => {
+    if (!isNonBrowserRequest(req)) return next();
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Search Visibility Audit for Brands and Agencies | AnswerMonk</title>
+  <meta name="description" content="Measure how your brand appears in ChatGPT, Gemini, Perplexity, and AI search. Benchmark competitors, find citation gaps, and get actions to improve your AI visibility." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://answermonk.ai" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="AI Search Visibility Audit for Brands and Agencies | AnswerMonk" />
+  <meta property="og:description" content="Measure how your brand appears in ChatGPT, Gemini, Perplexity, and AI search. Benchmark competitors and find actions to improve AI citations and visibility." />
+  <meta property="og:url" content="https://answermonk.ai" />
+  <meta property="og:site_name" content="AnswerMonk" />
+</head>
+<body>
+  <header><a href="https://answermonk.ai">AnswerMonk — AI Search Visibility Platform</a></header>
+  <main>
+    <h1>When customers ask AI — are you the answer?</h1>
+    <p>AnswerMonk is a GEO (Generative Engine Optimization) intelligence platform that measures how often your brand appears in AI-generated answers from ChatGPT, Gemini, Claude, and Perplexity. Enter your website URL to run a free AI visibility audit.</p>
+
+    <h2>What AnswerMonk measures</h2>
+    <ul>
+      <li><strong>AI share-of-voice</strong> — how often your brand is mentioned in AI responses for your category, weighted by engine market share</li>
+      <li><strong>Competitor rankings</strong> — which competing brands AI engines recommend instead of you, and by how much</li>
+      <li><strong>Citation source analysis</strong> — which third-party sites (review platforms, directories, publications) are driving AI recommendations in your category</li>
+      <li><strong>Segment-level visibility</strong> — your AI presence broken down by service type, customer persona, and location</li>
+    </ul>
+
+    <h2>How the audit works</h2>
+    <ol>
+      <li><strong>Signal selection</strong> — AnswerMonk crawls your website and extracts your core service categories, customer types, and market segments</li>
+      <li><strong>LLM scoring</strong> — A network of 20–30 natural-language prompts is run across ChatGPT, Gemini, and Claude simultaneously. Every brand mention is recorded.</li>
+      <li><strong>Authority crawl</strong> — The top authority sources driving AI citations in your category are identified and benchmarked against competitors</li>
+      <li><strong>Fix &amp; deploy</strong> — A prioritized action report shows exactly which citation sources to target and what content to produce to improve your AI visibility score</li>
+    </ol>
+
+    <h2>AI engine coverage</h2>
+    <ul>
+      <li>ChatGPT (OpenAI) — 35% weight</li>
+      <li>Gemini (Google) — 35% weight</li>
+      <li>Claude (Anthropic) — 20% weight</li>
+      <li>Perplexity — 10% weight</li>
+    </ul>
+
+    <h2>Who uses AnswerMonk</h2>
+    <p>Brands, marketing agencies, and B2B SaaS companies that want to understand and improve how AI search engines recommend them to potential buyers. Particularly useful for categories where buyers use ChatGPT, Gemini, or Perplexity to discover and compare services.</p>
+
+    <p><a href="https://answermonk.ai">Run your free AI visibility audit at answermonk.ai</a></p>
+    <p><a href="https://answermonk.ai/reports">Browse published AI visibility reports</a></p>
+    <p><a href="https://answermonk.ai/methodology">Read the AnswerMonk methodology</a></p>
+  </main>
+  <footer><p>© AnswerMonk — AI Search Visibility Intelligence. <a href="https://answermonk.ai">answermonk.ai</a></p></footer>
+</body>
+</html>`;
+    return res.status(200).set("Content-Type", "text/html; charset=utf-8").send(html);
+  });
+
+  // ── SEO page SSR ─────────────────────────────────────────────────────────────
+
+  const SEO_SSR_PAGES: Record<string, { title: string; description: string; canonical: string; h1: string; body: string }> = {
+    "/methodology": {
+      title: "How AnswerMonk Measures AI Search Visibility | Methodology",
+      description: "Learn exactly how AnswerMonk audits your brand's visibility in ChatGPT, Gemini, Claude, and Perplexity — from prompt generation to share-of-voice scoring.",
+      canonical: "https://answermonk.ai/methodology",
+      h1: "How AnswerMonk measures AI search visibility",
+      body: `<p>A transparent breakdown of the audit process — from crawling your website to calculating your share-of-voice score across AI engines.</p>
+<h2>Step 1 — Website crawl and segment extraction</h2>
+<p>The audit begins by crawling your brand's domain. We extract the core services, product categories, and customer types your business targets — parsing page structure, headings, navigation, and semantic content to identify genuine service segments.</p>
+<h2>Step 2 — Prompt network generation</h2>
+<p>For each segment, we generate 20–30 natural-language prompts — the kind of queries a real buyer would ask an AI engine. These include discovery prompts ("What is the best [service] for [customer type]?"), comparison prompts, and recommendation prompts.</p>
+<h2>Step 3 — Cross-engine scoring</h2>
+<p>Each prompt is run against four AI engines simultaneously: ChatGPT (OpenAI), Gemini (Google), Claude (Anthropic), and Perplexity. Engine weights: ChatGPT 35%, Gemini 35%, Claude 20%, Perplexity 10%.</p>
+<h2>Step 4 — Appearance rate and share of voice</h2>
+<p><strong>Appearance rate</strong> is the percentage of prompts in which a brand is mentioned at least once. <strong>Share of voice</strong> is a weighted composite combining appearance rate, rank position, and engine weight. A score of 100 means the brand dominates every tested query on every engine.</p>
+<h2>Step 5 — Competitor detection</h2>
+<p>Competitors are detected organically from AI responses — not from a pre-set list. Every brand mentioned across the prompt set is recorded and ranked. This reveals who AI systems actually consider your competition.</p>
+<h2>Step 6 — Citation source crawling</h2>
+<p>When AI engines cite external sources, those citations are crawled and classified — review platforms, directories, industry publications, or brand-owned pages. This citation map shows which third-party sources drive AI visibility in your category.</p>`,
+    },
+    "/how-ai-search-works": {
+      title: "How AI Search Works — ChatGPT, Gemini, Perplexity Explained | AnswerMonk",
+      description: "Understand how AI search engines like ChatGPT, Gemini, Claude, and Perplexity generate answers and why some brands get recommended while others don't.",
+      canonical: "https://answermonk.ai/how-ai-search-works",
+      h1: "How AI search works — and why it matters for brands",
+      body: `<p>AI search engines don't return a list of links. They generate a recommended answer. Understanding how they do this is the first step to appearing in them.</p>
+<h2>Traditional search vs AI search</h2>
+<p>Traditional search engines like Google return a ranked list of URLs. AI search engines — ChatGPT, Gemini, Claude, Perplexity — generate a synthesized answer directly. Instead of ten blue links, users get a paragraph or numbered list naming specific brands. You either appear in the answer, or you don't exist.</p>
+<h2>The four major AI search engines</h2>
+<p><strong>ChatGPT (OpenAI)</strong> — The most widely used AI assistant globally. Processes hundreds of millions of queries per day. Carries the highest weight in AI visibility analyses because of its reach.</p>
+<p><strong>Gemini (Google)</strong> — Google's AI model, integrated into Search through AI Overviews. Heavily influenced by traditional SEO signals.</p>
+<p><strong>Claude (Anthropic)</strong> — Known for nuanced, detailed responses. Tends to name established, well-documented brands.</p>
+<p><strong>Perplexity</strong> — A search-native AI that always runs live web retrieval before answering. Cites sources explicitly.</p>
+<h2>How AI engines decide which brands to mention</h2>
+<ul>
+  <li>Training data frequency — brands appearing often in credible sources are more likely to appear in AI responses</li>
+  <li>Third-party citations — review platforms, directories, and industry publications that mention a brand feed its AI presence</li>
+  <li>Entity clarity — brands with a clear, consistent description across the web are easier for AI to recommend</li>
+</ul>`,
+    },
+    "/glossary/generative-engine-optimization": {
+      title: "What is Generative Engine Optimization (GEO)? | AnswerMonk",
+      description: "Generative Engine Optimization (GEO) is the practice of improving a brand's visibility in AI-generated search results from ChatGPT, Gemini, Claude, and Perplexity.",
+      canonical: "https://answermonk.ai/glossary/generative-engine-optimization",
+      h1: "What is Generative Engine Optimization (GEO)?",
+      body: `<p>GEO is the practice of optimizing a brand's presence in AI-generated search results — the answers ChatGPT, Gemini, Claude, and Perplexity generate when users ask them for recommendations.</p>
+<h2>Definition</h2>
+<p>Generative Engine Optimization (GEO) refers to the set of strategies used to improve how often and how prominently a brand appears in AI-generated answers. Where traditional SEO targets ranked URL lists on search engines, GEO targets the synthesized recommendations that AI engines produce when users ask natural-language questions.</p>
+<h2>Why GEO emerged as a distinct discipline</h2>
+<p>A brand can hold the #1 Google ranking for a keyword and still be absent from ChatGPT's answer to the same query. The signals that determine AI recommendation are related to but distinct from traditional SEO signals — making GEO a separate optimization practice.</p>
+<h2>What GEO involves</h2>
+<ul>
+  <li>Measuring AI visibility — tracking which AI engines mention your brand, for which queries, and at what frequency</li>
+  <li>Citation source optimization — ensuring your brand appears on the third-party platforms AI engines use as sources</li>
+  <li>Entity clarity — making your brand's identity, category, and value proposition consistently clear across the web</li>
+  <li>Citable content creation — producing content that AI engines can reference when synthesizing answers</li>
+</ul>
+<h2>GEO vs SEO</h2>
+<p>SEO and GEO overlap significantly in their foundations — both reward credibility, consistent presence, and high-quality content. But GEO places more weight on third-party citation breadth, entity recognition, and category association than on keyword-optimized page ranking.</p>`,
+    },
+    "/glossary/ai-visibility-score": {
+      title: "What is an AI Visibility Score? | AnswerMonk",
+      description: "An AI visibility score measures how often and how prominently a brand appears in AI search results from ChatGPT, Gemini, Claude, and Perplexity.",
+      canonical: "https://answermonk.ai/glossary/ai-visibility-score",
+      h1: "What is an AI visibility score?",
+      body: `<p>An AI visibility score is a quantified measure of how often and how prominently a brand appears in AI-generated search responses across engines like ChatGPT, Gemini, Claude, and Perplexity.</p>
+<h2>Definition</h2>
+<p>An AI visibility score aggregates a brand's performance across multiple AI engines and query types into a single number. A score of 100 means the brand dominates every tested query across every engine. A score of 0 means the brand does not appear in any AI response for queries relevant to its category.</p>
+<h2>What goes into the score</h2>
+<ul>
+  <li>Appearance rate — the percentage of tested prompts in which the brand is mentioned at least once</li>
+  <li>Rank position — whether the brand is mentioned first, second, or fifth in the AI response</li>
+  <li>Engine weight — ChatGPT and Gemini carry more weight than Perplexity due to relative usage volume</li>
+  <li>Prompt coverage — how broadly the brand appears across different query types</li>
+</ul>
+<h2>How to interpret your score</h2>
+<p>Below 20: little to no AI presence. 20–50: partial visibility. Above 50: consistent, meaningful AI presence. Above 70: market leadership in AI search for the category.</p>`,
+    },
+    "/glossary/ai-search-visibility": {
+      title: "What is AI Search Visibility? | AnswerMonk",
+      description: "AI search visibility refers to how often and how prominently a brand appears in AI-generated answers from ChatGPT, Gemini, Claude, and Perplexity when buyers search for products and services.",
+      canonical: "https://answermonk.ai/glossary/ai-search-visibility",
+      h1: "What is AI search visibility?",
+      body: `<p>AI search visibility is the measure of how often your brand appears — and how prominently — when people use AI engines to find products, services, or recommendations in your category.</p>
+<h2>Definition</h2>
+<p>AI search visibility refers to a brand's presence in the answers that AI engines generate in response to natural-language queries. When a buyer asks ChatGPT "What is the best accounting software for freelancers?", the brands that appear in the answer have AI search visibility for that query. The brands that don't appear have zero visibility for that query, regardless of their traditional SEO performance.</p>
+<h2>Why AI search visibility matters</h2>
+<p>AI engines are now a primary discovery channel for many product and service categories. ChatGPT alone serves hundreds of millions of queries per day. Gemini is integrated into Google Search through AI Overviews, reaching Google's full user base. When buyers use these tools to find recommendations, the brands that appear win attention.</p>
+<h2>How AI search visibility differs from SEO</h2>
+<ul>
+  <li>SEO targets URL rankings for specific keywords; AI search visibility targets entity presence across a category of prompts</li>
+  <li>SEO success is measured by click-through rate; AI search visibility is measured by appearance rate in AI responses</li>
+  <li>SEO is influenced by on-page optimization and backlinks; AI search visibility is more influenced by citation breadth, entity clarity, and third-party review presence</li>
+</ul>`,
+    },
+  };
+
+  for (const [path, page] of Object.entries(SEO_SSR_PAGES)) {
+    app.get(path, (req: Request, res: Response, next: NextFunction) => {
+      if (!isNonBrowserRequest(req)) return next();
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${page.title}</title>
+  <meta name="description" content="${escapeHtml(page.description)}" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="${page.canonical}" />
+  <meta property="og:title" content="${page.title}" />
+  <meta property="og:description" content="${escapeHtml(page.description)}" />
+  <meta property="og:url" content="${page.canonical}" />
+  <meta property="og:site_name" content="AnswerMonk" />
+</head>
+<body>
+  <header><a href="https://answermonk.ai">AnswerMonk — AI Search Visibility Platform</a></header>
+  <main>
+    <h1>${page.h1}</h1>
+    ${page.body}
+    <p><a href="https://answermonk.ai">Run a free AI visibility audit for your brand at answermonk.ai</a></p>
+  </main>
+  <footer><p>© AnswerMonk — AI Search Visibility Intelligence. <a href="https://answermonk.ai">answermonk.ai</a></p></footer>
+</body>
+</html>`;
+      return res.status(200).set("Content-Type", "text/html; charset=utf-8").send(html);
+    });
   }
 
   app.get("/reports", async (req: Request, res: Response, next: NextFunction) => {
