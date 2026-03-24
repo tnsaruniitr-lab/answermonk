@@ -4895,6 +4895,62 @@ Rules for content:
 </html>`;
   }
 
+  app.get("/reports", async (req: Request, res: Response, next: NextFunction) => {
+    if (!isBotRequest(req)) return next();
+
+    try {
+      const indexData = await fetch(`http://localhost:${process.env.PORT || 5000}/api/directory/search-index`);
+      const entries: any[] = indexData.ok ? await indexData.json() : [];
+
+      const listItems = entries.slice(0, 500).map((e: any) => {
+        const path = e.slug ? `/reports/${e.slug}` : `/reports/${e.id}`;
+        const label = e.query || `${e.ownBrand} — ${e.category}`;
+        const rivals = (e.topBrands ?? []).slice(0, 2).join(", ");
+        return `  <li>
+    <a href="https://answermonk.ai${path}">${escapeHtml(label)}</a>
+    ${rivals ? `<span> — vs ${escapeHtml(rivals)}</span>` : ""}
+  </li>`;
+      }).join("\n");
+
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Visibility Reports — Browse All Brands | AnswerMonk</title>
+  <meta name="description" content="Browse AI search visibility reports for brands across categories and markets. Each report shows share-of-voice, competitor rankings, and citation sources across ChatGPT, Claude, and Gemini." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://answermonk.ai/reports" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="AI Visibility Reports — Browse All Brands | AnswerMonk" />
+  <meta property="og:description" content="Browse AI search visibility reports for brands across categories and markets." />
+  <meta property="og:url" content="https://answermonk.ai/reports" />
+  <meta property="og:site_name" content="AnswerMonk" />
+</head>
+<body>
+  <header>
+    <a href="https://answermonk.ai">AnswerMonk — AI Search Visibility Platform</a>
+  </header>
+  <main>
+    <h1>AI Visibility Reports</h1>
+    <p>Browse AI search visibility audits for brands across categories and markets. Each report shows share-of-voice, competitor rankings, and citation sources across ChatGPT, Claude, and Gemini.</p>
+    <p>${entries.length} reports published.</p>
+    <ul>
+${listItems}
+    </ul>
+  </main>
+  <footer>
+    <p>© AnswerMonk — AI Search Visibility Intelligence. <a href="https://answermonk.ai">answermonk.ai</a></p>
+  </footer>
+</body>
+</html>`;
+
+      return res.status(200).set("Content-Type", "text/html; charset=utf-8").send(html);
+    } catch {
+      return next();
+    }
+  });
+
   app.get("/reports/:slug", async (req: Request, res: Response, next: NextFunction) => {
     if (!isBotRequest(req)) return next();
 

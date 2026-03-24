@@ -23,6 +23,7 @@ import CrawlabilityReport from "@/pages/CrawlabilityReport";
 import GeoLandingPageReport from "@/pages/GeoLandingPageReport";
 import Landing from "@/pages/Landing";
 import ReportsSession from "@/pages/ReportsSession";
+import ReportsIndex from "@/pages/ReportsIndex";
 import DirectoryListing from "@/pages/DirectoryListing";
 import AdminSettings from "@/pages/AdminSettings";
 import AdminCaptures from "@/pages/AdminCaptures";
@@ -167,6 +168,18 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <SeoRoutes path={path} />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  // Public reports index — /reports exactly
+  if (path === "/reports") {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <ReportsIndex />
         </TooltipProvider>
       </QueryClientProvider>
     );

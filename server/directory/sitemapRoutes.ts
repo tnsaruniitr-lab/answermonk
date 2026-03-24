@@ -307,6 +307,7 @@ export function registerSitemapRoutes(app: Express): void {
       "/compare/answermonk-vs-profound",
       "/compare/answermonk-vs-ahrefs-brand-radar",
       "/sample-report",
+      "/reports",
     ];
     const urls = CONTENT_PAGES.map(path =>
       `  <url>\n    <loc>${base}${path}</loc>\n    <lastmod>${now}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`
