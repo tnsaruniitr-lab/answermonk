@@ -1280,6 +1280,10 @@ function LandingInner() {
             {/* Sticky email bar — visible during scoring and after, above all analysis boxes */}
             {emailBarVisible && (() => {
               const needsAction = allSegmentsDone && !scanStarted;
+              const scanDone = scanStarted && pipelineCrawlDone;
+              const scanRunning = scanStarted && !pipelineCrawlDone;
+              // State 2 (needsAction) bounces; all other states pulse
+              const botAnimClass = needsAction ? "am-bot-bounce2" : "am-bot-pulse2";
               const BOT_ANIM_CSS = `
                 @keyframes amBotPulse2  { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.55;transform:scale(0.82)} }
                 @keyframes amBotBounce2 { 0%,100%{transform:translateY(0)} 35%{transform:translateY(-4px)} 65%{transform:translateY(1px)} }
@@ -1293,6 +1297,39 @@ function LandingInner() {
                   <rect x="27" y="14" width="4" height="7" rx="2" fill="rgba(255,255,255,0.5)" />
                   <rect x="6" y="7" width="20" height="22" rx="7" fill="rgba(255,255,255,0.9)" />
                 </svg>
+              );
+              const EmailRow = ({ label }: { label: string }) => (
+                <>
+                  <span style={{ fontSize: 12, color: "#fff", fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 }}>
+                    {label}
+                  </span>
+                  <input
+                    value={waitlistEmail}
+                    onChange={e => setWaitlistEmail(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && handleWaitlistSubmit()}
+                    placeholder="you@email.com"
+                    data-sticky-email
+                    style={{
+                      background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
+                      borderRadius: 7, padding: "3px 8px", fontSize: 11, color: "#fff",
+                      outline: "none", width: 110, flexShrink: 0, marginLeft: "auto",
+                    }}
+                  />
+                  <button
+                    onClick={handleWaitlistSubmit}
+                    disabled={waitlistSubmitting || !waitlistEmail.includes("@")}
+                    style={{
+                      display: "inline-flex", alignItems: "center",
+                      background: waitlistEmail.includes("@") ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.15)",
+                      color: waitlistEmail.includes("@") ? "#3730a3" : "rgba(255,255,255,0.4)",
+                      border: "none", borderRadius: 7, padding: "3px 10px",
+                      fontSize: 12, fontWeight: 800, cursor: waitlistEmail.includes("@") ? "pointer" : "not-allowed",
+                      whiteSpace: "nowrap", flexShrink: 0,
+                    }}
+                  >
+                    {waitlistSubmitting ? "…" : "→"}
+                  </button>
+                </>
               );
               return (
                 <div style={{
@@ -1315,45 +1352,23 @@ function LandingInner() {
                   overflow: "hidden",
                 }}>
                   <style>{BOT_ANIM_CSS}</style>
-                  <span className={needsAction ? "am-bot-bounce2" : "am-bot-pulse2"} style={{ display: "flex", alignItems: "center" }}>
+                  <span className={botAnimClass} style={{ display: "flex", alignItems: "center" }}>
                     {BotIcon}
                   </span>
                   {needsAction ? (
-                    <span style={{ fontSize: 12, color: "#fff", fontWeight: 700, whiteSpace: "nowrap" }}>
-                      Complete report ready — view it below ↓
+                    // State 2: scoring done, yellow button not yet pressed
+                    <span style={{ fontSize: 12, color: "#fff", fontWeight: 700 }}>
+                      Visibility rankings ready — hit the yellow button below for authority analysis ↓
                     </span>
+                  ) : scanDone ? (
+                    // State 4: crawl complete — stay visible, offer email
+                    <EmailRow label="Analysis complete — email the report" />
+                  ) : scanRunning ? (
+                    // State 3: crawl in progress
+                    <EmailRow label="Crawling citations to find what makes brands rank — 3–4 mins, or get it emailed" />
                   ) : (
-                    <>
-                      <span style={{ fontSize: 12, color: "#fff", fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 }}>
-                        Crawling citations to find what makes brands rank — 3–4 mins, or get it emailed
-                      </span>
-                      <input
-                        value={waitlistEmail}
-                        onChange={e => setWaitlistEmail(e.target.value)}
-                        onKeyDown={e => e.key === "Enter" && handleWaitlistSubmit()}
-                        placeholder="you@email.com"
-                        data-sticky-email
-                        style={{
-                          background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
-                          borderRadius: 7, padding: "3px 8px", fontSize: 11, color: "#fff",
-                          outline: "none", width: 110, flexShrink: 0, marginLeft: "auto",
-                        }}
-                      />
-                      <button
-                        onClick={handleWaitlistSubmit}
-                        disabled={waitlistSubmitting || !waitlistEmail.includes("@")}
-                        style={{
-                          display: "inline-flex", alignItems: "center",
-                          background: waitlistEmail.includes("@") ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.15)",
-                          color: waitlistEmail.includes("@") ? "#3730a3" : "rgba(255,255,255,0.4)",
-                          border: "none", borderRadius: 7, padding: "3px 10px",
-                          fontSize: 12, fontWeight: 800, cursor: waitlistEmail.includes("@") ? "pointer" : "not-allowed",
-                          whiteSpace: "nowrap", flexShrink: 0,
-                        }}
-                      >
-                        {waitlistSubmitting ? "…" : "→"}
-                      </button>
-                    </>
+                    // State 1: scoring in progress
+                    <EmailRow label="wait about 2 mins to see how you rank, or get it emailed" />
                   )}
                 </div>
               );
