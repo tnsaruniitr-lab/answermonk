@@ -857,8 +857,14 @@ export async function registerRoutes(
 
         console.log(`[Landing] All segments complete for session ${session.id}`);
         // Populate citation_urls from the stored scoring data so the authority scan can run
-        populateCitationUrls(session.id).then(() => {
+        populateCitationUrls(session.id).then(async () => {
           console.log(`[Landing] citation_urls populated for session ${session.id}`);
+          try {
+            const classifyResult = await runLlmClassification(session.id);
+            console.log(`[Landing] Auto-classified ${classifyResult.updated}/${classifyResult.total} URLs for session ${session.id} ($${classifyResult.costUsd})`);
+          } catch (classifyErr) {
+            console.error(`[Landing] citation_urls classify error for session ${session.id}:`, classifyErr);
+          }
         }).catch((e) => console.error(`[Landing] citation_urls populate error for session ${session.id}:`, e));
         // Mark submission as done so the slot frees up
         storage.updateLandingSubmission(submissionId, { status: "done" } as any).catch(() => {});
