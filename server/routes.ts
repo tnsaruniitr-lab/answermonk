@@ -724,6 +724,24 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/landing/submissions", async (_req: Request, res: Response) => {
+    try {
+      const submissions = await storage.listLandingSubmissions();
+      return res.json(submissions);
+    } catch (err) {
+      return res.status(500).json({ error: "Failed to list submissions" });
+    }
+  });
+
+  app.get("/api/waitlist", async (_req: Request, res: Response) => {
+    try {
+      const entries = await storage.listWaitlistEntries();
+      return res.json(entries);
+    } catch (err) {
+      return res.status(500).json({ error: "Failed to list waitlist" });
+    }
+  });
+
   app.post("/api/waitlist", async (req: Request, res: Response) => {
     try {
       const schema = z.object({

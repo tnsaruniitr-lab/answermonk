@@ -78,6 +78,10 @@ export default function Analyzer() {
               <Webhook className="w-3.5 h-3.5" />
               Incoming
             </Link>
+            <Link href="/admin/captures" className="text-sm text-muted-foreground flex items-center gap-1.5 transition-colors hover:text-foreground" data-testid="link-captures">
+              <Globe className="w-3.5 h-3.5" />
+              Captures
+            </Link>
             <Link href="/start" className="text-sm text-muted-foreground flex items-center gap-1.5 transition-colors hover:text-foreground" data-testid="link-start">
               <Globe className="w-3.5 h-3.5" />
               GEO Start

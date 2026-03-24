@@ -110,6 +110,7 @@ export interface IStorage {
   createAgentInterest(data: InsertAgentInterest): Promise<AgentInterest>;
   countRunningSessions(): Promise<number>;
   createWaitlistEntry(website: string, email: string, submissionId?: number): Promise<void>;
+  listWaitlistEntries(): Promise<AuditWaitlistEntry[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -654,6 +655,14 @@ export class DatabaseStorage implements IStorage {
 
   async createWaitlistEntry(website: string, email: string, submissionId?: number): Promise<void> {
     await db.insert(auditWaitlist).values({ website, email, submissionId: submissionId ?? null });
+  }
+
+  async listWaitlistEntries(): Promise<AuditWaitlistEntry[]> {
+    return db
+      .select()
+      .from(auditWaitlist)
+      .orderBy(desc(auditWaitlist.createdAt))
+      .limit(500);
   }
 }
 
