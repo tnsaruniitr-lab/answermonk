@@ -12,6 +12,7 @@ import { getAdminSettings, getEnabledEngines } from "@/hooks/useAdminSettings";
 import { RecentAnalysisTiles } from "@/components/RecentAnalysisTiles";
 import { AnalysisPipelineHeader } from "@/components/AnalysisPipelineHeader";
 import { MonkWordmark } from "@/components/MonkWordmark";
+import { CrawlMissionControl } from "@/components/CrawlMissionControl";
 const AuthoritySourcesPanel = lazy(() =>
   import("@/components/AuthoritySourcesPanel").then(m => ({ default: m.AuthoritySourcesPanel }))
 );
@@ -55,7 +56,7 @@ const RUN_STEPS = [
   { emoji: "🚀", label: "Dispatching to ChatGPT · Claude · Gemini…" },
   { emoji: "📡", label: "Calibrating brand visibility scoring model…" },
   { emoji: "🏆", label: "Benchmarking against competitor landscape…" },
-  { emoji: "📋", label: "Compiling your GEO Intelligence Report…" },
+  { emoji: "⚡", label: "Initiating AnswerMonk audit…" },
 ];
 
 function stripPromptPrefix(text: string): string {
@@ -437,7 +438,6 @@ function LandingInner() {
   const [intelligenceExpanded, setIntelligenceExpanded] = useState(false);
   const [scanStarted, setScanStarted] = useState(false);
   const crawlPostFiredRef = useRef<number | null>(null);
-  const [crawlStepIdx, setCrawlStepIdx] = useState(0);
   const [crawlFailed, setCrawlFailed] = useState(false);
   const [activeTab, setActiveTab] = useState<"reports" | "directory" | "agents">("reports");
   const { toast } = useToast();
@@ -701,19 +701,10 @@ function LandingInner() {
     setRankingsExpanded(false);
   }, [activeSessionId]);
 
-  const CRAWL_STEPS = [
-    "Extracting citation URLs from LLM responses…",
-    "Classifying authority domains by category…",
-    "Aggregating cross-engine citation signals…",
-    "Building competitor intelligence map…",
-    "Generating final authority report…",
-  ];
-
   useEffect(() => {
     if (!scanStarted || !activeSessionId) { setCrawlFailed(false); return; }
     if (crawlPostFiredRef.current === activeSessionId) return;
     crawlPostFiredRef.current = activeSessionId;
-    setCrawlStepIdx(0);
     setCrawlFailed(false);
     fetch(`/api/multi-segment-sessions/${activeSessionId}/citation-insights`, {
       method: "POST",
@@ -730,14 +721,6 @@ function LandingInner() {
       setCrawlFailed(true);
     });
   }, [scanStarted, activeSessionId]);
-
-  useEffect(() => {
-    if (!scanStarted || pipelineCrawlDone) return;
-    const t = setInterval(() => {
-      setCrawlStepIdx(i => (i + 1) % CRAWL_STEPS.length);
-    }, 3500);
-    return () => clearInterval(t);
-  }, [scanStarted, pipelineCrawlDone]);
 
   function handleTileSelect(sessionId: number) {
     setActiveSessionId(sessionId);
@@ -1158,8 +1141,6 @@ function LandingInner() {
                   })}
                 </div>
 
-                {/* Bottom label */}
-                <p className="mt-5 text-[10px] text-gray-400 font-mono text-center">Scoring fires in background — your report will be ready in ~60s</p>
               </div>
             </div>
           </div>
@@ -1553,52 +1534,22 @@ function LandingInner() {
               </div>
             )}
 
-            {/* Crawl loading bar — visible between button click and crawl completion */}
+            {/* Crawl loading — visible between button click and crawl completion */}
             {allSegmentsDone && activeSessionId !== null && scanStarted && !pipelineCrawlDone && (
-              <div style={{
-                borderRadius: 14,
-                background: "linear-gradient(110deg, #1e1b4b 0%, #3730a3 50%, #4f46e5 100%)",
-                padding: "14px 18px",
-                marginTop: 12,
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <svg width="22" height="22" viewBox="0 0 38 38" fill="none" style={{ flexShrink: 0 }}>
-                    <rect x="4" y="2" width="30" height="34" rx="9" fill="#4f46e5" />
-                    <rect x="11" y="11" width="5" height="6" rx="2.5" fill="#fff" />
-                    <rect x="22" y="11" width="5" height="6" rx="2.5" fill="#fff" />
-                    <rect x="27" y="14" width="4" height="7" rx="2" fill="rgba(255,255,255,0.5)" />
-                    <rect x="7" y="14" width="4" height="7" rx="2" fill="rgba(255,255,255,0.5)" />
-                    <rect x="13" y="23" width="12" height="3" rx="1.5" fill="rgba(255,255,255,0.7)" />
-                  </svg>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
-                    Authority Intelligence Agent
-                  </span>
-                  <span style={{ marginLeft: "auto", fontSize: 11, color: crawlFailed ? "#fca5a5" : "#a5b4fc", fontWeight: 500 }}>
-                    {crawlFailed ? "failed" : "running"}
-                  </span>
-                </div>
-                <div style={{ fontSize: 12, color: crawlFailed ? "#fca5a5" : "#c7d2fe", fontWeight: 500, minHeight: 18 }}>
-                  {crawlFailed
-                    ? "No citation URLs found for this session — try a fresh analysis."
-                    : CRAWL_STEPS[crawlStepIdx]}
-                </div>
-                {!crawlFailed && (
-                  <>
-                    <div style={{ height: 4, borderRadius: 4, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
-                      <div style={{
-                        height: "100%",
-                        borderRadius: 4,
-                        background: "linear-gradient(90deg, #818cf8, #a5b4fc, #818cf8)",
-                        backgroundSize: "200% 100%",
-                        animation: "amScan 1.8s linear infinite",
-                        width: "60%",
-                      }} />
-                    </div>
-                    <style>{`@keyframes amScan { 0%{background-position:100% 0} 100%{background-position:-100% 0} }`}</style>
-                  </>
+              <div style={{ marginTop: 12 }}>
+                {crawlFailed ? (
+                  <div style={{
+                    borderRadius: 14,
+                    background: "linear-gradient(110deg, #1e1b4b 0%, #3730a3 50%, #4f46e5 100%)",
+                    padding: "14px 18px",
+                    fontSize: 12,
+                    color: "#fca5a5",
+                    fontWeight: 500,
+                  }}>
+                    No citation URLs found for this session — try a fresh analysis.
+                  </div>
+                ) : (
+                  <CrawlMissionControl progress={null} />
                 )}
               </div>
             )}
