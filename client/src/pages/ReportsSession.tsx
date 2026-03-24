@@ -34,9 +34,11 @@ function deriveContext(session: any) {
 }
 
 export default function ReportsSession() {
-  const [, params] = useRoute("/reports/:id");
+  const [, params] = useRoute("/reports/:slug");
   const [, navigate] = useLocation();
-  const id = params?.id ? parseInt(params.id, 10) : null;
+  const slug = params?.slug ?? "";
+  const idFromSlug = slug.match(/-(\d+)$/)?.[1] ?? slug;
+  const id = idFromSlug ? parseInt(idFromSlug, 10) : null;
   const [rankingsExpanded, setRankingsExpanded] = useState(true);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);

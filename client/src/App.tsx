@@ -73,7 +73,7 @@ function AdminDashboard() {
       <Route path="/prompts" component={PromptGenerator} />
       <Route path="/scoring/:id" component={ScoringDetail} />
       <Route path="/v2/:id" component={V2SessionDetail} />
-      <Route path="/reports/:id" component={ReportsSession} />
+      <Route path="/reports/:slug" component={ReportsSession} />
       <Route path="/summary/:id" component={SlugSummary} />
       <Route path="/teaser/:id" component={ProspectTeaser} />
       <Route path="/share/summary/:id" component={SummaryReport} />

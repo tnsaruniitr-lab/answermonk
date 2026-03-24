@@ -3,6 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import Fuse from "fuse.js";
 
+function toReportSlug(text: string, id: number): string {
+  const base = (text || String(id))
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+  return `${base}-${id}`;
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface DirectoryTile {
@@ -385,7 +394,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
   if (!isLoading && tiles.length === 0) return null;
 
   function handleTileClick(tile: DirectoryTile) {
-    navigate(`/reports/${tile.sessionId}`);
+    navigate(`/reports/${toReportSlug(tile.query || tile.category, tile.sessionId)}`);
   }
 
   return (
@@ -502,7 +511,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
             {extraIndexMatches.map(entry => (
               <button
                 key={entry.id}
-                onClick={() => navigate(`/reports/${entry.id}`)}
+                onClick={() => navigate(`/reports/${toReportSlug(entry.category || entry.ownBrand, entry.id)}`)}
                 style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",
                   background: "rgba(255,255,255,0.85)", border: "1px solid rgba(0,0,0,0.08)",
