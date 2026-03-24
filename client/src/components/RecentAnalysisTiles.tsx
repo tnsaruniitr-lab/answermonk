@@ -24,6 +24,8 @@ interface SearchIndexEntry {
   category: string;
   query: string;
   ownBrand: string;
+  domain: string;
+  domainRoot: string;
   topBrands: string[];
   otherBrands: string[];
 }
@@ -291,11 +293,13 @@ const INITIAL_COUNT = 6;
 
 const FUSE_OPTIONS: Fuse.IFuseOptions<SearchIndexEntry> = {
   keys: [
-    { name: "category",    weight: 0.35 },
-    { name: "query",       weight: 0.25 },
-    { name: "ownBrand",    weight: 0.25 },
-    { name: "topBrands",   weight: 0.12 },
-    { name: "otherBrands", weight: 0.03 },
+    { name: "category",    weight: 0.30 },
+    { name: "query",       weight: 0.20 },
+    { name: "ownBrand",    weight: 0.20 },
+    { name: "domainRoot",  weight: 0.15 },
+    { name: "domain",      weight: 0.10 },
+    { name: "topBrands",   weight: 0.04 },
+    { name: "otherBrands", weight: 0.01 },
   ],
   threshold: 0.35,
   includeScore: false,

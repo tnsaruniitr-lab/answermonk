@@ -1637,11 +1637,10 @@ export async function registerRoutes(
 
       const { pool } = await import("./db");
       const result = await pool.query(`
-        SELECT id, brand_name, segments
+        SELECT id, brand_name, brand_domain, segments
         FROM multi_segment_sessions
         WHERE session_type IS DISTINCT FROM 'competitor'
-          AND brand_name IS NOT NULL
-          AND brand_name != ''
+          AND (brand_name IS NOT NULL AND brand_name != '' OR brand_domain IS NOT NULL AND brand_domain != '')
         ORDER BY created_at DESC
         LIMIT 500
       `);
@@ -1685,15 +1684,21 @@ export async function registerRoutes(
           primaryDone = true; // after first scorable segment, rest go to otherBrands
         }
 
+        const ownBrand = (row.brand_name || "").trim();
+        const domain = (row.brand_domain || "").trim();
+        // strip TLD so "dosteli.de" → "dosteli" is also searchable
+        const domainRoot = domain.replace(/\.[a-z]{2,}$/i, "");
         return {
           id: row.id,
           category,
           query,
-          ownBrand: (row.brand_name || "").trim(),
+          ownBrand,
+          domain,
+          domainRoot,
           topBrands: Array.from(topBrandSet),
           otherBrands: Array.from(otherBrandSet).filter(b => !topBrandSet.has(b)),
         };
-      }).filter((r: any) => r.category || r.ownBrand);
+      }).filter((r: any) => r.category || r.ownBrand || r.domain);
 
       _searchIndexCache = { data: index, ts: Date.now() };
       res.setHeader("Cache-Control", "public, max-age=300");
