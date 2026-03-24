@@ -838,36 +838,36 @@ function LandingInner() {
     {
       title: "Signal Extraction",
       bullets: [
-        "Understand your business",
-        "Define services & customer types",
-        "Build the optimal prompt set",
+        "Understand your business model",
+        "Map services & audience types",
+        "Build precision prompt sets",
       ],
       icon: Brain,
     },
     {
       title: "LLM Scoring",
       bullets: [
-        "Set prompt sample size",
-        "Query ChatGPT, Gemini & Claude live",
-        "Capture every URL they cite",
+        "Set your query sample size",
+        "Test ChatGPT, Gemini & Claude",
+        "Capture every cited URL",
       ],
       icon: Search,
     },
     {
       title: "Authority Crawl",
       bullets: [
-        "Identify authority sources in your category",
-        "Analyse cited URLs & content patterns",
-        "Decode what makes competitors dominate",
+        "Find top category authority sites",
+        "Analyse citation patterns & gaps",
+        "Benchmark competitor dominance",
       ],
       icon: TrendingUp,
     },
     {
-      title: "Action Report",
+      title: "Fix & Deploy",
       bullets: [
-        "Score your presence on authority domains",
-        "Track brand signals across web & social",
-        "Generate targeted content recommendations",
+        "Audit your authority presence",
+        "Monitor brand web signals",
+        "Ship precision content fixes",
       ],
       icon: Rocket,
     },
@@ -2107,62 +2107,107 @@ function LandingInner() {
             <h2 className="text-2xl font-bold" style={{ color: "#1e1b4b" }}>The Intelligence Pipeline</h2>
             <p className="text-sm mt-2" style={{ color: "#64748b" }}>From raw domain to actionable GEO insights in minutes.</p>
           </div>
+          <style>{`
+            @keyframes am-step-glow {
+              0%, 100% { box-shadow: 0 4px 28px rgba(99,102,241,0.18), 0 0 0 1px rgba(99,102,241,0.18); }
+              50%       { box-shadow: 0 8px 40px rgba(99,102,241,0.32), 0 0 0 1px rgba(99,102,241,0.32); }
+            }
+            @keyframes am-step-dot {
+              0%, 100% { transform: scale(1); opacity: 1; }
+              50%       { transform: scale(1.35); opacity: 0.7; }
+            }
+            .am-step-card {
+              transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+              cursor: default;
+            }
+            .am-step-card:not(.am-step-card--active):hover {
+              transform: translateY(-3px);
+              box-shadow: 0 8px 28px rgba(0,0,0,0.1) !important;
+              border-color: rgba(99,102,241,0.2) !important;
+              background: rgba(255,255,255,0.92) !important;
+            }
+            .am-step-card--active {
+              animation: am-step-glow 2.4s ease-in-out infinite;
+            }
+          `}</style>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {steps.map((item, index) => {
               const active = activeStep === index;
               return (
                 <div
                   key={item.title}
-                  className="relative z-10 flex flex-col transition-all duration-500"
+                  className={`am-step-card${active ? " am-step-card--active" : ""} relative z-10 flex flex-col`}
                   style={{
-                    background: active ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.6)",
-                    border: `1px solid ${active ? "rgba(99,102,241,0.3)" : "rgba(0,0,0,0.07)"}`,
-                    borderRadius: 16,
-                    padding: "20px 18px",
-                    boxShadow: active ? "0 4px 24px rgba(99,102,241,0.12)" : "none",
+                    background: active
+                      ? "#ffffff"
+                      : "rgba(255,255,255,0.75)",
+                    border: `1.5px solid ${active ? "rgba(99,102,241,0.3)" : "rgba(0,0,0,0.1)"}`,
+                    borderRadius: 18,
+                    padding: "22px 18px 20px",
+                    boxShadow: active ? undefined : "0 2px 8px rgba(0,0,0,0.05)",
                   }}
                   data-testid={`step-${index}`}
                 >
                   {/* Step number + icon row */}
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                    <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", color: active ? "#6366f1" : "#cbd5e1" }}>
-                      0{index + 1}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 900, letterSpacing: "0.1em",
+                      color: active ? "#6366f1" : "#9ca3af",
+                      fontVariantNumeric: "tabular-nums",
+                    }}>
+                      {String(index + 1).padStart(2, "0")}
                     </span>
-                    <div
-                      style={{
-                        width: 36, height: 36, borderRadius: 10,
-                        background: active ? "rgba(99,102,241,0.1)" : "rgba(0,0,0,0.04)",
-                        border: `1px solid ${active ? "rgba(99,102,241,0.25)" : "rgba(0,0,0,0.06)"}`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        color: active ? "#6366f1" : "#94a3b8",
-                      }}
-                    >
-                      <item.icon style={{ width: 17, height: 17 }} />
+                    <div style={{
+                      width: 34, height: 34, borderRadius: 10,
+                      background: active ? "linear-gradient(135deg,#6366f1,#8b5cf6)" : "rgba(0,0,0,0.05)",
+                      border: active ? "none" : "1px solid rgba(0,0,0,0.08)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      color: active ? "#ffffff" : "#6b7280",
+                      boxShadow: active ? "0 4px 12px rgba(99,102,241,0.35)" : "none",
+                      transition: "all 0.4s ease",
+                    }}>
+                      <item.icon style={{ width: 16, height: 16 }} />
                     </div>
                   </div>
 
                   {/* Title */}
-                  <h3 style={{ fontSize: 14, fontWeight: 700, color: active ? "#1e1b4b" : "#475569", marginBottom: 12, lineHeight: 1.3 }}>
+                  <h3 style={{
+                    fontSize: 14, fontWeight: 800,
+                    color: active ? "#1e1b4b" : "#1f2937",
+                    marginBottom: 14, lineHeight: 1.3,
+                    letterSpacing: "-0.01em",
+                  }}>
                     {item.title}
                   </h3>
 
-                  {/* Bullets */}
-                  <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+                  {/* Bullets — dot style */}
+                  <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 9 }}>
                     {item.bullets.map((pt, bi) => (
-                      <li key={bi} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                      <li key={bi} style={{ display: "flex", alignItems: "center", gap: 9 }}>
                         <span style={{
-                          flexShrink: 0, width: 18, height: 18, borderRadius: 5,
-                          background: active ? "rgba(99,102,241,0.1)" : "rgba(0,0,0,0.05)",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: 9, fontWeight: 800, color: active ? "#6366f1" : "#94a3b8",
-                          marginTop: 1,
-                        }}>
-                          {String.fromCharCode(96 + bi + 1)}
-                        </span>
-                        <span style={{ fontSize: 12.5, color: active ? "#374151" : "#94a3b8", lineHeight: 1.55 }}>{pt}</span>
+                          flexShrink: 0, width: 6, height: 6, borderRadius: "50%",
+                          background: active ? "#6366f1" : "#d1d5db",
+                          display: "block",
+                          animation: active ? `am-step-dot ${1.8 + bi * 0.4}s ease-in-out infinite` : "none",
+                          transition: "background 0.3s",
+                        }} />
+                        <span style={{
+                          fontSize: 13, fontWeight: 500,
+                          color: active ? "#374151" : "#4b5563",
+                          lineHeight: 1.5,
+                        }}>{pt}</span>
                       </li>
                     ))}
                   </ul>
+
+                  {/* Progress underline */}
+                  <div style={{
+                    marginTop: 18, height: 3, borderRadius: 99,
+                    background: active
+                      ? "linear-gradient(90deg,#6366f1,#8b5cf6)"
+                      : "rgba(0,0,0,0.06)",
+                    transition: "background 0.4s",
+                  }} />
                 </div>
               );
             })}
