@@ -22,6 +22,7 @@ import SignalConsistency from "@/pages/SignalConsistency";
 import CrawlabilityReport from "@/pages/CrawlabilityReport";
 import GeoLandingPageReport from "@/pages/GeoLandingPageReport";
 import Landing from "@/pages/Landing";
+import ReportsSession from "@/pages/ReportsSession";
 import DirectoryListing from "@/pages/DirectoryListing";
 import AdminSettings from "@/pages/AdminSettings";
 import AdminCaptures from "@/pages/AdminCaptures";
@@ -72,6 +73,7 @@ function AdminDashboard() {
       <Route path="/prompts" component={PromptGenerator} />
       <Route path="/scoring/:id" component={ScoringDetail} />
       <Route path="/v2/:id" component={V2SessionDetail} />
+      <Route path="/reports/:id" component={ReportsSession} />
       <Route path="/summary/:id" component={SlugSummary} />
       <Route path="/teaser/:id" component={ProspectTeaser} />
       <Route path="/share/summary/:id" component={SummaryReport} />

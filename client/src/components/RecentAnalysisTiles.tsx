@@ -385,11 +385,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
   if (!isLoading && tiles.length === 0) return null;
 
   function handleTileClick(tile: DirectoryTile) {
-    if (onSelect) {
-      onSelect(tile.sessionId, tile);
-    } else {
-      navigate(`/v2/${tile.sessionId}`);
-    }
+    navigate(`/reports/${tile.sessionId}`);
   }
 
   return (
@@ -506,7 +502,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
             {extraIndexMatches.map(entry => (
               <button
                 key={entry.id}
-                onClick={() => navigate(`/v2/${entry.id}`)}
+                onClick={() => navigate(`/reports/${entry.id}`)}
                 style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",
                   background: "rgba(255,255,255,0.85)", border: "1px solid rgba(0,0,0,0.08)",
