@@ -303,7 +303,7 @@ const FUSE_OPTIONS: Fuse.IFuseOptions<SearchIndexEntry> = {
 };
 
 interface RecentAnalysisTilesProps {
-  onSelect?: (sessionId: number) => void;
+  onSelect?: (sessionId: number, tile: DirectoryTile) => void;
 }
 
 export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
@@ -382,7 +382,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
 
   function handleTileClick(tile: DirectoryTile) {
     if (onSelect) {
-      onSelect(tile.sessionId);
+      onSelect(tile.sessionId, tile);
     } else {
       navigate(`/v2/${tile.sessionId}`);
     }
