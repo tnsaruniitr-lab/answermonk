@@ -819,9 +819,16 @@ export async function registerRoutes(
         })),
       ];
 
+      const firstService = (Array.isArray(services) ? services[0] : "") || "";
+      const rawSlug = firstService && city
+        ? `${firstService}-in-${city}`
+        : firstService || city || brandName;
+      const sessionSlug = rawSlug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
+
       const session = await storage.createMultiSegmentSession({
         brandName,
         brandDomain: brandDomain || null,
+        slug: sessionSlug || null,
         promptsPerSegment: 8,
         segments,
         sessionType: "landing_guided",
@@ -1556,6 +1563,7 @@ export async function registerRoutes(
           mss.id,
           mss.brand_name,
           mss.brand_domain,
+          mss.slug,
           mss.created_at,
           ps.elem AS primary_seg
         FROM multi_segment_sessions mss,
@@ -1599,6 +1607,7 @@ export async function registerRoutes(
           return {
             id:          row.id,
             sessionId:   row.id,
+            slug:        row.slug ?? null,
             query,
             category:    seedType || persona || "Analysis",
             brandName:   row.brand_name,
@@ -1637,7 +1646,7 @@ export async function registerRoutes(
 
       const { pool } = await import("./db");
       const result = await pool.query(`
-        SELECT id, brand_name, brand_domain, segments
+        SELECT id, brand_name, brand_domain, slug, segments
         FROM multi_segment_sessions
         WHERE session_type IS DISTINCT FROM 'competitor'
           AND (brand_name IS NOT NULL AND brand_name != '' OR brand_domain IS NOT NULL AND brand_domain != '')
@@ -1690,6 +1699,7 @@ export async function registerRoutes(
         const domainRoot = domain.replace(/\.[a-z]{2,}$/i, "");
         return {
           id: row.id,
+          slug: row.slug ?? null,
           category,
           query,
           ownBrand,
@@ -1716,6 +1726,20 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Error listing multi-segment sessions:", err);
       res.status(500).json({ message: "Failed to load sessions" });
+    }
+  });
+
+  app.get("/api/multisegment/by-slug/:slug", async (req, res) => {
+    try {
+      const session = await storage.getMultiSegmentSessionBySlug(req.params.slug);
+      if (!session) {
+        res.status(404).json({ message: "Session not found" });
+        return;
+      }
+      res.json(session);
+    } catch (err) {
+      console.error("Error getting session by slug:", err);
+      res.status(500).json({ message: "Failed to load session" });
     }
   });
 

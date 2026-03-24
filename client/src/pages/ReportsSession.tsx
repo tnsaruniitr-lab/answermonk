@@ -37,21 +37,26 @@ export default function ReportsSession() {
   const [, params] = useRoute("/reports/:slug");
   const [, navigate] = useLocation();
   const slug = params?.slug ?? "";
-  const idFromSlug = slug.match(/-(\d+)$/)?.[1] ?? slug;
-  const id = idFromSlug ? parseInt(idFromSlug, 10) : null;
+  const trailingId = slug.match(/-(\d+)$/)?.[1];
+  const numericOnly = /^\d+$/.test(slug);
+  const useSlugLookup = !trailingId && !numericOnly;
+  const id = trailingId ? parseInt(trailingId, 10) : numericOnly ? parseInt(slug, 10) : null;
   const [rankingsExpanded, setRankingsExpanded] = useState(true);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
   const [waitlistDone, setWaitlistDone] = useState(false);
 
   const { data: session, isLoading } = useQuery<any>({
-    queryKey: ["/api/multisegment/sessions", id],
+    queryKey: useSlugLookup ? ["/api/multisegment/by-slug", slug] : ["/api/multisegment/sessions", id],
     queryFn: async () => {
-      const res = await fetch(`/api/multisegment/sessions/${id}`);
+      const url = useSlugLookup
+        ? `/api/multisegment/by-slug/${encodeURIComponent(slug)}`
+        : `/api/multisegment/sessions/${id}`;
+      const res = await fetch(url);
       if (!res.ok) throw new Error("Not found");
       return res.json();
     },
-    enabled: id !== null && !isNaN(id),
+    enabled: useSlugLookup ? !!slug : (id !== null && !isNaN(id as number)),
     staleTime: 5 * 60_000,
   });
 

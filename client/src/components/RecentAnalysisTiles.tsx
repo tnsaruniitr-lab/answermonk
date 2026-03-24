@@ -17,6 +17,7 @@ function toReportSlug(text: string, id: number): string {
 interface DirectoryTile {
   id: number;
   sessionId: number;
+  slug: string | null;
   query: string;
   category: string;
   brandName: string;
@@ -30,6 +31,7 @@ interface DirectoryTile {
 
 interface SearchIndexEntry {
   id: number;
+  slug: string | null;
   category: string;
   query: string;
   ownBrand: string;
@@ -394,7 +396,10 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
   if (!isLoading && tiles.length === 0) return null;
 
   function handleTileClick(tile: DirectoryTile) {
-    navigate(`/reports/${toReportSlug(tile.query || tile.category, tile.sessionId)}`);
+    const path = tile.slug
+      ? `/reports/${tile.slug}`
+      : `/reports/${toReportSlug(tile.query || tile.category, tile.sessionId)}`;
+    navigate(path);
   }
 
   return (
@@ -511,7 +516,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
             {extraIndexMatches.map(entry => (
               <button
                 key={entry.id}
-                onClick={() => navigate(`/reports/${toReportSlug(entry.category || entry.ownBrand, entry.id)}`)}
+                onClick={() => navigate(entry.slug ? `/reports/${entry.slug}` : `/reports/${toReportSlug(entry.category || entry.ownBrand, entry.id)}`)}
                 style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",
                   background: "rgba(255,255,255,0.85)", border: "1px solid rgba(0,0,0,0.08)",
