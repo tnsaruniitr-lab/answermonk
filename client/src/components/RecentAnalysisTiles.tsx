@@ -363,8 +363,20 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
     return expanded ? tiles : tiles.slice(0, INITIAL_COUNT);
   }, [tiles, matchedOrder, expanded]);
 
+  // Search index entries that matched but aren't in the recent tiles list
+  const extraIndexMatches = useMemo(() => {
+    if (!matchedOrder || !fuse) return [];
+    const tileIdSet = new Set(tiles.map(t => t.id));
+    const q = searchQuery.trim();
+    if (!q) return [];
+    return fuse.search(q)
+      .filter(r => !tileIdSet.has(r.item.id))
+      .map(r => r.item);
+  }, [matchedOrder, fuse, tiles, searchQuery]);
+
   const hiddenCount = tiles.length - INITIAL_COUNT;
   const isSearching = searchQuery.trim().length > 0;
+  const totalResults = visible.length + extraIndexMatches.length;
 
   if (!isLoading && tiles.length === 0) return null;
 
@@ -435,7 +447,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
           {/* Search result count */}
           {isSearching && (
             <span style={{ fontSize: 11, color: "#6b7280" }}>
-              {visible.length === 0 ? "No results" : `${visible.length} result${visible.length === 1 ? "" : "s"}`}
+              {totalResults === 0 ? "No results" : `${totalResults} result${totalResults === 1 ? "" : "s"}`}
             </span>
           )}
         </div>
@@ -461,7 +473,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
         {isLoading
           ? Array.from({ length: INITIAL_COUNT }, (_, i) => <SkeletonTile key={i} />)
-          : visible.length === 0 && isSearching
+          : totalResults === 0 && isSearching
             ? (
               <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "48px 0", color: "#9ca3af" }}>
                 <div style={{ fontSize: 32, marginBottom: 10 }}>🔍</div>
@@ -477,6 +489,44 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
               />
             ))}
       </div>
+
+      {/* Extra search results — sessions in index but not in recent tiles */}
+      {isSearching && extraIndexMatches.length > 0 && (
+        <div style={{ marginTop: visible.length > 0 ? 16 : 0 }}>
+          {visible.length > 0 && (
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
+              More matching analyses
+            </div>
+          )}
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {extraIndexMatches.map(entry => (
+              <button
+                key={entry.id}
+                onClick={() => navigate(`/v2/${entry.id}`)}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  background: "rgba(255,255,255,0.85)", border: "1px solid rgba(0,0,0,0.08)",
+                  borderRadius: 10, padding: "10px 14px", cursor: "pointer",
+                  textAlign: "left", width: "100%",
+                  transition: "box-shadow 0.15s",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 2px 12px rgba(99,102,241,0.12)")}
+                onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}
+              >
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>{entry.ownBrand}</div>
+                  {entry.category && (
+                    <div style={{ fontSize: 11, color: "#6b7280", marginTop: 1 }}>{entry.category}</div>
+                  )}
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Expand / collapse — hidden while searching */}
       {!isLoading && !isSearching && tiles.length > INITIAL_COUNT && (
