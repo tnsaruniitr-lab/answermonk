@@ -424,7 +424,7 @@ function LandingInner() {
   const [runStep, setRunStep] = useState(0);
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
   const [replayMode, setReplayMode] = useState(false);
-  const [replayTile, setReplayTile] = useState<{ category: string; topBrands: string[]; ownBrand: string } | null>(null);
+  const [replayTile, setReplayTile] = useState<{ category: string; query: string; topBrand: string | null; rivals: { name: string; share: number }[]; ownBrand: string } | null>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const crawlCardRef = useRef<HTMLDivElement>(null);
@@ -744,10 +744,10 @@ function LandingInner() {
     });
   }, [scanStarted, activeSessionId]);
 
-  function handleTileSelect(sessionId: number, tile?: { category: string; topBrands: string[]; ownBrand: string }) {
+  function handleTileSelect(sessionId: number, tile?: { category: string; query: string; topBrand: string | null; rivals: { name: string; share: number }[]; ownBrand: string; brandName?: string; brandDomain?: string | null }) {
     setActiveSessionId(sessionId);
     setReplayMode(true);
-    setReplayTile(tile || null);
+    setReplayTile(tile ? { category: tile.category, query: tile.query, topBrand: tile.topBrand, rivals: tile.rivals, ownBrand: tile.ownBrand || tile.brandName || "" } : null);
     setIntelligenceExpanded(false);
     setScanStarted(false);
     setCrawlFailed(false);
@@ -1405,45 +1405,58 @@ function LandingInner() {
             {/* Session summary hero — appears once all segments are scored */}
             {allSegmentsDone && scoredSegs.length > 0 && (
               <>
-                {replayMode && (replayTile || scoringSession?.brandName) && (
-                  <div style={{
-                    background: "rgba(255,255,255,0.75)", border: "1px solid rgba(99,102,241,0.15)",
-                    borderRadius: 14, padding: "12px 16px", marginBottom: 8,
-                    backdropFilter: "blur(8px)",
-                  }}>
-                    {replayTile?.category && (
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>
+                {replayMode && (replayTile || scoringSession?.brandName) && (() => {
+                  const allBrands = [
+                    ...(replayTile?.topBrand ? [replayTile.topBrand] : []),
+                    ...(replayTile?.rivals?.map(r => r.name) ?? []),
+                  ].filter((b, i, arr) => arr.indexOf(b) === i).slice(0, 6);
+                  return (
+                    <div style={{
+                      background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
+                      borderRadius: 14, padding: "14px 16px", marginBottom: 8,
+                      boxShadow: "0 4px 20px rgba(79,70,229,0.3)",
+                    }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.55)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>
                         AI Search Rankings for
                       </div>
-                    )}
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "#111827", marginBottom: replayTile?.topBrands?.length ? 8 : 0 }}>
-                      {replayTile?.category || scoringSession?.brandName}
+                      <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", marginBottom: allBrands.length ? 10 : 0, lineHeight: 1.2 }}>
+                        {replayTile?.query || replayTile?.category || scoringSession?.brandName}
+                      </div>
+                      {allBrands.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
+                          {allBrands.map((brand, i) => (
+                            <span key={brand} style={{
+                              display: "inline-flex", alignItems: "center", gap: 4,
+                              background: i === 0 ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.10)",
+                              border: `1px solid ${i === 0 ? "rgba(255,255,255,0.45)" : "rgba(255,255,255,0.18)"}`,
+                              borderRadius: 20, padding: "3px 10px",
+                              fontSize: 11, fontWeight: i === 0 ? 700 : 500,
+                              color: "#fff",
+                            }}>
+                              {i === 0 && <span style={{ fontSize: 9 }}>🏆</span>}
+                              {brand}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {scoringSession?.brandName && (
+                        <div style={{
+                          display: "flex", alignItems: "center", gap: 6,
+                          borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: 8, marginTop: 2,
+                          fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)",
+                        }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                          </svg>
+                          Scan run for {scoringSession.brandName}
+                          {scoringSession.brandDomain && (
+                            <span style={{ color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>· {scoringSession.brandDomain}</span>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    {replayTile?.topBrands && replayTile.topBrands.length > 0 && (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
-                        {replayTile.topBrands.slice(0, 6).map((brand, i) => (
-                          <span key={brand} style={{
-                            display: "inline-flex", alignItems: "center", gap: 4,
-                            background: i === 0 ? "rgba(99,102,241,0.1)" : "rgba(0,0,0,0.04)",
-                            border: `1px solid ${i === 0 ? "rgba(99,102,241,0.25)" : "rgba(0,0,0,0.08)"}`,
-                            borderRadius: 20, padding: "2px 9px",
-                            fontSize: 11, fontWeight: i === 0 ? 700 : 500,
-                            color: i === 0 ? "#4f46e5" : "#374151",
-                          }}>
-                            {i === 0 && <span style={{ fontSize: 9 }}>🏆</span>}
-                            {brand}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    {scoringSession?.brandName && (
-                      <div style={{ fontSize: 10, color: "#9ca3af" }}>
-                        Scan originally run for {scoringSession.brandName}
-                        {scoringSession.brandDomain && ` · ${scoringSession.brandDomain}`}
-                      </div>
-                    )}
-                  </div>
-                )}
+                  );
+                })()}
                 <Suspense fallback={null}>
                   <SessionSummaryHero
                     brandName={scoringSession?.brandName || ""}
