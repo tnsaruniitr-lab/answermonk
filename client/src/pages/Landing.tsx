@@ -713,15 +713,17 @@ function LandingInner() {
       setTimeout(() => {
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 150);
-      setTimeout(() => {
-        setRankingsExpanded(false);
-      }, 600);
+      if (!replayMode) {
+        setTimeout(() => {
+          setRankingsExpanded(false);
+        }, 600);
+      }
     }
-  }, [allSegmentsDone]);
+  }, [allSegmentsDone, replayMode]);
 
   useEffect(() => {
-    setRankingsExpanded(false);
-  }, [activeSessionId]);
+    if (!replayMode) setRankingsExpanded(false);
+  }, [activeSessionId, replayMode]);
 
   useEffect(() => {
     if (!scanStarted || !activeSessionId) { setCrawlFailed(false); return; }
