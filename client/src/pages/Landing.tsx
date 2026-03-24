@@ -918,7 +918,7 @@ function LandingInner() {
                 </h1>
 
                 {/* Subtext */}
-                <p className="text-2xl md:text-3xl font-semibold max-w-2xl mx-auto leading-snug" style={{ color: "#374151", marginTop: 18 }}>
+                <p className="text-2xl md:text-3xl font-normal max-w-2xl mx-auto leading-snug" style={{ color: "#374151", marginTop: 18 }}>
                   <HeroFlipperText />
                 </p>
               </>
