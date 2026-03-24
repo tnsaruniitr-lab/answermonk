@@ -1325,7 +1325,7 @@ function LandingInner() {
                   ) : (
                     <>
                       <span style={{ fontSize: 12, color: "#fff", fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 }}>
-                        wait about 2 mins to see how you rank, or get the report emailed
+                        Crawling citations to find what makes brands rank — 3–4 mins, or get it emailed
                       </span>
                       <input
                         value={waitlistEmail}
