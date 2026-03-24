@@ -1296,7 +1296,7 @@ function LandingInner() {
                   </span>
                   {needsAction ? (
                     <span style={{ fontSize: 12, color: "#fff", fontWeight: 700, whiteSpace: "nowrap" }}>
-                      click button below for final report ↓
+                      Rankings & LLM citations ready — hit the yellow button below for full intelligence report ↓
                     </span>
                   ) : (
                     <>
@@ -1499,10 +1499,10 @@ function LandingInner() {
                   onClick={() => { setScanStarted(true); setIntelligenceExpanded(true); }}
                   style={{
                     display: "inline-flex", alignItems: "center", gap: 8,
-                    background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
-                    color: "#fff", border: "none", borderRadius: 12,
-                    padding: "11px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer",
-                    boxShadow: "0 4px 20px rgba(79,70,229,0.35)",
+                    background: "linear-gradient(110deg, #d97706 0%, #f59e0b 60%, #fbbf24 100%)",
+                    color: "#1c1917", border: "none", borderRadius: 12,
+                    padding: "11px 22px", fontSize: 13, fontWeight: 800, cursor: "pointer",
+                    boxShadow: "0 4px 24px rgba(245,158,11,0.45)",
                   }}
                 >
                   {pipelineCrawlDone ? "View Authority Sources →" : "Scan Authority Sources & Analyse →"}
