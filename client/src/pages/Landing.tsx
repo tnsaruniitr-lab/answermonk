@@ -436,6 +436,9 @@ function LandingInner() {
   const [newCustomerInput, setNewCustomerInput] = useState("");
   const [intelligenceExpanded, setIntelligenceExpanded] = useState(false);
   const [scanStarted, setScanStarted] = useState(false);
+  const crawlPostFiredRef = useRef<number | null>(null);
+  const [crawlStepIdx, setCrawlStepIdx] = useState(0);
+  const [crawlFailed, setCrawlFailed] = useState(false);
   const [activeTab, setActiveTab] = useState<"reports" | "directory" | "agents">("reports");
   const { toast } = useToast();
   const [selectedSegmentIds, setSelectedSegmentIds] = useState<Set<string>>(new Set());
@@ -640,7 +643,7 @@ function LandingInner() {
       return 4000;
     },
   });
-  const pipelineCrawlDone = (pipelineData?.rowCount ?? 0) > 0;
+  const pipelineCrawlDone = (pipelineData?.insights?.length ?? 0) > 0;
   const pipelineReportDone = (pipelineData?.insights?.length ?? 0) > 0;
 
   const isError = submission?.status === "error" || runMutation.isError;
@@ -698,11 +701,50 @@ function LandingInner() {
     setRankingsExpanded(false);
   }, [activeSessionId]);
 
+  const CRAWL_STEPS = [
+    "Extracting citation URLs from LLM responses…",
+    "Classifying authority domains by category…",
+    "Aggregating cross-engine citation signals…",
+    "Building competitor intelligence map…",
+    "Generating final authority report…",
+  ];
+
+  useEffect(() => {
+    if (!scanStarted || !activeSessionId) { setCrawlFailed(false); return; }
+    if (crawlPostFiredRef.current === activeSessionId) return;
+    crawlPostFiredRef.current = activeSessionId;
+    setCrawlStepIdx(0);
+    setCrawlFailed(false);
+    fetch(`/api/multi-segment-sessions/${activeSessionId}/citation-insights`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "claude-sonnet-4-5", citationAnalysisMode: "domain_aggregated" }),
+    }).then(async r => {
+      if (!r.ok) {
+        const body = await r.json().catch(() => ({}));
+        console.warn("[citation-insights] POST returned", r.status, body);
+        setCrawlFailed(true);
+      }
+    }).catch(err => {
+      console.error("[citation-insights] POST failed:", err);
+      setCrawlFailed(true);
+    });
+  }, [scanStarted, activeSessionId]);
+
+  useEffect(() => {
+    if (!scanStarted || pipelineCrawlDone) return;
+    const t = setInterval(() => {
+      setCrawlStepIdx(i => (i + 1) % CRAWL_STEPS.length);
+    }, 3500);
+    return () => clearInterval(t);
+  }, [scanStarted, pipelineCrawlDone]);
+
   function handleTileSelect(sessionId: number) {
     setActiveSessionId(sessionId);
     setReplayMode(true);
     setIntelligenceExpanded(false);
     setScanStarted(false);
+    setCrawlFailed(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -711,6 +753,7 @@ function LandingInner() {
     setReplayMode(false);
     setIntelligenceExpanded(false);
     setScanStarted(false);
+    setCrawlFailed(false);
   }
 
   function isValidDomain(input: string): boolean {
@@ -1507,6 +1550,56 @@ function LandingInner() {
                 >
                   {pipelineCrawlDone ? "View Authority Sources →" : "Scan Authority Sources & Analyse →"}
                 </button>
+              </div>
+            )}
+
+            {/* Crawl loading bar — visible between button click and crawl completion */}
+            {allSegmentsDone && activeSessionId !== null && scanStarted && !pipelineCrawlDone && (
+              <div style={{
+                borderRadius: 14,
+                background: "linear-gradient(110deg, #1e1b4b 0%, #3730a3 50%, #4f46e5 100%)",
+                padding: "14px 18px",
+                marginTop: 12,
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <svg width="22" height="22" viewBox="0 0 38 38" fill="none" style={{ flexShrink: 0 }}>
+                    <rect x="4" y="2" width="30" height="34" rx="9" fill="#4f46e5" />
+                    <rect x="11" y="11" width="5" height="6" rx="2.5" fill="#fff" />
+                    <rect x="22" y="11" width="5" height="6" rx="2.5" fill="#fff" />
+                    <rect x="27" y="14" width="4" height="7" rx="2" fill="rgba(255,255,255,0.5)" />
+                    <rect x="7" y="14" width="4" height="7" rx="2" fill="rgba(255,255,255,0.5)" />
+                    <rect x="13" y="23" width="12" height="3" rx="1.5" fill="rgba(255,255,255,0.7)" />
+                  </svg>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
+                    Authority Intelligence Agent
+                  </span>
+                  <span style={{ marginLeft: "auto", fontSize: 11, color: crawlFailed ? "#fca5a5" : "#a5b4fc", fontWeight: 500 }}>
+                    {crawlFailed ? "failed" : "running"}
+                  </span>
+                </div>
+                <div style={{ fontSize: 12, color: crawlFailed ? "#fca5a5" : "#c7d2fe", fontWeight: 500, minHeight: 18 }}>
+                  {crawlFailed
+                    ? "No citation URLs found for this session — try a fresh analysis."
+                    : CRAWL_STEPS[crawlStepIdx]}
+                </div>
+                {!crawlFailed && (
+                  <>
+                    <div style={{ height: 4, borderRadius: 4, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
+                      <div style={{
+                        height: "100%",
+                        borderRadius: 4,
+                        background: "linear-gradient(90deg, #818cf8, #a5b4fc, #818cf8)",
+                        backgroundSize: "200% 100%",
+                        animation: "amScan 1.8s linear infinite",
+                        width: "60%",
+                      }} />
+                    </div>
+                    <style>{`@keyframes amScan { 0%{background-position:100% 0} 100%{background-position:-100% 0} }`}</style>
+                  </>
+                )}
               </div>
             )}
 
