@@ -749,6 +749,7 @@ function LandingInner() {
     setIntelligenceExpanded(false);
     setScanStarted(false);
     setCrawlFailed(false);
+    setRankingsExpanded(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -1376,7 +1377,10 @@ function LandingInner() {
                   <span className={botAnimClass} style={{ display: "flex", alignItems: "center" }}>
                     {BotIcon}
                   </span>
-                  {needsAction ? (
+                  {replayMode ? (
+                    // Replay mode — CTA to run own scan
+                    <EmailRow label="Want to see how you rank? Get your free scan emailed" />
+                  ) : needsAction ? (
                     // State 2: scoring done, yellow button not yet pressed
                     <span style={{ fontSize: 12, color: "#fff", fontWeight: 700 }}>
                       Visibility rankings ready — hit the yellow button below for authority analysis ↓
@@ -1397,14 +1401,32 @@ function LandingInner() {
 
             {/* Session summary hero — appears once all segments are scored */}
             {allSegmentsDone && scoredSegs.length > 0 && (
-              <Suspense fallback={null}>
-                <SessionSummaryHero
-                  brandName={scoringSession?.brandName || ""}
-                  brandDomain={scoringSession?.brandDomain || undefined}
-                  scoredSegs={scoredSegs}
-                  totalSegs={scoringSegs.length}
-                />
-              </Suspense>
+              <>
+                {replayMode && scoringSession?.brandName && (
+                  <div style={{
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.18)",
+                    borderRadius: 20, padding: "4px 12px", marginBottom: 6,
+                    fontSize: 11, color: "#6366f1", fontWeight: 600,
+                  }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    Analysis originally run for {scoringSession.brandName}
+                    {scoringSession.brandDomain && (
+                      <span style={{ color: "#a5b4fc", fontWeight: 400 }}>· {scoringSession.brandDomain}</span>
+                    )}
+                  </div>
+                )}
+                <Suspense fallback={null}>
+                  <SessionSummaryHero
+                    brandName={scoringSession?.brandName || ""}
+                    brandDomain={scoringSession?.brandDomain || undefined}
+                    scoredSegs={scoredSegs}
+                    totalSegs={scoringSegs.length}
+                  />
+                </Suspense>
+              </>
             )}
 
             {/* Scored segment cards — appear one by one as they complete, with skeletons for pending */}
