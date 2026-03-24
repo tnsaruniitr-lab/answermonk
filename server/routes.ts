@@ -4896,8 +4896,6 @@ Rules for content:
   }
 
   app.get("/reports", async (req: Request, res: Response, next: NextFunction) => {
-    if (!isBotRequest(req)) return next();
-
     try {
       const indexData = await fetch(`http://localhost:${process.env.PORT || 5000}/api/directory/search-index`);
       const entries: any[] = indexData.ok ? await indexData.json() : [];
@@ -4952,8 +4950,6 @@ ${listItems}
   });
 
   app.get("/reports/:slug", async (req: Request, res: Response, next: NextFunction) => {
-    if (!isBotRequest(req)) return next();
-
     const slug = req.params.slug;
     const trailingId = slug.match(/-(\d+)$/)?.[1];
     const numericOnly = /^\d+$/.test(slug);
