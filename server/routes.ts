@@ -4749,5 +4749,184 @@ Rules for content:
     }
   });
 
+  // ── Bot-detection SSR for /reports/:slug ─────────────────────────────────
+  // AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Googlebot etc.) don't run
+  // JavaScript, so they see a blank SPA shell. This middleware intercepts
+  // requests from known bots and returns fully-rendered HTML with real session
+  // data injected — no changes to the React app, zero impact on real users.
+
+  const BOT_UA_RE = /GPTBot|ChatGPT-User|ClaudeBot|Claude-Web|anthropic-ai|PerplexityBot|Googlebot|Google-Extended|bingbot|BingPreview|DuckDuckBot|Baiduspider|YandexBot|facebookexternalhit|Twitterbot|LinkedInBot|Slurp|ia_archiver|AhrefsBot|SemrushBot/i;
+
+  function isBotRequest(req: Request): boolean {
+    const ua = req.get("user-agent") || "";
+    return BOT_UA_RE.test(ua);
+  }
+
+  function escapeHtml(str: string): string {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function buildReportHtml(session: any, slug: string): string {
+    const brandName = escapeHtml(session.brandName || session.brand_name || "Brand");
+    const brandDomain = escapeHtml(session.brandDomain || session.brand_domain || "");
+    const segments: any[] = Array.isArray(session.segments) ? session.segments : [];
+
+    const GENERIC = ["service", "customer", "providers", "provider"];
+    let category = "";
+    let location = "";
+    let queryText = "";
+    let shareOfVoice = 0;
+    const competitors: { name: string; share: number }[] = [];
+
+    for (const seg of segments) {
+      const sr = seg?.scoringResult ?? {};
+      if (!sr.score) continue;
+      const rawSeed = (seg?.seedType || "").trim();
+      const seedType = GENERIC.includes(rawSeed.toLowerCase())
+        ? (seg?.serviceType || seg?.customerType || seg?.persona || rawSeed).trim()
+        : (rawSeed || seg?.serviceType || seg?.customerType || seg?.persona || "").trim();
+      location = (seg?.location || "").trim();
+      category = seedType || (seg?.persona || "").trim();
+      queryText = category && location ? `${category} in ${location}` : category || location;
+
+      const compList: any[] = sr.score.competitors ?? [];
+      compList.forEach((c: any) => {
+        if (c?.name && (c.share ?? 0) > 0) {
+          competitors.push({ name: c.name, share: Math.round((c.share ?? 0) * 100) });
+        }
+      });
+
+      // derive brand's own share-of-voice from appearance_rate across engines
+      const eb = sr.score.engine_breakdown ?? {};
+      const rates = Object.values(eb).map((e: any) => e?.appearance_rate ?? 0);
+      if (rates.length) {
+        shareOfVoice = Math.round((rates.reduce((a: number, b: number) => a + b, 0) / rates.length) * 100);
+      }
+      break;
+    }
+
+    const top5 = competitors.slice(0, 5);
+    const canonicalUrl = `https://answermonk.ai/reports/${encodeURIComponent(slug)}`;
+    const pageTitle = queryText
+      ? `${brandName} AI Visibility — ${queryText} | AnswerMonk`
+      : `${brandName} AI Visibility Report | AnswerMonk`;
+    const description = queryText
+      ? `AnswerMonk AI visibility report for ${brandName} in the "${queryText}" category. Share-of-voice: ${shareOfVoice}%. Top AI-cited competitors: ${top5.slice(0, 3).map(c => c.name).join(", ")}.`
+      : `AnswerMonk AI visibility analysis for ${brandName}. Showing share-of-voice, competitor rankings, and citation sources across ChatGPT, Claude, and Gemini.`;
+
+    const competitorRows = top5.map((c, i) =>
+      `<tr><td>${i + 1}</td><td>${escapeHtml(c.name)}</td><td>${c.share}%</td></tr>`
+    ).join("\n");
+
+    const schemaReport = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Report",
+      "name": pageTitle,
+      "description": description,
+      "url": canonicalUrl,
+      "about": {
+        "@type": "Organization",
+        "name": brandName,
+        ...(brandDomain ? { "url": `https://${brandDomain}` } : {}),
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "AnswerMonk",
+        "url": "https://answermonk.ai",
+      },
+    });
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${pageTitle}</title>
+  <meta name="description" content="${escapeHtml(description)}" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="${canonicalUrl}" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="${pageTitle}" />
+  <meta property="og:description" content="${escapeHtml(description)}" />
+  <meta property="og:url" content="${canonicalUrl}" />
+  <meta property="og:site_name" content="AnswerMonk" />
+  <script type="application/ld+json">${schemaReport}</script>
+</head>
+<body>
+  <header>
+    <a href="https://answermonk.ai">AnswerMonk — AI Search Visibility Platform</a>
+  </header>
+
+  <main>
+    <h1>${pageTitle}</h1>
+    ${queryText ? `<p>This report analyzes AI search visibility for <strong>${brandName}</strong>${brandDomain ? ` (${brandDomain})` : ""} in the <strong>${queryText}</strong> category across ChatGPT, Claude, and Gemini.</p>` : `<p>This report analyzes AI search visibility for <strong>${brandName}</strong>${brandDomain ? ` (${brandDomain})` : ""} across ChatGPT, Claude, and Gemini.</p>`}
+
+    <section>
+      <h2>AI Visibility Score</h2>
+      <p><strong>${brandName}</strong> has an AI share-of-voice score of <strong>${shareOfVoice}%</strong> for the query category "${escapeHtml(queryText || category)}".</p>
+      <p>Share of voice measures how often a brand appears in AI-generated answers, weighted by rank position and engine market share (ChatGPT 35%, Gemini 35%, Claude 20%, Perplexity 10%).</p>
+    </section>
+
+    ${top5.length ? `
+    <section>
+      <h2>Competitor Rankings in AI Search</h2>
+      <p>The following brands were most frequently cited by AI engines in response to "${escapeHtml(queryText || category)}" queries:</p>
+      <table>
+        <thead><tr><th>Rank</th><th>Brand</th><th>AI Citation Share</th></tr></thead>
+        <tbody>${competitorRows}</tbody>
+      </table>
+    </section>` : ""}
+
+    <section>
+      <h2>About This Report</h2>
+      <p>This AI visibility report was generated by <a href="https://answermonk.ai">AnswerMonk</a>, a platform that measures how brands appear in responses from ChatGPT, Claude, Gemini, and Perplexity. The analysis runs a network of intent-based search prompts across AI engines and measures share-of-voice, competitor presence, and citation sources.</p>
+      <p>Run a free AI visibility audit for your brand at <a href="https://answermonk.ai">answermonk.ai</a>.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>© AnswerMonk — AI Search Visibility Intelligence. <a href="https://answermonk.ai">answermonk.ai</a></p>
+  </footer>
+</body>
+</html>`;
+  }
+
+  app.get("/reports/:slug", async (req: Request, res: Response, next: NextFunction) => {
+    if (!isBotRequest(req)) return next();
+
+    const slug = req.params.slug;
+    const trailingId = slug.match(/-(\d+)$/)?.[1];
+    const numericOnly = /^\d+$/.test(slug);
+
+    try {
+      let session: any = null;
+      if (!trailingId && !numericOnly) {
+        session = await storage.getMultiSegmentSessionBySlug(slug);
+      }
+      if (!session && trailingId) {
+        session = await storage.getMultiSegmentSession(parseInt(trailingId, 10));
+      }
+      if (!session && numericOnly) {
+        session = await storage.getMultiSegmentSession(parseInt(slug, 10));
+      }
+
+      if (!session) {
+        return next();
+      }
+
+      const html = buildReportHtml(session, slug);
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      return res.send(html);
+    } catch (err) {
+      console.error("[bot-ssr/reports]", err);
+      return next();
+    }
+  });
+
   return httpServer;
 }
