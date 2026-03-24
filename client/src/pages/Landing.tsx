@@ -646,6 +646,22 @@ function LandingInner() {
   const pipelineCrawlDone = (pipelineData?.insights?.length ?? 0) > 0;
   const pipelineReportDone = (pipelineData?.insights?.length ?? 0) > 0;
 
+  const crawlProgress = useMemo(() => {
+    if (!scanStarted) return null;
+    const rowCount = pipelineData?.rowCount ?? 0;
+    const done = (pipelineData?.insights?.length ?? 0) > 0;
+    const pct = done ? 100 : rowCount > 0 ? Math.min(65, Math.round(rowCount / 8)) : 8;
+    return {
+      step: done ? "complete" : rowCount > 0 ? "classifying" : "crawling",
+      detail: done ? "Analysis complete" : rowCount > 0 ? `Analysing ${rowCount} sources` : "Crawling citation sources",
+      pct,
+      crawlDone: rowCount,
+      crawlTotal: rowCount,
+      crawlSuccess: rowCount,
+      crawlFailed: 0,
+    };
+  }, [scanStarted, pipelineData]);
+
   const isError = submission?.status === "error" || runMutation.isError;
   const isRunning = runMutation.isPending;
 
@@ -1365,7 +1381,7 @@ function LandingInner() {
                     <EmailRow label="Analysis complete — email the report" />
                   ) : scanRunning ? (
                     // State 3: crawl in progress
-                    <EmailRow label="Crawling citations to find what makes brands rank — 3–4 mins, or get it emailed" />
+                    <EmailRow label="Crawling to find what makes brands rank — 3–4 mins, or get it emailed" />
                   ) : (
                     // State 1: scoring in progress
                     <EmailRow label="wait about 2 mins to see how you rank, or get it emailed" />
@@ -1564,7 +1580,7 @@ function LandingInner() {
                     No citation URLs found for this session — try a fresh analysis.
                   </div>
                 ) : (
-                  <CrawlMissionControl progress={null} />
+                  <CrawlMissionControl progress={crawlProgress} />
                 )}
               </div>
             )}
