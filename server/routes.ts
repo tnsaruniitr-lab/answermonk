@@ -2760,6 +2760,43 @@ export async function registerRoutes(
         }
       }
 
+      // Fallback: if citation_page_mentions was empty (e.g. landing page sessions),
+      // build domainMap directly from citation_urls which is always populated
+      if (domainMap.size === 0) {
+        const { pool: fallbackPool } = await import("./db");
+        const cuRows = await fallbackPool.query(
+          `SELECT domain, engine, SUM(citation_count)::int AS total_count
+           FROM citation_urls
+           WHERE session_id = $1 AND domain IS NOT NULL AND domain != ''
+           GROUP BY domain, engine
+           ORDER BY domain`,
+          [id]
+        );
+        for (const row of cuRows.rows) {
+          const key = String(row.domain).toLowerCase();
+          const existing = domainMap.get(key);
+          const count = Number(row.total_count);
+          const eng = String(row.engine || "");
+          if (existing) {
+            existing.appearances += count;
+            if (eng === "chatgpt") existing.inChatgpt = true;
+            if (eng === "gemini") existing.inGemini = true;
+            if (eng === "claude") existing.inClaude = true;
+          } else {
+            domainMap.set(key, {
+              domain: String(row.domain),
+              category: "general_web",
+              appearances: count,
+              inChatgpt: eng === "chatgpt",
+              inGemini: eng === "gemini",
+              inClaude: eng === "claude",
+              segmentCount: 1,
+            });
+          }
+        }
+        console.log(`[citation-sources] fallback from citation_urls: ${domainMap.size} domains for session ${id}`);
+      }
+
       // Apply LLM modal classification per domain from citation_urls
       // LLM categories map to internal weight categories; any containing "Brand" → "brand"
       const LLM_TO_INTERNAL: Record<string, string> = {
