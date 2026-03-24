@@ -2107,38 +2107,65 @@ function LandingInner() {
             <h2 className="text-2xl font-bold" style={{ color: "#1e1b4b" }}>The Intelligence Pipeline</h2>
             <p className="text-sm mt-2" style={{ color: "#64748b" }}>From raw domain to actionable GEO insights in minutes.</p>
           </div>
-          <div className="relative">
-            <div className="absolute top-8 left-0 w-full h-px hidden md:block" style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.15) 20%, rgba(99,102,241,0.15) 80%, transparent)" }} />
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              {steps.map((item, index) => (
-                <div key={item.title} className="relative z-10 flex flex-col items-center">
-                  <div
-                    className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 border transition-all duration-500 ${
-                      activeStep === index
-                        ? "border-violet-300 shadow-[0_0_20px_rgba(124,58,237,0.2)] text-violet-600"
-                        : "border-black/8 text-slate-400"
-                    }`}
-                    style={{ background: activeStep === index ? "rgba(124,58,237,0.08)" : "rgba(255,255,255,0.7)" }}
-                    data-testid={`step-${index}`}
-                  >
-                    <item.icon className="w-7 h-7" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {steps.map((item, index) => {
+              const active = activeStep === index;
+              return (
+                <div
+                  key={item.title}
+                  className="relative z-10 flex flex-col transition-all duration-500"
+                  style={{
+                    background: active ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.6)",
+                    border: `1px solid ${active ? "rgba(99,102,241,0.3)" : "rgba(0,0,0,0.07)"}`,
+                    borderRadius: 16,
+                    padding: "20px 18px",
+                    boxShadow: active ? "0 4px 24px rgba(99,102,241,0.12)" : "none",
+                  }}
+                  data-testid={`step-${index}`}
+                >
+                  {/* Step number + icon row */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", color: active ? "#6366f1" : "#cbd5e1" }}>
+                      0{index + 1}
+                    </span>
+                    <div
+                      style={{
+                        width: 36, height: 36, borderRadius: 10,
+                        background: active ? "rgba(99,102,241,0.1)" : "rgba(0,0,0,0.04)",
+                        border: `1px solid ${active ? "rgba(99,102,241,0.25)" : "rgba(0,0,0,0.06)"}`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        color: active ? "#6366f1" : "#94a3b8",
+                      }}
+                    >
+                      <item.icon style={{ width: 17, height: 17 }} />
+                    </div>
                   </div>
-                  <h3 className={`font-semibold mb-2 transition-colors text-center ${activeStep === index ? "text-indigo-900" : "text-slate-600"}`}>
+
+                  {/* Title */}
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: active ? "#1e1b4b" : "#475569", marginBottom: 12, lineHeight: 1.3 }}>
                     {item.title}
                   </h3>
-                  <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 5 }}>
+
+                  {/* Bullets */}
+                  <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
                     {item.bullets.map((pt, bi) => (
-                      <li key={bi} style={{ display: "flex", alignItems: "flex-start", gap: 6, fontSize: 12, color: activeStep === index ? "#4338ca" : "#94a3b8", lineHeight: 1.5 }}>
-                        <span style={{ flexShrink: 0, fontWeight: 700, color: activeStep === index ? "#6366f1" : "#a5b4fc", fontSize: 10, marginTop: 2 }}>
-                          {String.fromCharCode(96 + bi + 1)}.
+                      <li key={bi} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                        <span style={{
+                          flexShrink: 0, width: 18, height: 18, borderRadius: 5,
+                          background: active ? "rgba(99,102,241,0.1)" : "rgba(0,0,0,0.05)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 9, fontWeight: 800, color: active ? "#6366f1" : "#94a3b8",
+                          marginTop: 1,
+                        }}>
+                          {String.fromCharCode(96 + bi + 1)}
                         </span>
-                        <span>{pt}</span>
+                        <span style={{ fontSize: 12.5, color: active ? "#374151" : "#94a3b8", lineHeight: 1.55 }}>{pt}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
 
           {/* Engine trust strip — always visible in this section */}
