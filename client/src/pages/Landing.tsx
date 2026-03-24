@@ -2416,13 +2416,29 @@ function LandingInner() {
   );
 }
 
+function isChunkLoadError(err: Error): boolean {
+  const msg = err?.message ?? "";
+  return (
+    msg.includes("Failed to fetch dynamically imported module") ||
+    msg.includes("Importing a module script failed") ||
+    msg.includes("Loading chunk") ||
+    (err as any)?.name === "ChunkLoadError"
+  );
+}
+
 class LandingErrorBoundary extends Component<{ children: React.ReactNode }, { error: string | null }> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { error: null };
   }
   static getDerivedStateFromError(err: Error) {
+    if (isChunkLoadError(err)) return { error: null };
     return { error: err.message };
+  }
+  componentDidCatch(err: Error) {
+    if (isChunkLoadError(err)) {
+      window.location.reload();
+    }
   }
   render() {
     if (this.state.error) {

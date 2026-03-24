@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense, Component } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -122,8 +122,38 @@ function AuthGate() {
   return <Login onSuccess={() => window.location.reload()} />;
 }
 
+class ChunkErrorBoundary extends Component<{ children: React.ReactNode }, { crashed: boolean }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { crashed: false };
+  }
+  static getDerivedStateFromError(err: Error) {
+    const msg = err?.message ?? "";
+    const isChunk =
+      msg.includes("Failed to fetch dynamically imported module") ||
+      msg.includes("Importing a module script failed") ||
+      msg.includes("Loading chunk") ||
+      (err as any)?.name === "ChunkLoadError";
+    return { crashed: !isChunk };
+  }
+  componentDidCatch(err: Error) {
+    const msg = err?.message ?? "";
+    const isChunk =
+      msg.includes("Failed to fetch dynamically imported module") ||
+      msg.includes("Importing a module script failed") ||
+      msg.includes("Loading chunk") ||
+      (err as any)?.name === "ChunkLoadError";
+    if (isChunk) window.location.reload();
+  }
+  render() {
+    if (this.state.crashed) return null;
+    return this.props.children;
+  }
+}
+
 function SeoRoutes({ path }: { path: string }) {
   return (
+    <ChunkErrorBoundary>
     <Suspense fallback={null}>
       {path === "/methodology" && <Methodology />}
       {path === "/ai-search-audit" && <AiSearchAudit />}
@@ -143,6 +173,7 @@ function SeoRoutes({ path }: { path: string }) {
       {path === "/compare/answermonk-vs-profound" && <ComparePage competitor="answermonk-vs-profound" />}
       {path === "/compare/answermonk-vs-ahrefs-brand-radar" && <ComparePage competitor="answermonk-vs-ahrefs-brand-radar" />}
     </Suspense>
+    </ChunkErrorBoundary>
   );
 }
 
