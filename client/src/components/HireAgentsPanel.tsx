@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import { SiLinkedin, SiInstagram, SiX, SiReddit, SiYoutube, SiTrustpilot } from "react-icons/si";
 
 // ── Modern Flat monk icons ────────────────────────────────────────────────────
 
@@ -102,12 +103,20 @@ const agents = [
     accentBorder: "rgba(8,145,178,0.2)",
     tagline: "Monitors you and your competitors across authority domains",
     description:
-      "Continuously watches where your brand and rivals appear across high-authority sources — Reddit, G2, industry blogs, and the domains AI engines trust most.",
+      "Continuously watches where your brand and rivals appear across social media and high-authority sources — the domains AI engines trust most.",
     status: "Beta" as const,
     statusColor: "#7c3aed",
     statusBg: "rgba(124,58,237,0.08)",
     statusBorder: "rgba(124,58,237,0.25)",
-    pills: ["Real-time alerts", "Competitor tracking", "Authority domain feed"],
+    pills: ["Real-time alerts", "Competitor tracking", "Social monitoring", "Authority domain feed"],
+    sources: [
+      { name: "LinkedIn",    Icon: SiLinkedin,   color: "#0a66c2" },
+      { name: "Instagram",   Icon: SiInstagram,  color: "#e1306c" },
+      { name: "X / Twitter", Icon: SiX,          color: "#000000" },
+      { name: "Reddit",      Icon: SiReddit,     color: "#ff4500" },
+      { name: "YouTube",     Icon: SiYoutube,    color: "#ff0000" },
+      { name: "Trustpilot",  Icon: SiTrustpilot, color: "#00b67a" },
+    ],
   },
   {
     id: "fixmonk",
@@ -244,9 +253,27 @@ export function HireAgentsPanel() {
                   {agent.tagline}
                 </p>
 
-                <p style={{ color: "#6b7280", fontSize: 12, lineHeight: 1.65, margin: "0 0 12px" }}>
+                <p style={{ color: "#6b7280", fontSize: 12, lineHeight: 1.65, margin: "0 0 10px" }}>
                   {agent.description}
                 </p>
+
+                {"sources" in agent && agent.sources && (
+                  <div style={{ display: "flex", gap: 5, flexWrap: "wrap" as const, marginBottom: 10 }}>
+                    {(agent.sources as { name: string; Icon: React.ComponentType<{ size?: number; color?: string }>; color: string }[]).map(({ name, Icon, color }) => (
+                      <span key={name} style={{
+                        display: "inline-flex", alignItems: "center", gap: 4,
+                        fontSize: 10, fontWeight: 600,
+                        color,
+                        background: color + "12",
+                        border: `1px solid ${color}30`,
+                        borderRadius: 6, padding: "3px 8px",
+                      }}>
+                        <Icon size={10} color={color} />
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" as const, marginBottom: capture !== "idle" ? 12 : 0 }}>
                   {agent.pills.map((pill) => (
