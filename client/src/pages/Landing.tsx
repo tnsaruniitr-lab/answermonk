@@ -1320,7 +1320,7 @@ function LandingInner() {
                   </span>
                   {needsAction ? (
                     <span style={{ fontSize: 12, color: "#fff", fontWeight: 700, whiteSpace: "nowrap" }}>
-                      Rankings & LLM citations ready — hit the yellow button below for full intelligence report ↓
+                      Complete report ready — view it below ↓
                     </span>
                   ) : (
                     <>
@@ -1529,7 +1529,7 @@ function LandingInner() {
                     boxShadow: "0 4px 24px rgba(245,158,11,0.45)",
                   }}
                 >
-                  {pipelineCrawlDone ? "View Authority Sources →" : "Scan Authority Sources & Analyse →"}
+                  {pipelineCrawlDone ? "View authority domains & complete report →" : "Scan Authority Sources & Analyse →"}
                 </button>
               </div>
             )}
