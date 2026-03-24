@@ -172,6 +172,18 @@ function App() {
     );
   }
 
+  // Public report pages — no auth required
+  if (path.startsWith("/reports/")) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <ReportsSession />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
   // All other routes — require admin auth
   return (
     <QueryClientProvider client={queryClient}>
