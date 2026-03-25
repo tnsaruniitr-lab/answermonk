@@ -267,6 +267,30 @@ export class DatabaseStorage implements IStorage {
       .where(eq(multiSegmentSessions.id, sessionId));
   }
 
+  async updateMultiSegmentSessionCost(sessionId: number, costBreakdown: any): Promise<void> {
+    await db
+      .update(multiSegmentSessions)
+      .set({ costBreakdown })
+      .where(eq(multiSegmentSessions.id, sessionId));
+  }
+
+  async listRunCosts(limit = 50): Promise<any[]> {
+    const rows = await db
+      .select({
+        id: multiSegmentSessions.id,
+        brandName: multiSegmentSessions.brandName,
+        brandDomain: multiSegmentSessions.brandDomain,
+        sessionType: multiSegmentSessions.sessionType,
+        promptsPerSegment: multiSegmentSessions.promptsPerSegment,
+        costBreakdown: multiSegmentSessions.costBreakdown,
+        createdAt: multiSegmentSessions.createdAt,
+      })
+      .from(multiSegmentSessions)
+      .orderBy(desc(multiSegmentSessions.createdAt))
+      .limit(limit);
+    return rows;
+  }
+
   async updateCitationReport(sessionId: number, report: any): Promise<void> {
     await db
       .update(multiSegmentSessions)

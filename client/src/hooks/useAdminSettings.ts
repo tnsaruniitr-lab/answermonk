@@ -14,6 +14,7 @@ export interface AdminSettings {
   citationAnalysisMode: "url_rows" | "domain_aggregated";
   insightsModel: "claude-sonnet-4-5" | "claude-haiku-4-5";
   chatgptModel: "gpt-5.2" | "gpt-4o" | "gpt-4o-mini";
+  searchContextSize: "low" | "medium" | "high";
 }
 
 const STORAGE_KEY = "answermonk_admin_settings";
@@ -32,6 +33,7 @@ const DEFAULTS: AdminSettings = {
   citationAnalysisMode: "url_rows",
   insightsModel: "claude-sonnet-4-5",
   chatgptModel: "gpt-5.2",
+  searchContextSize: "medium",
 };
 
 function loadSettings(): AdminSettings {
@@ -52,6 +54,9 @@ function loadSettings(): AdminSettings {
       chatgptModel: (["gpt-5.2", "gpt-4o", "gpt-4o-mini"] as const).includes(parsed.chatgptModel)
         ? parsed.chatgptModel
         : DEFAULTS.chatgptModel,
+      searchContextSize: (["low", "medium", "high"] as const).includes(parsed.searchContextSize)
+        ? parsed.searchContextSize
+        : DEFAULTS.searchContextSize,
     };
   } catch {
     return { ...DEFAULTS, engines: { ...DEFAULTS.engines } };

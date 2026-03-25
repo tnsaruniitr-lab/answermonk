@@ -767,9 +767,10 @@ export async function registerRoutes(
         city: z.string().min(1),
         engines: z.array(z.enum(["chatgpt", "gemini", "claude"])).min(1).optional(),
         chatgptModel: z.enum(["gpt-5.2", "gpt-4o", "gpt-4o-mini"]).optional(),
+        searchContextSize: z.enum(["low", "medium", "high"]).optional(),
       });
-      const { submissionId, services, customers, city, engines, chatgptModel } = schema.parse(req.body);
-      console.log(`[AnswerMonk] run-analysis received — engines: ${JSON.stringify(engines ?? "default")}, chatgptModel: ${chatgptModel ?? "default"}`);
+      const { submissionId, services, customers, city, engines, chatgptModel, searchContextSize } = schema.parse(req.body);
+      console.log(`[AnswerMonk] run-analysis received — engines: ${JSON.stringify(engines ?? "default")}, model: ${chatgptModel ?? "default"}, context: ${searchContextSize ?? "medium"}`);
 
       const submissions = await storage.listLandingSubmissions();
       const submission = submissions.find((s) => s.id === submissionId);
@@ -838,6 +839,7 @@ export async function registerRoutes(
       // Fire scoring for all segments in parallel — 150ms stagger to spread API burst
       (async () => {
         const updatedSegments = segments.map((s: any) => ({ ...s }));
+        const segmentCosts: any[] = new Array(segments.length).fill(null);
         const stagger = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
         const results = await Promise.allSettled(
@@ -852,7 +854,9 @@ export async function registerRoutes(
               undefined,
               engines ?? ["chatgpt", "gemini", "claude"],
               chatgptModel,
+              searchContextSize,
             );
+            segmentCosts[i] = scoringRes.cost;
             updatedSegments[i] = {
               ...seg,
               scoringResult: {
@@ -882,6 +886,29 @@ export async function registerRoutes(
         // Final authoritative write — guarantees correct state regardless of intermediate write ordering
         await storage.updateMultiSegmentSessionSegments(session.id, updatedSegments);
 
+        // Aggregate and persist cost breakdown across all segments
+        const aggCost = {
+          chatgpt_usd: 0, gemini_usd: 0, claude_usd: 0, extraction_usd: 0,
+          classification_usd: null as number | null, total_usd: 0,
+          engines: engines ?? ["chatgpt", "gemini", "claude"],
+          chatgpt_model: chatgptModel ?? "gpt-5.2",
+          search_context_size: searchContextSize ?? "medium",
+          segments_count: segments.length,
+        };
+        for (const c of segmentCosts) {
+          if (!c) continue;
+          aggCost.chatgpt_usd += c.engine_costs?.chatgpt?.cost_usd ?? 0;
+          aggCost.gemini_usd += c.engine_costs?.gemini?.cost_usd ?? 0;
+          aggCost.claude_usd += c.engine_costs?.claude?.cost_usd ?? 0;
+          aggCost.extraction_usd += c.extraction_costs?.cost_usd ?? 0;
+        }
+        aggCost.total_usd = +(aggCost.chatgpt_usd + aggCost.gemini_usd + aggCost.claude_usd + aggCost.extraction_usd).toFixed(4);
+        aggCost.chatgpt_usd = +aggCost.chatgpt_usd.toFixed(4);
+        aggCost.gemini_usd = +aggCost.gemini_usd.toFixed(4);
+        aggCost.claude_usd = +aggCost.claude_usd.toFixed(4);
+        aggCost.extraction_usd = +aggCost.extraction_usd.toFixed(4);
+        await storage.updateMultiSegmentSessionCost(session.id, aggCost).catch(() => {});
+
         console.log(`[Landing] All segments complete for session ${session.id}`);
         // Populate citation_urls from the stored scoring data so the authority scan can run
         populateCitationUrls(session.id).then(async () => {
@@ -889,6 +916,9 @@ export async function registerRoutes(
           try {
             const classifyResult = await runLlmClassification(session.id);
             console.log(`[Landing] Auto-classified ${classifyResult.updated}/${classifyResult.total} URLs for session ${session.id} ($${classifyResult.costUsd})`);
+            // Update cost breakdown with classification cost
+            const updatedCost = { ...aggCost, classification_usd: +classifyResult.costUsd.toFixed(4), total_usd: +(aggCost.total_usd + classifyResult.costUsd).toFixed(4) };
+            await storage.updateMultiSegmentSessionCost(session.id, updatedCost).catch(() => {});
           } catch (classifyErr) {
             console.error(`[Landing] citation_urls classify error for session ${session.id}:`, classifyErr);
           }
@@ -3444,6 +3474,17 @@ export async function registerRoutes(
 
   // ── Directory backfill ─────────────────────────────────────────────────────
   // POST /api/internal/directory/backfill?limit=10
+  app.get("/api/admin/run-costs", async (req, res) => {
+    try {
+      const limit = Math.min(parseInt(String(req.query.limit ?? "50"), 10) || 50, 200);
+      const rows = await storage.listRunCosts(limit);
+      return res.json(rows);
+    } catch (err) {
+      console.error("[run-costs] error:", err);
+      return res.status(500).json({ message: "Failed to fetch run costs" });
+    }
+  });
+
   // Reads the last N sessions and publishes any that pass the quality gate.
   app.post("/api/internal/directory/backfill", async (req, res) => {
     try {

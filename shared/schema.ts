@@ -56,6 +56,7 @@ export const multiSegmentSessions = pgTable("multi_segment_sessions", {
   parentSessionId: integer("parent_session_id"),
   competitorName: text("competitor_name"),
   parentBrandName: text("parent_brand_name"),
+  costBreakdown: jsonb("cost_breakdown"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

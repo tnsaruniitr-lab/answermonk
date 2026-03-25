@@ -88,12 +88,14 @@ export async function runScoring(
   categoryHint?: string,
   enabledEngines?: ScoringEngine[],
   chatgptModel?: string,
+  searchContextSize?: string,
 ): Promise<ScoringRunResult> {
   const brand = buildBrandIdentity(brandName, brandDomain, aliases);
   const activeEngines = enabledEngines && enabledEngines.length > 0 ? enabledEngines : ENGINES;
   const totalCalls = prompts.length * activeEngines.length;
   let completed = 0;
   const activeChatgptModel = chatgptModel ?? "gpt-5.2";
+  const activeSearchContextSize = searchContextSize ?? "medium";
 
   const allRawRuns: RawRunResult[] = [];
 
@@ -131,7 +133,7 @@ export async function runScoring(
                   console.log(`Retry ${attempt}/${MAX_RETRIES} for ${engine} prompt ${prompt.id} after ${delay}ms`);
                   await sleep(delay);
                 }
-                const engineResponse = await queryEngine(engine, prompt.text, activeChatgptModel);
+                const engineResponse = await queryEngine(engine, prompt.text, activeChatgptModel, activeSearchContextSize);
 
                 if (engineResponse.usage) {
                   costTracker.engines[engine].tokens.input_tokens += engineResponse.usage.input_tokens;
@@ -267,10 +269,10 @@ interface EngineResponse {
   usage?: TokenUsage;
 }
 
-async function queryEngine(engine: ScoringEngine, promptText: string, chatgptModel?: string): Promise<EngineResponse> {
+async function queryEngine(engine: ScoringEngine, promptText: string, chatgptModel?: string, searchContextSize?: string): Promise<EngineResponse> {
   switch (engine) {
     case "chatgpt":
-      return queryChatGPT(promptText, chatgptModel);
+      return queryChatGPT(promptText, chatgptModel, searchContextSize);
     case "claude":
       return queryClaude(promptText);
     case "gemini":
@@ -293,7 +295,7 @@ function parseCitationsFromMarkdown(text: string): Citation[] {
   return citations;
 }
 
-async function queryChatGPT(prompt: string, model: string = "gpt-5.2"): Promise<EngineResponse> {
+async function queryChatGPT(prompt: string, model: string = "gpt-5.2", searchContextSize: string = "medium"): Promise<EngineResponse> {
   try {
     const directOpenai = new OpenAI({
       apiKey: process.env.OPENAI_DIRECT_API_KEY,
@@ -301,7 +303,7 @@ async function queryChatGPT(prompt: string, model: string = "gpt-5.2"): Promise<
 
     const response = await directOpenai.responses.create({
       model,
-      tools: [{ type: "web_search" as any }],
+      tools: [{ type: "web_search" as any, search_context_size: searchContextSize }],
       tool_choice: "required" as any,
       input: prompt,
       temperature: 0.2,

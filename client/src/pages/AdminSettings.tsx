@@ -222,6 +222,44 @@ export default function AdminSettings() {
           })}
         </div>
 
+        {/* Section: Web Search Context */}
+        <p style={SECTION_TITLE}>WEB SEARCH CONTEXT</p>
+        <div style={{ background: "#0a1628", borderRadius: 10, padding: "0 16px", border: "1px solid rgba(255,255,255,0.06)" }}>
+          {([
+            { id: "low", name: "Low", sub: "Minimal web context — fewest tokens, lowest cost, fewer citations returned" },
+            { id: "medium", name: "Medium (default)", sub: "Balanced — current behaviour, good citation coverage, standard cost" },
+            { id: "high", name: "High", sub: "Maximum web context — most citations, highest token cost per call" },
+          ] as const).map(({ id, name, sub }, i, arr) => {
+            const isLast = i === arr.length - 1;
+            const isSelected = settings.searchContextSize === id;
+            return (
+              <div
+                key={id}
+                onClick={() => update({ searchContextSize: id })}
+                style={{
+                  ...ROW_STYLE,
+                  borderBottom: isLast ? "none" : "1px solid rgba(255,255,255,0.06)",
+                  cursor: "pointer",
+                  opacity: isSelected ? 1 : 0.6,
+                }}
+              >
+                <div>
+                  <div style={{ ...LABEL_STYLE, color: isSelected ? "#e2e8f0" : "#94a3b8" }}>{name}</div>
+                  <div style={SUB_STYLE}>{sub}</div>
+                </div>
+                <div style={{
+                  width: 16, height: 16, borderRadius: "50%", flexShrink: 0,
+                  border: `2px solid ${isSelected ? "#3b82f6" : "rgba(255,255,255,0.2)"}`,
+                  background: isSelected ? "#3b82f6" : "transparent",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  {isSelected && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }} />}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
         {/* Section: ChatGPT Model */}
         <p style={SECTION_TITLE}>CHATGPT MODEL</p>
         <div style={{ background: "#0a1628", borderRadius: 10, padding: "0 16px", border: "1px solid rgba(255,255,255,0.06)" }}>
@@ -321,13 +359,15 @@ export default function AdminSettings() {
             Classification: {settings.useHeuristicClassification ? "heuristic" : "llm"}<br />
             Citation analysis: {settings.citationAnalysisMode === "domain_aggregated" ? "domain aggregated" : "standard url rows"}<br />
             ChatGPT model: {settings.chatgptModel}<br />
+            Web search context: {settings.searchContextSize}<br />
             Insights model: {settings.insightsModel}<br />
             Segment limits: {settings.maxServices} services · {settings.maxCustomers} customers<br />
             Dev re-run button: {settings.showDevRerunButton ? "visible" : "hidden"}
           </div>
         </div>
 
-        <div style={{ marginTop: 16, textAlign: "center" }}>
+        <div style={{ marginTop: 16, textAlign: "center", display: "flex", justifyContent: "center", gap: 20 }}>
+          <a href="/admin/costs" style={{ color: "#334155", fontSize: 11, fontFamily: "monospace", letterSpacing: 1 }}>COST DASHBOARD</a>
           <a href="/admin" style={{ color: "#334155", fontSize: 11, fontFamily: "monospace", letterSpacing: 1 }}>← BACK TO ADMIN</a>
         </div>
       </div>

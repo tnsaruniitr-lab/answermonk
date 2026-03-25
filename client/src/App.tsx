@@ -27,6 +27,7 @@ import ReportsIndex from "@/pages/ReportsIndex";
 import DirectoryListing from "@/pages/DirectoryListing";
 import AdminSettings from "@/pages/AdminSettings";
 import AdminCaptures from "@/pages/AdminCaptures";
+import AdminCosts from "@/pages/AdminCosts";
 import { Loader2 } from "lucide-react";
 
 const Methodology = lazy(() => import("@/pages/seo/Methodology"));
@@ -70,6 +71,7 @@ function AdminDashboard() {
       <Route path="/admin/prompts" component={PromptGenerator} />
       <Route path="/admin/settings" component={AdminSettings} />
       <Route path="/admin/captures" component={AdminCaptures} />
+      <Route path="/admin/costs" component={AdminCosts} />
       <Route path="/history" component={HistoryPage} />
       <Route path="/prompts" component={PromptGenerator} />
       <Route path="/scoring/:id" component={ScoringDetail} />

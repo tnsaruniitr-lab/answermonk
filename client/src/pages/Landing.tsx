@@ -570,8 +570,8 @@ function LandingInner() {
   const runMutation = useMutation({
     mutationFn: async () => {
       const enabledEngines = getEnabledEngines();
-      const { chatgptModel } = getAdminSettings();
-      console.log("[AnswerMonk] run-analysis firing — engines payload:", enabledEngines, "chatgptModel:", chatgptModel);
+      const { chatgptModel, searchContextSize } = getAdminSettings();
+      console.log("[AnswerMonk] run-analysis firing — engines:", enabledEngines, "model:", chatgptModel, "context:", searchContextSize);
       const res = await apiRequest("POST", "/api/landing/run-analysis", {
         submissionId,
         services: Array.from(selectedServices),
@@ -579,6 +579,7 @@ function LandingInner() {
         city: city.trim() || "Global",
         engines: enabledEngines,
         chatgptModel,
+        searchContextSize,
       });
       return res.json();
     },
