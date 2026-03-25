@@ -1658,7 +1658,7 @@ export async function registerRoutes(
           AND mss.segments IS NOT NULL
           AND jsonb_array_length(mss.segments) > 0
         ORDER BY mss.created_at DESC
-        LIMIT 12
+        LIMIT 60
       `);
 
       const tiles = result.rows

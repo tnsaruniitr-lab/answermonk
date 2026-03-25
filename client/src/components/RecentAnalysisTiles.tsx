@@ -483,25 +483,35 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
         )}
       </div>
 
-      {/* Responsive grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
-        {isLoading
-          ? Array.from({ length: INITIAL_COUNT }, (_, i) => <SkeletonTile key={i} />)
-          : totalResults === 0 && isSearching
-            ? (
-              <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "48px 0", color: "#9ca3af" }}>
-                <div style={{ fontSize: 32, marginBottom: 10 }}>🔍</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "#6b7280", marginBottom: 4 }}>No analyses found</div>
-                <div style={{ fontSize: 12 }}>Try a different brand name or category</div>
-              </div>
-            )
-            : visible.map(tile => (
-              <Tile
-                key={tile.id}
-                tile={tile}
-                onClick={() => handleTileClick(tile)}
-              />
-            ))}
+      {/* Responsive grid — scrollable when expanded */}
+      <div
+        style={expanded && !isSearching ? {
+          maxHeight: 520,
+          overflowY: "auto",
+          overflowX: "hidden",
+          borderRadius: 12,
+          paddingRight: 4,
+        } : undefined}
+      >
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
+          {isLoading
+            ? Array.from({ length: INITIAL_COUNT }, (_, i) => <SkeletonTile key={i} />)
+            : totalResults === 0 && isSearching
+              ? (
+                <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "48px 0", color: "#9ca3af" }}>
+                  <div style={{ fontSize: 32, marginBottom: 10 }}>🔍</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "#6b7280", marginBottom: 4 }}>No analyses found</div>
+                  <div style={{ fontSize: 12 }}>Try a different brand name or category</div>
+                </div>
+              )
+              : visible.map(tile => (
+                <Tile
+                  key={tile.id}
+                  tile={tile}
+                  onClick={() => handleTileClick(tile)}
+                />
+              ))}
+        </div>
       </div>
 
       {/* Extra search results — sessions in index but not in recent tiles */}
