@@ -842,33 +842,34 @@ export async function runBrandIntelligence(jobId: number): Promise<void> {
 
   const results = aggregateRuns(job.brandName, job.brandUrl, job.engine, webSearch, rawRuns);
 
-  // Resolve grounding redirect URLs to actual destination URLs
+  // Resolve grounding redirect URLs to actual destination URLs, then deduplicate by hostname.
+  // Dedup always runs regardless of whether any vertex URLs were resolved, so that multiple
+  // pages on the same domain (e.g. feelvaleo.com/about, feelvaleo.com/services) collapse to one.
   if (webSearch) {
+    let resolved = new Map<string, { resolvedUrl: string }>();
     try {
       const allSources = ATTRIBUTE_KEYS.flatMap((k) => results.attributes[k]?.sources ?? []);
-      const resolved = await resolveGroundingUrls(allSources, 8);
-      if (resolved.size > 0) {
-        for (const key of ATTRIBUTE_KEYS) {
-          const attr = results.attributes[key];
-          if (attr?.sources?.length) {
-            const resolvedUrls = attr.sources
-              .map((url) => resolved.get(url)?.resolvedUrl ?? url)
-              .filter((url) => url.startsWith("http"));
-            // Deduplicate by hostname
-            const seen = new Set<string>();
-            attr.sources = resolvedUrls.filter((url) => {
-              try {
-                const host = new URL(url).hostname.replace(/^www\./, "");
-                if (seen.has(host)) return false;
-                seen.add(host);
-                return true;
-              } catch { return false; }
-            });
-          }
-        }
-      }
+      resolved = await resolveGroundingUrls(allSources, 8);
     } catch (err) {
       console.error("[brand-intelligence] Grounding URL resolution failed:", err);
+    }
+    for (const key of ATTRIBUTE_KEYS) {
+      const attr = results.attributes[key];
+      if (attr?.sources?.length) {
+        const resolvedUrls = attr.sources
+          .map((url) => resolved.get(url)?.resolvedUrl ?? url)
+          .filter((url) => url.startsWith("http"));
+        // Deduplicate by hostname — always runs so same-domain pages collapse to one entry
+        const seen = new Set<string>();
+        attr.sources = resolvedUrls.filter((url) => {
+          try {
+            const host = new URL(url).hostname.replace(/^www\./, "");
+            if (seen.has(host)) return false;
+            seen.add(host);
+            return true;
+          } catch { return false; }
+        });
+      }
     }
   }
 

@@ -1,0 +1,178 @@
+Service Model
+How they deliver — subscription, on-demand, retainer, in-person, etc.
+
+Category norm: On-demand home visits — no clinic required
+
+On‑demand at‑home healthcare via app/website booking (doctor‑on‑call, IV therapy, diagnostics)
+
+Keep the on‑demand at‑home booking model as the core descriptor and simplify variants to reduce identity instability risk (coherence 40%).
+
+Floor
+75%
+Aligned
+
+linkedin.com
+feelvaleo.com
+feelvaleo.com
+feelvaleo.com
+Core Services
+Specific named services or products this brand offers
+
+Category norm: Nursing care, physiotherapy, elderly care
+
+Doctor‑at‑home, at‑home blood tests (including functional, hormone, DNA, PCR), IV therapy (Hydration, Immunity, Energy, Skin Glow, Detox, Hangover), physiotherapy, supplements (e.g. berberine), weight‑loss & longevity programs, newborn & babysitting care, corporate wellness
+
+Prioritize communicating the floor-category services (nursing/physio/elderly care equivalents) alongside your broader menu to stay legible as home healthcare.
+
+Floor
+90%
+Aligned
+
+linkedin.com
+feelvaleo.com
+feelvaleo.com
+feelvaleo.com
+Target Customer
+Most specific customer type who benefits most from this brand
+
+Category norm: Elderly, post-surgical patients, pediatric
+
+Families with children, elderly or mobility‑limited individuals, tourists/business travelers, busy professionals, post‑surgery or chronic care patients
+
+Narrow and standardize the primary segments (families with children, elderly/mobility‑limited, post‑surgery/chronic) to reduce identity instability risk (coherence 20%).
+
+Floor
+50%
+Aligned
+
+linkedin.com
+feelvaleo.com
+feelvaleo.com
+feelvaleo.com
+Proof Numbers
+Specific proof points — review count, satisfaction %, award names
+
+Category norm: High citation volume, thousands of patients served
+
+Trustpilot rating ~3.2/5 from 13 reviews; thousands of satisfied clients across UAE
+
+Replace generic “thousands of satisfied clients” with verifiable volume/outcome metrics and improve review depth beyond 13 Trustpilot reviews.
+
+Signal
+50%
+Underspecified
+
+linkedin.com
+feelvaleo.com
+feelvaleo.com
+feelvaleo.com
+Price Tier
+'budget', 'mid-market', or 'premium' with one-line reason
+
+Category norm: Premium
+
+Premium – transparent, medical‑grade, on‑demand at‑home services with licensed professionals
+
+Add explicit insurance compatibility (e.g., Daman/Thiqa/ADNIC) or a clear pricing anchor to reduce identity instability risk (coherence 20%).
+
+Floor
+50%
+Underspecified
+
+linkedin.com
+feelvaleo.com
+feelvaleo.com
+feelvaleo.com
+Brand Wedge
+The ONE thing this brand is distinctively known for — not generic to category
+
+Comprehensive integrative at‑home healthcare ecosystem combining diagnostics, doctor visits, IV therapy, supplements, and corporate wellness under one platform
+
+Convert the broad “integrative ecosystem” claim into one crisp, ownable wedge (e.g., platform-led integrative home care) to reduce identity instability risk (coherence 40%).
+
+Differ.
+50%
+Underspecified
+
+linkedin.com
+feelvaleo.com
+feelvaleo.com
+feelvaleo.com
+Closest Competitor
+Which other brand in this market is most similar to this one
+
+Category norm: Manzil Health or Emirates Home Nursing
+
+Not recognized
+
+Establish explicit competitive framing versus a recognized leader (e.g., Manzil Health) to strengthen category anchoring in AI.
+
+Signal
+25%
+Underspecified
+
+Per-run values (0/10 recognized):
+
+#1
+—
+#2
+—
+#3
+—
+#4
+—
+#5
+—
+#6
+—
+#7
+—
+#8
+—
+#9
+—
+#10
+—
+Coherence: 0% — multiple distinct answers, identity instability risk
+
+Known Gap vs Leader
+The most important thing this brand lacks vs. the category leader
+
+Mixed customer service experiences (e.g., complaints about double charges, poor follow‑up)
+
+Address the recognized service issues (double charges/poor follow‑up) with a visible resolution policy to prevent trust erosion.
+
+Differ.
+25%
+Underspecified
+
+Per-run values (1/10 recognized):
+
+#1
+—
+#2
+—
+#3
+—
+#4
+—
+#5
+Mixed customer service experiences (e.g., complaints about double charges, poor follow‑up)
+#6
+—
+#7
+—
+#8
+—
+#9
+—
+#10
+—
+Coherence: 100% — stable, consistent recognition
+
+Identity Summary
+One sentence: 'Brand X is known for [specific thing]' OR 'No clear distinctive identity found'
+
+Category norm: Clear, specific one-sentence identity recognizable in AI memory
+
+Feelvaleo (Valeo Health) is known for delivering a full spectrum of preventive and on‑demand at‑home healthcare services in Dubai through licensed professionals and a seamless digital platform.
