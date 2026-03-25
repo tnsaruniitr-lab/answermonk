@@ -933,7 +933,7 @@ function LandingInner() {
 
         {/* Hero — vertically centered with same -mt-20 trick as mockup */}
         <div
-          className={`flex flex-col items-center px-4 ${(activeSessionId !== null && !isRunning) ? "pt-0 pb-0" : `pb-3 ${(isComplete || activeSessionId !== null) ? "pt-2" : "pt-5"}`}`}
+          className={`flex flex-col items-center px-4 ${(activeSessionId !== null && !isRunning) ? "pt-0 pb-0" : `pb-8 ${(isComplete || activeSessionId !== null) ? "pt-4" : "pt-12"}`}`}
         >
         <div className="max-w-3xl flex flex-col items-center w-full">
 
@@ -950,8 +950,8 @@ function LandingInner() {
 
                 {/* Heading */}
                 <h1
-                  className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight"
-                  style={{ color: "#1e1b4b", marginTop: 6 }}
+                  className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight"
+                  style={{ color: "#1e1b4b", marginTop: 10 }}
                 >
                   When customers ask AI -{" "}
                   <span style={{ background: "linear-gradient(to right, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
@@ -960,7 +960,7 @@ function LandingInner() {
                 </h1>
 
                 {/* Subtext */}
-                <p className="text-base md:text-lg font-light max-w-2xl mx-auto leading-snug" style={{ color: "#374151", marginTop: 6 }}>
+                <p className="text-2xl md:text-3xl font-light max-w-2xl mx-auto leading-snug" style={{ color: "#374151", marginTop: 18 }}>
                   <HeroFlipperText />
                 </p>
               </>
@@ -968,7 +968,7 @@ function LandingInner() {
 
             {/* URL Input — hidden once complete or in replay mode */}
             {!isComplete && !isError && !replayMode && (
-              <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto space-y-3" style={{ marginTop: 16 }}>
+              <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto space-y-4" style={{ marginTop: 40 }}>
                 <input
                   ref={honeypotRef}
                   name="_hp"
@@ -1018,7 +1018,7 @@ function LandingInner() {
 
         {/* ── Mode tab switcher ── */}
         {!replayMode && !isComplete && activeSessionId === null && (
-          <div className="w-full max-w-7xl mx-auto px-6 flex justify-center mt-3 mb-0">
+          <div className="w-full max-w-7xl mx-auto px-6 flex justify-center mt-8 mb-3">
             <div
               style={{
                 display: "inline-flex",
@@ -2105,9 +2105,9 @@ function LandingInner() {
       </main>
 
       {/* Pipeline visualization */}
-      <section id="how-it-works" className="relative z-10 py-8" style={{ background: "linear-gradient(180deg, rgba(237,233,254,0.25) 0%, rgba(236,253,245,0.25) 100%)" }}>
+      <section id="how-it-works" className="relative z-10 py-16" style={{ background: "linear-gradient(180deg, rgba(237,233,254,0.25) 0%, rgba(236,253,245,0.25) 100%)" }}>
         <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-5">
+          <div className="text-center mb-10">
             <h2 className="text-2xl font-bold" style={{ color: "#1e1b4b" }}>The Intelligence Pipeline</h2>
             <p className="text-sm mt-2" style={{ color: "#64748b" }}>From raw domain to actionable GEO insights in minutes.</p>
           </div>
@@ -2146,8 +2146,8 @@ function LandingInner() {
                       ? "#ffffff"
                       : "rgba(255,255,255,0.75)",
                     border: `1.5px solid ${active ? "rgba(99,102,241,0.3)" : "rgba(0,0,0,0.1)"}`,
-                    borderRadius: 12,
-                    padding: "14px 14px 12px",
+                    borderRadius: 18,
+                    padding: "22px 18px 20px",
                     boxShadow: active ? undefined : "0 2px 8px rgba(0,0,0,0.05)",
                   }}
                   data-testid={`step-${index}`}
