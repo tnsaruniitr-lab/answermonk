@@ -13,6 +13,10 @@ const AuthoritySourcesPanel = lazy(() =>
   import("@/components/AuthoritySourcesPanel").then(m => ({ default: m.AuthoritySourcesPanel }))
 );
 
+const CitationSourcesPreview = lazy(() =>
+  import("@/components/CitationSourcesPreview").then(m => ({ default: m.CitationSourcesPreview }))
+);
+
 const GENERIC = ["service", "customer", "providers", "provider"];
 
 function deriveContext(session: any) {
@@ -46,6 +50,7 @@ export default function ReportsSession() {
   const useSlugLookup = !trailingId && !numericOnly;
   const id = trailingId ? parseInt(trailingId, 10) : numericOnly ? parseInt(slug, 10) : null;
   const [rankingsExpanded, setRankingsExpanded] = useState(true);
+  const [citationsExpanded, setCitationsExpanded] = useState(true);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
   const [waitlistDone, setWaitlistDone] = useState(false);
@@ -263,6 +268,41 @@ export default function ReportsSession() {
             detectedService={detectedService}
           />
         ))}
+
+        {/* Authority domains bar — shows when citation URL data exists */}
+        {(citationCheck?.rowCount ?? 0) > 0 && scoredSegs.length > 0 && (
+          <>
+            <div
+              style={{
+                borderRadius: citationsExpanded ? "14px 14px 0 0" : 14,
+                background: "linear-gradient(110deg, #3730a3 0%, #4f46e5 50%, #6d28d9 100%)",
+                padding: "10px 14px", cursor: "pointer",
+                display: "flex", alignItems: "center", gap: 10,
+                boxShadow: "0 4px 20px rgba(79,70,229,0.3)",
+                marginTop: 8, minHeight: 42,
+              }}
+              onClick={() => setCitationsExpanded(v => !v)}
+            >
+              <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", minWidth: 0, overflow: "hidden" }}>
+                <span style={{ fontSize: 13.5, color: "#ffffff", fontWeight: 800, letterSpacing: "-0.02em", flexShrink: 0 }}>See authority domains which LLMs refer to</span>
+                <span style={{ width: 1, height: 10, background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
+                <span style={{ fontSize: 10.5, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 20, padding: "2px 8px", color: "#c7d2fe", fontWeight: 500, flexShrink: 0 }}>LLMs cites</span>
+              </div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "4px 11px", fontSize: 11.5, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+                {citationsExpanded ? (
+                  <><ChevronDown style={{ width: 12, height: 12, transform: "rotate(180deg)", display: "inline" }} /> Collapse</>
+                ) : (
+                  <>All sources →</>
+                )}
+              </div>
+            </div>
+            {citationsExpanded && (
+              <Suspense fallback={null}>
+                <CitationSourcesPreview sessionId={session.id} />
+              </Suspense>
+            )}
+          </>
+        )}
 
         {/* Citation report — authority sources & top cited URLs */}
         {hasCitationInsights && scoredSegs.length > 0 && (
