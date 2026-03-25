@@ -570,13 +570,15 @@ function LandingInner() {
   const runMutation = useMutation({
     mutationFn: async () => {
       const enabledEngines = getEnabledEngines();
-      console.log("[AnswerMonk] run-analysis firing — engines payload:", enabledEngines);
+      const { chatgptModel } = getAdminSettings();
+      console.log("[AnswerMonk] run-analysis firing — engines payload:", enabledEngines, "chatgptModel:", chatgptModel);
       const res = await apiRequest("POST", "/api/landing/run-analysis", {
         submissionId,
         services: Array.from(selectedServices),
         customers: Array.from(selectedCustomers),
         city: city.trim() || "Global",
         engines: enabledEngines,
+        chatgptModel,
       });
       return res.json();
     },

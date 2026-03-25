@@ -222,6 +222,44 @@ export default function AdminSettings() {
           })}
         </div>
 
+        {/* Section: ChatGPT Model */}
+        <p style={SECTION_TITLE}>CHATGPT MODEL</p>
+        <div style={{ background: "#0a1628", borderRadius: 10, padding: "0 16px", border: "1px solid rgba(255,255,255,0.06)" }}>
+          {([
+            { id: "gpt-5.2", name: "GPT-5.2 (default)", sub: "Highest quality — ~$0.40/segment · web search + full citations" },
+            { id: "gpt-4o", name: "GPT-4o", sub: "~4x cheaper — ~$0.10/segment · web search + full citations" },
+            { id: "gpt-4o-mini", name: "GPT-4o Mini", sub: "~15x cheaper — ~$0.03/segment · web search + full citations" },
+          ] as const).map(({ id, name, sub }, i, arr) => {
+            const isLast = i === arr.length - 1;
+            const isSelected = settings.chatgptModel === id;
+            return (
+              <div
+                key={id}
+                onClick={() => update({ chatgptModel: id })}
+                style={{
+                  ...ROW_STYLE,
+                  borderBottom: isLast ? "none" : "1px solid rgba(255,255,255,0.06)",
+                  cursor: "pointer",
+                  opacity: isSelected ? 1 : 0.6,
+                }}
+              >
+                <div>
+                  <div style={{ ...LABEL_STYLE, color: isSelected ? "#e2e8f0" : "#94a3b8" }}>{name}</div>
+                  <div style={SUB_STYLE}>{sub}</div>
+                </div>
+                <div style={{
+                  width: 16, height: 16, borderRadius: "50%", flexShrink: 0,
+                  border: `2px solid ${isSelected ? "#3b82f6" : "rgba(255,255,255,0.2)"}`,
+                  background: isSelected ? "#3b82f6" : "transparent",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  {isSelected && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }} />}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
         {/* Section: Insights Model */}
         <p style={SECTION_TITLE}>INSIGHTS MODEL</p>
         <div style={{ background: "#0a1628", borderRadius: 10, padding: "0 16px", border: "1px solid rgba(255,255,255,0.06)" }}>
@@ -282,6 +320,7 @@ export default function AdminSettings() {
             Engines: {["chatgpt", "gemini", "claude"].filter(e => settings.engines[e as keyof typeof settings.engines]).join(", ") || "none"}<br />
             Classification: {settings.useHeuristicClassification ? "heuristic" : "llm"}<br />
             Citation analysis: {settings.citationAnalysisMode === "domain_aggregated" ? "domain aggregated" : "standard url rows"}<br />
+            ChatGPT model: {settings.chatgptModel}<br />
             Insights model: {settings.insightsModel}<br />
             Segment limits: {settings.maxServices} services · {settings.maxCustomers} customers<br />
             Dev re-run button: {settings.showDevRerunButton ? "visible" : "hidden"}

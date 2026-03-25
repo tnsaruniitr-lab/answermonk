@@ -766,9 +766,10 @@ export async function registerRoutes(
         customers: z.array(z.string().min(1)).min(1),
         city: z.string().min(1),
         engines: z.array(z.enum(["chatgpt", "gemini", "claude"])).min(1).optional(),
+        chatgptModel: z.enum(["gpt-5.2", "gpt-4o", "gpt-4o-mini"]).optional(),
       });
-      const { submissionId, services, customers, city, engines } = schema.parse(req.body);
-      console.log(`[AnswerMonk] run-analysis received — engines from client: ${JSON.stringify(engines ?? "not sent (fallback will apply)")}`);
+      const { submissionId, services, customers, city, engines, chatgptModel } = schema.parse(req.body);
+      console.log(`[AnswerMonk] run-analysis received — engines: ${JSON.stringify(engines ?? "default")}, chatgptModel: ${chatgptModel ?? "default"}`);
 
       const submissions = await storage.listLandingSubmissions();
       const submission = submissions.find((s) => s.id === submissionId);
@@ -850,6 +851,7 @@ export async function registerRoutes(
               undefined,
               undefined,
               engines ?? ["chatgpt", "gemini", "claude"],
+              chatgptModel,
             );
             updatedSegments[i] = {
               ...seg,

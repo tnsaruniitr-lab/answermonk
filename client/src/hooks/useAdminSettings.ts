@@ -13,6 +13,7 @@ export interface AdminSettings {
   maxCustomers: number;
   citationAnalysisMode: "url_rows" | "domain_aggregated";
   insightsModel: "claude-sonnet-4-5" | "claude-haiku-4-5";
+  chatgptModel: "gpt-5.2" | "gpt-4o" | "gpt-4o-mini";
 }
 
 const STORAGE_KEY = "answermonk_admin_settings";
@@ -30,6 +31,7 @@ const DEFAULTS: AdminSettings = {
   maxCustomers: 2,
   citationAnalysisMode: "url_rows",
   insightsModel: "claude-sonnet-4-5",
+  chatgptModel: "gpt-5.2",
 };
 
 function loadSettings(): AdminSettings {
@@ -47,6 +49,9 @@ function loadSettings(): AdminSettings {
       insightsModel: (parsed.insightsModel === "claude-haiku-4-5" || parsed.insightsModel === "claude-sonnet-4-5")
         ? parsed.insightsModel
         : DEFAULTS.insightsModel,
+      chatgptModel: (["gpt-5.2", "gpt-4o", "gpt-4o-mini"] as const).includes(parsed.chatgptModel)
+        ? parsed.chatgptModel
+        : DEFAULTS.chatgptModel,
     };
   } catch {
     return { ...DEFAULTS, engines: { ...DEFAULTS.engines } };

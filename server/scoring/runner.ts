@@ -49,6 +49,7 @@ export interface CostBreakdown {
 
 const MODEL_PRICING: Record<string, { input_per_1m: number; output_per_1m: number }> = {
   "gpt-5.2": { input_per_1m: 2.0, output_per_1m: 8.0 },
+  "gpt-4o": { input_per_1m: 2.50, output_per_1m: 10.0 },
   "gpt-4o-mini": { input_per_1m: 0.15, output_per_1m: 0.60 },
   "claude-sonnet-4-5": { input_per_1m: 3.0, output_per_1m: 15.0 },
   "gemini-2.5-flash": { input_per_1m: 0.15, output_per_1m: 0.60 },
@@ -86,16 +87,18 @@ export async function runScoring(
   aliases?: AliasEntry[],
   categoryHint?: string,
   enabledEngines?: ScoringEngine[],
+  chatgptModel?: string,
 ): Promise<ScoringRunResult> {
   const brand = buildBrandIdentity(brandName, brandDomain, aliases);
   const activeEngines = enabledEngines && enabledEngines.length > 0 ? enabledEngines : ENGINES;
   const totalCalls = prompts.length * activeEngines.length;
   let completed = 0;
+  const activeChatgptModel = chatgptModel ?? "gpt-5.2";
 
   const allRawRuns: RawRunResult[] = [];
 
   const ENGINE_MODELS: Record<ScoringEngine, string> = {
-    chatgpt: "gpt-5.2",
+    chatgpt: activeChatgptModel,
     claude: "claude-sonnet-4-5",
     gemini: "gemini-2.5-flash",
   };
@@ -128,7 +131,7 @@ export async function runScoring(
                   console.log(`Retry ${attempt}/${MAX_RETRIES} for ${engine} prompt ${prompt.id} after ${delay}ms`);
                   await sleep(delay);
                 }
-                const engineResponse = await queryEngine(engine, prompt.text);
+                const engineResponse = await queryEngine(engine, prompt.text, activeChatgptModel);
 
                 if (engineResponse.usage) {
                   costTracker.engines[engine].tokens.input_tokens += engineResponse.usage.input_tokens;
@@ -264,10 +267,10 @@ interface EngineResponse {
   usage?: TokenUsage;
 }
 
-async function queryEngine(engine: ScoringEngine, promptText: string): Promise<EngineResponse> {
+async function queryEngine(engine: ScoringEngine, promptText: string, chatgptModel?: string): Promise<EngineResponse> {
   switch (engine) {
     case "chatgpt":
-      return queryChatGPT(promptText);
+      return queryChatGPT(promptText, chatgptModel);
     case "claude":
       return queryClaude(promptText);
     case "gemini":
@@ -290,14 +293,14 @@ function parseCitationsFromMarkdown(text: string): Citation[] {
   return citations;
 }
 
-async function queryChatGPT(prompt: string): Promise<EngineResponse> {
+async function queryChatGPT(prompt: string, model: string = "gpt-5.2"): Promise<EngineResponse> {
   try {
     const directOpenai = new OpenAI({
       apiKey: process.env.OPENAI_DIRECT_API_KEY,
     });
 
     const response = await directOpenai.responses.create({
-      model: "gpt-5.2",
+      model,
       tools: [{ type: "web_search" as any }],
       tool_choice: "required" as any,
       input: prompt,
@@ -346,7 +349,7 @@ async function queryChatGPT(prompt: string): Promise<EngineResponse> {
     const reason = err instanceof Error ? err.message : String(err);
     console.error("Quick mode ChatGPT web search failed, falling back to standard:", err);
     const completion = await openai.chat.completions.create({
-      model: "gpt-5.2",
+      model,
       messages: [{ role: "user", content: prompt }],
       max_completion_tokens: 1024,
       temperature: 0.2,
