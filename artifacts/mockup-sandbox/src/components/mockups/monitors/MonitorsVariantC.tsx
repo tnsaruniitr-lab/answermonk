@@ -1,34 +1,52 @@
-import { SiLinkedin, SiInstagram, SiReddit, SiTrustpilot, SiX, SiYoutube, SiG2, SiGoogle } from "react-icons/si";
+function LinkedIn() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="#0A66C2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>;
+}
+function Instagram() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="#E1306C"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>;
+}
+function Reddit() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="#FF4500"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>;
+}
+function Trustpilot() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="#00B67A"><path d="M12 0l2.545 7.768H22.5l-6.544 4.769 2.545 7.769L12 15.537l-6.501 4.769 2.545-7.769L1.5 7.768h7.955L12 0z"/></svg>;
+}
+function XTwitter() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="#1a1a1a"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>;
+}
+function YouTube() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.499 6.203a3.008 3.008 0 0 0-2.089-2.089c-1.87-.501-9.4-.501-9.4-.501s-7.509 0-9.399.501A3.008 3.008 0 0 0 .522 6.203a31.54 31.54 0 0 0-.522 5.8 31.54 31.54 0 0 0 .522 5.783 3.008 3.008 0 0 0 2.088 2.088c1.868.502 9.4.502 9.4.502s7.508 0 9.399-.502a3.008 3.008 0 0 0 2.089-2.088 31.54 31.54 0 0 0 .5-5.783 31.54 31.54 0 0 0-.5-5.8M9.609 15.601V8.408l6.264 3.602z"/></svg>;
+}
+function G2() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="#FF492C"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-.008 4.667l2.074 3.59H9.919l2.073-3.59zm-6.325 9.87l-2.074-3.59H7.85L5.667 14.537zm1.037-5.385h4.148l-2.074 3.59-2.074-3.59zm4.148 0h4.148l-2.074 3.59-2.074-3.59zm4.148 5.385L10.926 11h4.148l2.074 3.537h-2.148zm2.074-5.385l2.074 3.59H15l-2.074-3.59h4.148zm-1.037 5.385h-4.148l2.074-3.59 2.074 3.59zM5.667 14.537l2.074-3.59h4.148l-2.074 3.59H5.667zm2.074 1.796l2.074-3.59 2.074 3.59H7.741zm4.148 0l2.074-3.59 2.074 3.59h-4.148z"/></svg>;
+}
+function Google() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="#4285F4"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg>;
+}
 
-const ENGINES = [
-  { label: "ChatGPT" },
-  { label: "Claude" },
-  { label: "Gemini" },
-  { label: "Perplexity" },
-];
+const ENGINES = ["ChatGPT", "Claude", "Gemini", "Perplexity"];
 
-const CATEGORIES: { label: string; items: { icon: React.ElementType; name: string; color: string }[] }[] = [
+const CATEGORIES = [
   {
     label: "Social",
     items: [
-      { icon: SiLinkedin, name: "LinkedIn", color: "#0A66C2" },
-      { icon: SiInstagram, name: "Instagram", color: "#E1306C" },
-      { icon: SiX, name: "X", color: "#1a1a1a" },
-      { icon: SiYoutube, name: "YouTube", color: "#FF0000" },
+      { Icon: LinkedIn, name: "LinkedIn" },
+      { Icon: Instagram, name: "Instagram" },
+      { Icon: XTwitter, name: "X" },
+      { Icon: YouTube, name: "YouTube" },
     ],
   },
   {
     label: "Community",
     items: [
-      { icon: SiReddit, name: "Reddit", color: "#FF4500" },
+      { Icon: Reddit, name: "Reddit" },
     ],
   },
   {
     label: "Reviews",
     items: [
-      { icon: SiTrustpilot, name: "Trustpilot", color: "#00B67A" },
-      { icon: SiG2, name: "G2", color: "#FF492C" },
-      { icon: SiGoogle, name: "Google Reviews", color: "#4285F4" },
+      { Icon: Trustpilot, name: "Trustpilot" },
+      { Icon: G2, name: "G2" },
+      { Icon: Google, name: "Google Reviews" },
     ],
   },
 ];
@@ -41,9 +59,9 @@ export default function MonitorsVariantC() {
       </p>
       <div style={{ display: "flex", justifyContent: "center", gap: 40, marginBottom: 22 }}>
         {ENGINES.map((e) => (
-          <span key={e.label} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, fontWeight: 600, color: "#374151" }}>
+          <span key={e} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, fontWeight: 600, color: "#374151" }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#6366f1", display: "inline-block" }} />
-            {e.label}
+            {e}
           </span>
         ))}
       </div>
@@ -52,20 +70,20 @@ export default function MonitorsVariantC() {
         <p style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.12em", color: "#9ca3af", textAlign: "center", marginBottom: 16, textTransform: "uppercase" }}>
           Brand signal monitoring
         </p>
-        <div style={{ display: "flex", justifyContent: "center", gap: 32 }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: 40 }}>
           {CATEGORIES.map((cat) => (
-            <div key={cat.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+            <div key={cat.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: "#d1d5db", textTransform: "uppercase" }}>{cat.label}</span>
-              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 10 }}>
-                {cat.items.map(({ icon: Icon, name, color }) => (
+              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8 }}>
+                {cat.items.map(({ Icon, name }) => (
                   <div key={name} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
                     <div style={{
-                      width: 32, height: 32, borderRadius: 8,
+                      width: 34, height: 34, borderRadius: 8,
                       background: "#f8fafc",
                       border: "1px solid #e5e7eb",
                       display: "flex", alignItems: "center", justifyContent: "center",
                     }}>
-                      <Icon style={{ width: 16, height: 16, color }} />
+                      <Icon />
                     </div>
                     <span style={{ fontSize: 9.5, color: "#9ca3af", fontWeight: 500 }}>{name}</span>
                   </div>
