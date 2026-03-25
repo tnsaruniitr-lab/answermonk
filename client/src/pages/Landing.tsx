@@ -8,7 +8,7 @@ import {
   Search, TrendingUp, Rocket, ChevronDown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getAdminSettings, getEnabledEngines } from "@/hooks/useAdminSettings";
+import { getAdminSettings, getEnabledEngines, useLiveAdminSettings } from "@/hooks/useAdminSettings";
 import { RecentAnalysisTiles } from "@/components/RecentAnalysisTiles";
 import { AnalysisPipelineHeader } from "@/components/AnalysisPipelineHeader";
 import { MonkWordmark } from "@/components/MonkWordmark";
@@ -459,9 +459,9 @@ function LandingInner() {
   const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
-  const _adminSettings = getAdminSettings();
-  const MAX_SERVICES = _adminSettings.maxServices ?? 3;
-  const MAX_CUSTOMERS = _adminSettings.maxCustomers ?? 2;
+  const _adminSettings = useLiveAdminSettings();
+  const MAX_SERVICES = _adminSettings.maxServices;
+  const MAX_CUSTOMERS = _adminSettings.maxCustomers;
   const MAX_SELECTED = Math.max(MAX_SERVICES, MAX_CUSTOMERS);
 
   useEffect(() => {
