@@ -261,11 +261,11 @@ function SourceLink({ url }: { url: string }) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-0.5 text-[10px] text-blue-600 dark:text-blue-400 hover:underline max-w-[140px] truncate"
+      className="inline-flex items-center gap-0.5 text-[10px] text-blue-600 dark:text-blue-400 hover:underline max-w-[160px]"
       title={url}
       data-testid={`source-link-${label}`}
     >
-      {label}
+      <span className="truncate">{label}</span>
       <ExternalLink className="w-2.5 h-2.5 shrink-0" />
     </a>
   );
