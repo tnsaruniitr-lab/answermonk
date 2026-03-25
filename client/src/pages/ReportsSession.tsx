@@ -64,6 +64,19 @@ export default function ReportsSession() {
     staleTime: 5 * 60_000,
   });
 
+  // Check for existing citation insights — must be before any early return (React hooks rule)
+  const resolvedId: number | null = session?.id ?? null;
+  const { data: citationCheck } = useQuery<{ rowCount: number; insights: any[] }>({
+    queryKey: ["/api/multi-segment-sessions", resolvedId, "citation-insights"],
+    queryFn: async () => {
+      const res = await fetch(`/api/multi-segment-sessions/${resolvedId}/citation-insights`);
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    staleTime: 60_000,
+    enabled: !!resolvedId,
+  });
+
   async function handleEmailSubmit() {
     if (!waitlistEmail.includes("@") || waitlistSubmitting) return;
     setWaitlistSubmitting(true);
@@ -104,6 +117,8 @@ export default function ReportsSession() {
   const detectedService: string = segs.find((s: any) => s.serviceType && !s.customerType)?.serviceType || "";
   const { category, query, topBrands } = deriveContext(session);
   const displayQuery = query || category || session.brandName || "";
+
+  const hasCitationInsights = (citationCheck?.insights?.length ?? 0) > 0;
 
   return (
     <div style={pageBg}>
@@ -250,15 +265,10 @@ export default function ReportsSession() {
         ))}
 
         {/* Citation report — authority sources & top cited URLs */}
-        {scoredSegs.length > 0 && (
+        {hasCitationInsights && scoredSegs.length > 0 && (
           <div style={{ marginTop: 16 }}>
-            <Suspense fallback={
-              <div style={{ height: 80, borderRadius: 14, background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ color: "#6366f1", fontSize: 12, fontWeight: 600 }}>Loading citation analysis…</span>
-              </div>
-            }>
+            <Suspense fallback={null}>
               <AuthoritySourcesPanel
-                autoRun
                 sessionId={session.id}
                 brandName={session.brandName || ""}
                 segments={scoredSegs.map((s: any, i: number) => ({
