@@ -2105,9 +2105,9 @@ function LandingInner() {
       </main>
 
       {/* Pipeline visualization */}
-      <section id="how-it-works" className="relative z-10 py-16" style={{ background: "linear-gradient(180deg, rgba(237,233,254,0.25) 0%, rgba(236,253,245,0.25) 100%)" }}>
+      <section id="how-it-works" className="relative z-10 py-8" style={{ background: "linear-gradient(180deg, rgba(237,233,254,0.25) 0%, rgba(236,253,245,0.25) 100%)" }}>
         <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-10">
+          <div className="text-center mb-6">
             <h2 className="text-2xl font-bold" style={{ color: "#1e1b4b" }}>The Intelligence Pipeline</h2>
             <p className="text-sm mt-2" style={{ color: "#64748b" }}>From raw domain to actionable GEO insights in minutes.</p>
           </div>
@@ -2218,8 +2218,8 @@ function LandingInner() {
           </div>
 
           {/* Engine trust strip — always visible in this section */}
-          <div className="mt-12 pt-8 border-t" style={{ borderColor: "rgba(99,102,241,0.15)" }}>
-            <p className="text-xs font-semibold uppercase tracking-wider text-center mb-5" style={{ color: "#6366f1", letterSpacing: "0.08em" }}>
+          <div className="mt-5 pt-4 border-t" style={{ borderColor: "rgba(99,102,241,0.15)" }}>
+            <p className="text-xs font-semibold uppercase tracking-wider text-center mb-3" style={{ color: "#6366f1", letterSpacing: "0.08em" }}>
               Analyzing signals across primary intelligence engines
             </p>
             <div className="flex flex-wrap justify-center gap-8 md:gap-14" style={{ color: "#374151" }}>
@@ -2230,8 +2230,8 @@ function LandingInner() {
             </div>
 
             {/* Brand signal monitoring — Social / Community / Reviews */}
-            <div className="mt-8 pt-6 border-t" style={{ borderColor: "rgba(99,102,241,0.10)" }}>
-              <p className="text-center mb-5" style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.12em", color: "#9ca3af", textTransform: "uppercase" }}>
+            <div className="mt-4 pt-4 border-t" style={{ borderColor: "rgba(99,102,241,0.10)" }}>
+              <p className="text-center mb-3" style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.12em", color: "#9ca3af", textTransform: "uppercase" }}>
                 Brand signal monitoring
               </p>
               <div className="flex flex-wrap justify-center gap-8 md:gap-12">
