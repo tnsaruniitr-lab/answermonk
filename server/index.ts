@@ -215,6 +215,25 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // On startup, reset any brand-intelligence jobs that were left in "running" state
+  // (they died mid-run when the server restarted). Mark them failed so the UI shows
+  // a clear error instead of hanging forever at a partial progress count.
+  try {
+    const { db: startupDb } = await import("./db");
+    const { brandIntelligenceJobs: bijTable } = await import("@shared/schema");
+    const { eq: eqDrizzle } = await import("drizzle-orm");
+    const stuck = await startupDb
+      .update(bijTable)
+      .set({ status: "failed", error: "Server restarted mid-run — please re-run this analysis." })
+      .where(eqDrizzle(bijTable.status, "running"))
+      .returning({ id: bijTable.id });
+    if (stuck.length > 0) {
+      console.log(`[startup] Reset ${stuck.length} orphaned running job(s) to failed: ${stuck.map(j => j.id).join(", ")}`);
+    }
+  } catch (err) {
+    console.error("[startup] Failed to reset orphaned jobs:", err);
+  }
+
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
