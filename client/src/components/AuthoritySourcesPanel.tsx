@@ -1798,13 +1798,14 @@ function AuditExpandableRow({ entry, sessionId, rank, maxApps, accent = "teal" }
   );
 }
 
-function AuditDefaultItem({ topSources, realSources = [], brandSources = [], sessionId }: {
+function AuditDefaultItem({ topSources, realSources = [], brandSources = [], sessionId, initialOpen = true }: {
   topSources: SourceEntry[];
   realSources?: DomainEntry[];
   brandSources?: DomainEntry[];
   sessionId: number;
+  initialOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initialOpen);
   const [activeTab, setActiveTab] = useState<"authority" | "brand" | "all">("authority");
   const [showAllAuth, setShowAllAuth] = useState(false);
   const [showAllBrand, setShowAllBrand] = useState(false);
