@@ -443,7 +443,7 @@ function aggregateRuns(
 
     const topSources = Object.entries(sourceCounts)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
+      .slice(0, 10)
       .map(([url]) => url);
 
     // Semantic coherence: group values by token overlap instead of exact match
@@ -807,7 +807,7 @@ export async function runBrandIntelligence(jobId: number): Promise<void> {
             const attr = parsed[key];
             if (attr && attr.value !== null && attr.evidence_type !== "GENERIC" && attr.evidence_type !== "ABSENT") {
               if (!Array.isArray(attr.sources) || attr.sources.length === 0) {
-                attr.sources = sessionSources.slice(0, 3);
+                attr.sources = sessionSources;
               }
             }
           }
