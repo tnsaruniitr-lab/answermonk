@@ -2958,13 +2958,43 @@ export async function registerRoutes(
         const d = String(row.domain).toLowerCase();
         if (!llmModalMap.has(d)) llmModalMap.set(d, String(row.llm_pagetype_classification));
       }
-      // Apply to domainMap
+
+      // Also build url_category modal per domain as a fallback for brand detection.
+      // classifyCitationUrl already returns "Brand Homepage" for unrecognised Gemini URLs
+      // so this catches brand pages the LLM misses or misclassifies.
+      const urlCatResult = await pool.query(
+        `SELECT domain, url_category, COUNT(*) as cnt
+         FROM citation_urls
+         WHERE session_id = $1 AND url_category IS NOT NULL AND domain IS NOT NULL
+         GROUP BY domain, url_category
+         ORDER BY domain, cnt DESC`,
+        [id]
+      );
+      const urlCatMap = new Map<string, string>();
+      for (const row of urlCatResult.rows) {
+        const d = String(row.domain).toLowerCase();
+        if (!urlCatMap.has(d)) urlCatMap.set(d, String(row.url_category));
+      }
+
+      // Apply to domainMap: prefer llm_pagetype_classification; if it doesn't mark
+      // a domain as brand, check url_category as a safety-net brand detector.
       for (const [key, entry] of domainMap.entries()) {
         const llmCat = llmModalMap.get(key);
+        const urlCat = urlCatMap.get(key) ?? "";
+        const urlCatIsBrand = urlCat.toLowerCase().includes("brand");
+
         if (llmCat) {
-          entry.category = llmCat.toLowerCase().includes("brand")
-            ? "brand"
-            : (LLM_TO_INTERNAL[llmCat] ?? "general_web");
+          if (llmCat.toLowerCase().includes("brand")) {
+            entry.category = "brand";
+          } else if (urlCatIsBrand) {
+            // LLM classified as non-brand but rule-based classifier says brand — trust brand signal
+            entry.category = "brand";
+          } else {
+            entry.category = LLM_TO_INTERNAL[llmCat] ?? "general_web";
+          }
+        } else if (urlCatIsBrand) {
+          // No LLM classification at all — fall back to rule-based brand detection
+          entry.category = "brand";
         }
       }
 
