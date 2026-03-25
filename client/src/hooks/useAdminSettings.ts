@@ -15,6 +15,7 @@ export interface AdminSettings {
   insightsModel: "claude-sonnet-4-5" | "claude-haiku-4-5";
   chatgptModel: "gpt-5.2" | "gpt-4o" | "gpt-4o-mini";
   searchContextSize: "low" | "medium" | "high";
+  forceFreshRun: boolean;
 }
 
 const STORAGE_KEY = "answermonk_admin_settings";
@@ -34,6 +35,7 @@ const DEFAULTS: AdminSettings = {
   insightsModel: "claude-sonnet-4-5",
   chatgptModel: "gpt-5.2",
   searchContextSize: "medium",
+  forceFreshRun: false,
 };
 
 function loadSettings(): AdminSettings {
@@ -57,6 +59,7 @@ function loadSettings(): AdminSettings {
       searchContextSize: (["low", "medium", "high"] as const).includes(parsed.searchContextSize)
         ? parsed.searchContextSize
         : DEFAULTS.searchContextSize,
+      forceFreshRun: parsed.forceFreshRun ?? DEFAULTS.forceFreshRun,
     };
   } catch {
     return { ...DEFAULTS, engines: { ...DEFAULTS.engines } };

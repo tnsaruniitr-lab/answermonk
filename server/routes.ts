@@ -599,7 +599,7 @@ export async function registerRoutes(
 
   app.post("/api/landing/submit", landingRateLimit, async (req: Request, res: Response) => {
     try {
-      const { websiteUrl, _hp } = req.body;
+      const { websiteUrl, _hp, forceFresh } = req.body;
 
       // Layer 1: Honeypot — bots fill hidden fields, humans don't
       if (_hp && _hp.length > 0) {
@@ -622,7 +622,8 @@ export async function registerRoutes(
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
 
       // Layer 2: Domain deduplication — same domain within 6 hours returns cached submission
-      const existing = await storage.getLandingSubmissionByDomain(domain, 6);
+      // Skip if forceFresh flag is set (admin dev tool)
+      const existing = forceFresh ? null : await storage.getLandingSubmissionByDomain(domain, 6);
       if (existing) {
         const ageMs = Date.now() - new Date(existing.createdAt).getTime();
         const isStuckProcessing = existing.status === "processing" && ageMs > 5 * 60 * 1000;

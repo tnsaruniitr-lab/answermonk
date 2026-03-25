@@ -339,7 +339,7 @@ export default function AdminSettings() {
         {/* Section: Dev Tools */}
         <p style={SECTION_TITLE}>DEV TOOLS</p>
         <div style={{ background: "#0a1628", borderRadius: 10, padding: "0 16px", border: "1px solid rgba(255,255,255,0.06)" }}>
-          <div style={{ ...ROW_STYLE, borderBottom: "none" }}>
+          <div style={{ ...ROW_STYLE, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             <div>
               <div style={LABEL_STYLE}>Show Re-run Button</div>
               <div style={SUB_STYLE}>Displays ↺ RE-RUN CRAWL + ANALYSIS on all report citation panels</div>
@@ -347,6 +347,16 @@ export default function AdminSettings() {
             <Toggle
               on={settings.showDevRerunButton}
               onChange={(v) => update({ showDevRerunButton: v })}
+            />
+          </div>
+          <div style={{ ...ROW_STYLE, borderBottom: "none" }}>
+            <div>
+              <div style={{ ...LABEL_STYLE, color: settings.forceFreshRun ? "#f87171" : undefined }}>Bypass domain cache (force fresh run)</div>
+              <div style={SUB_STYLE}>Skip the 6-hour dedup check — every submission creates a new analysis</div>
+            </div>
+            <Toggle
+              on={settings.forceFreshRun}
+              onChange={(v) => update({ forceFreshRun: v })}
             />
           </div>
         </div>
@@ -362,7 +372,8 @@ export default function AdminSettings() {
             Web search context: {settings.searchContextSize}<br />
             Insights model: {settings.insightsModel}<br />
             Segment limits: {settings.maxServices} services · {settings.maxCustomers} customers<br />
-            Dev re-run button: {settings.showDevRerunButton ? "visible" : "hidden"}
+            Dev re-run button: {settings.showDevRerunButton ? "visible" : "hidden"}<br />
+            Force fresh run: {settings.forceFreshRun ? "ON ⚠" : "off"}
           </div>
         </div>
 

@@ -476,6 +476,7 @@ function LandingInner() {
       const res = await apiRequest("POST", "/api/landing/submit", {
         websiteUrl,
         _hp: honeypotRef.current?.value ?? "",
+        forceFresh: getAdminSettings().forceFreshRun,
       });
       return res.json();
     },
