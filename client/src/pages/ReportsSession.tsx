@@ -9,6 +9,10 @@ const SessionSummaryHero = lazy(() =>
   import("@/components/SessionSummaryHero").then(m => ({ default: m.SessionSummaryHero }))
 );
 
+const AuthoritySourcesPanel = lazy(() =>
+  import("@/components/AuthoritySourcesPanel").then(m => ({ default: m.AuthoritySourcesPanel }))
+);
+
 const GENERIC = ["service", "customer", "providers", "provider"];
 
 function deriveContext(session: any) {
@@ -244,6 +248,31 @@ export default function ReportsSession() {
             detectedService={detectedService}
           />
         ))}
+
+        {/* Citation report — authority sources & top cited URLs */}
+        {scoredSegs.length > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <Suspense fallback={
+              <div style={{ height: 80, borderRadius: 14, background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ color: "#6366f1", fontSize: 12, fontWeight: 600 }}>Loading citation analysis…</span>
+              </div>
+            }>
+              <AuthoritySourcesPanel
+                autoRun
+                sessionId={session.id}
+                brandName={session.brandName || ""}
+                segments={scoredSegs.map((s: any, i: number) => ({
+                  id: s.id || `seg-${i}`,
+                  persona: s.persona || s.serviceType || s.label || `Segment ${i + 1}`,
+                  seedType: s.seedType || "",
+                  customerType: s.customerType || "",
+                  location: s.location || "",
+                  scoringResult: s.scoringResult,
+                }))}
+              />
+            </Suspense>
+          </div>
+        )}
       </main>
     </div>
   );
