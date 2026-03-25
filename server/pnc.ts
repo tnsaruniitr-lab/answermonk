@@ -176,17 +176,16 @@ export async function pncClassifyGenerate(services: string[], customers: string[
   const primaryService = services[0] || "";
   const sysP = `Search prompt strategist. Generate prompts using ONLY confirmed services and customers.
 Return ONLY raw valid JSON:
-{"business_name":"","by_service":[{"service":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [service] in ${loc}"}]}],"by_customer":[{"customer":"","service":"[most relevant service for this customer]","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [service] for [customer] in ${loc}"}]}]}
+{"business_name":"","by_service":[{"service":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [service] in ${loc}"}]}],"by_customer":[{"customer":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted ${primaryService} for [customer] in ${loc}"}]}]}
 Rules:
 - 8 prompts per service, 8 per customer
 - Every prompt MUST start with "Find, list and rank 10" followed by a qualifier
 - by_service prompts: about the service only — format: "Find, list and rank 10 [qualifier] [service] in [location]"
-- by_customer prompts: MUST combine the service AND customer — format: "Find, list and rank 10 [qualifier] [service] for [customer] in [location]". Never use generic "options for [customer]" — always name the specific service.
-- Each by_customer group MUST include a "service" field set to the most relevant service from the confirmed list.
+- by_customer prompts: MUST use the fixed primary service "${primaryService}" combined with the customer — format: "Find, list and rank 10 [qualifier] ${primaryService} for [customer] in [location]". Never substitute a different service. Never use "options for [customer]".
 - Qualifiers: most trusted, most reliable, most affordable, highest rated, most experienced, best reviewed, most recommended, top rated — vary, no repeats within a group
 - Location: "${loc}". Natural language. ONLY use listed services and customers.`;
 
-  const userMsg = `Services confirmed: ${JSON.stringify(services)}\nCustomer types confirmed: ${JSON.stringify(customers)}\nLocation: "${loc}"\nURL: ${url}\nGenerate grouped prompts.`;
+  const userMsg = `Primary service (use in ALL customer prompts): "${primaryService}"\nAll services: ${JSON.stringify(services)}\nCustomer types: ${JSON.stringify(customers)}\nLocation: "${loc}"\nURL: ${url}\nGenerate grouped prompts.`;
 
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-5",
