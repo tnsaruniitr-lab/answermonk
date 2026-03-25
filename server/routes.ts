@@ -47,7 +47,7 @@ import { brandIntelligenceJobs, signalConsistencyJobs } from "@shared/schema";
 import { runBrandIntelligence } from "./brand-intelligence/runner";
 import { runSignalConsistency } from "./signal-consistency-runner";
 import { resolveGroundingUrls } from "./report/grounding-resolver";
-import { desc, asc, eq as eqDrizzle } from "drizzle-orm";
+import { desc, asc, eq as eqDrizzle, sql } from "drizzle-orm";
 import { db as directoryDb } from "./db";
 import { directoryPages as directoryPagesTable } from "@shared/schema";
 import { analyzeUrl } from "./url-analyzer";
@@ -3964,6 +3964,8 @@ export async function registerRoutes(
           status: brandIntelligenceJobs.status,
           progress: brandIntelligenceJobs.progress,
           createdAt: brandIntelligenceJobs.createdAt,
+          categoryPresenceScore: sql<number | null>`(${brandIntelligenceJobs.results}->'benchmarkAnalysis'->>'categoryPresenceScore')::integer`,
+          identityCoherenceScore: sql<number | null>`(${brandIntelligenceJobs.results}->'benchmarkAnalysis'->>'identityCoherenceScore')::integer`,
         })
         .from(brandIntelligenceJobs)
         .orderBy(desc(brandIntelligenceJobs.createdAt))

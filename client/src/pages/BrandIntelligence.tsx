@@ -184,6 +184,8 @@ interface Job {
   status: string;
   progress: number;
   createdAt: string;
+  categoryPresenceScore?: number | null;
+  identityCoherenceScore?: number | null;
 }
 
 interface AttributeResult {
@@ -1316,7 +1318,20 @@ export default function BrandIntelligence() {
                         : job.status}
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {job.categoryPresenceScore != null && (
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 tabular-nums">
+                        {job.categoryPresenceScore}%
+                      </span>
+                    )}
+                    {job.identityCoherenceScore != null && (
+                      <span className="inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400 tabular-nums">
+                        <CoherenceDot pct={job.identityCoherenceScore} />
+                        {job.identityCoherenceScore}%
+                      </span>
+                    )}
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </div>
                 </button>
               ))}
             </div>
