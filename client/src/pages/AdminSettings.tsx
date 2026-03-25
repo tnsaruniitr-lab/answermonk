@@ -1,4 +1,5 @@
 import { useAdminSettings } from "@/hooks/useAdminSettings";
+import type { AdminSettings } from "@/hooks/useAdminSettings";
 
 const ROW_STYLE = {
   display: "flex",
@@ -78,7 +79,7 @@ function NumberInput({ value, onChange, min, max }: { value: number; onChange: (
 }
 
 export default function AdminSettings() {
-  const { settings, update, setEngine } = useAdminSettings();
+  const { settings, update, setEngine, save, isDirty, saveStatus } = useAdminSettings();
 
   const enabledEngineCount = Object.values(settings.engines).filter(Boolean).length;
 
@@ -97,7 +98,7 @@ export default function AdminSettings() {
             Platform Controls
           </h1>
           <p style={{ color: "#475569", fontSize: 12, marginTop: 6, fontFamily: "system-ui, sans-serif" }}>
-            Settings persist in browser storage and take effect on the next analysis run.
+            Settings are saved server-side and persist across devices and deployments.
           </p>
         </div>
 
@@ -377,9 +378,54 @@ export default function AdminSettings() {
           </div>
         </div>
 
-        <div style={{ marginTop: 16, textAlign: "center", display: "flex", justifyContent: "center", gap: 20 }}>
-          <a href="/admin/costs" style={{ color: "#334155", fontSize: 11, fontFamily: "monospace", letterSpacing: 1 }}>COST DASHBOARD</a>
-          <a href="/admin" style={{ color: "#334155", fontSize: 11, fontFamily: "monospace", letterSpacing: 1 }}>← BACK TO ADMIN</a>
+        {/* Save Button */}
+        <div style={{ marginTop: 28, display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+          {isDirty && saveStatus === "idle" && (
+            <div style={{ color: "#f59e0b", fontSize: 11, fontFamily: "monospace", letterSpacing: 1 }}>
+              ● UNSAVED CHANGES
+            </div>
+          )}
+          {saveStatus === "saved" && (
+            <div style={{ color: "#22c55e", fontSize: 11, fontFamily: "monospace", letterSpacing: 1 }}>
+              ✓ SETTINGS SAVED
+            </div>
+          )}
+          {saveStatus === "error" && (
+            <div style={{ color: "#f87171", fontSize: 11, fontFamily: "monospace", letterSpacing: 1 }}>
+              ✗ SAVE FAILED — CHECK CONNECTION
+            </div>
+          )}
+
+          <button
+            onClick={() => save(settings)}
+            disabled={saveStatus === "saving" || (!isDirty && saveStatus === "idle")}
+            style={{
+              padding: "10px 32px",
+              borderRadius: 8,
+              background: saveStatus === "saving"
+                ? "rgba(59,130,246,0.4)"
+                : saveStatus === "saved"
+                ? "rgba(34,197,94,0.2)"
+                : isDirty
+                ? "#3b82f6"
+                : "rgba(59,130,246,0.15)",
+              border: `1px solid ${saveStatus === "saved" ? "rgba(34,197,94,0.4)" : isDirty ? "#3b82f6" : "rgba(59,130,246,0.2)"}`,
+              color: saveStatus === "saved" ? "#22c55e" : isDirty ? "#fff" : "#475569",
+              fontSize: 13,
+              fontFamily: "monospace",
+              letterSpacing: 1,
+              cursor: saveStatus === "saving" || (!isDirty && saveStatus === "idle") ? "not-allowed" : "pointer",
+              transition: "all 0.2s",
+              minWidth: 160,
+            }}
+          >
+            {saveStatus === "saving" ? "SAVING…" : saveStatus === "saved" ? "SAVED ✓" : "SAVE SETTINGS"}
+          </button>
+
+          <div style={{ display: "flex", gap: 20 }}>
+            <a href="/admin/costs" style={{ color: "#334155", fontSize: 11, fontFamily: "monospace", letterSpacing: 1 }}>COST DASHBOARD</a>
+            <a href="/admin" style={{ color: "#334155", fontSize: 11, fontFamily: "monospace", letterSpacing: 1 }}>← BACK TO ADMIN</a>
+          </div>
         </div>
       </div>
     </div>

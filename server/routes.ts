@@ -488,6 +488,53 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
+  // ── Admin Settings (DB-persisted) ──────────────────────────────────────────
+  (async () => {
+    try {
+      const { pool } = await import("./db");
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS admin_config (
+          key TEXT PRIMARY KEY,
+          value JSONB NOT NULL,
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `);
+    } catch (e) {
+      console.error("[admin-config] Table init failed:", e);
+    }
+  })();
+
+  app.get("/api/admin/settings", async (_req: Request, res: Response) => {
+    try {
+      const { pool } = await import("./db");
+      const { rows } = await pool.query(`SELECT value FROM admin_config WHERE key = 'global'`);
+      if (rows.length === 0) return res.json(null);
+      return res.json(rows[0].value);
+    } catch (e) {
+      console.error("[admin-config] GET error:", e);
+      return res.status(500).json({ error: "Failed to load settings" });
+    }
+  });
+
+  app.post("/api/admin/settings", async (req: Request, res: Response) => {
+    try {
+      const settings = req.body;
+      if (!settings || typeof settings !== "object") {
+        return res.status(400).json({ error: "Invalid settings" });
+      }
+      const { pool } = await import("./db");
+      await pool.query(`
+        INSERT INTO admin_config (key, value, updated_at)
+        VALUES ('global', $1, NOW())
+        ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = NOW()
+      `, [JSON.stringify(settings)]);
+      return res.json({ success: true });
+    } catch (e) {
+      console.error("[admin-config] POST error:", e);
+      return res.status(500).json({ error: "Failed to save settings" });
+    }
+  });
+
   // ── Directory HTML routes (must be before React SPA catch-all) ─────────────
   registerSitemapRoutes(app);
   registerMethodologyRoutes(app);
