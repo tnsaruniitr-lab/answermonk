@@ -137,7 +137,7 @@ Rules for scope: physical+1 city=city, multi-city=country; SaaS: regional TLD/VA
   return { result: extractJSON(tb.text, "{"), cost: calcCost(response.usage) };
 }
 
-function enforceFlrFormat(result: any): any {
+function enforceFlrFormat(result: any, primaryService?: string): any {
   const qualifiers = [
     "most trusted", "most reliable", "most affordable", "highest rated",
     "most experienced", "best reviewed", "most recommended", "top rated",
@@ -158,21 +158,31 @@ function enforceFlrFormat(result: any): any {
     }));
   }
   if (result.by_customer) {
-    result.by_customer = result.by_customer.map((c: any) => ({
-      ...c,
-      prompts: fix(c.prompts, `options for ${c.customer}`),
-    }));
+    result.by_customer = result.by_customer.map((c: any) => {
+      const svc = c.service || primaryService || null;
+      const subject = svc
+        ? `${svc} for ${c.customer}`
+        : `options for ${c.customer}`;
+      return {
+        ...c,
+        prompts: fix(c.prompts, subject),
+      };
+    });
   }
   return result;
 }
 
 export async function pncClassifyGenerate(services: string[], customers: string[], loc: string, url: string) {
+  const primaryService = services[0] || "";
   const sysP = `Search prompt strategist. Generate prompts using ONLY confirmed services and customers.
 Return ONLY raw valid JSON:
-{"business_name":"","by_service":[{"service":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [service] in ${loc}"}]}],"by_customer":[{"customer":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted options for [customer] in ${loc}"}]}]}
+{"business_name":"","by_service":[{"service":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [service] in ${loc}"}]}],"by_customer":[{"customer":"","service":"[most relevant service for this customer]","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [service] for [customer] in ${loc}"}]}]}
 Rules:
 - 8 prompts per service, 8 per customer
 - Every prompt MUST start with "Find, list and rank 10" followed by a qualifier
+- by_service prompts: about the service only — format: "Find, list and rank 10 [qualifier] [service] in [location]"
+- by_customer prompts: MUST combine the service AND customer — format: "Find, list and rank 10 [qualifier] [service] for [customer] in [location]". Never use generic "options for [customer]" — always name the specific service.
+- Each by_customer group MUST include a "service" field set to the most relevant service from the confirmed list.
 - Qualifiers: most trusted, most reliable, most affordable, highest rated, most experienced, best reviewed, most recommended, top rated — vary, no repeats within a group
 - Location: "${loc}". Natural language. ONLY use listed services and customers.`;
 
@@ -187,7 +197,7 @@ Rules:
 
   const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
   if (!tb) throw new Error("No response from Claude");
-  return { result: enforceFlrFormat(extractJSON(tb.text, "{")), cost: calcCost(response.usage) };
+  return { result: enforceFlrFormat(extractJSON(tb.text, "{"), primaryService), cost: calcCost(response.usage) };
 }
 
 export async function pncV2Generate(url: string, loc: string) {
