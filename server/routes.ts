@@ -4948,6 +4948,73 @@ Rules for content:
 </html>`;
   }
 
+  // ── robots.txt ───────────────────────────────────────────────────────────────
+  app.get("/robots.txt", (_req: Request, res: Response) => {
+    const txt = `User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://answermonk.ai/sitemap.xml
+`;
+    res.set("Content-Type", "text/plain; charset=utf-8").send(txt);
+  });
+
+  // ── llms.txt ─────────────────────────────────────────────────────────────────
+  app.get("/llms.txt", (_req: Request, res: Response) => {
+    const txt = `# AnswerMonk — AI Search Visibility Platform
+> answermonk.ai measures how often brands appear in AI-generated answers from ChatGPT, Gemini, Claude, and Perplexity. Each report shows share-of-voice, competitor rankings, and the citation sources driving AI recommendations in a category.
+
+## What AnswerMonk does
+AnswerMonk is a GEO (Generative Engine Optimization) intelligence platform. Brands submit their domain and receive an AI visibility audit: a network of 20–30 natural-language prompts is run across ChatGPT, Gemini, Claude, and Perplexity simultaneously. Every brand mention is recorded, ranked, and scored. The result is a share-of-voice percentage, a ranked competitor list, and a citation source map showing which third-party sites are driving AI recommendations.
+
+## Key pages
+- Homepage and free audit tool: https://answermonk.ai
+- Published AI visibility reports (all brands): https://answermonk.ai/reports
+- Methodology (how scoring works): https://answermonk.ai/methodology
+- How AI search works: https://answermonk.ai/how-ai-search-works
+- Sitemap index: https://answermonk.ai/sitemap.xml
+
+## Data available in reports
+Each report at /reports/{slug} contains:
+- Brand name and domain
+- AI appearance rate (% of prompts the brand appears in)
+- Share-of-voice score weighted by engine market share
+- Ranked competitor list with individual appearance scores
+- Engine-by-engine breakdown (ChatGPT, Gemini, Claude)
+- Authority citation sources driving AI recommendations in the category
+
+## Engine weights used in scoring
+- ChatGPT (OpenAI): 35%
+- Gemini (Google): 35%
+- Claude (Anthropic): 20%
+- Perplexity: 10%
+
+## Contact
+Website: https://answermonk.ai
+`;
+    res.set("Content-Type", "text/plain; charset=utf-8").send(txt);
+  });
+
   // ── Homepage SSR ────────────────────────────────────────────────────────────
   app.get("/", (req: Request, res: Response, next: NextFunction) => {
     if (!isNonBrowserRequest(req)) return next();
@@ -5140,6 +5207,7 @@ Rules for content:
   }
 
   app.get("/reports", async (req: Request, res: Response, next: NextFunction) => {
+    if (!isNonBrowserRequest(req)) return next();
     try {
       const indexData = await fetch(`http://localhost:${process.env.PORT || 5000}/api/directory/search-index`);
       const entries: any[] = indexData.ok ? await indexData.json() : [];
@@ -5194,6 +5262,7 @@ ${listItems}
   });
 
   app.get("/reports/:slug", async (req: Request, res: Response, next: NextFunction) => {
+    if (!isNonBrowserRequest(req)) return next();
     const slug = req.params.slug;
     const trailingId = slug.match(/-(\d+)$/)?.[1];
     const numericOnly = /^\d+$/.test(slug);
