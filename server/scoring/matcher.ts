@@ -135,6 +135,14 @@ function matchCandidate(
     return "exact";
   }
 
+  // Compact match: treats "Vesta Care" ≡ "Vestacare", "Doctor On Call" ≡ "DoctorOnCall", etc.
+  // Strips all spaces/punctuation and compares — catches name spacing inconsistencies from LLMs.
+  const candidateCompact = normalizeToCompact(candidate.name_norm);
+  const brandCompact     = normalizeToCompact(brand.name_norm);
+  if (candidateCompact.length >= 5 && candidateCompact === brandCompact) {
+    return "exact";
+  }
+
   if (brand.name_tokens.length >= 2) {
     const candidateTokens = candidate.name_norm.split(/\s+/);
     if (
