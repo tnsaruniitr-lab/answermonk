@@ -98,6 +98,7 @@ export interface IStorage {
   updateLandingSubmission(id: number, updates: Partial<InsertLandingSubmission>): Promise<LandingSubmission>;
   listLandingSubmissions(): Promise<LandingSubmission[]>;
   countLandingSubmissions(): Promise<number>;
+  countLandingSubmissionsToday(): Promise<number>;
 
   // ── Directory pages ─────────────────────────────────────────────
   upsertDirectoryPage(data: InsertDirectoryPage): Promise<DirectoryPage>;
@@ -533,6 +534,14 @@ export class DatabaseStorage implements IStorage {
     const [row] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(landingSubmissions);
+    return row?.count ?? 0;
+  }
+
+  async countLandingSubmissionsToday(): Promise<number> {
+    const [row] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(landingSubmissions)
+      .where(sql`${landingSubmissions.createdAt} >= now() - interval '24 hours'`);
     return row?.count ?? 0;
   }
 

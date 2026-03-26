@@ -696,10 +696,10 @@ export async function registerRoutes(
         return res.status(200).json({ id: existing.id, cached: true, status: normalizedStatus, pncResult: existing.pncResult });
       }
 
-      // Layer 3: Global analysis cap — 30 total in production
+      // Layer 3: Daily analysis cap — 50 per day in production
       if (!isDev) {
-        const totalCount = await storage.countLandingSubmissions();
-        if (totalCount >= 30) {
+        const todayCount = await storage.countLandingSubmissionsToday();
+        if (todayCount >= 50) {
           return res.status(429).json({ error: "We've reached capacity for now. Join the waitlist and we'll let you know when a spot opens up." });
         }
       }
