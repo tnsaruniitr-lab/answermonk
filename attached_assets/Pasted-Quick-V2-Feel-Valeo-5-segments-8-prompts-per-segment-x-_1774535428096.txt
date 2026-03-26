@@ -1,0 +1,637 @@
+Quick V2 — Feel Valeo
+5 segments
+8 prompts per segment x 3 engines · Mar 26, 2026 at 3:22 PM
+
+
+#1At-home healthcare At-Home Healthcare (At-home healthcare)
+Dubai
+0%
+vis
+·
+#—
+rank
+77th
+0%
+Appearance
+0%
+Top 3
+—
+Avg Rank
+By Engine
+Gemini
+0%
+Top 3
+0%
+ChatGPT
+0%
+Top 3
+0%
+Rankings
+1
+Nightingale
+50%
+2
+First Response Healthcare
+44%
+3
+DIO Life Home Health Care
+44%
+4
+Loyal Care
+31%
+5
+Vital Zone Home Nursing
+31%
+6
+Manzil Health
+25%
+7
+AIMS Healthcare
+25%
+8
+The Good Doctor
+25%
+9
+Emirates Home Nursing
+25%
+10
+Enayati Home Health Care
+25%
+Sources (204)
+Raw Responses (16)
+
+#2Weight loss programs Weight Loss Programs (weight loss programs)
+Dubai
+0%
+vis
+·
+#—
+rank
+90th
+0%
+Appearance
+0%
+Top 3
+—
+Avg Rank
+By Engine
+Gemini
+0%
+Top 3
+0%
+ChatGPT
+0%
+Top 3
+0%
+Rankings
+1
+Dubai London Hospital
+56%
+2
+DNA Health and Wellness
+44%
+3
+Endocare Clinic
+38%
+4
+Kcal
+31%
+5
+King’s College Hospital London
+25%
+6
+VLCC
+25%
+7
+Elite Body Home
+25%
+8
+Right Bite
+25%
+9
+De Novu Institute
+25%
+10
+Northwest Clinic Day Surgical
+25%
+Sources (216)
+Raw Responses (16)
+
+#3Blood tests at home Blood Tests At Home (blood tests at home)
+Dubai
+0%
+vis
+·
+#—
+rank
+74th
+0%
+Appearance
+0%
+Top 3
+—
+Avg Rank
+By Engine
+Gemini
+0%
+Top 3
+0%
+ChatGPT
+0%
+Top 3
+0%
+Rankings
+1
+Vesta Care
+63%
+2
+Nightingale Health Services
+38%
+3
+Eureka Home Healthcare
+38%
+4
+Call Doctor
+38%
+5
+Aster Clinic
+31%
+6
+Medcare
+25%
+7
+Saudi German Hospital
+25%
+8
+Aster at Home
+25%
+9
+NAS Home Healthcare
+25%
+10
+PH Diagnostics
+25%
+Sources (166)
+Raw Responses (16)
+
+#4IV drip therapy IV Drip Therapy (IV drip therapy)
+Dubai
+6%
+vis
+·
+#6
+rank
+35th
+6%
+Appearance
+0%
+Top 3
+#6
+Avg Rank
+By Engine
+Gemini
+0%
+Top 3
+0%
+ChatGPT
+13%
+Top 3
+0%
+Rankings
+1
+The Clinic
+50%
+2
+SKIN111
+38%
+3
+Nour Clinic
+31%
+4
+AEON Clinic
+31%
+5
+Aster Clinic
+25%
+6
+Health Call
+25%
+7
+REVIV
+25%
+8
+DNA Health
+25%
+9
+Contrast
+25%
+10
+IV Wellness Lounge Clinic
+25%
+Sources (213)
+Raw Responses (16)
+
+#5Elderly patients Elderly Patients for elderly patients
+Dubai
+0%
+vis
+·
+#—
+rank
+82th
+0%
+Appearance
+0%
+Top 3
+—
+Avg Rank
+By Engine
+Gemini
+0%
+Top 3
+0%
+ChatGPT
+0%
+Top 3
+0%
+Rankings
+1
+First Response Healthcare
+69%
+2
+Enayati Home Care
+56%
+3
+Eureka Home Health Care
+50%
+4
+Yad Al Amal Home Healthcare Center
+50%
+5
+Emirates Home Nursing
+38%
+6
+Nightingale Health Services
+31%
+7
+DIO Life Home Health Care
+31%
+8
+Health Call
+25%
+9
+NeoHealth
+25%
+10
+Malaak
+25%
+Sources (204)
+Raw Responses (16)
+Segment Citation Analyzer
+Understand why brands rank differently across segments by analyzing citation sources, context consistency, and comparison presence.
+
+Analyze 5 Segments
+⚡
+Key Finding
+First Response Healthcare and DIO Life Home Health Care are the only brands with verified citations across both ChatGPT and Gemini, appearing in review platforms, news outlets, and directory listings, while the majority of 800+ citations go to unattributed brand homepages and service pages.
+
+First Response Healthcare
+DIO Life Home Health Care
+Dubai London Hospital
+Unattributed
+Citation Distribution
+768 total citations
+#1
+Secure verified customer reviews on multi-engine review aggregators
+4%
+#2
+Achieve comprehensive directory coverage across healthcare-specific platforms
+6%
+#3
+Generate third-party news coverage and press releases in healthcare media
+2%
+#4
+Build active presence in healthcare community forums and Q&A platforms
+3%
+#5
+Establish citations from government and regulatory health authorities
+1%
+#6
+Optimize brand service pages for specific healthcare procedure queries
+33%
+#7
+Maintain consistent brand homepage as central entity reference point
+41%
+#8
+Appear in market research and business intelligence databases
+1%
+#9
+Create branded social media profiles on professional networks
+1%
+#10
+List services on job posting platforms to signal hiring activity
+1%
+#11
+Publish branded blog content targeting healthcare information queries
+6%
+#12
+Secure comparison article inclusions alongside established competitors
+2%
+Brand homepages and service pages dominate with 312+ and 250+ citations respectively, representing over 66% of all AI citations. Directory listings (43 citations from healthfinder.ae alone) and review platforms (Trustpilot, Doctify, ProvenExpert) combine for 80+ citations, while community threads (Reddit, Quora) and news/PR contribute 25+ and 18+ citations. Government and regulatory sources (DHA, DHCC) add credibility with 9 citations.
+
+Cross-Engine Champions
+Brands appearing in both ChatGPT + Gemini
+First Response Healthcare
+33
+GPT
+19
+Gem
+14
+DIO Life Home Health Care
+5
+GPT
+3
+Gem
+2
+Dubai London Hospital
+2
+GPT
+2
+Gem
+0
+🎯
+Ranked by citation evidence
+
+What matters in this category?
+12 proven tactics from top-appearing brands
+
+
+#1
+Secure verified customer reviews on multi-engine review aggregators
+33
+citations
+HIGHEST
+· HIGH confidence
+See details
+trustpilot.com·11
+doctify.com·7
+goprofiled.com·4
+
+#2
+Achieve comprehensive directory coverage across healthcare-specific platforms
+43
+citations
+HIGHEST
+· MEDIUM confidence
+See details
+healthfinder.ae·43
+servicemarket.com·7
+fresha.com·10
+
+#3
+Generate third-party news coverage and press releases in healthcare media
+18
+citations
+VERY HIGH
+· MEDIUM confidence
+See details
+gulfnews.com·6
+khaleejtimes.com·3
+dubaihealthcareguide.com·2
+
+#4
+Build active presence in healthcare community forums and Q&A platforms
+25
+citations
+HIGH
+· MEDIUM confidence
+See details
+reddit.com·19
+quora.com·6
+expatsofdubai.com·5
+
+#5
+Establish citations from government and regulatory health authorities
+9
+citations
+VERY HIGH
+· LOW confidence
+See details
+services.dha.gov.ae·5
+dha.gov.ae·4
+dhcc.ae·1
+
+#6
+Optimize brand service pages for specific healthcare procedure queries
+250
+citations
+HIGH
+· HIGH confidence
+See details
+eurekahomehealthcare.com·19
+nightingaledubai.com·17
+kingscollegehospitaldubai.com·15
+
+#7
+Maintain consistent brand homepage as central entity reference point
+312
+citations
+HIGH
+· HIGH confidence
+See details
+eurekahomehealthcare.com·19
+enayati.ae·17
+vitalzone.ae·16
+
+#8
+Appear in market research and business intelligence databases
+8
+citations
+MEDIUM
+· LOW confidence
+See details
+tracxn.com·6
+pitchbook.com·2
+owler.com·1
+
+#9
+Create branded social media profiles on professional networks
+5
+citations
+LOW
+· LOW confidence
+See details
+linkedin.com·3
+youtube.com·2
+
+#10
+List services on job posting platforms to signal hiring activity
+8
+citations
+LOW
+· LOW confidence
+See details
+naukrigulf.com·4
+ae.indeed.com·4
+trikonet.com·2
+
+#11
+Publish branded blog content targeting healthcare information queries
+45
+citations
+MEDIUM
+· MEDIUM confidence
+See details
+pflege.ae·3
+nashealthcare.ae·8
+onelifeuae.com·5
+
+#12
+Secure comparison article inclusions alongside established competitors
+12
+citations
+MEDIUM
+· LOW confidence
+See details
+uaecalc.com·6
+medicaltravelmarket.com·5
+bestinhood.com·2
+🎯
+Data-backed moves
+Quick actions to leapfrog the competition
+
+1
+Standing Action · Always On
+Audit the authority sources shaping your AI results — then enhance and monitor your presence across them continuously
+50 sources
+Domains ranked by AI citation frequency. Third-party sources are the actionable intelligence — these are the platforms you can get listed on, improve your profile, and earn citations from.
+
+Third-party25
+Brand / Comp25
+All50
+#
+Domain
+Engines · Citations
+Bar
+
+1
+healthfinder.ae
+GPT
+Gem
+43
+
+2
+reddit.com
+GPT
+Gem
+19
+
+3
+trustpilot.com
+GPT
+Gem
+11
+
+4
+gulfnews.com
+GPT
+Gem
+6
+
+5
+servicemarket.com
+GPT
+Gem
+7
+
+6
+services.dha.gov.ae
+GPT
+Gem
+5
+
+7
+doctify.com
+Gem
+7
+
+8
+dubaireview.ae
+GPT
+Gem
+5
+
+9
+trustindex.io
+GPT
+Gem
+4
+
+10
+dha.gov.ae
+GPT
+4
+
+11
+expatsofdubai.com
+GPT
+5
+
+12
+quora.com
+Gem
+6
+
+13
+goprofiled.com
+GPT
+4
+
+14
+provenexpert.com
+GPT
+Gem
+3
+
+15
+ae.indeed.com
+Gem
+4
+Show 10 more third-party sources
+Sorted by citation frequency across all AI engines in this session
+
+2
+Create company profile on tracxn.com (6 citations, all Gemini) by claiming or requesting a…
+See details
+
+3
+Claim business profile on trustpilot.com (11 citations across both engines) and request re…
+See details
+
+4
+Submit complete business listing to healthfinder.ae (43 citations, highest single domain)…
+See details
+
+⚡
+Bonus · Quick Win
+List DIO Life Home Health Care on servicemarket.com (7 citations across both ChatGPT and G…
+See details
+🔬
+Anomaly detection
+Patterns the data didn't expect
+
+1
+Zero comparison article penetration for target brands
+See details
+
+2
+Massive unattributed directory presence
+See details
+
+3
+Review platform dominance limited to one brand
+See details
+
+4
+Community forum citations with zero brand mentions
+See details
