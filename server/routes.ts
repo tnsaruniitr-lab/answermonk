@@ -873,12 +873,17 @@ export async function registerRoutes(
       const rawSlug = firstService && city
         ? `${firstService}-in-${city}`
         : firstService || city || brandName;
-      const sessionSlug = rawSlug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
+      const candidateSlug = rawSlug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
+
+      // If a session already owns this slug, don't steal it — the original owner
+      // keeps the public /reports/<slug> URL permanently.
+      const slugOwner = candidateSlug ? await storage.getMultiSegmentSessionBySlug(candidateSlug) : null;
+      const sessionSlug = slugOwner ? null : (candidateSlug || null);
 
       const session = await storage.createMultiSegmentSession({
         brandName,
         brandDomain: brandDomain || null,
-        slug: sessionSlug || null,
+        slug: sessionSlug,
         promptsPerSegment: 8,
         segments,
         sessionType: "landing_guided",

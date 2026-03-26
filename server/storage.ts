@@ -1,6 +1,6 @@
 
 import { db } from "./db";
-import { and, count, desc, eq, isNull, ne, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNull, ne, or, sql } from "drizzle-orm";
 import {
   analysisResults,
   scoringJobs,
@@ -250,7 +250,9 @@ export class DatabaseStorage implements IStorage {
     const [result] = await db
       .select()
       .from(multiSegmentSessions)
-      .where(eq(multiSegmentSessions.slug, slug));
+      .where(eq(multiSegmentSessions.slug, slug))
+      .orderBy(asc(multiSegmentSessions.id))
+      .limit(1);
     return result;
   }
 
