@@ -383,7 +383,7 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
             borderRadius: 20, padding: "5px 13px",
             whiteSpace: "nowrap", flexShrink: 0,
           }}>
-            Top cited by AI
+            Top cited companies by AI
           </span>
           {indexReady && searchIndex.length > 0 && (
             <span style={{
