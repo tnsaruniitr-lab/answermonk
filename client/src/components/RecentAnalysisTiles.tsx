@@ -372,6 +372,9 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
       {/* Header row */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "#1e1b4b", whiteSpace: "nowrap", flexShrink: 0 }}>
+            Top cited by AI
+          </span>
           {indexReady && searchIndex.length > 0 && (
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 5,
