@@ -109,11 +109,10 @@ function SkeletonTile() {
 
 function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
   const displayBrand = tile.topBrand || tile.brandDomain || tile.brandName;
-  const queryLabel = tile.query.replace(/^best\s+/i, "");
 
   // Parse location from query (text after " in ")
+  const queryLabel = tile.query.replace(/^best\s+/i, "");
   const inIdx = queryLabel.lastIndexOf(" in ");
-  const category = inIdx > 0 ? queryLabel.slice(0, inIdx) : queryLabel;
   const location = inIdx > 0 ? queryLabel.slice(inIdx + 4) : "";
 
   return (
@@ -152,8 +151,9 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
             <div style={{
               fontSize: 12.5, fontWeight: 700, color: "#fff", lineHeight: 1.3,
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              textAlign: "left",
             }}>
-              {category}
+              {tile.category}
             </div>
             {location && (
               <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.65)", marginTop: 2 }}>{location}</div>
