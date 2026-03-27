@@ -156,7 +156,7 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
               {tile.category}
             </div>
             {location && (
-              <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.65)", marginTop: 2 }}>{location}</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginTop: 3, textAlign: "left" }}>{location}</div>
             )}
           </div>
           <span style={{ fontSize: 9.5, color: "rgba(255,255,255,0.5)", flexShrink: 0, marginTop: 1 }}>
@@ -213,17 +213,22 @@ function Tile({ tile, onClick }: { tile: DirectoryTile; onClick: () => void }) {
               borderBottom: i === 0 ? "1px solid rgba(99,102,241,0.07)" : "none",
             }}
           >
-            <span style={{ fontSize: 9, fontWeight: 600, color: "#d1d5db", width: 16, flexShrink: 0 }}>
+            <span style={{
+              fontSize: 10, fontWeight: 700, color: "#4f46e5",
+              background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.18)",
+              borderRadius: 4, padding: "1px 5px", flexShrink: 0,
+            }}>
               #{i + 2}
             </span>
             <span style={{
-              flex: 1, fontSize: 12, color: "#374151", fontWeight: 500,
+              flex: 1, fontSize: 12.5, color: "#111827", fontWeight: 600,
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              textAlign: "left",
             }}>
               {r.name}
             </span>
             {r.share > 0 && (
-              <span style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", flexShrink: 0 }}>
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: "#374151", flexShrink: 0 }}>
                 {r.share}%
               </span>
             )}
@@ -372,7 +377,12 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
       {/* Header row */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "#1e1b4b", whiteSpace: "nowrap", flexShrink: 0 }}>
+          <span style={{
+            fontSize: 13, fontWeight: 800, color: "#1e1b4b",
+            background: "rgba(55,48,163,0.08)", border: "1px solid rgba(55,48,163,0.16)",
+            borderRadius: 20, padding: "5px 13px",
+            whiteSpace: "nowrap", flexShrink: 0,
+          }}>
             Top cited by AI
           </span>
           {indexReady && searchIndex.length > 0 && (
