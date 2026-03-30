@@ -44,11 +44,18 @@ const BlogIndex = lazy(() => import("@/pages/seo/BlogIndex"));
 const BlogTrafficFromChatgpt = lazy(() => import("@/pages/seo/BlogTrafficFromChatgpt"));
 const BlogLlmOrganicTraffic = lazy(() => import("@/pages/seo/BlogLlmOrganicTraffic"));
 const BlogGeoVsSeo = lazy(() => import("@/pages/seo/BlogGeoVsSeo"));
+const AiSearchVisibilitySoftware = lazy(() => import("@/pages/seo/AiSearchVisibilitySoftware"));
+const GeoAuditTool = lazy(() => import("@/pages/seo/GeoAuditTool"));
+const AeoAudit = lazy(() => import("@/pages/seo/AeoAudit"));
+const LlmVisibilityTracking = lazy(() => import("@/pages/seo/LlmVisibilityTracking"));
+const AiSearchCompetitorAnalysis = lazy(() => import("@/pages/seo/AiSearchCompetitorAnalysis"));
 
 const SEO_PREFIXES = [
   "/methodology", "/ai-search-audit", "/how-ai-search-works",
   "/how-to-improve-ai-citations", "/use-cases", "/chatgpt-visibility-audit",
   "/llm-seo-audit", "/glossary", "/compare", "/sample-report", "/blog",
+  "/ai-search-visibility-software", "/geo-audit-tool", "/aeo-audit",
+  "/llm-visibility-tracking", "/ai-search-competitor-analysis",
 ];
 
 function SlugTeaser({ params }: { params: { slug: string } }) {
@@ -182,6 +189,15 @@ function SeoRoutes({ path }: { path: string }) {
       {path === "/blog/how-to-get-traffic-from-chatgpt" && <BlogTrafficFromChatgpt />}
       {path === "/blog/increase-organic-traffic-from-llms" && <BlogLlmOrganicTraffic />}
       {path === "/blog/geo-vs-seo" && <BlogGeoVsSeo />}
+      {path === "/ai-search-visibility-software" && <AiSearchVisibilitySoftware />}
+      {path === "/geo-audit-tool" && <GeoAuditTool />}
+      {path === "/aeo-audit" && <AeoAudit />}
+      {path === "/llm-visibility-tracking" && <LlmVisibilityTracking />}
+      {path === "/ai-search-competitor-analysis" && <AiSearchCompetitorAnalysis />}
+      {path === "/use-cases/healthcare" && <UseCasePage useCase="healthcare" />}
+      {path === "/use-cases/financial-services" && <UseCasePage useCase="financial-services" />}
+      {path === "/use-cases/professional-services" && <UseCasePage useCase="professional-services" />}
+      {path === "/use-cases/dubai" && <UseCasePage useCase="dubai" />}
     </Suspense>
     </ChunkErrorBoundary>
   );

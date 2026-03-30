@@ -21,6 +21,11 @@ Allow: /glossary/
 Allow: /compare/
 Allow: /sample-report
 Allow: /blog/
+Allow: /ai-search-visibility-software
+Allow: /geo-audit-tool
+Allow: /aeo-audit
+Allow: /llm-visibility-tracking
+Allow: /ai-search-competitor-analysis
 
 # Admin and internal tools — block from all crawlers
 Disallow: /api/
@@ -52,6 +57,11 @@ Allow: /glossary/
 Allow: /compare/
 Allow: /sample-report
 Allow: /blog/
+Allow: /ai-search-visibility-software
+Allow: /geo-audit-tool
+Allow: /aeo-audit
+Allow: /llm-visibility-tracking
+Allow: /ai-search-competitor-analysis
 Allow: /llms.txt
 
 User-agent: ClaudeBot
@@ -91,6 +101,11 @@ Allow: /glossary/
 Allow: /compare/
 Allow: /sample-report
 Allow: /blog/
+Allow: /ai-search-visibility-software
+Allow: /geo-audit-tool
+Allow: /aeo-audit
+Allow: /llm-visibility-tracking
+Allow: /ai-search-competitor-analysis
 Allow: /llms.txt
 
 Sitemap: https://answermonk.ai/sitemap.xml

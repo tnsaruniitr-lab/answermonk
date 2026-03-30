@@ -20,6 +20,15 @@ The core workflow: enter a website URL → AI extracts services and customer typ
 - `/blog/geo-vs-seo` — Comparison of GEO (Generative Engine Optimization) and SEO: how they differ, where they overlap, and what brands need to do for both.
 - `/blog/how-to-get-traffic-from-chatgpt` — Practical guide to earning referral traffic from ChatGPT recommendations.
 - `/blog/increase-organic-traffic-from-llms` — How to grow organic traffic from ChatGPT, Claude, Gemini, and Perplexity.
+- `/ai-search-visibility-software` — Product overview of AnswerMonk as AI search visibility software: features, use cases, and how it differs from traditional SEO tools.
+- `/geo-audit-tool` — What a GEO (Generative Engine Optimization) audit is and how AnswerMonk's GEO audit tool works.
+- `/aeo-audit` — AEO (Answer Engine Optimization) audit: what it measures, how it runs, and what brands do with the results.
+- `/llm-visibility-tracking` — How to track brand visibility in LLMs over time and what ongoing monitoring reveals.
+- `/ai-search-competitor-analysis` — How AnswerMonk's AI search competitor analysis works and what it reveals about competitor citation share.
+- `/use-cases/healthcare` — AI search visibility for healthcare brands, clinics, and providers.
+- `/use-cases/financial-services` — AI search visibility for financial services firms including wealth management, insurance, and advisory.
+- `/use-cases/professional-services` — AI search visibility for law firms, consulting practices, and professional services.
+- `/use-cases/dubai` — AI search visibility for brands and businesses operating in Dubai and the UAE.
 
 ## What AnswerMonk measures
 

@@ -59,11 +59,13 @@ export function SEOLayout({ title, description, children, canonical }: SEOLayout
             <div>
               <div style={{ fontWeight: 600, fontSize: 12, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Product</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <Link href="/ai-search-audit"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>AI Search Audit</span></Link>
+                <Link href="/ai-search-visibility-software"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>AI Visibility Software</span></Link>
+                <Link href="/geo-audit-tool"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>GEO Audit Tool</span></Link>
+                <Link href="/aeo-audit"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>AEO Audit</span></Link>
+                <Link href="/llm-visibility-tracking"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>LLM Visibility Tracking</span></Link>
+                <Link href="/ai-search-competitor-analysis"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Competitor Analysis</span></Link>
                 <Link href="/methodology"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Methodology</span></Link>
                 <Link href="/sample-report"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Sample Report</span></Link>
-                <Link href="/chatgpt-visibility-audit"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>ChatGPT Audit</span></Link>
-                <Link href="/llm-seo-audit"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>LLM SEO Audit</span></Link>
               </div>
             </div>
             <div>
@@ -72,8 +74,10 @@ export function SEOLayout({ title, description, children, canonical }: SEOLayout
                 <Link href="/use-cases/brands"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>For Brands</span></Link>
                 <Link href="/use-cases/agencies"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>For Agencies</span></Link>
                 <Link href="/use-cases/b2b-saas"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>B2B SaaS</span></Link>
-                <Link href="/use-cases/ecommerce"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Ecommerce</span></Link>
-                <Link href="/use-cases/local-business"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Local Business</span></Link>
+                <Link href="/use-cases/healthcare"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Healthcare</span></Link>
+                <Link href="/use-cases/financial-services"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Financial Services</span></Link>
+                <Link href="/use-cases/professional-services"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Professional Services</span></Link>
+                <Link href="/use-cases/dubai"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Dubai</span></Link>
               </div>
             </div>
             <div>
@@ -83,14 +87,7 @@ export function SEOLayout({ title, description, children, canonical }: SEOLayout
                 <Link href="/how-to-improve-ai-citations"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Improve AI Citations</span></Link>
                 <Link href="/glossary/generative-engine-optimization"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>What is GEO?</span></Link>
                 <Link href="/glossary/ai-visibility-score"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>AI Visibility Score</span></Link>
-                <Link href="/glossary/ai-search-visibility"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>AI Search Visibility</span></Link>
-              </div>
-            </div>
-            <div>
-              <div style={{ fontWeight: 600, fontSize: 12, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Compare</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <Link href="/compare/answermonk-vs-profound"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>vs Profound</span></Link>
-                <Link href="/compare/answermonk-vs-ahrefs-brand-radar"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>vs Ahrefs Brand Radar</span></Link>
+                <Link href="/chatgpt-visibility-audit"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>ChatGPT Audit</span></Link>
               </div>
             </div>
             <div>
@@ -98,7 +95,14 @@ export function SEOLayout({ title, description, children, canonical }: SEOLayout
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <Link href="/blog/geo-vs-seo"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>GEO vs SEO</span></Link>
                 <Link href="/blog/how-to-get-traffic-from-chatgpt"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Traffic from ChatGPT</span></Link>
-                <Link href="/blog/increase-organic-traffic-from-llms"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Organic traffic from LLMs</span></Link>
+                <Link href="/blog/increase-organic-traffic-from-llms"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>LLM organic traffic</span></Link>
+              </div>
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 12, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Compare</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <Link href="/compare/answermonk-vs-profound"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>vs Profound</span></Link>
+                <Link href="/compare/answermonk-vs-ahrefs-brand-radar"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>vs Ahrefs Brand Radar</span></Link>
               </div>
             </div>
           </div>

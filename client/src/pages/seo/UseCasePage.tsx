@@ -199,6 +199,179 @@ const CONFIG: Record<string, {
       },
     ],
   },
+  healthcare: {
+    title: "AI Search Visibility for Healthcare Brands | AnswerMonk",
+    description: "Measure how your healthcare brand appears in ChatGPT, Gemini, and AI search. Track AI recommendations for clinics, providers, and health services — and benchmark competitors.",
+    eyebrow: "Use Case — Healthcare",
+    headline: "AI search visibility for healthcare brands",
+    sub: "Patients and caregivers ask ChatGPT and Gemini for healthcare recommendations. AnswerMonk shows whether your clinic, service, or health brand appears — and which competitors AI recommends instead.",
+    sections: [
+      {
+        heading: "How AI search is changing patient discovery",
+        body: "The patient journey increasingly includes an AI step. Someone experiencing symptoms, researching a treatment option, or looking for a specialist asks ChatGPT or Gemini before booking an appointment or calling a clinic. The AI gives a direct recommendation — naming specific providers, clinics, or services. If your brand is not among them, that patient may never reach your website.",
+      },
+      {
+        heading: "Healthcare query types going to AI engines",
+        bullets: [
+          "\"Best physiotherapist in [city]\" and variations across healthcare specialties",
+          "\"What is the most reputable fertility clinic in [location]?\"",
+          "\"Which home healthcare provider should I use for elderly care?\"",
+          "\"Find a trusted specialist for [condition] in [area]\"",
+          "\"What are the top-rated dental clinics near me?\"",
+        ],
+      },
+      {
+        heading: "What drives AI visibility for healthcare brands",
+        bullets: [
+          "Google Business Profile completeness — Gemini draws heavily on this for local provider queries",
+          "Healthcare-specific directories such as Healthgrades, Zocdoc, and specialist listing sites",
+          "Review volume and rating on Google, Facebook, and sector-specific platforms",
+          "Editorial mentions in health publications, city guides, and authoritative health content",
+          "Consistent brand entity across platforms — same name, location, specialty, and contact details",
+        ],
+      },
+      {
+        heading: "What AnswerMonk gives healthcare teams",
+        bullets: [
+          "AI appearance rate across ChatGPT, Gemini, Claude, and Perplexity for your service category and location",
+          "Competitor leaderboard — which providers AI recommends most frequently in your market",
+          "Citation source breakdown — which platforms and directories are driving AI recommendations in healthcare",
+          "Segment analysis — are you visible for specialist queries but not for general practice queries?",
+          "Gap identification — the exact sources and content types missing from your AI visibility profile",
+        ],
+      },
+    ],
+  },
+  "financial-services": {
+    title: "AI Search Visibility for Financial Services Brands | AnswerMonk",
+    description: "Track how your financial services firm appears in ChatGPT, Gemini, and AI search recommendations. Measure AI citation frequency for wealth management, insurance, lending, and advisory services.",
+    eyebrow: "Use Case — Financial Services",
+    headline: "AI search visibility for financial services brands",
+    sub: "Prospective clients ask AI engines which financial advisor, wealth manager, or insurer to trust. AnswerMonk shows where your firm appears in those answers — and what competitors are doing better.",
+    sections: [
+      {
+        heading: "How financial services buyers use AI search",
+        body: "Financial services decisions involve significant research. Before choosing a wealth manager, insurance provider, or financial advisor, buyers increasingly query ChatGPT or Perplexity for recommendations — asking for the most trusted options in their location, for their situation. The brands that appear in those answers get the shortlist. The brands that don't are invisible during the most important stage of the decision.",
+      },
+      {
+        heading: "AI queries common in financial services",
+        bullets: [
+          "\"Best financial advisor for small business owners in [city]\"",
+          "\"Most reputable wealth management firms in [region]\"",
+          "\"Which insurance broker should I use for [type of cover]?\"",
+          "\"What are the top-rated mortgage brokers in [area]?\"",
+          "\"Who are the trusted accountants for freelancers in [city]?\"",
+        ],
+      },
+      {
+        heading: "Trust signals that drive AI visibility in finance",
+        bullets: [
+          "Regulatory credentials and professional body membership — prominently listed across all platforms",
+          "Review volume and average rating on Google Business and financial service directories",
+          "Independent editorial mentions in financial press, comparison sites, and advisory columns",
+          "Clear and consistent entity definition — firm name, specialism, and location identical everywhere",
+          "FAQ and explanatory content that answers the decision-stage questions buyers ask AI",
+        ],
+      },
+      {
+        heading: "What AnswerMonk provides for financial services firms",
+        bullets: [
+          "AI share-of-voice score for your firm across all four major LLMs",
+          "Competitor ranking by AI citation frequency in your specialism and location",
+          "Citation source breakdown — which directories and publications drive AI recommendations in your sector",
+          "Query-level data — the specific buyer prompts your firm appears for vs those where competitors win",
+          "Action recommendations based on citation gap patterns",
+        ],
+      },
+    ],
+  },
+  "professional-services": {
+    title: "AI Search Visibility for Professional Services Firms | AnswerMonk",
+    description: "See how your law firm, consulting practice, or professional services brand appears in ChatGPT and AI search recommendations. Track AI visibility and benchmark competitors.",
+    eyebrow: "Use Case — Professional Services",
+    headline: "AI search visibility for professional services firms",
+    sub: "When clients search for a lawyer, consultant, or specialist using ChatGPT or Gemini, they get a direct recommendation. AnswerMonk shows whether your firm is in that answer.",
+    sections: [
+      {
+        heading: "The AI search shift in professional services",
+        body: "Professional services buyers have always relied on referrals and reputation. AI search engines are becoming the digital proxy for this: a prospective client with a legal problem, a consulting need, or a specialist requirement asks ChatGPT for a recommendation before calling anyone. The firms that appear in that answer are the ones that get the call.",
+      },
+      {
+        heading: "Professional services categories where AI visibility matters",
+        bullets: [
+          "Law firms — corporate, employment, family, immigration, and specialist practice areas",
+          "Management and strategy consulting",
+          "Accounting and audit firms",
+          "Recruitment and executive search",
+          "Engineering and technical consulting",
+          "HR, training, and organisational development",
+        ],
+      },
+      {
+        heading: "What drives AI visibility for professional services",
+        bullets: [
+          "Authoritative directory listings — Legal 500, Chambers, industry body directories, and specialism-specific platforms",
+          "Review presence on Google Business and professional service directories",
+          "Editorial mentions in trade press, legal journals, business publications, and industry reports",
+          "Case study and methodology content that demonstrates expertise in a citable format",
+          "Clear, consistent firm description across all platforms — specialism, geography, firm size, and type of client served",
+        ],
+      },
+      {
+        heading: "What AnswerMonk shows professional services firms",
+        bullets: [
+          "AI appearance rate for your firm across ChatGPT, Gemini, Claude, and Perplexity",
+          "Full competitor ranking by citation frequency in your practice area and location",
+          "Citation source breakdown — which directories, publications, and platforms drive AI recommendations",
+          "Prompt-level data — the specific client questions your firm does and doesn't appear for",
+          "Gap analysis identifying the highest-leverage actions to improve AI recommendation frequency",
+        ],
+      },
+    ],
+  },
+  dubai: {
+    title: "AI Search Visibility for Dubai Brands | AnswerMonk",
+    description: "Track how your Dubai brand appears in ChatGPT, Gemini, and AI search recommendations. AnswerMonk measures AI visibility for Dubai businesses across all service categories.",
+    eyebrow: "Use Case — Dubai",
+    headline: "AI search visibility for Dubai brands",
+    sub: "Buyers in Dubai and the UAE are asking ChatGPT and Gemini for local service recommendations. AnswerMonk shows whether your brand appears — and which competitors AI recommends in your category.",
+    sections: [
+      {
+        heading: "AI search and the Dubai market",
+        body: "Dubai's buyer market is sophisticated and tech-forward. AI chatbot adoption for product and service research in the UAE is significantly above global averages. When an executive, expat, or local buyer wants a recommendation — for a healthcare provider, legal firm, home service, restaurant, or B2B service — they are increasingly asking ChatGPT or Gemini. The brand named in that answer has a significant advantage.",
+      },
+      {
+        heading: "Dubai query types going to AI engines",
+        bullets: [
+          "\"Best [service] in Dubai\" and \"best [service] in [area of Dubai]\"",
+          "\"Most reputable [professional service] in the UAE\"",
+          "\"Top-rated [home service] near [Dubai neighbourhood]\"",
+          "\"Which [business service] should I use as an expat in Dubai?\"",
+          "\"Trusted [healthcare] providers in Dubai\"",
+        ],
+      },
+      {
+        heading: "What drives AI visibility for Dubai brands",
+        bullets: [
+          "Google Business Profile completeness and UAE-specific directory presence",
+          "Review volume on Google, Trustpilot, and Dubai-specific review platforms",
+          "Editorial mentions in Gulf Business, Khaleej Times, and UAE-specific publications",
+          "Consistent entity definition — brand name, address (Dubai/UAE), and category identical across all platforms",
+          "English and Arabic content that answers the questions UAE buyers ask AI engines",
+        ],
+      },
+      {
+        heading: "What AnswerMonk measures for Dubai businesses",
+        bullets: [
+          "AI share-of-voice score for your brand across ChatGPT, Gemini, Claude, and Perplexity for Dubai-specific queries",
+          "Full competitor ranking — which brands AI recommends most frequently in your category in Dubai",
+          "Citation source breakdown — which directories and publications drive AI recommendations in the UAE market",
+          "Segment analysis — visibility by service type, customer persona, and specific Dubai location",
+          "Gap identification — exact platforms and content types needed to close the competitor gap",
+        ],
+      },
+    ],
+  },
 };
 
 export default function UseCasePage({ useCase }: { useCase: string }) {
