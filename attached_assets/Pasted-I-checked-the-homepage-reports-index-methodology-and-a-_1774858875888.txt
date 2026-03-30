@@ -1,0 +1,133 @@
+I checked the homepage, reports index, methodology, and a few indexed report/brand pages. The site already has a clear core proposition, but right now it looks more like a thin programmatic directory with limited demand-capture pages than a strong SEO/AEO content asset. The homepage explains the product well, the reports directory lists 40 published reports, and there are methodology/how-rankings-work pages plus brand/query pages. But some indexed pages are clearly weak or broken for search quality, like an indexed Amplify report showing a blank query category (""). The reports index also shows duplicate/repeated category entries, which is a quality signal problem.
+
+My blunt assessment: the biggest issue is not “better copy” on the homepage. It is site architecture + page quality + intent coverage. Right now most indexable value seems concentrated in the homepage, methodology pages, and auto-generated report/brand pages. That is not enough to rank strongly for broader commercial intent around GEO/AEO/AI search visibility, and it also weakens LLM extractability because many pages appear template-like rather than authoritative explanations or deep category resources.
+
+What to fix first, in order:
+
+1. Fix low-quality programmatic pages before scaling them further.
+At least one indexed report has broken metadata/content logic: “Amplify” shows 0% share of voice for an empty query category. That should not be indexable. The reports directory also has duplicate-looking entries for similar slugs/categories. Any page with blank fields, low evidence, duplicate intent, or near-empty usefulness should be noindex or removed until quality is fixed. This is the most urgent SEO fix.
+
+2. Build real demand-capture landing pages, not just report pages.
+You need strong static pages targeting the terms people actually search when buying this category, for example:
+
+AI search visibility software
+GEO tool / GEO audit
+AEO audit
+LLM visibility tracking
+how to get cited by ChatGPT / Gemini / Perplexity
+AI search competitor analysis
+AI search visibility for agencies
+Your homepage currently positions the product, but I do not see evidence from the indexed pages of a proper keyword-to-page architecture around these commercial intents.
+
+3. Add category pages by use case, ICP, and vertical.
+The site says it measures visibility by service type, persona, and location, but I do not see strong indexable pages built around those axes. You should create pages like:
+
+AI search visibility for agencies
+AI search visibility for B2B SaaS
+GEO for healthcare brands
+GEO for local businesses
+ChatGPT visibility audit for Dubai brands
+AI citation monitoring for marketing teams
+This is important for both SEO and AEO because it creates clear entity-topic-context associations instead of making everything live inside reports. The homepage already states those segmentation capabilities, so turning them into crawlable pages is the natural next step.
+
+4. Upgrade every report page from “template summary” to “link-worthy resource.”
+A report page like the SEO Sherpa example has useful ranking data, but structurally it still reads like a thin generated template: score, competitors, short explanation. To rank and get cited more often, report pages need:
+
+exact query set or sample prompts
+date of analysis
+engine-by-engine breakdown
+cited-source breakdown
+“why these brands appeared”
+actionable observations
+update history / version history
+internal links to methodology, category page, brand page, and similar reports
+That turns reports into reference assets instead of disposable pages.
+
+5. Strengthen trust and authorship signals.
+The homepage explains what the product does, but I do not see visible strong “why trust this” elements in the indexed text: named author/founder, company details, examples of methodology rigor, data limitations, evaluation windows, update cadence, or case studies. For a measurement product in a noisy category, trust signals matter a lot for both SEO and LLM citation likelihood. Methodology exists, which is good, but it should be connected to stronger editorial trust signals.
+
+6. Clean up taxonomy and URL strategy.
+The site currently mixes /reports/..., /reports/3, /brand/..., and apparent query pages such as /best-personal-care-berlin. That is workable, but not clean. You want a more explicit structure such as:
+
+/software/ai-search-visibility
+/solutions/agencies
+/solutions/b2b-saas
+/verticals/healthcare
+/locations/dubai
+/reports/[category]-[location]-[brand]
+/brands/[brand]
+/methodology/...
+The current mix suggests the information architecture grew from the dataset outward rather than from search intent outward.
+
+7. Improve internal linking deliberately.
+Brand pages currently link mainly to query pages and methodology-type pages. That is useful, but you need a much denser internal graph:
+
+homepage → commercial pages → methodology → relevant reports
+report pages → brand pages → related competitor reports
+vertical pages → location pages → best reports in that niche
+glossary pages → all commercial and methodology pages
+Right now the indexed structure looks too shallow.
+
+8. Add a glossary / education layer.
+This category is still new. You should own definitional and comparison content:
+
+What is GEO?
+GEO vs SEO
+AEO vs SEO
+How ChatGPT citations work
+What affects AI recommendations
+How to measure share of voice in AI search
+How to improve brand visibility in LLM answers
+These pages help you rank for upper-funnel demand and feed topical authority into the money pages. The current methodology pages are a start, but they are product-method pages, not broad educational assets.
+
+9. Make the homepage less generic and more conversion-anchored.
+The homepage explains features well, but it needs sharper proof:
+
+who it is for in the hero
+what outcome improves
+sample audit screenshot/data point
+3-step CTA flow
+sample report excerpts
+comparison vs manual audit / SEO-only tools
+clear ICP segments
+“At brands, agencies, and B2B SaaS companies” is too broad. Narrowing the positioning usually improves both conversion and search clarity.
+
+10. Add freshness and versioning visibly on-page.
+“How Rankings Work” says new version rows are created and historical data is retained. Good. But that freshness should be obvious on every report: analyzed on, updated on, cohort window, last refreshed. That improves trust and helps search engines/users interpret data timeliness.
+
+For AEO specifically, the most important upgrades are:
+
+fewer low-quality programmatic pages
+more pages with explicit definitions and direct answers
+stronger trust/methodology/expert signals
+cleaner entity pages for brands, categories, industries, and locations
+structured sections written in question-answer form
+concise summaries at the top of each page
+evidence-backed observations instead of just scores
+Your current methodology and rankings pages already have some of the right ingredients, but they are not yet enough to make the site a strong citation source across many queries.
+
+For SEO specifically, the highest-leverage plan is:
+
+Phase 1: cleanup
+
+noindex/remove broken and thin report pages
+deduplicate report/category entries
+standardize titles/meta/H1 patterns
+improve report page depth
+ensure each indexable page has unique value
+
+Phase 2: architecture
+
+create 10–20 commercial and educational pillar pages
+create vertical + ICP + location landing pages
+build strong internal links from those pages into the best reports
+
+Phase 3: authority
+
+publish opinionated benchmark studies
+publish category trend reports
+publish “state of AI search visibility” pieces
+use those assets for backlinks, citations, and brand searches
+That is how you move from “tool site with reports” to “category authority.”
+
+Net: the site is directionally good, but currently underbuilt for serious SEO and not clean enough for strong AEO. The fastest gains will come from pruning weak pages, building real demand pages, and turning reports into deeper reference assets.
