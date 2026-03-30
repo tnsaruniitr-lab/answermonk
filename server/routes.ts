@@ -5076,10 +5076,40 @@ Rules for content:
     </section>
 
     <section>
+      <h2>Sample prompts used in this analysis</h2>
+      <p>The following are representative examples of the buyer queries run across AI engines for the <em>${escapeHtml(queryText || category)}</em> category. These reflect how real buyers phrase requests to ChatGPT, Gemini, Claude, and Perplexity when seeking recommendations.</p>
+      <ul>
+        ${location ? `<li>Find the best ${escapeHtml(category || "service providers")} in ${escapeHtml(location)}</li>` : `<li>Find the best ${escapeHtml(category || "service providers")}</li>`}
+        ${location ? `<li>What are the most trusted ${escapeHtml(category || "providers")} in ${escapeHtml(location)}?</li>` : `<li>What are the most trusted ${escapeHtml(category || "providers")}?</li>`}
+        ${location ? `<li>Which ${escapeHtml(category || "service")} has the highest customer ratings in ${escapeHtml(location)}?</li>` : `<li>Which ${escapeHtml(category || "service")} has the highest customer ratings?</li>`}
+        <li>Compare the top ${escapeHtml(category || "options")} available</li>
+        ${location ? `<li>Who are the most reputable ${escapeHtml(category || "providers")} near ${escapeHtml(location)}?</li>` : `<li>Who are the most reputable ${escapeHtml(category || "providers")}?</li>`}
+        <li>What ${escapeHtml(category || "service")} do industry experts recommend?</li>
+      </ul>
+      <p>Brand appearance in responses to these prompts is what the share-of-voice score above measures. A brand that appears across all prompt types scores higher than one that only appears for a narrow query variant.</p>
+    </section>
+
+    <section>
+      <h2>What drives AI citation results in this category</h2>
+      ${shareOfVoice >= 60 ? `<p><strong>${brandName}</strong> has a strong AI citation share (${shareOfVoice}%) for the <em>${escapeHtml(queryText || category)}</em> category. Scores at this level typically reflect broad citation source coverage — the brand appears across the review platforms, directories, and publications that AI engines retrieve most frequently. Maintaining this position requires continued review volume growth and content freshness, as AI models periodically update their retrieval weighting.</p>` : shareOfVoice >= 25 ? `<p><strong>${brandName}</strong> has moderate AI citation share (${shareOfVoice}%) for the <em>${escapeHtml(queryText || category)}</em> category. Scores in this range typically indicate presence on some, but not all, of the citation sources that AI engines retrieve for this category. The most direct improvement path is identifying which platforms your top competitors appear on that you currently don't, and closing those gaps.</p>` : `<p><strong>${brandName}</strong> has a low AI citation share (${shareOfVoice}%) for the <em>${escapeHtml(queryText || category)}</em> category. Scores below 25% typically indicate limited presence across the citation sources AI engines rely on — review platforms, industry directories, and editorial coverage — or an inconsistent entity footprint across the web. The primary action is establishing or completing profiles on the leading citation platforms in this category.</p>`}
+      <p>In most categories, three to five citation sources account for the majority of AI recommendations. Brands that dominate AI responses are listed, reviewed, and actively maintained on all of these sources. Brands that score low are typically absent from one or more of them.</p>
+      <p>Key factors that drive AI citation frequency in competitive categories:</p>
+      <ul>
+        <li>Review platform presence — volume, recency, and average rating on Trustpilot, Google, G2, Yelp, or category-specific equivalents</li>
+        <li>Industry directory listings — sector-specific platforms that AI engines treat as authoritative sources</li>
+        <li>Editorial mentions — press coverage in indexed publications that AI models retrieve</li>
+        <li>Entity consistency — same brand name, description, category, and location across all platforms</li>
+        <li>Structured content — FAQ and HowTo pages that AI engines can extract when forming responses</li>
+      </ul>
+    </section>
+
+    <section>
       <h2>Improve AI search visibility for ${brandName}</h2>
       <p>The primary levers for improving AI citation share in the "${escapeHtml(queryText || category)}" category are: citation source coverage (appearing on the platforms AI engines retrieve most frequently), entity consistency across the web, and content that directly answers the buyer prompts run in this analysis.</p>
       <p><a href="https://answermonk.ai/how-to-improve-ai-citations">How to improve AI citations →</a></p>
       <p><a href="https://answermonk.ai/blog/geo-vs-seo">GEO vs SEO: understanding the difference →</a></p>
+      <p><a href="https://answermonk.ai/glossary/chatgpt-citations">What are ChatGPT citations? →</a></p>
+      <p><a href="https://answermonk.ai/glossary/ai-share-of-voice">What is AI share of voice? →</a></p>
       <p><a href="https://answermonk.ai">Run a free AI visibility audit for your brand →</a></p>
     </section>
   </main>

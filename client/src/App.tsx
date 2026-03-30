@@ -183,6 +183,11 @@ function SeoRoutes({ path }: { path: string }) {
       {path === "/glossary/generative-engine-optimization" && <GlossaryPage term="generative-engine-optimization" />}
       {path === "/glossary/ai-visibility-score" && <GlossaryPage term="ai-visibility-score" />}
       {path === "/glossary/ai-search-visibility" && <GlossaryPage term="ai-search-visibility" />}
+      {path === "/glossary/aeo" && <GlossaryPage term="aeo" />}
+      {path === "/glossary/ai-share-of-voice" && <GlossaryPage term="ai-share-of-voice" />}
+      {path === "/glossary/prompt-network" && <GlossaryPage term="prompt-network" />}
+      {path === "/glossary/llm-traffic" && <GlossaryPage term="llm-traffic" />}
+      {path === "/glossary/chatgpt-citations" && <GlossaryPage term="chatgpt-citations" />}
       {path === "/compare/answermonk-vs-profound" && <ComparePage competitor="answermonk-vs-profound" />}
       {path === "/compare/answermonk-vs-ahrefs-brand-radar" && <ComparePage competitor="answermonk-vs-ahrefs-brand-radar" />}
       {path === "/blog" && <BlogIndex />}

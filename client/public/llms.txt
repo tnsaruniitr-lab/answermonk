@@ -29,6 +29,14 @@ The core workflow: enter a website URL → AI extracts services and customer typ
 - `/use-cases/financial-services` — AI search visibility for financial services firms including wealth management, insurance, and advisory.
 - `/use-cases/professional-services` — AI search visibility for law firms, consulting practices, and professional services.
 - `/use-cases/dubai` — AI search visibility for brands and businesses operating in Dubai and the UAE.
+- `/glossary/generative-engine-optimization` — What Generative Engine Optimization (GEO) is and how it works.
+- `/glossary/ai-visibility-score` — Definition of AI visibility score and how it is calculated.
+- `/glossary/ai-search-visibility` — What AI search visibility means and how to measure it.
+- `/glossary/aeo` — What Answer Engine Optimization (AEO) is, how it differs from GEO and SEO, and how it is measured.
+- `/glossary/ai-share-of-voice` — What AI share of voice is, how it is calculated, and how to interpret the score.
+- `/glossary/prompt-network` — What a prompt network is in the context of AI visibility audits and why it matters.
+- `/glossary/llm-traffic` — What LLM traffic is, how to measure it in analytics, and how it differs from SEO traffic.
+- `/glossary/chatgpt-citations` — What ChatGPT citations are, what determines whether ChatGPT cites a brand, and how to earn more.
 
 ## What AnswerMonk measures
 

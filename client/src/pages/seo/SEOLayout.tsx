@@ -86,8 +86,11 @@ export function SEOLayout({ title, description, children, canonical }: SEOLayout
                 <Link href="/how-ai-search-works"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>How AI Search Works</span></Link>
                 <Link href="/how-to-improve-ai-citations"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Improve AI Citations</span></Link>
                 <Link href="/glossary/generative-engine-optimization"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>What is GEO?</span></Link>
-                <Link href="/glossary/ai-visibility-score"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>AI Visibility Score</span></Link>
-                <Link href="/chatgpt-visibility-audit"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>ChatGPT Audit</span></Link>
+                <Link href="/glossary/aeo"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>What is AEO?</span></Link>
+                <Link href="/glossary/ai-share-of-voice"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>AI Share of Voice</span></Link>
+                <Link href="/glossary/prompt-network"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Prompt Network</span></Link>
+                <Link href="/glossary/llm-traffic"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>LLM Traffic</span></Link>
+                <Link href="/glossary/chatgpt-citations"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>ChatGPT Citations</span></Link>
               </div>
             </div>
             <div>
