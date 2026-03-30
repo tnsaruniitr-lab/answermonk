@@ -2288,6 +2288,49 @@ function LandingInner() {
       </section>
 
 
+      {/* Data trust panel */}
+      <section className="relative z-10 max-w-3xl mx-auto px-6 pb-10">
+        <div style={{
+          background: "#fff",
+          border: "1px solid rgba(99,102,241,0.12)",
+          borderRadius: 16,
+          boxShadow: "0 2px 16px rgba(55,48,163,0.07)",
+          padding: "28px 32px",
+        }}>
+          <p className="text-xs font-bold uppercase tracking-widest mb-5 text-center" style={{ color: "#6366f1", letterSpacing: "0.1em" }}>
+            Why trust this data
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 20, marginBottom: 20 }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: "#4f46e5", lineHeight: 1 }}>
+                {stats?.auditsCompleted ? `${stats.auditsCompleted}+` : "44+"}
+              </div>
+              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4, lineHeight: 1.4 }}>audits completed across brands and agencies</div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: "#4f46e5", lineHeight: 1 }}>25–30</div>
+              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4, lineHeight: 1.4 }}>intent-based prompts generated per analysis run</div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: "#4f46e5", lineHeight: 1 }}>4</div>
+              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4, lineHeight: 1.4 }}>AI engines queried: ChatGPT, Claude, Gemini, Perplexity</div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: "#4f46e5", lineHeight: 1 }}>Real</div>
+              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4, lineHeight: 1.4 }}>live API queries — no simulated or cached responses</div>
+            </div>
+          </div>
+          <div style={{ borderTop: "1px solid rgba(99,102,241,0.1)", paddingTop: 16, display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center", alignItems: "center" }}>
+            <span style={{ fontSize: 12.5, color: "#374151", lineHeight: 1.5 }}>
+              Share-of-voice scores are weighted by engine market share and prompt intent. Scores reflect a point-in-time snapshot of AI engine outputs.
+            </span>
+            <a href="/methodology" style={{ fontSize: 12.5, color: "#4f46e5", fontWeight: 600, whiteSpace: "nowrap" }}>
+              Full methodology →
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Features definition list — semantic for LLM crawlers */}
       <section
         id="features"

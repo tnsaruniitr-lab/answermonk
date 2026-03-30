@@ -4908,7 +4908,8 @@ Rules for content:
   }
 
   function buildReportHtml(session: any, slug: string): string {
-    const brandName = escapeHtml(session.brandName || session.brand_name || "Brand");
+    const rawBrandName = session.brandName || session.brand_name || "";
+    const brandName = escapeHtml(rawBrandName || "Brand");
     const brandDomain = escapeHtml(session.brandDomain || session.brand_domain || "");
     const segments: any[] = Array.isArray(session.segments) ? session.segments : [];
 
@@ -4918,6 +4919,7 @@ Rules for content:
     let queryText = "";
     let shareOfVoice = 0;
     const competitors: { name: string; share: number }[] = [];
+    let engineBreakdown: Record<string, any> = {};
 
     for (const seg of segments) {
       const sr = seg?.scoringResult ?? {};
@@ -4937,14 +4939,28 @@ Rules for content:
         }
       });
 
-      // derive brand's own share-of-voice from appearance_rate across engines
       const eb = sr.score.engine_breakdown ?? {};
+      engineBreakdown = eb;
       const rates = Object.values(eb).map((e: any) => e?.appearance_rate ?? 0);
       if (rates.length) {
         shareOfVoice = Math.round((rates.reduce((a: number, b: number) => a + b, 0) / rates.length) * 100);
       }
       break;
     }
+
+    // ── Quality gate: noindex thin or broken reports ───────────────────────────
+    const isThin =
+      !rawBrandName ||
+      segments.length === 0 ||
+      (!queryText && !category && !location) ||
+      (shareOfVoice === 0 && competitors.length === 0);
+    const robotsMeta = isThin ? "noindex,nofollow" : "index,follow";
+
+    // ── Freshness ──────────────────────────────────────────────────────────────
+    const analyzedDateIso = session.createdAt ? new Date(session.createdAt).toISOString() : null;
+    const analyzedDateDisplay = session.createdAt
+      ? new Date(session.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+      : null;
 
     const top5 = competitors.slice(0, 5);
     const canonicalUrl = `https://answermonk.ai/reports/${encodeURIComponent(slug)}`;
@@ -4959,12 +4975,28 @@ Rules for content:
       `<tr><td>${i + 1}</td><td>${escapeHtml(c.name)}</td><td>${c.share}%</td></tr>`
     ).join("\n");
 
+    // Engine-by-engine breakdown table
+    const ENGINE_LABELS: Record<string, string> = {
+      chatgpt: "ChatGPT", openai: "ChatGPT", claude: "Claude", anthropic: "Claude",
+      gemini: "Gemini", google: "Gemini", perplexity: "Perplexity",
+    };
+    const ENGINE_WEIGHTS: Record<string, number> = {
+      chatgpt: 35, openai: 35, gemini: 35, google: 35, claude: 20, anthropic: 20, perplexity: 10,
+    };
+    const engineRows = Object.entries(engineBreakdown).map(([eng, data]: [string, any]) => {
+      const label = ENGINE_LABELS[eng.toLowerCase()] || eng;
+      const rate = Math.round((data?.appearance_rate ?? 0) * 100);
+      const weight = ENGINE_WEIGHTS[eng.toLowerCase()] ?? "—";
+      return `<tr><td>${label}</td><td>${rate}%</td><td>${weight}%</td></tr>`;
+    });
+
     const schemaReport = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "Report",
       "name": pageTitle,
       "description": description,
       "url": canonicalUrl,
+      ...(analyzedDateIso ? { "datePublished": analyzedDateIso, "dateModified": analyzedDateIso } : {}),
       "about": {
         "@type": "Organization",
         "name": brandName,
@@ -4984,8 +5016,9 @@ Rules for content:
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${pageTitle}</title>
   <meta name="description" content="${escapeHtml(description)}" />
-  <meta name="robots" content="index, follow" />
+  <meta name="robots" content="${robotsMeta}" />
   <link rel="canonical" href="${canonicalUrl}" />
+  ${analyzedDateIso ? `<meta property="article:published_time" content="${analyzedDateIso}" />` : ""}
   <meta property="og:type" content="article" />
   <meta property="og:title" content="${pageTitle}" />
   <meta property="og:description" content="${escapeHtml(description)}" />
@@ -4996,22 +5029,40 @@ Rules for content:
 <body>
   <header>
     <a href="https://answermonk.ai">AnswerMonk — AI Search Visibility Platform</a>
+    <nav>
+      <a href="https://answermonk.ai/methodology">How we measure AI visibility</a> ·
+      <a href="https://answermonk.ai/ai-search-audit">AI search audit</a> ·
+      <a href="https://answermonk.ai/how-to-improve-ai-citations">Improve AI citations</a> ·
+      <a href="https://answermonk.ai/blog">Blog</a> ·
+      <a href="https://answermonk.ai">Run a free audit</a>
+    </nav>
   </header>
 
   <main>
     <h1>${pageTitle}</h1>
-    ${queryText ? `<p>This report analyzes AI search visibility for <strong>${brandName}</strong>${brandDomain ? ` (${brandDomain})` : ""} in the <strong>${queryText}</strong> category across ChatGPT, Claude, and Gemini.</p>` : `<p>This report analyzes AI search visibility for <strong>${brandName}</strong>${brandDomain ? ` (${brandDomain})` : ""} across ChatGPT, Claude, and Gemini.</p>`}
+    ${analyzedDateDisplay ? `<p><em>Analyzed on ${analyzedDateDisplay} · Engines: ChatGPT, Claude, Gemini, Perplexity · <a href="https://answermonk.ai/methodology">Methodology</a></em></p>` : ""}
+    ${queryText ? `<p>This report analyzes AI search visibility for <strong>${brandName}</strong>${brandDomain ? ` (${brandDomain})` : ""} in the <strong>${queryText}</strong> category — measuring how often the brand appears in AI-generated answers across all major LLMs.</p>` : `<p>This report analyzes AI search visibility for <strong>${brandName}</strong>${brandDomain ? ` (${brandDomain})` : ""} across ChatGPT, Claude, Gemini, and Perplexity.</p>`}
 
     <section>
       <h2>AI Visibility Score</h2>
       <p><strong>${brandName}</strong> has an AI share-of-voice score of <strong>${shareOfVoice}%</strong> for the query category "${escapeHtml(queryText || category)}".</p>
-      <p>Share of voice measures how often a brand appears in AI-generated answers, weighted by rank position and engine market share (ChatGPT 35%, Gemini 35%, Claude 20%, Perplexity 10%).</p>
+      <p>Share of voice measures how often a brand appears in AI-generated answers, weighted by rank position and engine market share (ChatGPT 35%, Gemini 35%, Claude 20%, Perplexity 10%). A score of 100% means the brand appeared first in every prompt on every engine. A score of 0% means it did not appear in any response.</p>
     </section>
+
+    ${engineRows.length ? `
+    <section>
+      <h2>Engine-by-Engine Breakdown</h2>
+      <p>Appearance rate is the percentage of intent prompts for the <em>${escapeHtml(queryText || category)}</em> category in which ${brandName} was named by each AI engine.</p>
+      <table>
+        <thead><tr><th>AI Engine</th><th>${brandName} Appearance Rate</th><th>Composite Score Weight</th></tr></thead>
+        <tbody>${engineRows.join("\n")}</tbody>
+      </table>
+    </section>` : ""}
 
     ${top5.length ? `
     <section>
       <h2>Competitor Rankings in AI Search</h2>
-      <p>The following brands were most frequently cited by AI engines in response to "${escapeHtml(queryText || category)}" queries:</p>
+      <p>The following brands were most frequently cited by AI engines in response to "${escapeHtml(queryText || category)}" queries. Citation share represents weighted appearance rate across all engines for this category.</p>
       <table>
         <thead><tr><th>Rank</th><th>Brand</th><th>AI Citation Share</th></tr></thead>
         <tbody>${competitorRows}</tbody>
@@ -5019,13 +5070,29 @@ Rules for content:
     </section>` : ""}
 
     <section>
-      <h2>About This Report</h2>
-      <p>This AI visibility report was generated by <a href="https://answermonk.ai">AnswerMonk</a>, a platform that measures how brands appear in responses from ChatGPT, Claude, Gemini, and Perplexity. The analysis runs a network of intent-based search prompts across AI engines and measures share-of-voice, competitor presence, and citation sources.</p>
-      <p>Run a free AI visibility audit for your brand at <a href="https://answermonk.ai">answermonk.ai</a>.</p>
+      <h2>How this report was generated</h2>
+      <p>AnswerMonk builds a network of 25–30 intent-based prompts for the <em>${escapeHtml(queryText || category)}</em> category — the natural-language queries real buyers send to ChatGPT, Claude, Gemini, and Perplexity. Each prompt is fired against all four engines. Responses are parsed, brand appearances recorded, and results aggregated into the share-of-voice score above using a market-share weighted formula.</p>
+      <p>Data reflects AI engine outputs as of ${analyzedDateDisplay || "the analysis date"}. AI outputs change as models are updated and as new content enters training and retrieval indexes. Scores should be interpreted as a point-in-time snapshot. <a href="https://answermonk.ai/methodology">Full methodology →</a></p>
+    </section>
+
+    <section>
+      <h2>Improve AI search visibility for ${brandName}</h2>
+      <p>The primary levers for improving AI citation share in the "${escapeHtml(queryText || category)}" category are: citation source coverage (appearing on the platforms AI engines retrieve most frequently), entity consistency across the web, and content that directly answers the buyer prompts run in this analysis.</p>
+      <p><a href="https://answermonk.ai/how-to-improve-ai-citations">How to improve AI citations →</a></p>
+      <p><a href="https://answermonk.ai/blog/geo-vs-seo">GEO vs SEO: understanding the difference →</a></p>
+      <p><a href="https://answermonk.ai">Run a free AI visibility audit for your brand →</a></p>
     </section>
   </main>
 
   <footer>
+    <nav>
+      <a href="https://answermonk.ai">Home</a> ·
+      <a href="https://answermonk.ai/methodology">Methodology</a> ·
+      <a href="https://answermonk.ai/ai-search-audit">AI Search Audit</a> ·
+      <a href="https://answermonk.ai/how-to-improve-ai-citations">Improve AI Citations</a> ·
+      <a href="https://answermonk.ai/blog">Blog</a> ·
+      <a href="https://answermonk.ai/blog/geo-vs-seo">GEO vs SEO</a>
+    </nav>
     <p>© AnswerMonk — AI Search Visibility Intelligence. <a href="https://answermonk.ai">answermonk.ai</a></p>
   </footer>
 </body>

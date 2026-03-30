@@ -1,0 +1,93 @@
+This is mostly right.
+
+My view:
+
+Best immediate sequence
+
+#1 noindex thin/broken reports
+#10 freshness signals
+#7 internal linking
+#2 demand-capture pages
+#3 vertical/location pages
+#8 glossary
+#5 trust strip
+#4 report depth
+
+Where I differ from your order:
+
+1) Internal linking should come earlier than vertical/glossary expansion.
+New pages help only if authority flows into them and out of them properly. Right now, fixing crawl/value distribution is likely higher ROI than just adding more surface area.
+
+2) Demand-capture pages are more important than extra glossary pages.
+Glossary is useful for topical authority, but pages like:
+
+AI search visibility software
+GEO audit tool
+AEO audit
+LLM visibility tracking
+AI search competitor analysis
+
+are closer to commercial intent and should matter more for actual traffic and conversions.
+
+3) Be stricter on noindex logic.
+Not just shareOfVoice === 0 && no competitors. Also noindex pages with:
+
+blank/malformed category or query
+near-duplicate intent
+too little unique explanatory text
+empty engine breakdown
+bad slug/data mismatch
+
+You want a broader quality gate, not just one condition.
+
+4) Freshness signals should be machine-readable too.
+Not only visible HTML. Add proper structured data / meta where possible. Visible date is good; machine-readable date is better.
+
+5) Trust signals need to be stronger than a strip.
+A strip is fine, but not enough by itself. Add:
+
+how many prompts / audits run
+which engines
+when updated
+methodology link
+who is behind it
+limitations / what score means
+
+6) Report-page depth is high leverage even if partial.
+Even without schema changes, adding:
+
+sample prompts
+engine-by-engine table
+key drivers paragraph
+“why this brand appeared” explanation
+related reports / competitors
+
+can materially improve usefulness.
+
+7) I agree with skipping URL refactor for now.
+Correct decision. Do not break indexed paths unless current URLs are fundamentally unusable. They are not.
+
+What I’d do first in practice
+
+Sprint 1
+
+noindex quality gate
+freshness signals
+related links on report pages
+trust additions on homepage + methodology
+
+Sprint 2
+
+4–6 demand pages
+4–6 strongest vertical/location pages
+
+Sprint 3
+
+glossary expansion
+report depth enhancements
+One caution
+
+Do not create 6–8 use case pages and 6 glossary pages unless each has meaningfully distinct copy and examples. Otherwise you risk scaling thin pages again in a cleaner wrapper.
+
+So overall: good plan, but I’d move internal linking and demand pages up, and I’d make the noindex gate more aggressive.
+If the goal is maximum SEO/AEO gain per hour, start with #1, #10, #7, #2.
