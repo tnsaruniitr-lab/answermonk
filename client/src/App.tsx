@@ -40,11 +40,15 @@ const LlmSeoAudit = lazy(() => import("@/pages/seo/LlmSeoAudit"));
 const GlossaryPage = lazy(() => import("@/pages/seo/GlossaryPage"));
 const ComparePage = lazy(() => import("@/pages/seo/ComparePage"));
 const SampleReport = lazy(() => import("@/pages/seo/SampleReport"));
+const BlogIndex = lazy(() => import("@/pages/seo/BlogIndex"));
+const BlogTrafficFromChatgpt = lazy(() => import("@/pages/seo/BlogTrafficFromChatgpt"));
+const BlogLlmOrganicTraffic = lazy(() => import("@/pages/seo/BlogLlmOrganicTraffic"));
+const BlogGeoVsSeo = lazy(() => import("@/pages/seo/BlogGeoVsSeo"));
 
 const SEO_PREFIXES = [
   "/methodology", "/ai-search-audit", "/how-ai-search-works",
   "/how-to-improve-ai-citations", "/use-cases", "/chatgpt-visibility-audit",
-  "/llm-seo-audit", "/glossary", "/compare", "/sample-report",
+  "/llm-seo-audit", "/glossary", "/compare", "/sample-report", "/blog",
 ];
 
 function SlugTeaser({ params }: { params: { slug: string } }) {
@@ -174,6 +178,10 @@ function SeoRoutes({ path }: { path: string }) {
       {path === "/glossary/ai-search-visibility" && <GlossaryPage term="ai-search-visibility" />}
       {path === "/compare/answermonk-vs-profound" && <ComparePage competitor="answermonk-vs-profound" />}
       {path === "/compare/answermonk-vs-ahrefs-brand-radar" && <ComparePage competitor="answermonk-vs-ahrefs-brand-radar" />}
+      {path === "/blog" && <BlogIndex />}
+      {path === "/blog/how-to-get-traffic-from-chatgpt" && <BlogTrafficFromChatgpt />}
+      {path === "/blog/increase-organic-traffic-from-llms" && <BlogLlmOrganicTraffic />}
+      {path === "/blog/geo-vs-seo" && <BlogGeoVsSeo />}
     </Suspense>
     </ChunkErrorBoundary>
   );

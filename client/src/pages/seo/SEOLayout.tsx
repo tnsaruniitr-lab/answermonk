@@ -93,6 +93,14 @@ export function SEOLayout({ title, description, children, canonical }: SEOLayout
                 <Link href="/compare/answermonk-vs-ahrefs-brand-radar"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>vs Ahrefs Brand Radar</span></Link>
               </div>
             </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 12, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Blog</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <Link href="/blog/geo-vs-seo"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>GEO vs SEO</span></Link>
+                <Link href="/blog/how-to-get-traffic-from-chatgpt"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Traffic from ChatGPT</span></Link>
+                <Link href="/blog/increase-organic-traffic-from-llms"><span style={{ fontSize: 13, color: "#4f46e5", cursor: "pointer" }}>Organic traffic from LLMs</span></Link>
+              </div>
+            </div>
           </div>
           <div style={{ borderTop: "1px solid rgba(0,0,0,0.06)", paddingTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 12, color: "#9ca3af" }}>© 2026 AnswerMonk. AI search visibility audits for brands and agencies.</span>

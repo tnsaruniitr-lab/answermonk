@@ -20,6 +20,7 @@ Allow: /llm-seo-audit
 Allow: /glossary/
 Allow: /compare/
 Allow: /sample-report
+Allow: /blog/
 
 # Admin and internal tools — block from all crawlers
 Disallow: /api/
@@ -50,6 +51,7 @@ Allow: /llm-seo-audit
 Allow: /glossary/
 Allow: /compare/
 Allow: /sample-report
+Allow: /blog/
 Allow: /llms.txt
 
 User-agent: ClaudeBot
@@ -88,6 +90,7 @@ Allow: /llm-seo-audit
 Allow: /glossary/
 Allow: /compare/
 Allow: /sample-report
+Allow: /blog/
 Allow: /llms.txt
 
 Sitemap: https://answermonk.ai/sitemap.xml

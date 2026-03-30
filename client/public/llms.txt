@@ -16,6 +16,10 @@ The core workflow: enter a website URL → AI extracts services and customer typ
 - `/glossary/generative-engine-optimization` — Definition and explanation of GEO.
 - `/glossary/ai-visibility-score` — Definition and explanation of AI visibility scoring.
 - `/sample-report` — Sample GEO intelligence report demonstrating the platform output.
+- `/blog` — Blog index: guides and strategies for improving AI search visibility.
+- `/blog/geo-vs-seo` — Comparison of GEO (Generative Engine Optimization) and SEO: how they differ, where they overlap, and what brands need to do for both.
+- `/blog/how-to-get-traffic-from-chatgpt` — Practical guide to earning referral traffic from ChatGPT recommendations.
+- `/blog/increase-organic-traffic-from-llms` — How to grow organic traffic from ChatGPT, Claude, Gemini, and Perplexity.
 
 ## What AnswerMonk measures
 
