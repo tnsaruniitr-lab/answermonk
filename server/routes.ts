@@ -1666,14 +1666,15 @@ export async function registerRoutes(
         LIMIT 60
       `);
 
-      const tiles = result.rows
+      const GENERIC_DIR = ["service", "customer", "providers", "provider", "analysis"];
+
+      const rawTiles = result.rows
         .filter((row: any) => row.primary_seg)
         .map((row: any) => {
           const seg = row.primary_seg;
-          const GENERIC = ["service", "customer", "providers", "provider"];
           const rawSeed   = (seg?.seedType  || "").trim();
-          const seedType  = GENERIC.includes(rawSeed.toLowerCase())
-            ? (seg?.serviceType || seg?.customerType || seg?.persona || rawSeed).trim()
+          const seedType  = GENERIC_DIR.includes(rawSeed.toLowerCase())
+            ? (seg?.serviceType || seg?.customerType || seg?.persona || "").trim()
             : (rawSeed || seg?.serviceType || seg?.customerType || seg?.persona || "").trim();
           const location  = (seg?.location  || "").trim();
           const persona   = (seg?.persona   || seg?.customerType || "").trim();
@@ -1687,16 +1688,16 @@ export async function registerRoutes(
           else if (seedType)              query = `Best ${seedType}`;
           else if (persona && location)   query = `Best ${persona} in ${location}`;
           else if (persona)               query = `Best ${persona}`;
-          else                            query = row.brand_name ?? "GEO Analysis";
+          else                            query = "";
 
           return {
             id:          row.id,
             sessionId:   row.id,
             slug:        row.slug ?? null,
             query,
-            category:    seedType || persona || "Analysis",
+            category:    seedType || persona || "",
             brandName:   row.brand_name,
-            brandDomain: row.brand_domain,
+            brandDomain: (row.brand_domain || "").toLowerCase().replace(/^www\./, ""),
             topBrand:    competitors[0]?.name ?? null,
             topScore:    Math.round((competitors[0]?.share ?? 0) * 100),
             rivals:      competitors.slice(1, 3).map((c: any) => ({ name: c.name, share: Math.round((c.share ?? 0) * 100) })).filter((c: any) => c.name),
@@ -1707,7 +1708,19 @@ export async function registerRoutes(
             },
             createdAt: row.created_at,
           };
-        });
+        })
+        // Filter out tiles with no meaningful query (brand-only or blank)
+        .filter((t: any) => t.query.length > 3 && t.category.length > 1);
+
+      // Deduplicate: keep only the most recent entry per (brandDomain, queryNormalized) pair.
+      // This collapses repeated audits of the same brand/category and near-duplicate query variants.
+      const seenKeys = new Set<string>();
+      const tiles = rawTiles.filter((t: any) => {
+        const key = `${t.brandDomain}|${t.query.toLowerCase().replace(/\s+/g, " ").trim()}`;
+        if (seenKeys.has(key)) return false;
+        seenKeys.add(key);
+        return true;
+      }).slice(0, 40);
 
       _directoryRecentCache = { data: tiles, ts: Date.now() };
       res.setHeader("Cache-Control", "public, max-age=60");
@@ -4877,6 +4890,78 @@ Rules for content:
     }
   });
 
+  // ── /share/:slug thin-report gate ────────────────────────────────────────
+  // The SPA served at /share/:slug has no server-side noindex logic.
+  // This route intercepts ALL requests to /share/:slug before Vite's catch-all,
+  // checks session quality, and for thin/broken sessions serves a minimal
+  // noindex HTML page so crawlers never index blank or degenerate reports.
+  // For healthy sessions it calls next() and Vite serves the normal SPA.
+
+  const GENERIC_SEEDS = new Set(["service", "customer", "providers", "provider", "analysis", ""]);
+
+  function isSessionThin(session: any): boolean {
+    const rawBrandName = (session?.brandName || session?.brand_name || "").trim();
+    if (!rawBrandName) return true;
+    const segments: any[] = Array.isArray(session?.segments) ? session.segments : [];
+    if (segments.length === 0) return true;
+
+    let hasValidSegment = false;
+    for (const seg of segments) {
+      const sr = seg?.scoringResult ?? {};
+      if (!sr.score) continue;
+      const rawSeed = (seg?.seedType || "").trim().toLowerCase();
+      const seedType = GENERIC_SEEDS.has(rawSeed)
+        ? (seg?.serviceType || seg?.customerType || seg?.persona || "").trim()
+        : (rawSeed || seg?.serviceType || seg?.customerType || seg?.persona || "").trim();
+      const location = (seg?.location || "").trim();
+      const category = seedType;
+      const queryText = category && location ? `${category} in ${location}` : category || location;
+
+      // Reject segments where we can't form a meaningful query AND no competitors
+      const compList: any[] = (sr.score.competitors ?? []).filter((c: any) => c?.name && (c.share ?? 0) > 0);
+      const rates = Object.values(sr.score.engine_breakdown ?? {}).map((e: any) => e?.appearance_rate ?? 0);
+      const sov = rates.length ? Math.round((rates.reduce((a: number, b: number) => a + b, 0) / rates.length) * 100) : 0;
+
+      if (!queryText && compList.length === 0) continue;
+      if (sov === 0 && compList.length === 0) continue;
+      hasValidSegment = true;
+      break;
+    }
+    return !hasValidSegment;
+  }
+
+  app.get("/share/:slug", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const slug = req.params.slug;
+      const session = await storage.getMultiSegmentSessionBySlug(slug);
+      if (!session) return next();
+
+      if (isSessionThin(session)) {
+        const brandName = escapeHtml((session.brandName || session.brand_name || "this brand").trim());
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.status(200).send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Report Unavailable | AnswerMonk</title>
+  <meta name="description" content="This AI visibility report does not have sufficient data to display.">
+  <style>body{font-family:system-ui,sans-serif;max-width:600px;margin:80px auto;padding:0 24px;color:#374151;}h1{font-size:1.5rem;font-weight:700;color:#111827;}p{color:#6b7280;line-height:1.7;}a{color:#4f46e5;}</style>
+</head>
+<body>
+  <h1>Report not available for ${brandName}</h1>
+  <p>This report does not contain sufficient data to publish. It may have been generated with incomplete information or the analysis did not return results.</p>
+  <p><a href="https://answermonk.ai">Run a new AI visibility audit →</a></p>
+</body>
+</html>`);
+        return;
+      }
+      return next();
+    } catch {
+      return next();
+    }
+  });
+
   // ── Bot-detection SSR for /reports/:slug ─────────────────────────────────
   // AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Googlebot etc.) don't run
   // JavaScript, so they see a blank SPA shell. This middleware intercepts
@@ -5090,17 +5175,32 @@ Rules for content:
     </section>
 
     <section>
-      <h2>What drives AI citation results in this category</h2>
-      ${shareOfVoice >= 60 ? `<p><strong>${brandName}</strong> has a strong AI citation share (${shareOfVoice}%) for the <em>${escapeHtml(queryText || category)}</em> category. Scores at this level typically reflect broad citation source coverage — the brand appears across the review platforms, directories, and publications that AI engines retrieve most frequently. Maintaining this position requires continued review volume growth and content freshness, as AI models periodically update their retrieval weighting.</p>` : shareOfVoice >= 25 ? `<p><strong>${brandName}</strong> has moderate AI citation share (${shareOfVoice}%) for the <em>${escapeHtml(queryText || category)}</em> category. Scores in this range typically indicate presence on some, but not all, of the citation sources that AI engines retrieve for this category. The most direct improvement path is identifying which platforms your top competitors appear on that you currently don't, and closing those gaps.</p>` : `<p><strong>${brandName}</strong> has a low AI citation share (${shareOfVoice}%) for the <em>${escapeHtml(queryText || category)}</em> category. Scores below 25% typically indicate limited presence across the citation sources AI engines rely on — review platforms, industry directories, and editorial coverage — or an inconsistent entity footprint across the web. The primary action is establishing or completing profiles on the leading citation platforms in this category.</p>`}
-      <p>In most categories, three to five citation sources account for the majority of AI recommendations. Brands that dominate AI responses are listed, reviewed, and actively maintained on all of these sources. Brands that score low are typically absent from one or more of them.</p>
-      <p>Key factors that drive AI citation frequency in competitive categories:</p>
-      <ul>
-        <li>Review platform presence — volume, recency, and average rating on Trustpilot, Google, G2, Yelp, or category-specific equivalents</li>
-        <li>Industry directory listings — sector-specific platforms that AI engines treat as authoritative sources</li>
-        <li>Editorial mentions — press coverage in indexed publications that AI models retrieve</li>
-        <li>Entity consistency — same brand name, description, category, and location across all platforms</li>
-        <li>Structured content — FAQ and HowTo pages that AI engines can extract when forming responses</li>
-      </ul>
+      <h2>What this audit found: engine-level breakdown for ${brandName}</h2>
+      ${(() => {
+        const presentEngines = Object.entries(engineBreakdown)
+          .filter(([, v]: any) => (v?.appearance_rate ?? 0) > 0)
+          .map(([k]: any) => k.charAt(0).toUpperCase() + k.slice(1));
+        const missingEngines = Object.entries(engineBreakdown)
+          .filter(([, v]: any) => (v?.appearance_rate ?? 0) === 0)
+          .map(([k]: any) => k.charAt(0).toUpperCase() + k.slice(1));
+        const topComps = competitors.slice(0, 3).map((c: any) => escapeHtml(c.name));
+        const engineRows = Object.entries(engineBreakdown).map(([engine, v]: any) => {
+          const rate = Math.round((v?.appearance_rate ?? 0) * 100);
+          const label = engine.charAt(0).toUpperCase() + engine.slice(1);
+          return `<li><strong>${label}</strong>: ${rate}% appearance rate across tested prompts${rate === 0 ? " — brand not cited in any response" : rate < 40 ? " — partial coverage" : " — consistent coverage"}</li>`;
+        });
+
+        let lead = "";
+        if (presentEngines.length === 0) {
+          lead = `<p><strong>${brandName}</strong> did not appear in any AI engine responses for the <em>${escapeHtml(queryText || category)}</em> category across this audit. All four engines — ChatGPT, Gemini, Claude, and Perplexity — returned responses that did not include ${brandName}. This typically means the brand's citation source footprint (reviews, directories, press) is not yet present in the sources these engines retrieve for this category.${topComps.length > 0 ? ` Competitors that did appear: ${topComps.join(", ")}.` : ""}</p>`;
+        } else if (missingEngines.length === 0) {
+          lead = `<p><strong>${brandName}</strong> appeared across all tested AI engines for the <em>${escapeHtml(queryText || category)}</em> category. This indicates broad citation source presence — the sources all four engines retrieve for this category include ${brandName}.${topComps.length > 0 ? ` Primary competitors in these responses: ${topComps.join(", ")}.` : ""}</p>`;
+        } else {
+          lead = `<p><strong>${brandName}</strong> appeared in responses from ${presentEngines.join(" and ")} but was absent from ${missingEngines.join(" and ")} for the <em>${escapeHtml(queryText || category)}</em> category. This engine-split pattern typically indicates that the sources ${missingEngines.join(" and ")} retrieve for this category — which differ from those used by ${presentEngines.join(" and ")} — do not yet include ${brandName}.${topComps.length > 0 ? ` Competitors found in the gap engines: ${topComps.join(", ")}.` : ""}</p>`;
+        }
+        return lead + `<ul>${engineRows.join("")}</ul>`;
+      })()}
+      <p>The engine-level gap is the most actionable finding. Each AI engine retrieves from different source layers — ChatGPT prioritises web-browsed reviews and editorial content, Gemini pulls heavily from Google's indexed data, Claude retrieves from its training corpus plus browsed sources, and Perplexity surfaces real-time web results. A brand absent from one engine is typically under-represented in that engine's primary source type, not absent from the web entirely.</p>
     </section>
 
     <section>
