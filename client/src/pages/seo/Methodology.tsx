@@ -1,6 +1,73 @@
+import { useEffect } from "react";
 import { SEOLayout, PageHero, Section, ProseP, ProseList, CTABox } from "./SEOLayout";
 
+const FAQ_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How does AnswerMonk measure AI search visibility?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "AnswerMonk uses a 6-step process: it crawls your website to extract service segments and customer personas, generates a network of 20–30 natural-language prompts, runs those prompts across ChatGPT, Gemini, Claude, and Perplexity simultaneously, then calculates a share-of-voice score based on appearance rate and rank position across all engines."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which AI engines does AnswerMonk test?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "AnswerMonk tests four AI engines: ChatGPT (OpenAI) at 35% weight, Gemini (Google) at 35% weight, Claude (Anthropic) at 20% weight, and Perplexity at 10% weight. Engine weights reflect current market share and influence on buyer decisions."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What types of prompts does AnswerMonk generate?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "AnswerMonk generates three categories of prompts per brand segment: discovery prompts ('What is the best [service] for [customer type]?'), comparison prompts ('Compare [service category] options for [use case]'), and recommendation prompts ('Which [service] do most [customer type] use?'). A typical audit generates 20–30 prompts per session."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is share-of-voice calculated?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Share of voice is a weighted composite score combining three factors: appearance rate (the percentage of prompts in which a brand is mentioned), rank position (first mention carries more weight than fifth mention), and engine weight (ChatGPT and Gemini each count for 35%). A score of 100 means the brand dominates every tested query on every engine. A score of 0 means it does not appear."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does AnswerMonk detect competitors?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "AnswerMonk detects competitors organically from AI engine responses — not from a pre-set list. Every brand mentioned by an AI engine across the prompt set is recorded and ranked by frequency and share of voice. This reveals who AI systems actually consider your competition, which is often different from traditional SEO competitor lists."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What are citation sources in a GEO audit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "When AI engines cite external sources alongside their answers, AnswerMonk crawls and classifies those URLs. Citation sources are classified as review platforms, directories, industry publications, government databases, or brand-owned pages. The citation map shows which third-party sources drive AI visibility in your category — and which you need to appear on to compete."
+      }
+    }
+  ]
+};
+
 export default function Methodology() {
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id = "methodology-faq-schema";
+    script.textContent = JSON.stringify(FAQ_SCHEMA);
+    document.head.appendChild(script);
+    return () => {
+      document.getElementById("methodology-faq-schema")?.remove();
+    };
+  }, []);
+
   return (
     <SEOLayout
       title="How AnswerMonk Measures AI Search Visibility | Methodology"
