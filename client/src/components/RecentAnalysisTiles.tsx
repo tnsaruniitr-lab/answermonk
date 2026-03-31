@@ -361,10 +361,6 @@ export function RecentAnalysisTiles({ onSelect }: RecentAnalysisTilesProps) {
   if (!isLoading && tiles.length === 0) return null;
 
   function handleTileClick(tile: DirectoryTile) {
-    if (onSelect) {
-      onSelect(tile.sessionId, tile);
-      return;
-    }
     const path = tile.slug
       ? `/reports/${tile.slug}`
       : `/reports/${toReportSlug(tile.query || tile.category, tile.sessionId)}`;

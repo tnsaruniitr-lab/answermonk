@@ -1081,7 +1081,7 @@ function LandingInner() {
         {/* Recent Analyses directory — visible only when truly idle (no submission in flight) */}
         {!isProcessing && !isRunning && !isComplete && !isError && activeSessionId === null && !replayMode && (
           <div className="w-full max-w-7xl mx-auto px-6">
-            <RecentAnalysisTiles onSelect={handleTileSelect} />
+            <RecentAnalysisTiles />
           </div>
         )}
 
