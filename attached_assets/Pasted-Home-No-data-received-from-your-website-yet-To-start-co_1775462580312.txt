@@ -1,0 +1,128 @@
+Home
+No data received from your website yet.
+To start collecting data make sure your website is tagged using the Measurement ID: G-JXHPRV5BM8
+
+Perfect — this is clear.
+👉 Your GA4 is NOT receiving data yet.
+
+This always comes down to one of 3 issues. Let’s isolate fast.
+
+What this message means
+
+“No data received…”
+
+👉 Your Measurement ID is not firing on the website
+
+So either:
+
+not connected in GTM
+not published
+GTM itself not installed correctly
+Step-by-step debug (do this exactly)
+Step 1 — Check GTM is actually loading
+
+Open your website → right click → View Page Source
+
+Search for:
+
+GTM-P7NBRG52
+If NOT found:
+
+👉 GTM is not installed correctly → fix this first
+
+Step 2 — Check if tag exists inside GTM
+
+Go to Google Tag Manager
+
+Inside your container:
+
+Check:
+
+Do you have a tag called:
+“Google tag” or “GA4”
+If NO:
+
+👉 You didn’t connect Analytics yet
+
+Step 3 — Check tag configuration
+
+Open that tag and confirm:
+
+Measurement ID = G-JXHPRV5BM8
+Trigger = All Pages
+Step 4 — Check if GTM is published
+
+Top right:
+
+Does it say Published?
+If not:
+
+👉 Click Submit → Publish
+
+Step 5 — Use Preview mode (most important)
+
+In GTM:
+
+Click Preview
+Enter: https://answermonk.ai
+
+It will open your site with debug panel
+
+Check:
+
+Does your GA4 tag fire?
+If NOT firing:
+
+👉 trigger issue
+
+If firing:
+
+👉 GTM is working → problem elsewhere
+
+Step 6 — Check GA4 realtime again
+
+Go to:
+👉 Google Analytics → Realtime
+
+Wait ~10–20 seconds
+
+Most likely cause (based on your flow)
+
+Given what you did:
+
+👉 80% chance:
+
+You installed GTM
+But did NOT:
+create GA4 tag inside GTM
+OR did not publish
+Quick checklist (answer these)
+
+Tell me:
+
+Do you see GTM-P7NBRG52 in page source?
+Did you create a “Google tag” inside GTM?
+Did you click Publish?
+In Preview mode — does the tag fire?
+Fastest fix path (if unsure)
+
+Do this again cleanly:
+
+Create new tag → Google tag
+Paste G-JXHPRV5BM8
+Trigger → All Pages
+Save
+Submit → Publish
+Bottom line
+
+Right now:
+
+GTM is installed, but GA4 is not firing
+
+Fix that → your data will appear instantly
+
+If you send me:
+
+your GTM tag list screenshot
+or
+preview mode result
