@@ -4943,12 +4943,14 @@ Rules for content:
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-P7NBRG52');</script>
   <meta name="robots" content="noindex,nofollow">
   <title>Report Unavailable | AnswerMonk</title>
   <meta name="description" content="This AI visibility report does not have sufficient data to display.">
   <style>body{font-family:system-ui,sans-serif;max-width:600px;margin:80px auto;padding:0 24px;color:#374151;}h1{font-size:1.5rem;font-weight:700;color:#111827;}p{color:#6b7280;line-height:1.7;}a{color:#4f46e5;}</style>
 </head>
 <body>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P7NBRG52" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <h1>Report not available for ${brandName}</h1>
   <p>This report does not contain sufficient data to publish. It may have been generated with incomplete information or the analysis did not return results.</p>
   <p><a href="https://answermonk.ai">Run a new AI visibility audit →</a></p>
@@ -5310,6 +5312,13 @@ Website: https://answermonk.ai
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-P7NBRG52');</script>
+  <!-- End Google Tag Manager -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Search Visibility Audit for Brands and Agencies | AnswerMonk</title>
   <meta name="description" content="Measure how your brand appears in ChatGPT, Gemini, Perplexity, and AI search. Benchmark competitors, find citation gaps, and get actions to improve your AI visibility." />
@@ -5322,6 +5331,10 @@ Website: https://answermonk.ai
   <meta property="og:site_name" content="AnswerMonk" />
 </head>
 <body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P7NBRG52"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
   <header><a href="https://answermonk.ai">AnswerMonk — AI Search Visibility Platform</a></header>
   <main>
     <h1>When customers ask AI — are you the answer?</h1>
@@ -5470,6 +5483,13 @@ Website: https://answermonk.ai
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-P7NBRG52');</script>
+  <!-- End Google Tag Manager -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${page.title}</title>
   <meta name="description" content="${escapeHtml(page.description)}" />
@@ -5481,6 +5501,10 @@ Website: https://answermonk.ai
   <meta property="og:site_name" content="AnswerMonk" />
 </head>
 <body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P7NBRG52"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
   <header><a href="https://answermonk.ai">AnswerMonk — AI Search Visibility Platform</a></header>
   <main>
     <h1>${page.h1}</h1>
