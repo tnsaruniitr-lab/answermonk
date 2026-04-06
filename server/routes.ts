@@ -4944,6 +4944,8 @@ Rules for content:
 <head>
   <meta charset="UTF-8">
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-P7NBRG52');</script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JXHPRV5BM8"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JXHPRV5BM8');</script>
   <meta name="robots" content="noindex,nofollow">
   <title>Report Unavailable | AnswerMonk</title>
   <meta name="description" content="This AI visibility report does not have sufficient data to display.">
@@ -5107,6 +5109,10 @@ Rules for content:
   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
   })(window,document,'script','dataLayer','GTM-P7NBRG52');</script>
   <!-- End Google Tag Manager -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JXHPRV5BM8"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JXHPRV5BM8');</script>
+  <!-- End Google tag -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${pageTitle}</title>
   <meta name="description" content="${escapeHtml(description)}" />
@@ -5319,6 +5325,10 @@ Website: https://answermonk.ai
   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
   })(window,document,'script','dataLayer','GTM-P7NBRG52');</script>
   <!-- End Google Tag Manager -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JXHPRV5BM8"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JXHPRV5BM8');</script>
+  <!-- End Google tag -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Search Visibility Audit for Brands and Agencies | AnswerMonk</title>
   <meta name="description" content="Measure how your brand appears in ChatGPT, Gemini, Perplexity, and AI search. Benchmark competitors, find citation gaps, and get actions to improve your AI visibility." />
@@ -5490,6 +5500,10 @@ Website: https://answermonk.ai
   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
   })(window,document,'script','dataLayer','GTM-P7NBRG52');</script>
   <!-- End Google Tag Manager -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JXHPRV5BM8"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JXHPRV5BM8');</script>
+  <!-- End Google tag -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${page.title}</title>
   <meta name="description" content="${escapeHtml(page.description)}" />
@@ -5545,6 +5559,10 @@ Website: https://answermonk.ai
   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
   })(window,document,'script','dataLayer','GTM-P7NBRG52');</script>
   <!-- End Google Tag Manager -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JXHPRV5BM8"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JXHPRV5BM8');</script>
+  <!-- End Google tag -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Visibility Reports — Browse All Brands | AnswerMonk</title>
   <meta name="description" content="Browse AI search visibility reports for brands across categories and markets. Each report shows share-of-voice, competitor rankings, and citation sources across ChatGPT, Claude, and Gemini." />
