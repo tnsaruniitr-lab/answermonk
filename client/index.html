@@ -42,15 +42,24 @@
     <meta name="twitter:card"        content="summary_large_image" />
     <meta name="twitter:title"       content="AI Search Visibility Audit for Brands and Agencies | AnswerMonk" />
     <meta name="twitter:description" content="Measure how your brand appears in ChatGPT, Gemini, and AI search. Free audit — enter your domain to start." />
+    <meta name="twitter:image"       content="https://answermonk.ai/og-default.svg" />
 
     <!-- Organization schema -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "Organization",
+      "@id": "https://answermonk.ai/#organization",
       "name": "AnswerMonk",
       "url": "https://answermonk.ai",
-      "description": "AnswerMonk is an AI search visibility platform that helps brands and agencies measure and improve how they appear in ChatGPT, Gemini, Claude, and Perplexity responses."
+      "description": "AnswerMonk is an AI search visibility platform that helps brands and agencies measure and improve how they appear in ChatGPT, Gemini, Claude, and Perplexity responses.",
+      "logo": {
+        "@type": "ImageObject",
+        "@id": "https://answermonk.ai/#logo",
+        "url": "https://answermonk.ai/favicon.png",
+        "width": 512,
+        "height": 512
+      }
     }
     </script>
 
@@ -59,9 +68,11 @@
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
+      "@id": "https://answermonk.ai/#website",
       "name": "AnswerMonk",
       "url": "https://answermonk.ai",
       "description": "AI search visibility audits for brands and agencies. Track and improve your brand's presence in ChatGPT, Gemini, Claude, and Perplexity.",
+      "publisher": { "@id": "https://answermonk.ai/#organization" },
       "potentialAction": {
         "@type": "SearchAction",
         "target": "https://answermonk.ai/start",
@@ -75,10 +86,12 @@
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
+      "@id": "https://answermonk.ai/#app",
       "name": "AnswerMonk",
       "applicationCategory": "BusinessApplication",
       "operatingSystem": "Web",
       "url": "https://answermonk.ai",
+      "publisher": { "@id": "https://answermonk.ai/#organization" },
       "description": "AnswerMonk audits your brand's visibility in AI search — running your category's buyer prompts across ChatGPT, Gemini, Claude, and Perplexity to produce a share-of-voice score, competitor leaderboard, and citation source breakdown.",
       "featureList": [
         "Prompt Network Creator (PNC) — automatic generation of search prompts by service type and customer persona",
