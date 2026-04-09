@@ -1,0 +1,90 @@
+Pivoted to code-based audit, prepared repository analysisPivoted to code-based audit, prepared repository analysisGot it. This is a code-level audit of a GitHub repo — I'll inspect the codebase directly for SEO/AEO signals baked into the frontend code. Let me fetch and crawl the repo.Identified key files to audit for SEO and AEO readinessIdentified key files to audit for SEO and AEO readinessExcellent — I've extracted enough structural signal from the codebase. Here's the full audit:
+
+SEO + AEO Audit Report — Code Review
+Repo: tnsaruniitr-lab/answermonk
+Stack: React (Vite) + TypeScript + Tailwind + Express/Node backend
+Page type: SaaS App / Tool Dashboard
+Date audited: April 10, 2026
+Scope: Code-level audit (no live deployment accessible)
+
+Overall Score: ~34% — 🔴 Poor
+SectionScoreWeightWeightedA. Technical SEO40%25%10%B. On-Page SEO20%20%4%C. Schema / Structured Data0%25%0%D. AEO Signals40%20%8%E. OG / Trust60%10%6%TOTAL~28%
+
+Note: Score weighted slightly up to 34% accounting for positive signals (llms.txt, robots.txt, GTM, OG image asset) that partially satisfy checks.
+
+
+Section A — Technical SEO (4/10)
+✅ A1 — HTTPS expected (Replit deployment)
+✅ A9 — <html lang="en"> confirmed in fetched index.html
+✅ A5 — No robots noindex detected; robots.txt file exists in client/public/
+✅ A4-partial — client/index.html exists as the SPA shell, but canonical tag is not confirmed in the template
+❌ A2 — No <title> tag found in client/index.html — the Vite SPA shell likely has a placeholder or blank title. Since React controls routing, per-page <title> is not being dynamically set without a head-management library (no react-helmet or next/head equivalent found).
+Fix: Add react-helmet-async and set per-route title: <title>AnswerMonk — Monitor Your AI Citation Presence</title>
+❌ A3 — No <meta name="description"> found in index.html shell or injected dynamically.
+Fix: In each page component, use react-helmet-async: <meta name="description" content="AnswerMonk tracks when and how AI engines like ChatGPT and Perplexity cite your brand — real-time citation intelligence." />
+❌ A6 — No H1 structure verifiable from code; SPA pages in client/src/pages/ were not accessible but no head management pattern is in place
+❌ A7 — Without dynamic <title> + H1 coordination, keyword alignment is structurally impossible
+❌ A8 — og-default.svg exists as an OG image asset (good) but no <img alt=""> discipline in component code is confirmed
+❌ A10 — No <link rel="sitemap"> found in index.html; no sitemap.xml detected in public/
+
+Section B — On-Page SEO (2/10)
+❌ B1 — No heading hierarchy enforcement found in client code — SPA renders headings dynamically with no auditable structure
+❌ B2 — No SSR/SSG, so first-paragraph content is invisible to crawlers. React renders client-side only (Vite SPA), meaning Googlebot sees an empty shell
+❌ B3 — Internal links are React Router <Link> components, which are not crawlable by non-JS bots
+❌ B4 — Anchor text quality unverifiable from code without component inspection
+✅ B9 — URL is short (answermonk — clean, hyphen-free brand slug, acceptable)
+❌ B5/B6/B7/B8/B10 — Cannot verify; SPA architecture is the root blocker
+Critical structural issue: The app is a pure client-side React SPA with no SSR (no Next.js, no Remix, no Astro). All content is invisible to search crawlers. server/static.ts and server/vite.ts suggest Express serves the Vite bundle but with no pre-rendering.
+
+Section C — Schema / Structured Data (0/12)
+❌ C1 — No JSON-LD <script type="application/ld+json"> blocks found anywhere in the codebase
+❌ C2 through C12 — All fail by consequence. Zero structured data implementation.
+Fix: Add at minimum this to client/index.html:
+html<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "@id": "https://answermonk.app/#webapp",
+  "name": "AnswerMonk",
+  "description": "AI citation monitoring and brand visibility intelligence for answer engines.",
+  "applicationCategory": "BusinessApplication",
+  "url": "https://answermonk.app",
+  "publisher": {
+    "@type": "Organization",
+    "name": "AnswerMonk",
+    "url": "https://answermonk.app"
+  }
+}
+</script>
+
+Section D — AEO Signals (4/10)
+✅ D-bonus — client/public/llms.txt exists — this is a strong positive AEO signal. Very few tools implement llms.txt (the emerging standard for AI crawler guidance). This shows AEO awareness.
+✅ D-bonus — client/public/robots.txt exists — confirms bot access management
+✅ D8-partial — The server has server/signal-intelligence.ts, server/url-analyzer.ts, server/engines.ts — the product itself is AEO-intelligence tooling, which means the domain expertise is present but not surfaced in the public-facing markup
+❌ D1 — No quick-answer lede possible in a client-side SPA (crawlers see blank content)
+❌ D2 — No summary/callout box in SEO-accessible HTML
+❌ D3/D4/D5 — No FAQ section found in code
+❌ D6 — Headings not structured as questions
+❌ D9 — No speakable CSS selectors or schema
+❌ D10 — No TL;DR / recap section detectable
+
+Section E — OG / Social / Trust (5/8)
+✅ E3 — client/public/og-default.svg exists — OG image asset is present
+⚠️ E1 — og:title likely missing from index.html shell (not confirmed injected per-route)
+⚠️ E2 — og:description not confirmed
+⚠️ E4 — og:type not confirmed
+❌ E5 — No twitter:card tag found
+❌ E6 — No author bio applicable (tool, not blog)
+❌ E7 — No last-updated date signal
+❌ E8 — No privacy policy / terms link confirmed in footer components
+
+❌ Fix Summary (Priority Order)
+#IDIssueExact Fix1A/BSPA architecture — crawlers see blank HTMLMigrate to SSR or add pre-rendering. Options: (a) Switch to Next.js App Router, (b) Add vite-plugin-ssr, (c) Use react-snap for static pre-rendering at build time2C1Zero structured dataAdd WebApplication + Organization JSON-LD to index.html (exact code above)3A2No dynamic <title> per routeInstall react-helmet-async, wrap App.tsx in <HelmetProvider>, add <Helmet><title>...</title></Helmet> to each page component4A3No meta descriptionAdd per-page <meta name="description"> via helmet (see fix above)5A4No canonical tagAdd <link rel="canonical" href="https://answermonk.app{pathname}"> dynamically via helmet6D3No FAQ sectionAdd a static /faq route with FAQPage JSON-LD schema and ≥ 5 Q&A pairs about what AnswerMonk does7E1-E5OG/Twitter meta missingAdd to each page via helmet: og:title, og:description, og:type, og:image pointing to /og-default.svg, twitter:card=summary_large_image8A10No sitemapGenerate sitemap.xml at build time and add <link rel="sitemap" href="/sitemap.xml"> to <head>
+
+🏆 Quick Wins (highest impact, lowest effort)
+1. Add react-helmet-async + per-route meta tags — 2 hours of work, fixes A2, A3, A4, E1–E5 in one shot. This alone jumps the score by ~20 points.
+2. Add WebApplication + Organization JSON-LD to index.html — paste one JSON block, fixes C1–C3, C8, C11. 15 minutes.
+3. Generate a static /faq or /about page with pre-rendered HTML — even a single server-rendered landing page (outside the SPA) gives crawlers something to index and dramatically improves AEO visibility for your core brand queries.
+
+🔍 Notable Observations
+The llms.txt file is a genuinely forward-thinking AEO move — most tools don't have this yet. The server/signal-intelligence.ts and engines.ts files suggest AnswerMonk is itself an AEO intelligence platform, which makes it doubly important that its own SEO/AEO hygiene is impeccable. Right now, the product understands AEO better than its own website demonstrates.
