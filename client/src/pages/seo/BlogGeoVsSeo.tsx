@@ -61,10 +61,35 @@ export default function BlogGeoVsSeo() {
     return () => { document.getElementById("blog-geo-vs-seo-schema")?.remove(); };
   }, []);
 
+  const SCHEMA = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "@id": "https://answermonk.ai/blog/geo-vs-seo#article",
+      "headline": "GEO vs SEO: What's the Difference and Why Both Matter",
+      "description": "GEO and SEO target different systems with different signals. Here's how they differ, where they overlap, and what you need to do for both.",
+      "datePublished": "2026-01-01",
+      "dateModified": "2026-04-09",
+      "author": { "@type": "Organization", "name": "AnswerMonk", "url": "https://answermonk.ai" },
+      "publisher": { "@type": "Organization", "name": "AnswerMonk", "url": "https://answermonk.ai" },
+      "mainEntityOfPage": { "@type": "WebPage", "@id": "https://answermonk.ai/blog/geo-vs-seo" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://answermonk.ai" },
+        { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://answermonk.ai/blog" },
+        { "@type": "ListItem", "position": 3, "name": "GEO vs SEO" },
+      ],
+    },
+  ];
   return (
     <SEOLayout
       title="GEO vs SEO: What's the Difference and Why Both Matter | AnswerMonk"
       description="GEO (Generative Engine Optimization) and SEO target different systems with different signals. Here's how they differ, where they overlap, and what you need to do for both."
+      canonical="https://answermonk.ai/blog/geo-vs-seo"
+      schema={SCHEMA}
     >
       <PageHero
         eyebrow="Blog"

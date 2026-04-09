@@ -68,10 +68,34 @@ export default function Methodology() {
     };
   }, []);
 
+  const SCHEMA = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "@id": "https://answermonk.ai/methodology#article",
+      "headline": "How AnswerMonk Measures AI Search Visibility",
+      "description": "Learn exactly how AnswerMonk audits your brand's visibility in ChatGPT, Gemini, Claude, and Perplexity — from prompt generation to share-of-voice scoring.",
+      "datePublished": "2026-01-01",
+      "dateModified": "2026-04-09",
+      "author": { "@type": "Organization", "name": "AnswerMonk", "url": "https://answermonk.ai" },
+      "publisher": { "@type": "Organization", "name": "AnswerMonk", "url": "https://answermonk.ai" },
+      "mainEntityOfPage": { "@type": "WebPage", "@id": "https://answermonk.ai/methodology" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://answermonk.ai" },
+        { "@type": "ListItem", "position": 2, "name": "Methodology" },
+      ],
+    },
+  ];
   return (
     <SEOLayout
       title="How AnswerMonk Measures AI Search Visibility | Methodology"
       description="Learn exactly how AnswerMonk audits your brand's visibility in ChatGPT, Gemini, Claude, and Perplexity — from prompt generation to share-of-voice scoring."
+      canonical="https://answermonk.ai/methodology"
+      schema={SCHEMA}
     >
       <PageHero
         eyebrow="Methodology"

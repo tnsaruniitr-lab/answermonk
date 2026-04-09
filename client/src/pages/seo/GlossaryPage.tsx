@@ -313,8 +313,32 @@ const CONFIG: Record<string, {
 
 export default function GlossaryPage({ term }: { term: string }) {
   const cfg = CONFIG[term] || CONFIG["ai-search-visibility"];
+  const canonical = `https://answermonk.ai/glossary/${term}`;
+  const schema = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "@id": `${canonical}#article`,
+      "headline": cfg.headline,
+      "description": cfg.description,
+      "datePublished": "2026-01-01",
+      "dateModified": "2026-04-09",
+      "author": { "@type": "Organization", "name": "AnswerMonk", "url": "https://answermonk.ai" },
+      "publisher": { "@type": "Organization", "name": "AnswerMonk", "url": "https://answermonk.ai" },
+      "mainEntityOfPage": { "@type": "WebPage", "@id": canonical },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://answermonk.ai" },
+        { "@type": "ListItem", "position": 2, "name": "Glossary", "item": "https://answermonk.ai/glossary/generative-engine-optimization" },
+        { "@type": "ListItem", "position": 3, "name": cfg.term },
+      ],
+    },
+  ];
   return (
-    <SEOLayout title={cfg.title} description={cfg.description}>
+    <SEOLayout title={cfg.title} description={cfg.description} canonical={canonical} schema={schema}>
       <div style={{ marginBottom: 8, fontSize: 12, color: "#9ca3af", lineHeight: 1.8, flexWrap: "wrap" }}>
         <Link href="/glossary/ai-search-visibility"><span style={{ cursor: "pointer", color: "#7c3aed" }}>AI Search Visibility</span></Link>
         {" · "}

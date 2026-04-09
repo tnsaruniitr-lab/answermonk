@@ -64,10 +64,35 @@ export default function BlogTrafficFromChatgpt() {
     return () => { document.getElementById("blog-chatgpt-traffic-schema")?.remove(); };
   }, []);
 
+  const ARTICLE_SCHEMA = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "@id": "https://answermonk.ai/blog/how-to-get-traffic-from-chatgpt#article",
+      "headline": "How to Get Traffic from ChatGPT",
+      "description": "ChatGPT is sending buyers to websites it recommends. Here's exactly how to make your brand one of them.",
+      "datePublished": "2026-01-01",
+      "dateModified": "2026-04-09",
+      "author": { "@type": "Organization", "name": "AnswerMonk", "url": "https://answermonk.ai" },
+      "publisher": { "@type": "Organization", "name": "AnswerMonk", "url": "https://answermonk.ai" },
+      "mainEntityOfPage": { "@type": "WebPage", "@id": "https://answermonk.ai/blog/how-to-get-traffic-from-chatgpt" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://answermonk.ai" },
+        { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://answermonk.ai/blog" },
+        { "@type": "ListItem", "position": 3, "name": "How to Get Traffic from ChatGPT" },
+      ],
+    },
+  ];
   return (
     <SEOLayout
       title="How to Get Traffic from ChatGPT | AnswerMonk"
       description="ChatGPT is sending buyers to websites it recommends. Here's exactly how to make your brand one of them — from citation sources to entity signals."
+      canonical="https://answermonk.ai/blog/how-to-get-traffic-from-chatgpt"
+      schema={ARTICLE_SCHEMA}
     >
       <PageHero
         eyebrow="Blog"

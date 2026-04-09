@@ -2,25 +2,92 @@ import { useEffect } from "react";
 import { Link } from "wouter";
 import { MonkWordmark } from "@/components/MonkWordmark";
 
+interface SchemaBlock {
+  [key: string]: unknown;
+}
+
 interface SEOLayoutProps {
   title: string;
   description: string;
   children: React.ReactNode;
   canonical?: string;
+  ogImage?: string;
+  schema?: SchemaBlock | SchemaBlock[];
 }
 
-export function SEOLayout({ title, description, children, canonical }: SEOLayoutProps) {
+const BASE = "https://answermonk.ai";
+const DEFAULT_OG_IMAGE = `${BASE}/og-default.svg`;
+
+export function SEOLayout({ title, description, children, canonical, ogImage, schema }: SEOLayoutProps) {
   useEffect(() => {
-    const prev = document.title;
+    const prevTitle = document.title;
     document.title = title;
+
     const metaDesc = document.querySelector('meta[name="description"]');
     const prevDesc = metaDesc?.getAttribute("content") || "";
     if (metaDesc) metaDesc.setAttribute("content", description);
+
+    const resolvedCanonical = canonical ?? (BASE + window.location.pathname.replace(/\/$/, "") || "/");
+    let canonicalEl = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    const prevCanonical = canonicalEl?.getAttribute("href") || "";
+    if (canonicalEl) {
+      canonicalEl.setAttribute("href", resolvedCanonical);
+    } else {
+      canonicalEl = document.createElement("link");
+      canonicalEl.rel = "canonical";
+      canonicalEl.href = resolvedCanonical;
+      document.head.appendChild(canonicalEl);
+    }
+
+    const resolvedOgImage = ogImage ?? DEFAULT_OG_IMAGE;
+    let ogImgEl = document.querySelector('meta[property="og:image"]') as HTMLMetaElement | null;
+    const prevOgImg = ogImgEl?.getAttribute("content") || "";
+    if (ogImgEl) {
+      ogImgEl.setAttribute("content", resolvedOgImage);
+    } else {
+      ogImgEl = document.createElement("meta");
+      ogImgEl.setAttribute("property", "og:image");
+      ogImgEl.setAttribute("content", resolvedOgImage);
+      document.head.appendChild(ogImgEl);
+    }
+
+    let ogUrlEl = document.querySelector('meta[property="og:url"]') as HTMLMetaElement | null;
+    const prevOgUrl = ogUrlEl?.getAttribute("content") || "";
+    if (ogUrlEl) {
+      ogUrlEl.setAttribute("content", resolvedCanonical);
+    }
+
+    let ogTitleEl = document.querySelector('meta[property="og:title"]') as HTMLMetaElement | null;
+    const prevOgTitle = ogTitleEl?.getAttribute("content") || "";
+    if (ogTitleEl) ogTitleEl.setAttribute("content", title);
+
+    let ogDescEl = document.querySelector('meta[property="og:description"]') as HTMLMetaElement | null;
+    const prevOgDesc = ogDescEl?.getAttribute("content") || "";
+    if (ogDescEl) ogDescEl.setAttribute("content", description);
+
+    const injectedSchemas: HTMLScriptElement[] = [];
+    if (schema) {
+      const blocks = Array.isArray(schema) ? schema : [schema];
+      blocks.forEach((block) => {
+        const el = document.createElement("script");
+        el.type = "application/ld+json";
+        el.textContent = JSON.stringify(block);
+        document.head.appendChild(el);
+        injectedSchemas.push(el);
+      });
+    }
+
     return () => {
-      document.title = prev;
+      document.title = prevTitle;
       if (metaDesc) metaDesc.setAttribute("content", prevDesc);
+      if (canonicalEl) canonicalEl.setAttribute("href", prevCanonical);
+      if (ogImgEl) ogImgEl.setAttribute("content", prevOgImg);
+      if (ogUrlEl) ogUrlEl.setAttribute("content", prevOgUrl);
+      if (ogTitleEl) ogTitleEl.setAttribute("content", prevOgTitle);
+      if (ogDescEl) ogDescEl.setAttribute("content", prevOgDesc);
+      injectedSchemas.forEach((el) => el.remove());
     };
-  }, [title, description]);
+  }, [title, description, canonical, ogImage, schema]);
 
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)", fontFamily: "system-ui, -apple-system, sans-serif" }}>

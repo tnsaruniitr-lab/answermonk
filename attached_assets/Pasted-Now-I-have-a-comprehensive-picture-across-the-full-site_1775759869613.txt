@@ -1,0 +1,97 @@
+Now I have a comprehensive picture across the full site. Let me compile the extended findings.
+
+📋 Extended Audit — Inner Pages & Site-Wide Infrastructure
+This continues the homepage audit with findings from robots.txt, the sitemap, /methodology, /glossary/generative-engine-optimization, and /how-ai-search-works.
+
+✅ MAJOR WIN — robots.txt is Exceptional
+The robots.txt explicitly allows every major AI crawler by name:
+User-agent: GPTBot          Allow: /
+User-agent: ChatGPT-User    Allow: /
+User-agent: ClaudeBot       Allow: /
+User-agent: Claude-Web      Allow: /
+User-agent: anthropic-ai    Allow: /
+User-agent: PerplexityBot   Allow: /
+User-agent: Google-Extended Allow: /
+Sitemap: https://answermonk.ai/sitemap.xml
+This is best-practice AEO hygiene and puts AnswerMonk ahead of 90% of sites in this space. Keep it exactly as-is.
+
+✅ MAJOR WIN — Sitemap Architecture is Well-Structured
+Six sub-sitemaps via a sitemap index: query-pages, brands, hubs, comparisons, content-pages, reports. All dated 2026-04-09. This is a sophisticated, scalable structure. No issues.
+
+🚨 CRITICAL SITE-WIDE BUG — All Inner Page Canonicals Point to Homepage
+This is the highest-priority finding in the entire audit.
+Every content page tested has its canonical set to https://answermonk.ai/ (the homepage):
+PageCanonical found/glossary/generative-engine-optimizationhttps://answermonk.ai/ ❌/how-ai-search-workshttps://answermonk.ai/ ❌/methodologyhttps://answermonk.ai/methodology ✅
+What this means: Google and Bing see the canonical as an instruction — "the definitive version of this content lives at the homepage, not here." Every page with a wrong canonical is effectively telling crawlers not to index it. You've built a glossary, educational hub, use-case pages, comparison pages — and the canonical bug is silently erasing all of them from search engines.
+Fix: Ensure every page's canonical matches its own URL. In Next.js/React this is typically set via:
+jsx// Per-page, not site-wide in _app.js
+<link rel="canonical" href="https://answermonk.ai/glossary/generative-engine-optimization" />
+Audit every URL in your content-pages sitemap. The methodology page is correct — use it as the reference implementation.
+
+Inner Page Audits
+/methodology
+CheckResultTitle❌ "Methodology | AnswerMonk" — 24 chars, far too short. Keyword-free.Meta description⚠️ Present but generic: "Methodology — how AnswerMonk measures AI search visibility and produces rankings." No keyword variation.Word count❌ Only 246 words — dangerously thin for a page that should be a trust-builderJSON-LD❌ Zero schema blocks on this pageBreadcrumb⚠️ Present in HTML but path is wrong: Home → Directory → Methodology — Methodology is not a directory childInternal links✅ 5 internal linksog:image❌ Missing
+Fixes:
+
+Title: "How AnswerMonk Measures AI Search Visibility — Full Methodology" (61 chars — just trim to 59: "How AnswerMonk Measures AI Search Visibility | Methodology")
+Add Article or WebPage schema with datePublished, author, and description
+Expand page to ≥ 800 words — explain exactly how prompts are generated, how scoring works, how engines are queried. This page is a trust signal for enterprise buyers; 246 words is not enough.
+Fix breadcrumb to: Home → Methodology
+
+
+/glossary/generative-engine-optimization
+CheckResultTitle✅ "What is Generative Engine Optimization (GEO)? | AnswerMonk" — 58 chars, question-format, keyword-richMeta description✅ Present, clear, keyword-anchoredH1✅ Matches title format — "What is Generative Engine Optimization (GEO)?"H2 structure✅ Logical: Definition → Why GEO emerged → What GEO involves → GEO vs SEO → MeasuringCanonical❌ CRITICAL: Points to homepage (see above)Word count❌ Only 506 words — glossary terms should be ≥ 800 words to compete for featured snippetsArticle schema❌ No Article or DefinedTerm schema — only the site-wide Organization/WebSite/SoftwareApplication setBreadcrumbList schema❌ MissingBreadcrumb HTML❌ No visible breadcrumb elementog:image❌ MissingExternal links❌ Zero outbound citations — a GEO definition page with no citations to academic papers or primary sourcesspeakable❌ Missing
+Fixes:
+
+Fix canonical to https://answermonk.ai/glossary/generative-engine-optimization
+Add DefinedTerm or Article schema:
+
+json{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "@id": "https://answermonk.ai/glossary/generative-engine-optimization#article",
+  "headline": "What is Generative Engine Optimization (GEO)?",
+  "description": "GEO is the practice of optimizing a brand's presence in AI-generated search results...",
+  "datePublished": "2026-01-01",
+  "dateModified": "2026-04-09",
+  "author": { "@type": "Organization", "name": "AnswerMonk" },
+  "publisher": { "@type": "Organization", "name": "AnswerMonk", "url": "https://answermonk.ai" }
+}
+
+Add BreadcrumbList schema:
+
+json{
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://answermonk.ai" },
+    { "@type": "ListItem", "position": 2, "name": "Glossary", "item": "https://answermonk.ai/glossary" },
+    { "@type": "ListItem", "position": 3, "name": "Generative Engine Optimization" }
+  ]
+}
+
+Expand to ≥ 800 words. Add: examples of GEO in practice, a comparison table (GEO vs SEO vs AEO), and a "How to measure GEO" section.
+Add 2–3 external citations (research papers, Google's SGE documentation, industry reports).
+
+
+/how-ai-search-works
+CheckResultTitle❌ 72 chars — 12 over the 60-char limitH1✅ Phrased as a direct answer: "How AI search works — and why it matters for brands"H2s✅ Logical hierarchy, topically structuredCanonical❌ CRITICAL: Points to homepageWord count✅ 767 words — acceptable but could be richer (target: 1,000+)Article schema❌ MissingBreadcrumb❌ Missingog:image❌ Missing
+Fix title: "How AI Search Works: ChatGPT, Gemini & Perplexity | AnswerMonk" (62 chars — trim one word to hit ≤60: "How AI Search Works: ChatGPT, Gemini, Perplexity | AnswerMonk" is 63... try: "How AI Search Works for Brands | AnswerMonk" = 44 chars ✅)
+
+Updated Revised Scorecard
+Now that robots.txt/sitemap data is in:
+CheckHomepageMethodologyGlossaryHow AI Search WorksHTTPS✅✅✅✅Title length❌ 63❌ 24✅ 58❌ 72Meta description✅⚠️✅✅Canonical correct✅✅❌ BROKEN❌ BROKENArticle/Page schemaN/A❌❌❌BreadcrumbList schemaN/A❌❌❌og:image❌❌❌❌Word count (≥800)✅ 851❌ 246❌ 506⚠️ 767External citations❌❌❌❌speakable❌❌❌❌
+
+🔴 Revised Priority Fix List (Full Site)
+PriorityIDIssueImpact🔴 P0CANONICALAll inner pages canonicalise to homepageCritical — every content page is de-indexed🔴 P0OG:IMAGENo og:image site-wideZero social preview on every share🔴 P1ARTICLE-SCHEMANo Article schema on any content pageBlocks rich results for all educational content🔴 P1BREADCRUMBNo BreadcrumbList schema on inner pagesMissing sitelink structure in SERPs🟠 P2THIN-CONTENTMethodology page only 246 wordsTrust killer for enterprise buyers🟠 P2TITLE-FIX3 of 4 pages tested have title issuesDirect ranking factor🟠 P2EXTERNAL-LINKSZero external citations site-wideReduces E-E-A-T signals🟡 P3SPEAKABLEMissing on all pagesAEO voice/AI citation signal🟡 P3FOOTER-LEGALNo Privacy/Terms linksCompliance + trust🟡 P3H1-HOMEPAGEH1 is tagline, not keywordOn-page keyword anchor🟡 P3INTERNAL-LINKSHomepage only has 2 internal linksPage authority distribution
+
+What AnswerMonk Does Well (Keep These)
+
+robots.txt AI crawler allowlist — genuinely best-in-class, don't touch it
+Sitemap index architecture — clean, scalable, up-to-date
+FAQPage schema on homepage — good for AI engine parsing
+twitter:card = summary_large_image — ready to activate the moment og:image is added
+H1 on glossary/education pages — question-format, AEO-aligned
+Heading structure on content pages — logical H1 → H2 flow
+Brand names explicitly stated (ChatGPT, Gemini, Perplexity, Claude) throughout — great named entity signal for AI citation
+
+The irony here is stark: a platform selling AI search visibility has a canonical bug that's hiding all its own content from Google, no og:image so its shared links show blank previews, and zero external citations so its glossary pages look authoritative to no one. The good news — the underlying content architecture (sitemap structure, robots.txt, FAQ schema, question-H1 patterns) is solid. Fix the canonical tags first. Everything else is formatting.

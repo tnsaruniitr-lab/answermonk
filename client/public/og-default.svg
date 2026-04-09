@@ -1,0 +1,19 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3730a3"/>
+      <stop offset="50%" style="stop-color:#4f46e5"/>
+      <stop offset="100%" style="stop-color:#6d28d9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="60" y="60" width="1080" height="510" rx="24" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <text x="100" y="200" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="72" font-weight="800" fill="#ffffff" letter-spacing="-2">AnswerMonk</text>
+  <text x="100" y="268" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="28" font-weight="400" fill="rgba(255,255,255,0.72)">AI Search Visibility Platform</text>
+  <line x1="100" y1="308" x2="520" y2="308" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+  <text x="100" y="380" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="38" font-weight="600" fill="#ffffff">When customers ask AI —</text>
+  <text x="100" y="430" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="38" font-weight="600" fill="rgba(255,255,255,0.88)">are you the answer?</text>
+  <rect x="100" y="490" width="228" height="52" rx="10" fill="#ffffff"/>
+  <text x="214" y="522" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="18" font-weight="700" fill="#4f46e5" text-anchor="middle">Run free audit →</text>
+  <text x="1100" y="540" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="18" font-weight="500" fill="rgba(255,255,255,0.45)" text-anchor="end">answermonk.ai</text>
+</svg>

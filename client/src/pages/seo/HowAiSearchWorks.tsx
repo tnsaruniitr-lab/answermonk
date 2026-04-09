@@ -1,11 +1,37 @@
 import { SEOLayout, PageHero, Section, ProseP, ProseList, CTABox } from "./SEOLayout";
 import { Link } from "wouter";
 
+const CANONICAL = "https://answermonk.ai/how-ai-search-works";
+const SCHEMA = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": `${CANONICAL}#article`,
+    "headline": "How AI Search Works — ChatGPT, Gemini, Perplexity Explained",
+    "description": "Understand how AI search engines like ChatGPT, Gemini, Claude, and Perplexity generate answers and why some brands get recommended while others don't.",
+    "datePublished": "2026-01-01",
+    "dateModified": "2026-04-09",
+    "author": { "@type": "Organization", "name": "AnswerMonk", "url": "https://answermonk.ai" },
+    "publisher": { "@type": "Organization", "name": "AnswerMonk", "url": "https://answermonk.ai" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": CANONICAL },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://answermonk.ai" },
+      { "@type": "ListItem", "position": 2, "name": "How AI Search Works" },
+    ],
+  },
+];
+
 export default function HowAiSearchWorks() {
   return (
     <SEOLayout
-      title="How AI Search Works — ChatGPT, Gemini, Perplexity Explained | AnswerMonk"
+      title="How AI Search Works for Brands | AnswerMonk"
       description="Understand how AI search engines like ChatGPT, Gemini, Claude, and Perplexity generate answers and why some brands get recommended while others don't."
+      canonical={CANONICAL}
+      schema={SCHEMA}
     >
       <PageHero
         eyebrow="Education"

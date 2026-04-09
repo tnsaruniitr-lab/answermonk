@@ -64,10 +64,35 @@ export default function BlogLlmOrganicTraffic() {
     return () => { document.getElementById("blog-llm-traffic-schema")?.remove(); };
   }, []);
 
+  const ARTICLE_SCHEMA = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "@id": "https://answermonk.ai/blog/increase-organic-traffic-from-llms#article",
+      "headline": "How to Increase Organic Traffic from LLMs",
+      "description": "LLMs are becoming a significant source of referral traffic. Learn how to earn and grow organic traffic from ChatGPT, Claude, Gemini, and Perplexity.",
+      "datePublished": "2026-01-01",
+      "dateModified": "2026-04-09",
+      "author": { "@type": "Organization", "name": "AnswerMonk", "url": "https://answermonk.ai" },
+      "publisher": { "@type": "Organization", "name": "AnswerMonk", "url": "https://answermonk.ai" },
+      "mainEntityOfPage": { "@type": "WebPage", "@id": "https://answermonk.ai/blog/increase-organic-traffic-from-llms" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://answermonk.ai" },
+        { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://answermonk.ai/blog" },
+        { "@type": "ListItem", "position": 3, "name": "Increase Organic Traffic from LLMs" },
+      ],
+    },
+  ];
   return (
     <SEOLayout
       title="How to Increase Organic Traffic from LLMs (ChatGPT, Claude, Gemini) | AnswerMonk"
       description="LLMs are becoming a significant source of referral traffic for brands they recommend. Learn how to earn and grow organic traffic from ChatGPT, Claude, Gemini, and Perplexity."
+      canonical="https://answermonk.ai/blog/increase-organic-traffic-from-llms"
+      schema={ARTICLE_SCHEMA}
     >
       <PageHero
         eyebrow="Blog"
