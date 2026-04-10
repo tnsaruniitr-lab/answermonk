@@ -5312,8 +5312,14 @@ Website: https://answermonk.ai
   });
 
   // ── Homepage SSR ────────────────────────────────────────────────────────────
-  app.get("/", (req: Request, res: Response, next: NextFunction) => {
+  app.get("/", async (req: Request, res: Response, next: NextFunction) => {
     if (!isNonBrowserRequest(req)) return next();
+    let auditsCount = 44;
+    try {
+      const { pool } = await import("./db");
+      const result = await pool.query(`SELECT COUNT(*) AS total FROM multi_segment_sessions WHERE parent_session_id IS NULL`);
+      auditsCount = parseInt(result.rows[0]?.total ?? "44", 10);
+    } catch (_) {}
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5348,7 +5354,7 @@ Website: https://answermonk.ai
   <meta name="twitter:image" content="https://answermonk.ai/og-default.svg" />
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://answermonk.ai/#organization","name":"AnswerMonk","url":"https://answermonk.ai","description":"AnswerMonk is an AI search visibility platform that helps brands and agencies measure and improve how they appear in ChatGPT, Gemini, Claude, and Perplexity responses.","logo":{"@type":"ImageObject","@id":"https://answermonk.ai/#logo","url":"https://answermonk.ai/favicon.png","width":512,"height":512}}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","@id":"https://answermonk.ai/#website","name":"AnswerMonk","url":"https://answermonk.ai","description":"AI search visibility audits for brands and agencies. Track and improve your brand's presence in ChatGPT, Gemini, Claude, and Perplexity.","publisher":{"@id":"https://answermonk.ai/#organization"},"potentialAction":{"@type":"SearchAction","target":"https://answermonk.ai/start","query-input":"required name=search_term_string"}}</script>
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","@id":"https://answermonk.ai/#app","name":"AnswerMonk","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://answermonk.ai","publisher":{"@id":"https://answermonk.ai/#organization"},"description":"AnswerMonk audits your brand's visibility in AI search — running your category's buyer prompts across ChatGPT, Gemini, Claude, and Perplexity to produce a share-of-voice score, competitor leaderboard, and citation source breakdown.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Free website analysis — enter a domain to receive a Prompt Network report"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","@id":"https://answermonk.ai/#app","name":"AnswerMonk","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://answermonk.ai","publisher":{"@id":"https://answermonk.ai/#organization"},"description":"AnswerMonk audits your brand's visibility in AI search — running your category's buyer prompts across ChatGPT, Gemini, Claude, and Perplexity to produce a share-of-voice score, competitor leaderboard, and citation source breakdown.","datePublished":"2024-01-01","dateModified":"2026-04-10","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Free website analysis — enter a domain to receive a Prompt Network report"}}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is GEO (Generative Engine Optimization)?","acceptedAnswer":{"@type":"Answer","text":"GEO is the practice of optimizing a brand's presence in AI-generated search results from engines like ChatGPT, Claude, Gemini, and Perplexity. Unlike traditional SEO which targets ranked URL lists, GEO focuses on how often and how prominently a brand is mentioned within AI-generated answers."}},{"@type":"Question","name":"Which AI engines does AnswerMonk analyze?","acceptedAnswer":{"@type":"Answer","text":"AnswerMonk analyzes brand visibility across ChatGPT (OpenAI), Claude (Anthropic), Gemini (Google), and Perplexity. Each engine is weighted in the share-of-voice score: ChatGPT 35%, Gemini 35%, Claude 20%, Perplexity 10%."}},{"@type":"Question","name":"What is a share-of-voice score in AI search?","acceptedAnswer":{"@type":"Answer","text":"Share of voice in AI search measures how often your brand appears in AI engine responses relative to competitors, weighted by rank position and engine importance. A score of 100 means your brand is the top-cited answer across all tested prompts and engines."}},{"@type":"Question","name":"How long does a GEO analysis take?","acceptedAnswer":{"@type":"Answer","text":"A full GEO analysis typically completes in 3 to 8 minutes depending on the number of service segments and AI engine response times."}}]}</script>
 </head>
 <body>
@@ -5358,7 +5364,7 @@ Website: https://answermonk.ai
   <!-- End Google Tag Manager (noscript) -->
   <header><a href="https://answermonk.ai">AnswerMonk — AI Search Visibility Platform</a></header>
   <main>
-    <h1>When customers ask AI — are you the answer?</h1>
+    <h1>AnswerMonk — AI Search Visibility Audit for Brands and Agencies</h1>
     <p>AnswerMonk is a GEO (Generative Engine Optimization) intelligence platform that measures how often your brand appears in AI-generated answers from ChatGPT, Gemini, Claude, and Perplexity. Enter your website URL to run a free AI visibility audit.</p>
 
     <h2>What AnswerMonk measures</h2>
@@ -5386,7 +5392,35 @@ Website: https://answermonk.ai
     </ul>
 
     <h2>Who uses AnswerMonk</h2>
-    <p>Brands, marketing agencies, and B2B SaaS companies that want to understand and improve how AI search engines recommend them to potential buyers. Particularly useful for categories where buyers use ChatGPT, Gemini, or Perplexity to discover and compare services.</p>
+    <p>Brands, marketing agencies, and B2B SaaS companies that want to understand and improve how AI search engines recommend them to potential buyers. Particularly useful for categories where buyers use ChatGPT, Gemini, or Perplexity to discover and compare services. Over ${auditsCount}+ AI visibility audits have been completed on the platform. <strong>Last updated: April 10, 2026.</strong></p>
+
+    <h2>Frequently asked questions</h2>
+    <dl>
+      <dt>What is AnswerMonk?</dt>
+      <dd>AnswerMonk is a GEO intelligence platform that measures and improves how brands appear in AI-generated answers from ChatGPT, Gemini, Claude, and Perplexity. It runs your category's buyer prompts across AI engines and returns an AI share-of-voice score, competitor leaderboard, and citation source breakdown.</dd>
+      <dt>What is GEO (Generative Engine Optimization)?</dt>
+      <dd>GEO is the practice of optimizing a brand's visibility in AI-generated search results. Unlike traditional SEO which targets ranked URL lists, GEO focuses on how often and how prominently a brand appears within AI-generated answers. As AI search handles an increasing share of discovery queries, GEO has become essential for brand visibility.</dd>
+      <dt>Which AI engines does AnswerMonk analyze?</dt>
+      <dd>AnswerMonk analyzes ChatGPT (OpenAI), Gemini (Google), Claude (Anthropic), and Perplexity. Engine weights in the share-of-voice score: ChatGPT 35%, Gemini 35%, Claude 20%, Perplexity 10%.</dd>
+      <dt>What is AI share-of-voice?</dt>
+      <dd>AI share-of-voice measures how often your brand appears in AI engine responses for category queries relative to competitors. A score of 100 means your brand is the top-cited answer across all tested prompts and all engines. A score of 0 means AI engines never mention your brand in your category.</dd>
+      <dt>How long does a GEO audit take?</dt>
+      <dd>A full GEO audit typically completes in 3 to 8 minutes depending on the number of service segments detected and AI engine response times.</dd>
+      <dt>How is AnswerMonk different from Otterly, Peec AI, or other GEO tools?</dt>
+      <dd>AnswerMonk uses an audit-first methodology — it crawls your site, generates your specific prompt network, and produces a prioritized action report rather than a monitoring dashboard. The focus is on diagnosing why AI engines are not mentioning your brand and which citation sources to target to fix it.</dd>
+      <dt>Is the AI visibility audit free?</dt>
+      <dd>Yes. The initial AI visibility audit is free — enter your domain to receive a full report including share-of-voice score, competitor rankings, and top citation sources in your category.</dd>
+      <dt>What are citation sources in AI search?</dt>
+      <dd>Citation sources are the third-party websites — review platforms, directories, industry publications — that AI engines reference when forming recommendations. Appearing on G2, Capterra, or industry publications significantly increases the likelihood of being cited by ChatGPT, Gemini, or Perplexity.</dd>
+    </dl>
+
+    <h2>Further reading on AI search and GEO</h2>
+    <ul>
+      <li><a href="https://searchengineland.com/what-is-geo-generative-engine-optimization-437436" rel="noopener noreferrer">What is Generative Engine Optimization? — Search Engine Land</a></li>
+      <li><a href="https://arxiv.org/abs/2311.09735" rel="noopener noreferrer">GEO: Generative Engine Optimization — Princeton / IIT Delhi research paper (arXiv)</a></li>
+      <li><a href="https://blog.google/products/search/generative-ai-search/" rel="noopener noreferrer">Generative AI in Google Search — Google Blog</a></li>
+      <li><a href="https://www.brightedge.com/resources/research-reports" rel="noopener noreferrer">AI Search Impact Research — BrightEdge</a></li>
+    </ul>
 
     <p><a href="https://answermonk.ai">Run your free AI visibility audit at answermonk.ai</a></p>
     <p><a href="https://answermonk.ai/reports">Browse published AI visibility reports</a></p>
