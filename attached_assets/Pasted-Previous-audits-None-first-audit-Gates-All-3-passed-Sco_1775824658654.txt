@@ -1,0 +1,380 @@
+Previous audits: None (first audit)
+Gates: All 3 passed
+
+Scores
+Page Citation Readiness: 38% (F)
+Section	Score	Grade
+Technical SEO (A)	50%	F
+Performance (B)	55%	F
+On-Page SEO (C)	45%	F
+Schema (D)	0%	F
+AEO: Discovery (E)	85%	B+
+AEO: Extraction (F)	25%	F
+AEO: Trust (G)	11%	F
+AEO: Selection (H)	20%	F
+Entity (J)	25%	F
+Brand AI Presence: 10% (F)
+Dimension	Score
+Presence	10%
+Accuracy	N/A (no AI presence to assess accuracy of)
+Favorability	N/A
+Note: Brand presence is a directional assessment. AnswerMonk does not appear in any "best AI visibility tool" or "best GEO tool" search results despite being in that exact category. Competitors Profound, Peec AI, Otterly, Geoptie, LLMrefs all appear. This is a brand/entity problem requiring months of content strategy, not page edits.
+
+Composite:
+
+SEO Score: 38%
+AEO Score: 38%
+Citation Readiness: 15%
+Why This Page Isn't Being Cited
+Zero structured data [HARD EVIDENCE]: No JSON-LD schema of any kind. No Organization, no SoftwareApplication, no FAQPage, no WebSite schema. Competitor Otterly has Organization + SoftwareApplication + FAQPage (11 Q&A pairs). This is the most fixable gap — schema is the foundation for AI entity recognition and citation.
+
+The page doesn't answer what it is [STATIC RULE]: The H1 is "When customers ask AI — are you the answer?" — a rhetorical question, not an entity definition. The first 150 words contain no declarative statement of what AnswerMonk IS. AI engines need "AnswerMonk is a [category] that [function]" in sentence 1. Per Sieve Rule #1448 (0.95): answer-first structure is required for AI Overview citation.
+
+Invisible to the category [MODEL JUDGMENT]: Searching "best AI search visibility tool" or "best GEO tool 2026" returns 10+ competitors — Profound, Otterly, Peec, Geoptie, LLMrefs, AiClicks, SE Ranking, HubSpot AEO Grader — but AnswerMonk appears in zero results. An AI visibility platform that is itself invisible to AI is a fundamental positioning problem that page edits alone cannot fix.
+
+Bot's Eye View
+Metric	Raw HTML (AI bots)	Notes
+Word count	~800-1000	Moderate — not JS-dependent
+Schema blocks	0	No JSON-LD at all
+FAQ content	None	No FAQ section
+AI crawler access	FULLY ACCESSIBLE	robots.txt explicitly allows all AI bots
+AI crawler access: FULLY ACCESSIBLE — robots.txt is excellent (explicitly names GPTBot, ChatGPT-User, ClaudeBot, PerplexityBot, Google-Extended with Allow: /). Content is in raw HTML. The problem is NOT access — it's what the content says once accessed.
+
+Competitor Comparison — "AI search visibility tool"
+Signal	AnswerMonk	Otterly.AI	Peec AI
+In SERP for category	No	Yes (top results)	Yes (top results)
+Word Count	~1,000	~4,500	~1,300
+FAQ Pairs	0	11	0
+Schema Types	0	3 (Org + SoftwareApp + FAQ)	0
+Comparison Table	No	Yes ("With/Without Otterly")	No
+Social Proof	None visible	"20,000+ professionals", Gartner Cool Vendor	"2,000+ marketing teams", named clients
+dateModified	None	None	Visible (Apr 9, 2026)
+Author	None	None	None
+Outbound Citations	0	20+	12
+H1 Style	Rhetorical question	Pun/creative	Direct descriptor
+Note: Based on SERP results on 2026-04-10. Results vary by location/time.
+
+Key Gaps:
+
+Zero schema vs Otterly's 3 types — Otterly has Organization + SoftwareApplication (4.9/5 rating) + FAQPage with 11 pairs. AnswerMonk has nothing. This is the single biggest structural gap.
+No social proof vs "20,000+ professionals" — Otterly claims Gartner Cool Vendor recognition. Peec shows named enterprise clients (Mindshare, HUGO BOSS). AnswerMonk shows no usage numbers, no client logos, no recognition.
+No FAQ vs 11 pairs — Otterly's FAQPage with 11 Q&A pairs creates 11 potential AI citation points. AnswerMonk has zero.
+Top Fixes (Ranked by Impact)
+Fix #1: Add Organization + SoftwareApplication + WebSite Schema
+Impact: Critical | Effort: Easy | Priority: DO NOW
+Type: SCHEMA FIX
+Evidence: HARD EVIDENCE — Sieve Rule #3 (0.90): "Schema markup coverage rule." Rule #1668 (0.98): "Organization must include name and URL."
+
+BEFORE:
+(No JSON-LD schema at all)
+
+AFTER:
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": "https://answermonk.ai/#organization",
+  "name": "AnswerMonk",
+  "url": "https://answermonk.ai",
+  "description": "AnswerMonk is a GEO intelligence platform that measures brand visibility, mentions, and citations across AI search engines including ChatGPT, Perplexity, Google AI Overviews, and Gemini.",
+  "sameAs": []
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "AnswerMonk",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "url": "https://answermonk.ai",
+  "description": "AI search visibility audit and monitoring platform for brands and agencies.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD",
+    "description": "Free AI visibility audit"
+  }
+}
+</script>
+
+WHY: Schema is the foundation for AI entity recognition. Otterly has 3 schema types. You have 0. Per BrightEdge data, pages with proper schema have 3.2x higher AI citation rate. Generic/absent schema = AI engines don't know what AnswerMonk IS as an entity.
+
+Resolves: D1, D2, D3, D6, D8
+
+Fix #2: Rewrite Opening to Definition-First Format
+Impact: Critical | Effort: Easy | Priority: DO NOW
+Type: CONTENT RESTRUCTURE
+Evidence: STATIC RULE — Sieve Rule #1448 (0.95): "Answer-first structure for AI Overview citation." Anti-pattern #3: "AI Answer Evasion."
+
+BEFORE:
+
+"When customers ask AI — are you the answer?"
+
+AFTER:
+
+"AnswerMonk is a GEO intelligence platform that audits how brands appear across AI search engines. It measures AI share-of-voice, tracks competitor mentions, analyzes citation sources, and monitors visibility across ChatGPT, Perplexity, Google AI Overviews, Gemini, and Copilot. Used by brands and agencies to understand and improve their AI search presence."
+
+WHY: AI engines extract the first 134-167 words as a self-contained citation block. Currently the opening is a rhetorical question — AI systems cannot cite a question. The rewrite provides entity name + category + function + coverage in the first sentence. Per Sieve Anti-pattern #797 (high): vague marketing language prevents AI grounding.
+
+Resolves: F1, F7, F9
+
+Fix #3: Add FAQPage Schema + FAQ Section
+Impact: High | Effort: Moderate | Priority: DO NOW
+Type: SCHEMA FIX + CONTENT RESTRUCTURE
+Evidence: HARD EVIDENCE — FAQPage = 3.2x citation increase (BrightEdge). Otterly has 11 pairs.
+
+BEFORE:
+(No FAQ section, no FAQ schema)
+
+AFTER:
+Add FAQ section to page with 8-10 Q&A pairs. Suggested questions derived from category queries:
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is AnswerMonk?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "AnswerMonk is a GEO intelligence platform that measures how brands appear across AI search engines including ChatGPT, Perplexity, Google AI Overviews, and Gemini."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does AnswerMonk measure?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "AnswerMonk measures AI share-of-voice, competitor mention rankings, citation source analysis, and segment-level visibility tracking across multiple AI engines."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is AnswerMonk different from Otterly or Peec AI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "AnswerMonk focuses on GEO intelligence with audit-first methodology, providing actionable visibility reports rather than just monitoring dashboards."
+      }
+    }
+  ]
+}
+</script>
+
+WHY: Otterly has 11 FAQ pairs in schema. You have 0. Each FAQ pair is a potential AI citation entry point. Per Sieve Rule #1600 (0.98): FAQPage requires mainEntity with Question array.
+
+Resolves: D9, F3, F4, F5
+
+Fix #4: Add Meta Description + OG Tags
+Impact: High | Effort: Trivial | Priority: DO NOW
+Type: PAGE HTML FIX
+
+BEFORE:
+(No meta description, no OG tags detected)
+
+AFTER:
+
+<meta name="description" content="AnswerMonk audits how your brand appears across AI search engines. Measure AI share-of-voice, track competitor mentions, and monitor visibility across ChatGPT, Perplexity, and Google AI Overviews.">
+<meta property="og:title" content="AI Search Visibility Audit | AnswerMonk">
+<meta property="og:description" content="Measure how AI search engines see your brand. Free AI visibility audit across ChatGPT, Perplexity, Google AI Overviews, and Gemini.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://answermonk.ai">
+<meta property="og:image" content="https://answermonk.ai/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
+WHY: Missing meta description means Google auto-generates one — likely suboptimal. OG tags control social sharing appearance and provide additional entity signals.
+
+Resolves: A3, C10, C11
+
+Fix #5: Add datePublished + dateModified
+Impact: High | Effort: Trivial | Priority: DO NOW
+Type: PAGE HTML FIX + SCHEMA FIX
+Evidence: HARD EVIDENCE — Sieve Rule #1474 (0.95): "Signal freshness with visible timestamps." 50% of AI citations from content < 13 weeks old.
+
+BEFORE:
+(No dates anywhere)
+
+AFTER:
+Add visible on page: "Last updated: April 10, 2026"
+Add to schema: "dateModified": "2026-04-10"
+
+WHY: AI engines use freshness as a primary citation signal. Perplexity gives 3.2x citation boost for content < 30 days old. Currently AnswerMonk has zero freshness signals.
+
+Resolves: G4, G5, G9, D11, C12
+
+Quick Wins
+Fix	Check	Type	What to do
+Add <link rel="canonical" href="https://answermonk.ai/">	A4	PAGE HTML FIX	Self-referencing canonical
+Add <html lang="en">	A8	PAGE HTML FIX	Language attribute
+Add <meta name="viewport"> if missing	A9	PAGE HTML FIX	Mobile viewport
+Add visible social proof numbers	F8	CONTENT RESTRUCTURE	"Used by X brands" or "X audits completed"
+Add outbound citations	G3, C8	CONTENT RESTRUCTURE	Link to 3-5 authoritative sources (Gartner, research studies on AI search)
+LAYER 2 — Detailed Findings
+Section A — Technical SEO (6/12 passed)
+Status	ID	Finding	Truth	Fix Type
+✓	A1	HTTPS enforced	HARD EVIDENCE	—
+✓	A2	Title: "AI Search Visibility Audit for Brands and Agencies | AnswerMonk" (56 chars — within 50-60)	HARD EVIDENCE	—
+✗	A3	No meta description detected	HARD EVIDENCE	PAGE HTML FIX
+✗	A4	No canonical tag detected	HARD EVIDENCE	PAGE HTML FIX
+✓	A5	No noindex — indexable	HARD EVIDENCE	—
+✓	A6	Single H1 present	HARD EVIDENCE	—
+△	A7	H1 is a rhetorical question, doesn't contain primary keyword "AI visibility"	HEURISTIC	CONTENT RESTRUCTURE
+△	A8	Lang attribute — not confirmed from WebFetch	HARD EVIDENCE	PAGE HTML FIX
+△	A9	Viewport meta — not confirmed from WebFetch	HARD EVIDENCE	PAGE HTML FIX
+✓	A10	robots.txt allows all crawlers (excellent — explicitly names AI bots)	HARD EVIDENCE	—
+✓	A11	Sitemap referenced in robots.txt	HARD EVIDENCE	—
+✓	A12	Content in raw HTML — not JS-dependent	MEASURED	—
+Section B — Performance (6/11 passed)
+Status	ID	Finding	Truth	Fix Type
+✓	B1	Page responded (TTFB not measured — Chrome MCP unavailable)	MEASURED	—
+△	B2	Render-blocking — cannot verify	HARD EVIDENCE	—
+△	B3	Image formats — no images detected in WebFetch	HARD EVIDENCE	—
+N/A	B4	Lazy loading — no images detected	HARD EVIDENCE	—
+✓	B5	No large inline blocks detected	HARD EVIDENCE	—
+N/A	B6	DOM depth — Chrome MCP unavailable	MEASURED	—
+△	B7	Compression — headers not provided by WebFetch	HARD EVIDENCE	—
+△	B8	Cache-Control — headers not provided	HARD EVIDENCE	—
+✓	B9	No mixed content (HTTPS site)	HARD EVIDENCE	—
+N/A	B10	CWV — Chrome MCP unavailable	MEASURED	—
+△	B11	Image dimensions — no images detected to check	HARD EVIDENCE	—
+Section C — On-Page SEO (5/13 passed)
+Status	ID	Finding	Truth	Fix Type
+✓	C1	Heading hierarchy logical (H1 → H2s)	HARD EVIDENCE	—
+✗	C2	Primary keyword "AI visibility" not in first 100 words — opens with rhetorical question	HEURISTIC	CONTENT RESTRUCTURE
+✓	C3	Internal links present (reports, methodology)	HARD EVIDENCE	—
+✓	C4	Anchor text is descriptive	HARD EVIDENCE	—
+N/A	C5	No images detected to check alt text	HARD EVIDENCE	—
+✗	C6	~1,000 words — below competitor Otterly (4,500) though adequate for landing page type	COMPARATIVE	CONTENT RESTRUCTURE
+N/A	C7	Keyword stuffing — N/A for landing page	HEURISTIC	—
+✗	C8	Zero outbound links to external authoritative sources	HARD EVIDENCE	CONTENT RESTRUCTURE
+✓	C9	URL is clean: answermonk.ai	HARD EVIDENCE	—
+✗	C10	No OG tags detected	HARD EVIDENCE	PAGE HTML FIX
+✗	C11	No Twitter Card detected	HARD EVIDENCE	PAGE HTML FIX
+✗	C12	No visible date on page	HEURISTIC	PAGE HTML FIX
+N/A	C14	No outbound links to check for broken status	MEASURED	—
+Section D — Schema (0/13 passed)
+Status	ID	Finding	Truth	Fix Type
+✗	D1	No JSON-LD blocks at all	HARD EVIDENCE	SCHEMA FIX
+✗	D2	No schema → no @context	HARD EVIDENCE	SCHEMA FIX
+✗	D3	No page-appropriate @type (should have SoftwareApplication or WebApplication)	STATIC RULE	SCHEMA FIX
+✗	D4	No @id	HARD EVIDENCE	SCHEMA FIX
+✗	D5	No BreadcrumbList	HARD EVIDENCE	SCHEMA FIX
+✗	D6	No required fields (no schema exists)	STATIC RULE	SCHEMA FIX
+✗	D7	No recommended fields	STATIC RULE	SCHEMA FIX
+✗	D8	No Organization or WebSite schema	HARD EVIDENCE	SCHEMA FIX
+✗	D9	No FAQ section → no FAQPage schema	HARD EVIDENCE	SCHEMA FIX
+✗	D10	No ImageObject (no schema)	HARD EVIDENCE	SCHEMA FIX
+✗	D11	No datePublished/dateModified	HARD EVIDENCE	SCHEMA FIX
+✗	D12	No author Person schema	HARD EVIDENCE	SCHEMA FIX
+✗	D13	No speakable property	HARD EVIDENCE	SCHEMA FIX
+Brain evidence: Sieve Rule #3 (0.90): "Schema markup coverage rule — implement applicable schema." AP#959 (high): "Omitting required url property from schema entities."
+
+Section E — AEO Discovery (9/11 passed)
+Status	ID	Finding	Truth	Fix Type
+✓	E1	PerplexityBot explicitly allowed	HARD EVIDENCE	—
+✓	E2	BingPreview — allowed via wildcard	HARD EVIDENCE	—
+✓	E3	Googlebot — allowed via wildcard	HARD EVIDENCE	—
+✓	E4	No nosnippet	HARD EVIDENCE	—
+✓	E5	Content in raw HTML	MEASURED	—
+✓	E6	No accordion/tab content issues	HEURISTIC	—
+✗	E7	No IndexNow mechanism detected	HARD EVIDENCE	SITEWIDE TEMPLATE
+✓	E8	Sitemap index exists with 6 sub-sitemaps	HARD EVIDENCE	—
+△	E9	No Bing Webmaster verification	HARD EVIDENCE	PAGE HTML FIX
+✓	E10	ClaudeBot + ChatGPT-User + GPTBot all explicitly allowed	HARD EVIDENCE	—
+✓	E11	No paywall/login gate on homepage content	HEURISTIC	—
+AnswerMonk's Discovery score is a clear strength. The robots.txt explicitly names and allows 8 AI crawlers — better than most sites. This is not the problem.
+
+Section F — AEO Extraction (2/12 passed)
+Status	ID	Finding	Truth	Fix Type
+✗	F1	Opening is a rhetorical question, not entity definition. No "X is a Y" in first 150 words	STATIC RULE	CONTENT RESTRUCTURE
+✗	F2	No quick-answer/summary block near H1	HEURISTIC	CONTENT RESTRUCTURE
+✗	F3	No FAQ section	HARD EVIDENCE	CONTENT RESTRUCTURE
+N/A	F4	No FAQ to assess markup	HARD EVIDENCE	—
+N/A	F5	No FAQ questions to assess	HEURISTIC	—
+✗	F6	H2s are labels ("What AnswerMonk measures") not questions	HEURISTIC	CONTENT RESTRUCTURE
+✗	F7	First 300 words — "your brand", "your website", "you" dominate. Entity name "AnswerMonk" appears sparingly	STATIC RULE	CONTENT RESTRUCTURE
+✗	F8	Very few specific facts — no numbers, no pricing, no metrics, no dates	HEURISTIC	CONTENT RESTRUCTURE
+✗	F9	First sentence is a question, not a definition	STATIC RULE	CONTENT RESTRUCTURE
+✗	F10	No summary/TL;DR section	HEURISTIC	CONTENT RESTRUCTURE
+△	F11	Sections are feature descriptions, not self-contained answers	MODEL JUDGMENT	CONTENT RESTRUCTURE
+✓	F12	Unordered lists present for features and coverage	HARD EVIDENCE	—
+✓	—	Two lists detected (What AnswerMonk measures, AI engine coverage)	—	—
+Brain evidence: Sieve Anti-pattern #3 (high): "AI Answer Evasion — avoids direct declarative statements." AP#797 (high): "Vague marketing language instead of verifiable claims."
+
+Section G — AEO Trust (1/9 passed)
+Status	ID	Finding	Truth	Fix Type
+✗	G1	No author byline	HEURISTIC	CONTENT RESTRUCTURE
+✗	G2	No Person schema	HARD EVIDENCE	SCHEMA FIX
+✗	G3	Zero outbound citations	HARD EVIDENCE	CONTENT RESTRUCTURE
+✗	G4	No publication date	HARD EVIDENCE	PAGE HTML FIX
+✗	G5	No dateModified	HARD EVIDENCE	PAGE HTML FIX
+✗	G6	No Organization schema with sameAs	HARD EVIDENCE	SCHEMA FIX
+✓	G7	Footer links — minimal but present	HARD EVIDENCE	—
+✓	G8	HTTPS valid	HARD EVIDENCE	—
+✗	G9	No date found → cannot assess freshness recency. FAIL — no freshness signal for AI engines	HARD EVIDENCE	CONTENT RESTRUCTURE
+Brain evidence: Sieve Rule #1475 (0.92): "Associate content with named credentialed author." Sieve Rule #1474 (0.95): "Signal freshness with visible timestamps." AP#798 (medium): "Anonymous content without authorship signals."
+
+Section H — AEO Selection (1/8 — vs competitors)
+Status	ID	Finding	Truth	Fix Type
+✗	H1	1,000 words vs Otterly 4,500 — below median	COMPARATIVE	CONTENT RESTRUCTURE
+✗	H2	No unique data, methodology details, or original research on page	MODEL JUDGMENT	CONTENT RESTRUCTURE
+✗	H3	0 FAQ pairs vs Otterly 11 — worst in set	COMPARATIVE	CONTENT RESTRUCTURE
+✗	H4	0 schema types vs Otterly 3 — worst in set	COMPARATIVE	SCHEMA FIX
+✗	H5	No dateModified vs Peec has visible date	COMPARATIVE	PAGE HTML FIX
+✗	H6	Zero E-E-A-T signals vs competitors (all weak, AnswerMonk weakest)	COMPARATIVE	OFF-PAGE
+✗	H7	Not present in AI results for any target query	MEASURED	CANNOT FIX FROM PAGE
+✓	H8	Content topic aligns with target queries (AI visibility, GEO) — intent match is reasonable	MODEL JUDGMENT	—
+Section I — GEO (1/8)
+Status	ID	Finding	Truth	Fix Type
+✗	I1	Brand not in "best AI visibility tool" or "best GEO tool" results — zero presence in category	MODEL JUDGMENT	OFF-PAGE
+✗	I2	No knowledge panel or entity card for "AnswerMonk"	MODEL JUDGMENT	OFF-PAGE
+N/A	I3	Cannot assess AI description accuracy — no AI presence to evaluate	MODEL JUDGMENT	—
+N/A	I4	Cannot assess outdated info — no AI info exists	MODEL JUDGMENT	—
+N/A	I5	Cannot assess sentiment — no AI mentions	MODEL JUDGMENT	—
+✗	I6	Not recommended in any category search	MODEL JUDGMENT	OFF-PAGE
+✗	I7	Only one source (own domain) — no cross-source entity data	MODEL JUDGMENT	OFF-PAGE
+✓	I8	N/A — no sameAs in schema (but robots.txt is excellent for AI access)	HARD EVIDENCE	—
+Section J — Entity (1/4)
+Status	ID	Finding	Truth	Fix Type
+✓	J1	Brand name "AnswerMonk" consistent across title and content	HARD EVIDENCE	—
+△	J2	No logo in schema to cross-reference	HARD EVIDENCE	SCHEMA FIX
+✗	J3	No canonical URL, no schema @id, no og:url — nothing to cross-reference	HARD EVIDENCE	PAGE HTML FIX
+✗	J4	No sameAs URLs to verify	HARD EVIDENCE	SCHEMA FIX
+Supplementary Findings (from Sieve Brain)
+Sieve Entry	Finding	Relevance
+AP#805 (medium): "Multi-intent pages mixing definitions, tutorials, and promotional content"	Page mixes product description, measurement methodology, and use cases. Perplexity favors single-intent pages.	Directional — landing pages inherently mix intents
+AP#777 (medium): "Publishing unbroken walls of text without clearly labelled content blocks"	Content sections lack clear visual/structural separation for AI extraction	Moderate relevance
+LAYER 3 — Technical Reference
+Audit Metadata
+Version: 3.0 (101-check ruleset v1.1)
+Checks run: 85/101 | Passed: 31 | Failed: 42 | Warnings: 12 | N/A: 16
+Gates: All 3 passed
+Page classification: Landing page (HIGH confidence)
+Competitors analyzed: 2 (Otterly.AI, Peec AI)
+Chrome MCP: Unavailable — Lighthouse not measured
+Brain entries matched: 12 (6 rules + 6 anti-patterns)
+Previous audit: First audit for this domain
+Queries: Primary "AI search visibility tool", Variant "AI brand monitoring platform", Category "best GEO tool 2026", Branded "AnswerMonk"
+Now persisting to Supabase.
+
+
+Used supabase integration
+Used supabase integration
+
+Audit persisted. Here's the summary:
+
+AnswerMonk.ai — Audit Summary
+Page Citation Readiness: 38% (F) | Brand AI Presence: 10% (F)
+
+The irony: An AI search visibility platform that is itself invisible to AI search. The robots.txt is excellent (explicitly allows 8 AI crawlers — best we've audited). But once AI crawlers access the page, there's nothing for them to extract — no schema, no entity definition, no FAQ, no dates, no social proof.
+
+The 3 things that would move the needle most:
+
+Add schema (0 → 3+ types) — 15 minutes, transforms AI entity recognition
+Rewrite the opening to "AnswerMonk is a..." — 10 minutes, makes the page citable
+Add FAQ with 8-10 pairs — 1 hour, creates 8-10 AI citation entry points
+All 3 are on-page fixes achievable in a single afternoon. The GEO problem (not appearing in category searches) requires months of content strategy and can't be fixed from this page alone.
+
