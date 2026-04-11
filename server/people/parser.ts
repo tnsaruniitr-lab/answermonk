@@ -193,6 +193,14 @@ function parseNameLandscapeRegex(rawText: string): ParsedPerson[] {
 
     if (!name || name.length < 2 || name.length > 120) continue;
 
+    // Validate: base name (strip parentheticals) should be 1–5 words max.
+    // This filters out Claude's numbered caveats like "Include people I cannot verify..."
+    // which appear as numbered list items but are sentences, not person names.
+    const baseName = name.replace(/\(.*?\)/g, "").replace(/\s+/g, " ").trim();
+    const baseWordCount = baseName.split(/\s+/).filter((w) => w.length > 0).length;
+    if (baseWordCount < 1 || baseWordCount > 5) continue;
+    if (!/^[A-Z]/.test(baseName)) continue;
+
     // Build description from subsequent lines (skip blank + clean markdown)
     const lines = content.split("\n").slice(1);
     const descParts: string[] = [];

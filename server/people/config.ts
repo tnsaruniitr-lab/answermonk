@@ -49,7 +49,7 @@ export const DEFAULT_PEOPLE_CONFIG: PeopleConfig = {
     },
     {
       index: 2, track: "B", angle: "Name landscape",
-      template: `Who are the most well-known and notable people named {{name}}? List exactly 10 people, numbered 1 through 10 in order of prominence. For each person write their full name with a parenthetical disambiguator (e.g. "Jake Stein (Australian footballer)"), their profession, and 1-2 sentences on what they are known for.`,
+      template: `Who are the most well-known and notable people named {{name}}? List as many as you can confidently identify, up to 10 people, numbered in order of prominence. For each person write their full name with a parenthetical disambiguator (e.g. "Jake Stein (Australian footballer)"), their profession, and 1-2 sentences on what they are known for.`,
     },
     {
       index: 3, track: "B", angle: "Industry context",

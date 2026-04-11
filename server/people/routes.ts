@@ -217,6 +217,19 @@ export function registerPeopleRoutes(app: Express): void {
     }
   });
 
+  app.post("/api/people/sessions/:id/recompute", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
+      const { recomputeScores } = await import("./runner");
+      await recomputeScores(id);
+      return res.json({ ok: true });
+    } catch (err) {
+      console.error("[api/people/recompute]", err);
+      return res.status(500).json({ error: String(err) });
+    }
+  });
+
   app.get("/api/people/sessions/:id/detail", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id, 10);

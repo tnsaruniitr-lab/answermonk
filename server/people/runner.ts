@@ -316,6 +316,70 @@ export async function runPeopleAudit(
   }
 }
 
+export async function recomputeScores(sessionId: number): Promise<void> {
+  const { rows: sessionRows } = await pool.query<RunnerProfile>(
+    `SELECT id, name, "current_role", current_company, past_companies, roles, education,
+            location, industry, selected_anchors
+     FROM people_sessions WHERE id = $1`,
+    [sessionId]
+  );
+  if (sessionRows.length === 0) throw new Error("Session not found");
+  const session = sessionRows[0];
+
+  const { rows: resultRows } = await pool.query(
+    `SELECT * FROM people_query_results WHERE session_id = $1`,
+    [sessionId]
+  );
+
+  // Re-parse landscape raw responses so that any parser improvements (e.g. name
+  // validation filtering Claude's sentence-fragment caveats) are applied without
+  // needing to re-run the expensive AI queries.
+  const { parseTrackBResponse } = await import("./parser");
+  for (const row of resultRows) {
+    if (row.track === "B" && row.query_index === 2 && row.raw_response) {
+      const parsed = await parseTrackBResponse(row.raw_response, session.name, "landscape");
+      row.name_landscape = parsed.nameLandscape;
+      await pool.query(
+        `UPDATE people_query_results SET name_landscape = $1 WHERE id = $2`,
+        [JSON.stringify(parsed.nameLandscape), row.id]
+      );
+    }
+  }
+
+  const allCitedUrls = resultRows.flatMap((r: any) => (r.cited_urls as string[]) ?? []);
+  const vertexResolved = await resolveGroundingUrls(allCitedUrls, 20);
+
+  const trackAResults = resultRows.filter((r: any) => r.track === "A");
+  const trackBResults = resultRows.filter((r: any) => r.track === "B");
+
+  const anchors = session.selected_anchors ?? {
+    workplaces: [session.current_company].filter(Boolean),
+    roles: [session.current_role].filter(Boolean),
+    education: session.education ?? [],
+  };
+  const profile = {
+    currentRole: session.current_role ?? (anchors.roles as string[])?.[0] ?? null,
+    currentCompany: session.current_company ?? (anchors.workplaces as string[])?.[0] ?? null,
+  };
+
+  const scores = buildScores(trackAResults as any, trackBResults as any);
+  const reportData = buildReportData(session.name, trackAResults, trackBResults, scores, vertexResolved, {
+    currentCompany: profile.currentCompany ?? "",
+    currentRole: profile.currentRole ?? "",
+  });
+
+  await pool.query(
+    `INSERT INTO people_scores
+      (session_id, recognition_score, recognition_grade, proof_score, proof_grade, diagnostic_text, report_data)
+     VALUES ($1,$2,$3,$4,$5,$6,$7)
+     ON CONFLICT (session_id) DO UPDATE SET
+      recognition_score=$2, recognition_grade=$3, proof_score=$4, proof_grade=$5,
+      diagnostic_text=$6, report_data=$7`,
+    [sessionId, scores.recognitionScore, scores.recognitionGrade,
+     scores.proofScore, scores.proofGrade, scores.diagnosticText, JSON.stringify(reportData)]
+  );
+}
+
 function buildReportData(
   name: string,
   trackAResults: any[],
@@ -361,18 +425,30 @@ function buildReportData(
     };
   });
 
-  // Keyword sets used to disambiguate people with identical base names
+  // Keyword sets used to disambiguate people with identical base names.
+  // ORDER MATTERS — more specific categories must come before broader ones.
   const PERSON_DISAMBIGUATORS: { key: string; words: string[] }[] = [
-    { key: "athlete",    words: ["athlete", "footballer", "decathlete", "football", "afl", "sport", "track", "field", "olympic", "rugby", "cricket", "swimming"] },
-    { key: "tech",       words: ["entrepreneur", "founder", "startup", "tech", "ceo", "software", "data", "company", "paper", "stitch", "rjmetrics", "venture", "saas", "engineer"] },
-    { key: "legal",      words: ["lawyer", "legal", "law", "attorney", "judge", "watergate", "court", "counsel", "litigator"] },
-    { key: "film",       words: ["film", "producer", "movie", "media", "imdb", "director", "documentary", "television", "tv"] },
-    { key: "nhl",        words: ["nhl", "hockey", "fan research", "sports analytics", "league"] },
-    { key: "academic",   words: ["oxford", "phd", "research", "university", "professor", "academic"] },
-    { key: "politics",   words: ["jill stein", "green party", "political", "senator", "candidate"] },
-    { key: "medicine",   words: ["doctor", "oncologist", "physician", "medical", "clinical", "hospital"] },
-    { key: "finance",    words: ["capital", "investor", "investment", "finance", "private equity", "hedge", "thrive"] },
+    // Named individuals (catch before generic categories)
+    { key: "politics",   words: ["jill stein", "green party", "presidential candidate", "senator", "politician"] },
+    // Sports — check athlete-specific subtypes first
+    { key: "nhl",        words: ["nhl", "hockey", "fan research", "sports analytics"] },
+    { key: "sports",     words: ["wrestler", "wrestling", "gettysburg", "collegiate", "ncaa", "division iii", "college athlete"] },
+    { key: "athlete",    words: ["footballer", "decathlete", "football", "afl", "gws", "track and field", "olympic", "commonwealth games", "world athletics", "decathlon", "octathlon", "rugby", "cricket", "swimming", "player profile"] },
+    // Tech — catch before generic "media" matches
+    { key: "tech",       words: ["entrepreneur", "founder", "startup", "ceo", "software", "stitch", "rjmetrics", "common paper", "commonpaper", "venture", "saas", "b2b"] },
+    // Media — separate gaming from film/photo so "video game producer" ≠ "film producer"
+    { key: "gaming",     words: ["video game", "game producer", "game designer", "game studio", "gaming", "metacritic game"] },
+    { key: "film",       words: ["film", "filmmaker", "movie", "imdb", "director", "documentary", "television", "photographer", "cinematographer", "metacritic"] },
+    // Academia
+    { key: "academic",   words: ["oxford", "phd", "msc student", "internet institute", "professor", "academic", "university researcher", "human-centred ai"] },
+    // Medicine / law / finance / real-estate
+    { key: "legal",      words: ["lawyer", "attorney", "judge", "watergate", "counsel", "litigator", "d.c. bar"] },
+    { key: "medicine",   words: ["oncologist", "physician", "medical", "clinical", "hospital", "lineberger", "mph"] },
+    { key: "finance",    words: ["investor", "investment", "private equity", "hedge fund", "capital", "thrive"] },
     { key: "realestate", words: ["real estate", "property", "commercial real", "residential"] },
+    // Catch-all for historical / genealogical / social-media entries
+    { key: "historical", words: ["born 1901", "ukraine", "genealog", "ancestry", "historical record", "family tree"] },
+    { key: "social",     words: ["instagram", "hoax", "persona", "fictional", "prank", "fake student", "student hoax"] },
   ];
 
   function getPersonKey(personName: string, description: string): string {
@@ -381,6 +457,13 @@ function buildReportData(
       .replace(/\([^)]*\)/g, "")   // strip parentheticals from name
       .replace(/[^a-z0-9 ]/g, "")
       .replace(/\s+/g, " ")
+      .trim()
+      // Strip honorific prefixes so "Dr. Jake Stein" == "Jake Stein"
+      .replace(/^(dr|prof|mr|ms|mrs|sir|rev|hon)\s+/, "")
+      // Strip single-letter middle initials like "Jacob A Stein" → "Jacob Stein"
+      // so "Jacob A. Stein" and "Jacob Stein" merge correctly
+      .replace(/\b([a-z])\s+(?=[a-z]{2})/g, "")
+      .replace(/\s+/g, " ")
       .trim();
     // Search both the parenthetical content and the description for discriminators
     const parenContent = (personName.match(/\(([^)]+)\)/g) ?? []).join(" ");
@@ -388,6 +471,16 @@ function buildReportData(
     for (const { key, words } of PERSON_DISAMBIGUATORS) {
       if (words.some(w => searchText.includes(w))) return `${base}__${key}`;
     }
+    // No category matched — use the first 3 significant words of the parenthetical as the
+    // key so that genuinely distinct uncategorized people don't collapse into one entry.
+    const parenWords = parenContent
+      .toLowerCase()
+      .replace(/[^a-z0-9 ]/g, " ")
+      .split(/\s+/)
+      .filter((w) => w.length > 2)
+      .slice(0, 3)
+      .join("-");
+    if (parenWords) return `${base}__${parenWords}`;
     return base;
   }
 
