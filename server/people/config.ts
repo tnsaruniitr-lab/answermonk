@@ -28,32 +28,12 @@ export const DEFAULT_PEOPLE_CONFIG: PeopleConfig = {
   budgetCapUsd: 5.0,
   promptTemplates: [
     {
-      index: 1, track: "A", angle: "Full identity",
-      template: "Tell me about {{identity_string}}. Who are they, what are they known for, and what is their professional background?",
+      index: 1, track: "A", angle: "Identity & profile",
+      template: `Tell me about {{identity_string}}. Who are they, what are they known for, and what is their professional background? Also provide: (1) a one-sentence definition of who this person is, (2) their key achievements, (3) their professional green flags, and (4) their professional red flags.`,
     },
     {
-      index: 2, track: "A", angle: "Role-first",
-      template: "Who is {{name}}, the {{role}}? What is their background and what are they known for professionally?",
-    },
-    {
-      index: 3, track: "A", angle: "Company-first",
-      template: "Tell me about {{name}} from {{company}}. What is their role, background, and what have they accomplished?",
-    },
-    {
-      index: 4, track: "A", angle: "Expertise framing",
-      template: "What is {{name}} known for in {{industry}}? What are their main contributions, expertise areas, and professional reputation?",
-    },
-    {
-      index: 1, track: "B", angle: "Default recognition",
-      template: "Who is {{name}}? Tell me who this person is, what they do, and what they are best known for.",
-    },
-    {
-      index: 2, track: "B", angle: "Name landscape",
+      index: 1, track: "B", angle: "Name landscape",
       template: `Who are the most well-known and notable people named {{name}}? List as many as you can confidently identify, up to 10 people, numbered in order of prominence. For each person write their full name with a parenthetical disambiguator (e.g. "Jake Stein (Australian footballer)"), their profession, and 1-2 sentences on what they are known for.`,
-    },
-    {
-      index: 3, track: "B", angle: "Industry context",
-      template: "Who are the leading {{name}}s in {{industry}}? Are there any prominent professionals, entrepreneurs, or public figures with this name in this field?",
     },
   ],
 };
@@ -65,14 +45,15 @@ export async function getPeopleConfig(): Promise<PeopleConfig> {
     );
     if (rows.length === 0) return DEFAULT_PEOPLE_CONFIG;
     const saved = rows[0].value as Partial<PeopleConfig>;
-    // Merge saved templates with defaults, but always enforce the default landscape
-    // template (B-index-2) because the regex parser in parser.ts depends on its
-    // "numbered 1 through 10" format — any older DB version would break extraction.
-    const LOCKED_TEMPLATES = new Set(["B-2"]);
+
+    // Lock both templates — Track A parser extracts structured fields that depend on
+    // the prompt's specific questions, and Track B regex parser depends on the numbered
+    // list format. Always use the default templates.
+    const LOCKED_KEYS = new Set(["A-1", "B-1"]);
     const savedTemplates = saved.promptTemplates ?? [];
     const mergedTemplates = DEFAULT_PEOPLE_CONFIG.promptTemplates.map((def) => {
       const key = `${def.track}-${def.index}`;
-      if (LOCKED_TEMPLATES.has(key)) return def;  // always use default
+      if (LOCKED_KEYS.has(key)) return def;
       const dbTpl = savedTemplates.find((t) => t.track === def.track && t.index === def.index);
       return dbTpl ?? def;
     });

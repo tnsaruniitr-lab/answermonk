@@ -42,7 +42,7 @@ function getGrade(score: number): string {
   return "F";
 }
 
-function rankToScore(rank: number | null | undefined, totalFound: number): number {
+function rankToScore(rank: number | null | undefined): number {
   if (!rank || rank < 1) return 0;
   if (rank === 1) return 100;
   if (rank === 2) return 82;
@@ -52,11 +52,15 @@ function rankToScore(rank: number | null | undefined, totalFound: number): numbe
   return Math.max(10, 38 - (rank - 5) * 4);
 }
 
+// Detect whether this session used the old 3-prompt Track B schema (landscape at index 2)
+// or the new 1-prompt schema (landscape at index 1).
+function getLandscapeIndex(trackBResults: RawQueryRow[]): number {
+  return trackBResults.some(r => r.query_index === 2) ? 2 : 1;
+}
+
 export function calculatePerEngineAppearance(trackBResults: RawQueryRow[]): Record<string, EngineAppearanceStat> {
-  // Appearance rate = how many landscape runs (qi=2) did the target person appear in,
-  // detected by anchor-keyword matching against each extracted list entry (target_rank set
-  // in runner.ts). This is honest — "did AI include this person in its top-10 list?"
-  const landscapeRows = trackBResults.filter(r => r.query_index === 2);
+  const landscapeIdx = getLandscapeIndex(trackBResults);
+  const landscapeRows = trackBResults.filter(r => r.query_index === landscapeIdx);
   const result: Record<string, EngineAppearanceStat> = {};
   for (const engine of ENGINES) {
     const rows = landscapeRows.filter(r => r.engine === engine);
@@ -77,35 +81,23 @@ export function calculatePerEngineAppearance(trackBResults: RawQueryRow[]): Reco
 export function calculateRecognitionScore(trackBResults: RawQueryRow[]): number {
   if (trackBResults.length === 0) return 0;
 
-  const defaultResults = trackBResults.filter(r => r.query_index === 1);
-  const landscapeResults = trackBResults.filter(r => r.query_index === 2);
+  const landscapeIdx = getLandscapeIndex(trackBResults);
+  const landscapeResults = trackBResults.filter(r => r.query_index === landscapeIdx);
 
-  let defaultScore = 0;
-  for (const r of defaultResults) {
-    const w = ENGINE_WEIGHTS[r.engine] ?? 0.33;
-    const isConfirmed = r.identity_match === "confirmed";
-    const isPartial = r.identity_match === "partial";
-    defaultScore += w * (isConfirmed ? 100 : isPartial ? 40 : 0);
-  }
-  if (defaultResults.length > 0) {
-    defaultScore = defaultScore / defaultResults.reduce((sum, r) => sum + (ENGINE_WEIGHTS[r.engine] ?? 0.33), 0);
-  }
-
+  // Recognition score = weighted landscape rank score + weighted appearance rate
   let rankScore = 0;
-  let rankCount = 0;
+  let rankWeight = 0;
   for (const r of landscapeResults) {
     const w = ENGINE_WEIGHTS[r.engine] ?? 0.33;
-    const landscape = (r.name_landscape as any[]) ?? [];
-    const score = rankToScore(r.target_rank ?? null, landscape.length);
-    rankScore += w * score;
-    rankCount += w;
+    rankScore += w * rankToScore(r.target_rank ?? null);
+    rankWeight += w;
   }
-  if (rankCount > 0) rankScore = rankScore / rankCount;
+  if (rankWeight > 0) rankScore = rankScore / rankWeight;
 
-  const foundCount = trackBResults.filter(r => r.target_found).length;
-  const presenceScore = trackBResults.length > 0 ? (foundCount / trackBResults.length) * 100 : 0;
+  const foundCount = landscapeResults.filter(r => r.target_found).length;
+  const presenceScore = landscapeResults.length > 0 ? (foundCount / landscapeResults.length) * 100 : 0;
 
-  const recognition = Math.round(defaultScore * 0.45 + rankScore * 0.35 + presenceScore * 0.20);
+  const recognition = Math.round(rankScore * 0.65 + presenceScore * 0.35);
   return Math.min(100, Math.max(0, recognition));
 }
 

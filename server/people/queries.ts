@@ -10,7 +10,7 @@ export interface TrackAQuery {
 export interface TrackBQuery {
   index: number;
   text: string;
-  type: "default" | "landscape" | "industry";
+  type: "landscape";
 }
 
 function buildIdentityString(
@@ -43,44 +43,18 @@ export function buildTrackAQueries(
     identity_string: buildIdentityString(name, anchors),
   };
 
-  if (trackATemplates.length > 0) {
-    return trackATemplates.map((t) => ({
-      index: t.index,
-      angle: t.angle,
-      text: fillTemplate(t.template, vars),
-    }));
+  // Use config templates if present, otherwise fall back to default single prompt
+  const template = trackATemplates[0];
+  if (template) {
+    return [{ index: template.index, angle: template.angle, text: fillTemplate(template.template, vars) }];
   }
 
-  const role = anchors.roles[0] ?? "";
-  const company = anchors.workplaces[0] ?? "";
-  const pastCompany = anchors.workplaces[1] ?? "";
-  const industryLabel = industry ?? "their industry";
   const identityString = buildIdentityString(name, anchors);
-
   return [
     {
       index: 1,
-      angle: "Full identity",
-      text: `Tell me about ${identityString}. Who are they, what are they known for, and what is their professional background?`,
-    },
-    {
-      index: 2,
-      angle: "Role-first",
-      text: role
-        ? `Who is ${name}, the ${role}? What is their background and what are they known for professionally?`
-        : `Who is ${name}? Describe their professional background and what they are best known for.`,
-    },
-    {
-      index: 3,
-      angle: "Company-first",
-      text: company
-        ? `Tell me about ${name} from ${company}. What is their role, background, and what have they accomplished?`
-        : `Search for ${name} and tell me about their current professional role, company, and key accomplishments.`,
-    },
-    {
-      index: 4,
-      angle: "Expertise framing",
-      text: `What is ${name} known for in ${industryLabel}? What are their main contributions, expertise areas, and professional reputation?`,
+      angle: "Identity & profile",
+      text: `Tell me about ${identityString}. Who are they, what are they known for, and what is their professional background? Also provide: (1) a one-sentence definition of who this person is, (2) their key achievements, (3) their professional green flags, and (4) their professional red flags.`,
     },
   ];
 }
@@ -91,41 +65,19 @@ export function buildTrackBQueries(
   templates?: PeoplePromptTemplate[]
 ): TrackBQuery[] {
   const trackBTemplates = (templates ?? []).filter((t) => t.track === "B");
-  const industryLabel = industry ?? "business and technology";
 
-  const vars = {
-    name,
-    industry: industryLabel,
-    identity_string: name,
-  };
+  const vars = { name, industry: industry ?? "business and technology", identity_string: name };
 
-  if (trackBTemplates.length > 0) {
-    return trackBTemplates.map((t) => ({
-      index: t.index,
-      type: (t.angle === "Default recognition"
-        ? "default"
-        : t.angle === "Name landscape"
-        ? "landscape"
-        : "industry") as "default" | "landscape" | "industry",
-      text: fillTemplate(t.template, vars),
-    }));
+  const template = trackBTemplates[0];
+  if (template) {
+    return [{ index: template.index, type: "landscape", text: fillTemplate(template.template, vars) }];
   }
 
   return [
     {
       index: 1,
-      type: "default",
-      text: `Who is ${name}? Tell me who this person is, what they do, and what they are best known for.`,
-    },
-    {
-      index: 2,
       type: "landscape",
-      text: `Who are the most well-known and notable people named ${name}? List up to 10 people, numbered 1 through 10 in order of prominence. For each person include their full name, profession, and what they are specifically known for.`,
-    },
-    {
-      index: 3,
-      type: "industry",
-      text: `Who are the leading ${name}s in ${industryLabel}? Are there any prominent professionals, entrepreneurs, or public figures with this name in this field?`,
+      text: `Who are the most well-known and notable people named ${name}? List as many as you can confidently identify, up to 10 people, numbered in order of prominence. For each person write their full name with a parenthetical disambiguator (e.g. "Jake Stein (Australian footballer)"), their profession, and 1-2 sentences on what they are known for.`,
     },
   ];
 }

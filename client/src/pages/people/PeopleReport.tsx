@@ -113,8 +113,9 @@ function AIIdentityCard({ perEngineQueryResults, perEngineAppearance }: { perEng
   const verdictSummary: Record<string, string> = {};
   for (const engine of ALL_ENGINES) {
     const eData = perEngineQueryResults.find((p: any) => p.engine === engine);
-    const recQ1 = eData?.trackBRecognition?.find((q: any) => q.promptIndex === 1);
-    verdictSummary[engine] = recQ1?.identityMatch ?? "absent";
+    // Use Track A identity match (identity proof prompt) as the verdict
+    const trackAItem = eData?.trackA?.[0];
+    verdictSummary[engine] = trackAItem?.identityMatch ?? "absent";
   }
   const confirmedCount = Object.values(verdictSummary).filter(v => v === "confirmed").length;
   const partialCount = Object.values(verdictSummary).filter(v => v === "partial").length;
@@ -150,12 +151,13 @@ function AIIdentityCard({ perEngineQueryResults, perEngineAppearance }: { perEng
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {ALL_ENGINES.map(engine => {
           const eData = perEngineQueryResults.find((p: any) => p.engine === engine);
-          const recQ1 = eData?.trackBRecognition?.find((q: any) => q.promptIndex === 1);
-          const identityMatch: string = recQ1?.identityMatch ?? "absent";
-          const rawQuote: string = recQ1?.bestResponse ?? "";
-          const foundCount: number = recQ1?.foundCount ?? 0;
-          const totalRounds: number = recQ1?.totalRounds ?? 0;
-          const citedUrls: string[] = recQ1?.citedUrls ?? [];
+          // Use Track A identity proof prompt data for the verdict panel
+          const trackAItem = eData?.trackA?.[0];
+          const identityMatch: string = trackAItem?.identityMatch ?? "absent";
+          const rawQuote: string = trackAItem?.bestResponse ?? "";
+          const foundCount: number = trackAItem?.foundCount ?? 0;
+          const totalRounds: number = trackAItem?.totalRounds ?? 0;
+          const citedUrls: string[] = trackAItem?.citedUrls ?? [];
           const engineColor = ENGINE_COLORS[engine];
           const isExpanded = expandedEngines.has(engine);
           const QUOTE_LIMIT = 220;
@@ -345,17 +347,12 @@ export default function PeopleReport({ slug }: { slug: string }) {
           </div>
         </CollapsibleSection>
 
-        {/* Section 8: Default recognition (collapsed) */}
-        <CollapsibleSection title="Default recognition — Who is you?">
-          <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
-            What each AI engine says when asked "Who is {session?.name}?" with zero context.
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {(rd.defaultRecognition ?? []).map((item: any) => (
-              <DefaultCard key={item.engine} item={item} />
-            ))}
-          </div>
-        </CollapsibleSection>
+        {/* AI Profile section (collapsed) */}
+        {rd.aiProfile && (rd.aiProfile.oneLiner || rd.aiProfile.keyAchievements?.length > 0) && (
+          <CollapsibleSection title="AI profile — what AI says about you">
+            <AiProfileCard aiProfile={rd.aiProfile} />
+          </CollapsibleSection>
+        )}
       </main>
     </div>
   );
@@ -462,23 +459,50 @@ function EngineCard({ card }: { card: any }) {
   );
 }
 
-function DefaultCard({ item }: { item: any }) {
-  const color = ENGINE_COLORS[item.engine] ?? "#6366f1";
-  const label = ENGINE_LABELS[item.engine] ?? item.engine;
+function AiProfileCard({ aiProfile }: { aiProfile: any }) {
+  const { oneLiner, keyAchievements, greenFlags, redFlags } = aiProfile ?? {};
   return (
-    <div style={{
-      background: "#fff", borderRadius: 12, padding: 20,
-      border: "1px solid #f3f4f6", display: "flex", gap: 16, alignItems: "flex-start",
-    }}>
-      <div style={{ width: 8, height: 8, borderRadius: "50%", background: color, marginTop: 5, flexShrink: 0 }} />
-      <div style={{ flex: 1 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#1f2937" }}>{label}</span>
-          <IdentityBadge match={item.identityMatch ?? "absent"} />
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {oneLiner && (
+        <div style={{
+          background: "#f8faff", borderRadius: 12, padding: "16px 20px",
+          border: "1px solid rgba(99,102,241,0.15)", borderLeft: "4px solid #6366f1",
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#6366f1", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>AI definition</div>
+          <p style={{ fontSize: 14, color: "#1f2937", lineHeight: 1.65, margin: 0, fontStyle: "italic" }}>"{oneLiner}"</p>
         </div>
-        <p style={{ fontSize: 13, color: "#4b5563", lineHeight: 1.6, margin: 0 }}>
-          {item.response ? `"${item.response.slice(0, 300)}..."` : "No response returned"}
-        </p>
+      )}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+        {keyAchievements?.length > 0 && (
+          <div style={{ background: "#fff", borderRadius: 10, padding: 16, border: "1px solid #f3f4f6" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>Key achievements</div>
+            <ul style={{ margin: 0, padding: "0 0 0 16px", display: "flex", flexDirection: "column", gap: 6 }}>
+              {keyAchievements.slice(0, 5).map((a: string, i: number) => (
+                <li key={i} style={{ fontSize: 12, color: "#374151", lineHeight: 1.5 }}>{a}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {greenFlags?.length > 0 && (
+          <div style={{ background: "#f0fdf4", borderRadius: 10, padding: 16, border: "1px solid #bbf7d0" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#059669", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>Green flags</div>
+            <ul style={{ margin: 0, padding: "0 0 0 16px", display: "flex", flexDirection: "column", gap: 6 }}>
+              {greenFlags.slice(0, 5).map((f: string, i: number) => (
+                <li key={i} style={{ fontSize: 12, color: "#065f46", lineHeight: 1.5 }}>{f}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {redFlags?.length > 0 && (
+          <div style={{ background: "#fef2f2", borderRadius: 10, padding: 16, border: "1px solid #fecaca" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#dc2626", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>Red flags</div>
+            <ul style={{ margin: 0, padding: "0 0 0 16px", display: "flex", flexDirection: "column", gap: 6 }}>
+              {redFlags.slice(0, 5).map((f: string, i: number) => (
+                <li key={i} style={{ fontSize: 12, color: "#7f1d1d", lineHeight: 1.5 }}>{f}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -884,15 +908,10 @@ function EngineQueryCard({ engineData }: { engineData: any }) {
   const label = ENGINE_LABELS[engine] ?? engine;
 
   const trackA: any[] = engineData.trackA ?? [];
-  const trackBRecog: any[] = engineData.trackBRecognition ?? [];
   const trackBLand = engineData.trackBLandscape;
-  const trackBItems = [
-    ...trackBRecog,
-    ...(trackBLand ? [{ ...trackBLand, promptIndex: 2, foundCount: trackBLand.foundCount, totalRounds: trackBLand.totalRounds, appearanceRate: trackBLand.appearanceRate, avgRank: trackBLand.avgRank, identityMatch: null, statedFacts: [] }] : []),
-  ];
 
-  // Summary stats
-  const allItems = [...trackA, ...trackBItems];
+  // Summary stats across Track A + Track B landscape
+  const allItems = [...trackA, ...(trackBLand ? [trackBLand] : [])];
   const totalFound = allItems.reduce((s, it) => s + (it.foundCount ?? 0), 0);
   const totalRounds = allItems.reduce((s, it) => s + (it.totalRounds ?? 0), 0);
   const overallRate = totalRounds > 0 ? Math.round((totalFound / totalRounds) * 100) : 0;
@@ -906,7 +925,7 @@ function EngineQueryCard({ engineData }: { engineData: any }) {
         <div style={{ width: 10, height: 10, borderRadius: "50%", background: color, flexShrink: 0 }} />
         <span style={{ fontSize: 14, fontWeight: 700, color }}>{label}</span>
         <span style={{ fontSize: 12, color: "#9ca3af" }}>
-          {trackA.length} identity proof · {trackBItems.length} recognition
+          {trackA.length} identity proof · {trackBLand ? "1 landscape" : "no landscape"}
         </span>
         <div style={{ flex: 1 }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: overallRate >= 50 ? "#059669" : overallRate > 0 ? "#d97706" : "#9ca3af" }}>
@@ -917,11 +936,10 @@ function EngineQueryCard({ engineData }: { engineData: any }) {
       {open && (
         <div style={{ borderTop: "1px solid #f3f4f6" }}>
           <TrackSection title="Track A — Identity Proof" color="#6366f1" items={trackA} />
-          <TrackSection title="Track B — Recognition" color="#0891b2" items={trackBRecog} />
           {trackBLand && (
             <TrackSection title="Track B — Name Landscape" color="#7c3aed" items={[{
               ...trackBLand,
-              promptIndex: 2,
+              promptIndex: 1,
               identityMatch: null,
               statedFacts: [],
             }]} />

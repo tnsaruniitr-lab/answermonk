@@ -166,12 +166,21 @@ export async function runPeopleAudit(
                 const parsed = await parseTrackAResponse(result.rawText, session.name, profile);
                 const identityMatch = resolveIdentity(result.rawText, profile, parsed.targetFound, q.text);
 
+                // Append new profile fields as extra fact entries so they're stored
+                // in the existing stated_facts column without a schema change.
+                const extendedFacts = [
+                  ...parsed.statedFacts,
+                  ...(parsed.oneLiner ? [{ fact: "one_liner", value: parsed.oneLiner, sourceUrl: null, status: "stated" }] : []),
+                  ...(parsed.keyAchievements.length ? [{ fact: "key_achievements", value: parsed.keyAchievements.join(" | "), sourceUrl: null, status: "stated" }] : []),
+                  ...(parsed.greenFlags.length ? [{ fact: "green_flags", value: parsed.greenFlags.join(" | "), sourceUrl: null, status: "stated" }] : []),
+                  ...(parsed.redFlags.length ? [{ fact: "red_flags", value: parsed.redFlags.join(" | "), sourceUrl: null, status: "stated" }] : []),
+                ];
                 await saveQueryResult({
                   sessionId, track: "A", queryIndex: q.index, round,
                   queryText: q.text, engine,
                   rawResponse: result.rawText,
                   identityMatch,
-                  statedFacts: parsed.statedFacts,
+                  statedFacts: extendedFacts,
                   citedUrls: result.citedUrls,
                   targetRank: null,
                   targetFound: parsed.targetFound,
@@ -356,8 +365,11 @@ export async function recomputeScores(sessionId: number): Promise<void> {
     industry: session.industry,
   };
 
+  // Detect landscape index: old sessions use Track B index 2, new sessions use index 1.
+  const recomputeLandscapeIdx = resultRows.some((r: any) => r.track === "B" && r.query_index === 2) ? 2 : 1;
+
   for (const row of resultRows) {
-    if (row.track === "B" && row.query_index === 2 && row.raw_response) {
+    if (row.track === "B" && row.query_index === recomputeLandscapeIdx && row.raw_response) {
       // Re-parse landscape rows
       const parsed = await parseTrackBResponse(row.raw_response, session.name, "landscape");
       row.name_landscape = parsed.nameLandscape;
@@ -443,18 +455,9 @@ function buildReportData(
     };
   });
 
-  const defaultRecognition = PEOPLE_ENGINES.map((engine) => {
-    const rounds = trackBResults.filter((r) => r.engine === engine && r.query_index === 1);
-    const bestRound = rounds.find((r) => r.target_found) ?? rounds[0];
-    const foundVotes = rounds.map((r) => r.target_found);
-    const foundConsensus = foundVotes.filter(Boolean).length > foundVotes.length / 2;
-    return {
-      engine,
-      response: bestRound?.raw_response?.slice(0, 400) ?? "",
-      identityMatch: majorityVote(rounds.map((r) => r.identity_match).filter(Boolean)),
-      targetFound: foundConsensus,
-    };
-  });
+  // defaultRecognition removed — Track B is now landscape-only; kept as empty array for
+  // backward compat with any existing report_data consumers.
+  const defaultRecognition: any[] = [];
 
   // Keyword sets used to disambiguate people with identical base names.
   // ORDER MATTERS — more specific categories must come before broader ones.
@@ -515,9 +518,13 @@ function buildReportData(
     return base;
   }
 
+  // Detect whether this is an old session (landscape at Track B index 2) or
+  // new session (landscape at Track B index 1 — only one Track B prompt).
+  const landscapeIdx = trackBResults.some((r: any) => r.query_index === 2) ? 2 : 1;
+
   // Name landscape: normalize names, merge across engines, rank by prominence
   const personMap = new Map<string, { name: string; description: string; engines: string[]; ranks: number[]; engineRanks: Record<string, number>; isTargetCount: number }>();
-  const landscapeResults = trackBResults.filter((r) => r.query_index === 2);
+  const landscapeResults = trackBResults.filter((r) => r.query_index === landscapeIdx);
   for (const r of landscapeResults) {
     const landscape = (r.name_landscape as any[]) ?? [];
     for (const person of landscape) {
@@ -659,29 +666,8 @@ function buildReportData(
       };
     }).filter(Boolean);
 
-    // Track B recognition: query_index 1 and 3
-    const trackBRecognition = [1, 3].map((qi) => {
-      const rounds = trackBResults.filter((r: any) => r.engine === engine && r.query_index === qi);
-      if (rounds.length === 0) return null;
-      const foundCount = rounds.filter((r: any) => r.identity_match === "confirmed" || r.identity_match === "partial").length;
-      const best = rounds.find((r: any) => r.target_found) || rounds[0];
-      const ranks = rounds.filter((r: any) => r.target_rank != null && r.target_rank > 0).map((r: any) => r.target_rank as number);
-      const allRoundUrls = [...new Set(rounds.flatMap((r: any) => (r.cited_urls as string[]) ?? []))];
-      return {
-        promptIndex: qi,
-        promptText: best?.query_text ?? "",
-        totalRounds: rounds.length,
-        foundCount,
-        appearanceRate: rounds.length > 0 ? Math.round((foundCount / rounds.length) * 100) : 0,
-        avgRank: ranks.length > 0 ? Math.round(ranks.reduce((a: number, b: number) => a + b, 0) / ranks.length) : null,
-        identityMatch: majorityVote(rounds.map((r: any) => r.identity_match).filter(Boolean)),
-        bestResponse: best?.raw_response ?? "",
-        citedUrls: resolveAndFilter(allRoundUrls),
-      };
-    }).filter(Boolean);
-
-    // Track B landscape: query_index 2
-    const landscapeRounds = trackBResults.filter((r: any) => r.engine === engine && r.query_index === 2);
+    // Track B landscape: detect index for old (2) vs new (1) sessions
+    const landscapeRounds = trackBResults.filter((r: any) => r.engine === engine && r.query_index === landscapeIdx);
     const trackBLandscape = landscapeRounds.length > 0 ? (() => {
       const foundCount = landscapeRounds.filter((r: any) => r.target_found).length;
       const ranks = landscapeRounds.filter((r: any) => r.target_rank != null && r.target_rank > 0).map((r: any) => r.target_rank as number);
@@ -698,7 +684,7 @@ function buildReportData(
       };
     })() : null;
 
-    return { engine, trackA, trackBRecognition, trackBLandscape };
+    return { engine, trackA, trackBLandscape };
   });
 
   const claimFacts = trackAResults
@@ -709,6 +695,31 @@ function buildReportData(
       else acc[fact.fact].count++;
       return acc;
     }, {});
+
+  // Aggregate AI profile fields from confirmed/partial Track A responses.
+  // These are stored as extra entries in stated_facts (see runner Track A save logic).
+  const confirmedTrackA = trackAResults.filter((r) =>
+    r.identity_match === "confirmed" || r.identity_match === "partial"
+  );
+  function pickBestFactValue(factName: string): string {
+    const vals = confirmedTrackA
+      .flatMap((r) => (r.stated_facts as any[]) ?? [])
+      .filter((f) => f.fact === factName && f.value && f.status === "stated")
+      .map((f) => f.value as string);
+    // Return the longest value (most detailed) from confirmed responses
+    return vals.sort((a, b) => b.length - a.length)[0] ?? "";
+  }
+  function collectFactValues(factName: string): string[] {
+    const raw = pickBestFactValue(factName);
+    if (!raw) return [];
+    return raw.split(" | ").map((s) => s.trim()).filter(Boolean);
+  }
+  const aiProfile = {
+    oneLiner: pickBestFactValue("one_liner"),
+    keyAchievements: collectFactValues("key_achievements"),
+    greenFlags: collectFactValues("green_flags"),
+    redFlags: collectFactValues("red_flags"),
+  };
 
   return {
     name,
@@ -721,5 +732,6 @@ function buildReportData(
     sourceGraph,
     perEngineQueryResults,
     claimFacts: Object.values(claimFacts),
+    aiProfile,
   };
 }
