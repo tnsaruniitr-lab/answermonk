@@ -135,29 +135,50 @@ async function queryClaudeForPeople(
 function extractCitedUrls(text: string, response: any): string[] {
   const urls: string[] = [];
   try {
-    const annotations = response?.output?.[0]?.content?.[0]?.annotations ?? [];
-    for (const ann of annotations) {
-      if (ann.url) urls.push(ann.url);
+    // Iterate ALL output items and ALL content blocks — not just output[0].content[0].
+    // A single web-search response can have multiple output items, each with multiple
+    // content blocks, each carrying their own annotations array.
+    const outputItems: any[] = response?.output ?? [];
+    for (const item of outputItems) {
+      const contentBlocks: any[] = item?.content ?? [];
+      for (const block of contentBlocks) {
+        const annotations: any[] = block?.annotations ?? [];
+        for (const ann of annotations) {
+          if (ann.url && !urls.includes(ann.url)) urls.push(ann.url);
+        }
+      }
     }
   } catch {}
-  const urlRegex = /https?:\/\/[^\s\)>"]+/g;
+  // Also extract any URLs inline in the text (e.g. markdown links)
+  const urlRegex = /https?:\/\/[^\s\)>"'\]]+/g;
   const textUrls = text.match(urlRegex) ?? [];
   for (const u of textUrls) {
     const clean = u.replace(/[.,;)]+$/, "");
     if (!urls.includes(clean)) urls.push(clean);
   }
-  return [...new Set(urls)].slice(0, 10);
+  return [...new Set(urls)];
 }
 
 function extractGeminiCitations(response: any): string[] {
   const urls: string[] = [];
   try {
-    const chunks = response?.candidates?.[0]?.groundingMetadata?.groundingChunks ?? [];
+    const meta = response?.candidates?.[0]?.groundingMetadata ?? {};
+    // Primary source: groundingChunks
+    const chunks: any[] = meta.groundingChunks ?? [];
     for (const chunk of chunks) {
-      if (chunk.web?.uri) urls.push(chunk.web.uri);
+      if (chunk.web?.uri && !urls.includes(chunk.web.uri)) urls.push(chunk.web.uri);
+    }
+    // Secondary source: groundingSupports carry per-claim source references
+    const supports: any[] = meta.groundingSupports ?? [];
+    for (const sup of supports) {
+      const chunkIndices: number[] = sup.groundingChunkIndices ?? [];
+      for (const idx of chunkIndices) {
+        const uri = chunks[idx]?.web?.uri;
+        if (uri && !urls.includes(uri)) urls.push(uri);
+      }
     }
   } catch {}
-  return [...new Set(urls)].slice(0, 10);
+  return [...new Set(urls)];
 }
 
 export async function queryPeopleEngine(

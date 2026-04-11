@@ -644,6 +644,8 @@ function buildReportData(
       if (rounds.length === 0) return null;
       const foundCount = rounds.filter((r: any) => r.identity_match === "confirmed" || r.identity_match === "partial").length;
       const best = rounds.find((r: any) => r.identity_match === "confirmed") || rounds.find((r: any) => r.identity_match === "partial") || rounds[0];
+      // Aggregate URLs across ALL rounds for this prompt+engine (not just best round)
+      const allRoundUrls = [...new Set(rounds.flatMap((r: any) => (r.cited_urls as string[]) ?? []))];
       return {
         promptIndex: qi,
         promptText: best?.query_text ?? "",
@@ -653,7 +655,7 @@ function buildReportData(
         identityMatch: majorityVote(rounds.map((r: any) => r.identity_match).filter(Boolean)),
         bestResponse: best?.raw_response ?? "",
         statedFacts: (best?.stated_facts as any[]) ?? [],
-        citedUrls: resolveAndFilter((best?.cited_urls as string[]) ?? []),
+        citedUrls: resolveAndFilter(allRoundUrls),
       };
     }).filter(Boolean);
 
@@ -664,6 +666,7 @@ function buildReportData(
       const foundCount = rounds.filter((r: any) => r.identity_match === "confirmed" || r.identity_match === "partial").length;
       const best = rounds.find((r: any) => r.target_found) || rounds[0];
       const ranks = rounds.filter((r: any) => r.target_rank != null && r.target_rank > 0).map((r: any) => r.target_rank as number);
+      const allRoundUrls = [...new Set(rounds.flatMap((r: any) => (r.cited_urls as string[]) ?? []))];
       return {
         promptIndex: qi,
         promptText: best?.query_text ?? "",
@@ -673,7 +676,7 @@ function buildReportData(
         avgRank: ranks.length > 0 ? Math.round(ranks.reduce((a: number, b: number) => a + b, 0) / ranks.length) : null,
         identityMatch: majorityVote(rounds.map((r: any) => r.identity_match).filter(Boolean)),
         bestResponse: best?.raw_response ?? "",
-        citedUrls: resolveAndFilter((best?.cited_urls as string[]) ?? []),
+        citedUrls: resolveAndFilter(allRoundUrls),
       };
     }).filter(Boolean);
 
@@ -683,6 +686,7 @@ function buildReportData(
       const foundCount = landscapeRounds.filter((r: any) => r.target_found).length;
       const ranks = landscapeRounds.filter((r: any) => r.target_rank != null && r.target_rank > 0).map((r: any) => r.target_rank as number);
       const best = landscapeRounds.find((r: any) => r.target_found) || landscapeRounds[0];
+      const allRoundUrls = [...new Set(landscapeRounds.flatMap((r: any) => (r.cited_urls as string[]) ?? []))];
       return {
         promptText: best?.query_text ?? "",
         totalRounds: landscapeRounds.length,
@@ -690,7 +694,7 @@ function buildReportData(
         appearanceRate: Math.round((foundCount / landscapeRounds.length) * 100),
         avgRank: ranks.length > 0 ? Math.round(ranks.reduce((a: number, b: number) => a + b, 0) / ranks.length) : null,
         bestResponse: best?.raw_response ?? "",
-        citedUrls: resolveAndFilter((best?.cited_urls as string[]) ?? []),
+        citedUrls: resolveAndFilter(allRoundUrls),
       };
     })() : null;
 
