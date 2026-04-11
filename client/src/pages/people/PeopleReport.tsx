@@ -65,6 +65,7 @@ function AppearanceTable({ perEngineAppearance }: { perEngineAppearance: Record<
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 0 }}>
         {ALL_ENGINES.map((engine, i) => {
           const stat = perEngineAppearance?.[engine] ?? { appearanceRate: 0, foundCount: 0, totalQueries: 0, avgRank: null };
+          const totalRuns = stat.totalQueries ?? 0;
           const color = ENGINE_COLORS[engine];
           const isLast = i === ALL_ENGINES.length - 1;
           return (
@@ -81,7 +82,7 @@ function AppearanceTable({ perEngineAppearance }: { perEngineAppearance: Record<
                 {stat.appearanceRate}%
               </div>
               <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 8 }}>
-                {stat.foundCount} of {stat.totalQueries} queries
+                {stat.foundCount} of {totalRuns} landscape runs
               </div>
               <div style={{ fontSize: 20, fontWeight: 800, color: stat.avgRank != null ? "#6366f1" : "#d1d5db" }}>
                 {stat.avgRank != null ? `Avg rank #${stat.avgRank}` : "—"}

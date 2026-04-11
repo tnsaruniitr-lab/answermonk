@@ -204,6 +204,51 @@ export async function runPeopleAudit(
                 const parsed = await parseTrackBResponse(result.rawText, session.name, q.type);
                 const identityMatch = resolveIdentity(result.rawText, profile, parsed.targetFound, q.text);
 
+                // For landscape queries: scan extracted entries for the target person using
+                // anchor keywords. target_rank = their position in the list, null if absent.
+                let targetRank = parsed.targetRank;
+                let targetFound = parsed.targetFound;
+                if (q.type === "landscape" && parsed.nameLandscape.length > 0) {
+                  // Extract only "brand" words from anchors — specific proper nouns / uncommon terms.
+                  // Generic words (senior, company, business, analyst, group...) are excluded to
+                  // prevent false matches across unrelated descriptions.
+                  const GENERIC_WORDS = new Set([
+                    "senior", "junior", "associate", "business", "analyst", "company", "group",
+                    "manager", "director", "officer", "executive", "president", "partner",
+                    "general", "global", "chief", "head", "lead", "principal", "staff",
+                    "international", "national", "services", "solutions", "consulting",
+                    "technology", "technologies", "management", "professional", "university",
+                    "school", "college", "institute", "bachelor", "master", "degree",
+                    "finance", "economics", "accounting", "marketing", "operations",
+                  ]);
+                  const brandWords = [
+                    profile.currentCompany,
+                    ...(profile.pastCompanies ?? []),
+                    ...(profile.education ?? []),
+                  ]
+                    .filter((s): s is string => Boolean(s) && s.length > 3)
+                    .flatMap(s =>
+                      s.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/)
+                        .filter(w => w.length > 3 && !GENERIC_WORDS.has(w))
+                    );
+                  // Also include full multi-word role as a phrase (not individual words)
+                  const rolePhrase = profile.currentRole
+                    ? profile.currentRole.toLowerCase().replace(/[^a-z0-9\s]/g, " ").trim()
+                    : null;
+
+                  const matchedEntry = parsed.nameLandscape.find((entry) => {
+                    const entryText = `${entry.name} ${entry.description}`.toLowerCase();
+                    // Match on specific brand words (company/education brand names)
+                    const brandMatch = brandWords.some(w => entryText.includes(w));
+                    // Or match on full role phrase (requires full phrase, not individual words)
+                    const roleMatch = rolePhrase && rolePhrase.length > 8 && entryText.includes(rolePhrase);
+                    return brandMatch || Boolean(roleMatch);
+                  });
+
+                  targetRank = matchedEntry?.rank ?? null;
+                  targetFound = targetRank != null;
+                }
+
                 await saveQueryResult({
                   sessionId, track: "B", queryIndex: q.index, round,
                   queryText: q.text, engine,
@@ -211,8 +256,8 @@ export async function runPeopleAudit(
                   identityMatch,
                   statedFacts: [],
                   citedUrls: result.citedUrls,
-                  targetRank: parsed.targetRank,
-                  targetFound: parsed.targetFound,
+                  targetRank,
+                  targetFound,
                   nameLandscape: parsed.nameLandscape,
                   error: result.error,
                 });

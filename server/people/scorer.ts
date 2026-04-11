@@ -53,12 +53,14 @@ function rankToScore(rank: number | null | undefined, totalFound: number): numbe
 }
 
 export function calculatePerEngineAppearance(trackBResults: RawQueryRow[]): Record<string, EngineAppearanceStat> {
-  // Use only recognition queries (index 1 and 3), not the landscape list (index 2)
-  const recognitionRows = trackBResults.filter(r => r.query_index === 1 || r.query_index === 3);
+  // Appearance rate = how many landscape runs (qi=2) did the target person appear in,
+  // detected by anchor-keyword matching against each extracted list entry (target_rank set
+  // in runner.ts). This is honest — "did AI include this person in its top-10 list?"
+  const landscapeRows = trackBResults.filter(r => r.query_index === 2);
   const result: Record<string, EngineAppearanceStat> = {};
   for (const engine of ENGINES) {
-    const rows = recognitionRows.filter(r => r.engine === engine);
-    const found = rows.filter(r => r.identity_match === "confirmed" || r.identity_match === "partial");
+    const rows = landscapeRows.filter(r => r.engine === engine);
+    const found = rows.filter(r => r.target_rank != null && r.target_rank > 0);
     const ranks = found
       .map(r => r.target_rank)
       .filter((v): v is number => v != null && v > 0);
