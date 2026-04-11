@@ -62,14 +62,26 @@ async function saveQueryResult(result: {
 async function logCost(sessionId: number, engine: string, model: string, inputTokens: number, outputTokens: number) {
   try {
     const costPerInputM: Record<string, number> = {
-      "gpt-4o": 2.5, "gpt-4o-mini": 0.15, "gpt-4.1": 2.0, "o3": 10.0, "o4-mini": 1.1,
+      "gpt-4o": 2.5, "gpt-4o-mini": 0.15,
+      "gpt-4.1": 2.0, "gpt-4.1-mini": 0.4, "gpt-4.1-nano": 0.1,
+      "o3": 10.0, "o3-mini": 1.1, "o4-mini": 1.1,
       "gemini-2.5-flash": 0.075, "gemini-2.5-pro": 1.25,
-      "claude-sonnet-4-5": 3.0, "claude-haiku-4-5": 0.8, "claude-opus-4-5": 15.0,
+      "gemini-2.0-flash": 0.1, "gemini-2.0-flash-lite": 0.075,
+      "gemini-1.5-pro": 1.25, "gemini-1.5-flash": 0.075,
+      "claude-opus-4-5": 15.0, "claude-sonnet-4-5": 3.0, "claude-haiku-4-5": 0.8,
+      "claude-opus-4": 15.0, "claude-sonnet-4": 3.0, "claude-haiku-4": 0.8,
+      "claude-3-7-sonnet-latest": 3.0, "claude-3-5-haiku-latest": 0.8,
     };
     const costPerOutputM: Record<string, number> = {
-      "gpt-4o": 10.0, "gpt-4o-mini": 0.6, "gpt-4.1": 8.0, "o3": 40.0, "o4-mini": 4.4,
+      "gpt-4o": 10.0, "gpt-4o-mini": 0.6,
+      "gpt-4.1": 8.0, "gpt-4.1-mini": 1.6, "gpt-4.1-nano": 0.4,
+      "o3": 40.0, "o3-mini": 4.4, "o4-mini": 4.4,
       "gemini-2.5-flash": 0.3, "gemini-2.5-pro": 10.0,
-      "claude-sonnet-4-5": 15.0, "claude-haiku-4-5": 4.0, "claude-opus-4-5": 75.0,
+      "gemini-2.0-flash": 0.4, "gemini-2.0-flash-lite": 0.3,
+      "gemini-1.5-pro": 5.0, "gemini-1.5-flash": 0.3,
+      "claude-opus-4-5": 75.0, "claude-sonnet-4-5": 15.0, "claude-haiku-4-5": 4.0,
+      "claude-opus-4": 75.0, "claude-sonnet-4": 15.0, "claude-haiku-4": 4.0,
+      "claude-3-7-sonnet-latest": 15.0, "claude-3-5-haiku-latest": 4.0,
     };
     const inputCost = ((costPerInputM[model] ?? 2.5) * inputTokens) / 1_000_000;
     const outputCost = ((costPerOutputM[model] ?? 10.0) * outputTokens) / 1_000_000;

@@ -18,9 +18,21 @@ const ROW: React.CSSProperties = {
   padding: "12px 0", borderBottom: `1px solid ${BORDER}`,
 };
 
-const MODELS_CHATGPT = ["gpt-4o", "gpt-4o-mini", "gpt-4.1", "o3", "o4-mini"];
-const MODELS_GEMINI = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"];
-const MODELS_CLAUDE = ["claude-sonnet-4-5", "claude-haiku-4-5", "claude-opus-4-5"];
+const MODELS_CHATGPT = [
+  "gpt-4o", "gpt-4o-mini",
+  "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano",
+  "o3", "o3-mini", "o4-mini",
+];
+const MODELS_GEMINI = [
+  "gemini-2.5-flash", "gemini-2.5-pro",
+  "gemini-2.0-flash", "gemini-2.0-flash-lite",
+  "gemini-1.5-pro", "gemini-1.5-flash",
+];
+const MODELS_CLAUDE = [
+  "claude-opus-4-5", "claude-sonnet-4-5", "claude-haiku-4-5",
+  "claude-opus-4", "claude-sonnet-4", "claude-haiku-4",
+  "claude-3-7-sonnet-latest", "claude-3-5-haiku-latest",
+];
 
 const PLACEHOLDERS = ["{{name}}", "{{role}}", "{{company}}", "{{past_company}}", "{{education}}", "{{industry}}", "{{identity_string}}"];
 const SAMPLE_VARS = {
