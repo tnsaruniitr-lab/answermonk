@@ -187,6 +187,9 @@ export function registerPeopleRoutes(app: Express): void {
       const { rows } = await pool.query(
         `SELECT ps.id, ps.slug, ps.name, ps.linkedin_url, ps.status,
                 ps.created_at, ps.error_message,
+                ps.selected_anchors,
+                ps.current_company, ps.current_role,
+                ps.past_companies, ps.roles, ps.education,
                 pc.recognition_score, pc.recognition_grade,
                 pc.proof_score, pc.proof_grade
          FROM people_sessions ps

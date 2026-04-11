@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2, X, ArrowRight, User, Plus } from "lucide-react";
+import { Loader2, X, ArrowRight, User, Plus, History } from "lucide-react";
 import { MonkWordmark } from "@/components/MonkWordmark";
 
 interface PeopleSession {
@@ -16,6 +16,17 @@ interface PeopleSession {
   education: string[];
   location: string | null;
   status: string;
+}
+
+interface PastSession {
+  id: number;
+  name: string;
+  current_company: string | null;
+  current_role: string | null;
+  past_companies: string[];
+  roles: string[];
+  education: string[];
+  selected_anchors: { workplaces?: string[]; roles?: string[]; education?: string[] } | null;
 }
 
 function AnchorChip({ label, selected, onToggle }: { label: string; selected: boolean; onToggle: () => void }) {
@@ -137,6 +148,14 @@ export default function PeopleAnchors({ sessionId }: { sessionId: number }) {
     },
   });
 
+  const { data: pastSessionsData } = useQuery<{ sessions: PastSession[] }>({
+    queryKey: ["/api/people/sessions"],
+    queryFn: async () => {
+      const res = await fetch("/api/people/sessions?limit=50");
+      return res.json();
+    },
+  });
+
   const [selectedWorkplaces, setSelectedWorkplaces] = useState<string[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedEducation, setSelectedEducation] = useState<string[]>([]);
@@ -150,6 +169,26 @@ export default function PeopleAnchors({ sessionId }: { sessionId: number }) {
     setSelectedRoles(roles);
     setSelectedEducation(education);
     setInitialized(true);
+  }
+
+  const pastProfiles = (pastSessionsData?.sessions ?? []).filter(s => s.id !== sessionId && (
+    s.selected_anchors || s.current_company || s.current_role || (s.education ?? []).length > 0
+  ));
+
+  function loadPastProfile(profileId: string) {
+    const p = pastProfiles.find(s => String(s.id) === profileId);
+    if (!p) return;
+    if (p.selected_anchors) {
+      setSelectedWorkplaces(p.selected_anchors.workplaces ?? []);
+      setSelectedRoles(p.selected_anchors.roles ?? []);
+      setSelectedEducation(p.selected_anchors.education ?? []);
+    } else {
+      const workplaces = [p.current_company, ...(p.past_companies ?? [])].filter(Boolean) as string[];
+      const roles = [p.current_role, ...(p.roles ?? [])].filter(Boolean) as string[];
+      setSelectedWorkplaces(workplaces);
+      setSelectedRoles(roles);
+      setSelectedEducation(p.education ?? []);
+    }
   }
 
   const runMutation = useMutation({
@@ -288,6 +327,38 @@ export default function PeopleAnchors({ sessionId }: { sessionId: number }) {
             </>
           ) : (
             <>
+              {pastProfiles.length > 0 && (
+                <div style={{ marginBottom: 28 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>
+                    Load a previous profile
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <History size={15} color="#6366f1" style={{ flexShrink: 0 }} />
+                    <select
+                      defaultValue=""
+                      onChange={(e) => loadPastProfile(e.target.value)}
+                      data-testid="select-past-profile"
+                      style={{
+                        flex: 1, border: "1.5px solid #e5e7eb", borderRadius: 8,
+                        padding: "9px 14px", fontSize: 14, color: "#1f2937",
+                        fontFamily: "inherit", outline: "none", cursor: "pointer",
+                        background: "#fff", appearance: "auto",
+                      }}
+                    >
+                      <option value="" disabled>Select a previously audited person…</option>
+                      {pastProfiles.map(p => {
+                        const sub = [p.selected_anchors?.workplaces?.[0] ?? p.current_company, p.selected_anchors?.roles?.[0] ?? p.current_role].filter(Boolean).join(", ");
+                        return (
+                          <option key={p.id} value={String(p.id)}>
+                            {p.name}{sub ? ` — ${sub}` : ""}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                  <div style={{ borderTop: "1px solid #f3f4f6", margin: "20px 0" }} />
+                </div>
+              )}
               <TagInput
                 label="Current company"
                 placeholder="e.g. Google, Stripe, your startup name..."
