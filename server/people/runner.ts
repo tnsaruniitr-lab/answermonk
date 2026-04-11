@@ -378,13 +378,24 @@ export async function recomputeScores(sessionId: number): Promise<void> {
         [JSON.stringify(parsed.nameLandscape), row.id]
       );
     } else if (row.track === "A" && row.raw_response) {
-      // Re-evaluate identity match with the current (fixed) resolver
+      // Re-parse Track A: refresh identity match AND update stated_facts with new profile fields
+      // (one_liner, key_achievements, green_flags, red_flags) which may not exist in older rows.
       const parsedA = await parseTrackAResponse(row.raw_response, session.name, profileForResolve);
       const freshMatch = reResolve(row.raw_response, profileForResolve, parsedA.targetFound, row.query_text);
       row.identity_match = freshMatch;
+
+      const extendedFacts = [
+        ...parsedA.statedFacts,
+        ...(parsedA.oneLiner ? [{ fact: "one_liner", value: parsedA.oneLiner, sourceUrl: null, status: "stated" }] : []),
+        ...(parsedA.keyAchievements.length ? [{ fact: "key_achievements", value: parsedA.keyAchievements.join(" | "), sourceUrl: null, status: "stated" }] : []),
+        ...(parsedA.greenFlags.length ? [{ fact: "green_flags", value: parsedA.greenFlags.join(" | "), sourceUrl: null, status: "stated" }] : []),
+        ...(parsedA.redFlags.length ? [{ fact: "red_flags", value: parsedA.redFlags.join(" | "), sourceUrl: null, status: "stated" }] : []),
+      ];
+      row.stated_facts = extendedFacts;
+
       await pool.query(
-        `UPDATE people_query_results SET identity_match = $1 WHERE id = $2`,
-        [freshMatch, row.id]
+        `UPDATE people_query_results SET identity_match = $1, stated_facts = $2 WHERE id = $3`,
+        [freshMatch, JSON.stringify(extendedFacts), row.id]
       );
     }
   }
@@ -446,11 +457,28 @@ function buildReportData(
       engineTrackA[0];
     const matchVotes = engineTrackA.map((r) => r.identity_match).filter(Boolean);
     const consensusMatch = majorityVote(matchVotes);
+
+    // Merge stated_facts from ALL rounds — for each fact key, pick the longest/richest value.
+    // This ensures profile fields (one_liner, key_achievements, green_flags, red_flags)
+    // are populated even if they came from a different round than the "best" identity match.
+    const allFacts: any[] = engineTrackA.flatMap((r) => (r.stated_facts as any[]) ?? []);
+    const factMap = new Map<string, any>();
+    for (const fact of allFacts) {
+      if (!fact?.fact) continue;
+      const key = fact.fact as string;
+      const existing = factMap.get(key);
+      // Keep the entry with the longest value (most detail) across all rounds
+      if (!existing || (fact.value ?? "").length > (existing.value ?? "").length) {
+        factMap.set(key, fact);
+      }
+    }
+    const mergedFacts = Array.from(factMap.values());
+
     return {
       engine,
       description: bestMatch?.raw_response?.slice(0, 500) ?? "",
       identityMatch: consensusMatch,
-      statedFacts: bestMatch?.stated_facts ?? [],
+      statedFacts: mergedFacts,
       citedUrls: (bestMatch?.cited_urls ?? []).map(resolveUrl),
     };
   });
