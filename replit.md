@@ -161,3 +161,42 @@ Pages are keyed on `canonical_slug` (unique DB constraint). Running the same ana
 
 ### Current state
 36 pages published as of first backfill (10 historical sessions, service categories across Dubai, MENA, Netherlands, Amsterdam).
+
+## People AI Identity Audit (`/people`)
+
+A fully parallel feature — zero overlap with the brand audit pipeline.
+
+### Flow
+1. `/people` — Landing page. User enters their LinkedIn URL.
+2. `POST /api/people/crawl` — Crawls LinkedIn public profile, extracts name/headline/role/company/education. Falls back to name-from-URL-slug if LinkedIn blocks. Creates `people_sessions` row with status=`selecting`. Returns sessionId, slug, anchors.
+3. `/people/anchors/:sessionId` — Anchor selection. Shows chips for workplaces, roles, education. User deselects anything irrelevant.
+4. `POST /api/people/run/:sessionId` — Saves selected anchors, fires `runPeopleAudit()` async (fire-and-forget). Returns immediately.
+5. `/people/analysis/:sessionId` — Progress screen. Polls `/api/people/session/:id` every 4s. Redirects to report when status=`complete`.
+6. `/people/reports/:slug` — Full report page. Fetches via `GET /api/people/report/:slug`.
+
+### Two-track scoring (never combined)
+- **Track A (anchored)** — 4 query variations × 3 engines with web search. Tests "what does AI think of me when given my identity context?" → **Identity Proof Score**
+- **Track B (unanchored)** — 3 queries × 3 engines. Tests "where do I rank among all [Name]s?" → **AI Recognition Score**
+
+### Server pipeline
+- `server/people/linkedin.ts` — LinkedIn public profile crawl + anchor group builder
+- `server/people/engines.ts` — Raw text engine calls (ChatGPT + web search, Gemini + Google Search, Claude standard). Completely separate from brand `queryEngine`.
+- `server/people/queries.ts` — Track A and Track B query builders
+- `server/people/parser.ts` — GPT-4o-mini structured extraction from raw AI responses
+- `server/people/resolver.ts` — Identity resolution (confirmed/partial/wrong/absent)
+- `server/people/scorer.ts` — Recognition Score + Proof Score calculation + grade (A/B/C/D/F)
+- `server/people/runner.ts` — Orchestrator: runs all 21 engine calls in parallel, saves results, calculates scores, builds report data, updates status
+
+### DB tables (3 new, all isolated)
+- `people_sessions` — One row per audit. Note: `current_role` is a PostgreSQL reserved keyword — always quote it in raw SQL (`"current_role"`).
+- `people_query_results` — One row per engine × query combination (21 rows per complete audit)
+- `people_scores` — Final scores + diagnostic text + full report JSONB per session
+
+### Report page sections
+1. Two score cards (Recognition Score + Proof Score with grade)
+2. Diagnostic paragraph (one of 6 pre-written diagnoses based on grade combination)
+3. How AI sees you — per-engine description card + identity badge + cited sources
+4. Default recognition — what each AI says for "Who is [name]?"
+5. Name landscape — all people with the user's name ranked by AI prominence
+6. Source graph — domains cited when AI answers about the user
+7. Recommendations — up to 5 prioritised recommendations based on scores

@@ -925,6 +925,21 @@ function LandingInner() {
             >
               How it works
             </a>
+            <a
+              href="/people"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                fontSize: 14, fontWeight: 600, color: "#fff",
+                padding: "7px 16px", borderRadius: 99,
+                background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                textDecoration: "none", transition: "opacity 0.15s",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.opacity = "0.88")}
+              onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+              data-testid="nav-link-people"
+            >
+              People audit
+            </a>
           </nav>
         </header>
       )}

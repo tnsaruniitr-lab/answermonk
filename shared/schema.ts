@@ -420,3 +420,62 @@ export const EvalResponseSchema = z.object({
   ts: z.string(),
 });
 export type EvalResponse = z.infer<typeof EvalResponseSchema>;
+
+// === PEOPLE AI IDENTITY AUDIT ===
+
+export const peopleSessions = pgTable("people_sessions", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  linkedinUrl: text("linkedin_url").notNull(),
+  name: text("name").notNull(),
+  headline: text("headline"),
+  currentRole: text("current_role"),
+  currentCompany: text("current_company"),
+  pastCompanies: text("past_companies").array().notNull().default([]),
+  roles: text("roles").array().notNull().default([]),
+  education: text("education").array().notNull().default([]),
+  location: text("location"),
+  industry: text("industry"),
+  selectedAnchors: jsonb("selected_anchors").$type<{ workplaces: string[]; roles: string[]; education: string[] }>(),
+  status: text("status").notNull().default("pending"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertPeopleSessionSchema = createInsertSchema(peopleSessions).omit({ id: true, createdAt: true });
+export type PeopleSession = typeof peopleSessions.$inferSelect;
+export type InsertPeopleSession = z.infer<typeof insertPeopleSessionSchema>;
+
+export const peopleQueryResults = pgTable("people_query_results", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").notNull(),
+  track: text("track").notNull(),
+  queryIndex: integer("query_index").notNull(),
+  queryText: text("query_text").notNull(),
+  engine: text("engine").notNull(),
+  rawResponse: text("raw_response"),
+  identityMatch: text("identity_match"),
+  statedFacts: jsonb("stated_facts").$type<{ fact: string; value: string; sourceUrl: string | null; status: string }[]>(),
+  citedUrls: text("cited_urls").array().notNull().default([]),
+  targetRank: integer("target_rank"),
+  targetFound: boolean("target_found").notNull().default(false),
+  nameLandscape: jsonb("name_landscape").$type<{ name: string; description: string; rank: number; urls: string[] }[]>(),
+  error: text("error"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type PeopleQueryResult = typeof peopleQueryResults.$inferSelect;
+
+export const peopleScores = pgTable("people_scores", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").notNull().unique(),
+  recognitionScore: integer("recognition_score").notNull().default(0),
+  recognitionGrade: text("recognition_grade").notNull().default("F"),
+  proofScore: integer("proof_score").notNull().default(0),
+  proofGrade: text("proof_grade").notNull().default("F"),
+  diagnosticText: text("diagnostic_text"),
+  reportData: jsonb("report_data").$type<Record<string, any>>(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type PeopleScore = typeof peopleScores.$inferSelect;

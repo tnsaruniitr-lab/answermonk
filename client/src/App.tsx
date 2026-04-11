@@ -22,6 +22,10 @@ import SignalConsistency from "@/pages/SignalConsistency";
 import CrawlabilityReport from "@/pages/CrawlabilityReport";
 import GeoLandingPageReport from "@/pages/GeoLandingPageReport";
 import Landing from "@/pages/Landing";
+import PeopleLanding from "@/pages/people/PeopleLanding";
+import PeopleAnchors from "@/pages/people/PeopleAnchors";
+import PeopleAnalysis from "@/pages/people/PeopleAnalysis";
+import PeopleReport from "@/pages/people/PeopleReport";
 import ReportsSession from "@/pages/ReportsSession";
 import ReportsIndex from "@/pages/ReportsIndex";
 import DirectoryListing from "@/pages/DirectoryListing";
@@ -218,6 +222,57 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Landing />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  // People AI Identity Audit — public, no auth
+  if (path === "/people") {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <PeopleLanding />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  const peopleAnchorsMatch = path.match(/^\/people\/anchors\/(\d+)$/);
+  if (peopleAnchorsMatch) {
+    const sessionId = parseInt(peopleAnchorsMatch[1], 10);
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <PeopleAnchors sessionId={sessionId} />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  const peopleAnalysisMatch = path.match(/^\/people\/analysis\/(\d+)$/);
+  if (peopleAnalysisMatch) {
+    const sessionId = parseInt(peopleAnalysisMatch[1], 10);
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <PeopleAnalysis sessionId={sessionId} />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  const peopleReportMatch = path.match(/^\/people\/reports\/([^/]+)$/);
+  if (peopleReportMatch) {
+    const slug = peopleReportMatch[1];
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <PeopleReport slug={slug} />
         </TooltipProvider>
       </QueryClientProvider>
     );
