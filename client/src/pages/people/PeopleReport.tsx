@@ -39,7 +39,7 @@ function IdentityBadge({ match }: { match: string }) {
     confirmed: { icon: <CheckCircle2 size={13} />, label: "Confirmed you", bg: "#ecfdf5", color: "#059669" },
     partial: { icon: <AlertCircle size={13} />, label: "Partial match", bg: "#fffbeb", color: "#d97706" },
     wrong: { icon: <XCircle size={13} />, label: "Wrong person", bg: "#fef2f2", color: "#dc2626" },
-    absent: { icon: <MinusCircle size={13} />, label: "Not found", bg: "#f9fafb", color: "#9ca3af" },
+    absent: { icon: <MinusCircle size={13} />, label: "Unconfirmed", bg: "#f9fafb", color: "#9ca3af" },
   };
   const cfg = configs[match] ?? configs.absent;
   return (
