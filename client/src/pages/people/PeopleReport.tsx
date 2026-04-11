@@ -347,10 +347,13 @@ export default function PeopleReport({ slug }: { slug: string }) {
           </div>
         </CollapsibleSection>
 
-        {/* AI Profile section (collapsed) */}
-        {rd.aiProfile && (rd.aiProfile.oneLiner || rd.aiProfile.keyAchievements?.length > 0) && (
+        {/* AI Profile section (collapsed) — per-engine breakdown */}
+        {(rd.engineCards ?? []).length > 0 && (
           <CollapsibleSection title="AI profile — what AI says about you">
-            <AiProfileCard aiProfile={rd.aiProfile} />
+            <p style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.5, marginBottom: 16 }}>
+              How each AI engine independently defines this person — their one-sentence definition, key achievements, and professional signals.
+            </p>
+            <AiProfileCard engineCards={rd.engineCards ?? []} />
           </CollapsibleSection>
         )}
       </main>
@@ -459,51 +462,100 @@ function EngineCard({ card }: { card: any }) {
   );
 }
 
-function AiProfileCard({ aiProfile }: { aiProfile: any }) {
-  const { oneLiner, keyAchievements, greenFlags, redFlags } = aiProfile ?? {};
+function AiProfileCard({ engineCards }: { engineCards: any[] }) {
+  const ALL = ["chatgpt", "gemini", "claude"] as const;
+
+  function getFact(facts: any[], name: string): string {
+    return (facts ?? []).find((f: any) => f.fact === name)?.value ?? "";
+  }
+  function getList(facts: any[], name: string): string[] {
+    const raw = getFact(facts, name);
+    if (!raw) return [];
+    return raw.split(" | ").map((s: string) => s.trim()).filter(Boolean);
+  }
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {oneLiner && (
-        <div style={{
-          background: "#f8faff", borderRadius: 12, padding: "16px 20px",
-          border: "1px solid rgba(99,102,241,0.15)", borderLeft: "4px solid #6366f1",
-        }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "#6366f1", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>AI definition</div>
-          <p style={{ fontSize: 14, color: "#1f2937", lineHeight: 1.65, margin: 0, fontStyle: "italic" }}>"{oneLiner}"</p>
-        </div>
-      )}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-        {keyAchievements?.length > 0 && (
-          <div style={{ background: "#fff", borderRadius: 10, padding: 16, border: "1px solid #f3f4f6" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>Key achievements</div>
-            <ul style={{ margin: 0, padding: "0 0 0 16px", display: "flex", flexDirection: "column", gap: 6 }}>
-              {keyAchievements.slice(0, 5).map((a: string, i: number) => (
-                <li key={i} style={{ fontSize: 12, color: "#374151", lineHeight: 1.5 }}>{a}</li>
-              ))}
-            </ul>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+      {ALL.map((engine) => {
+        const card = engineCards.find((c: any) => c.engine === engine);
+        const color = ENGINE_COLORS[engine] ?? "#6366f1";
+        const label = ENGINE_LABELS[engine] ?? engine;
+        const facts: any[] = card?.statedFacts ?? [];
+        const oneLiner = getFact(facts, "one_liner");
+        const achievements = getList(facts, "key_achievements");
+        const greenFlags = getList(facts, "green_flags");
+        const redFlags = getList(facts, "red_flags");
+        const hasContent = oneLiner || achievements.length > 0 || greenFlags.length > 0 || redFlags.length > 0;
+
+        return (
+          <div key={engine} style={{
+            background: "#fff", borderRadius: 12, border: "1px solid #f3f4f6",
+            overflow: "hidden", display: "flex", flexDirection: "column",
+          }}>
+            {/* Engine header */}
+            <div style={{
+              padding: "12px 16px", borderBottom: "1px solid #f3f4f6",
+              borderTop: `3px solid ${color}`, display: "flex", alignItems: "center", gap: 8,
+            }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color }}>{label}</span>
+              {card?.identityMatch && <IdentityBadge match={card.identityMatch} />}
+            </div>
+
+            {!hasContent ? (
+              <div style={{ padding: 16, color: "#9ca3af", fontSize: 12 }}>
+                No structured profile data extracted for this engine.
+              </div>
+            ) : (
+              <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
+                {/* One-liner */}
+                {oneLiner && (
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>AI definition</div>
+                    <p style={{ fontSize: 12, color: "#1f2937", lineHeight: 1.65, margin: 0, fontStyle: "italic" }}>"{oneLiner}"</p>
+                  </div>
+                )}
+
+                {/* Key achievements */}
+                {achievements.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>Key achievements</div>
+                    <ul style={{ margin: 0, padding: "0 0 0 14px", display: "flex", flexDirection: "column", gap: 5 }}>
+                      {achievements.slice(0, 5).map((a: string, i: number) => (
+                        <li key={i} style={{ fontSize: 11, color: "#374151", lineHeight: 1.5 }}>{a}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Green flags */}
+                {greenFlags.length > 0 && (
+                  <div style={{ background: "#f0fdf4", borderRadius: 8, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#059669", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>Green flags</div>
+                    <ul style={{ margin: 0, padding: "0 0 0 14px", display: "flex", flexDirection: "column", gap: 5 }}>
+                      {greenFlags.slice(0, 4).map((f: string, i: number) => (
+                        <li key={i} style={{ fontSize: 11, color: "#065f46", lineHeight: 1.5 }}>{f}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Red flags */}
+                {redFlags.length > 0 && (
+                  <div style={{ background: "#fef2f2", borderRadius: 8, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#dc2626", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>Red flags</div>
+                    <ul style={{ margin: 0, padding: "0 0 0 14px", display: "flex", flexDirection: "column", gap: 5 }}>
+                      {redFlags.slice(0, 4).map((f: string, i: number) => (
+                        <li key={i} style={{ fontSize: 11, color: "#7f1d1d", lineHeight: 1.5 }}>{f}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        )}
-        {greenFlags?.length > 0 && (
-          <div style={{ background: "#f0fdf4", borderRadius: 10, padding: 16, border: "1px solid #bbf7d0" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#059669", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>Green flags</div>
-            <ul style={{ margin: 0, padding: "0 0 0 16px", display: "flex", flexDirection: "column", gap: 6 }}>
-              {greenFlags.slice(0, 5).map((f: string, i: number) => (
-                <li key={i} style={{ fontSize: 12, color: "#065f46", lineHeight: 1.5 }}>{f}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {redFlags?.length > 0 && (
-          <div style={{ background: "#fef2f2", borderRadius: 10, padding: 16, border: "1px solid #fecaca" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#dc2626", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>Red flags</div>
-            <ul style={{ margin: 0, padding: "0 0 0 16px", display: "flex", flexDirection: "column", gap: 6 }}>
-              {redFlags.slice(0, 5).map((f: string, i: number) => (
-                <li key={i} style={{ fontSize: 12, color: "#7f1d1d", lineHeight: 1.5 }}>{f}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+        );
+      })}
     </div>
   );
 }
