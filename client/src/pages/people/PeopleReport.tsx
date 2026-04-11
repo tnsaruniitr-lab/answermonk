@@ -301,27 +301,6 @@ export default function PeopleReport({ slug }: { slug: string }) {
           </div>
         )}
 
-        {/* Section 1: How AI sees you */}
-        <Section title="How AI sees you right now">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-            {(rd.engineCards ?? []).map((card: any) => (
-              <EngineCard key={card.engine} card={card} />
-            ))}
-          </div>
-        </Section>
-
-        {/* Section 2: Default recognition */}
-        <Section title="Default recognition — Who is you?">
-          <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
-            What each AI engine says when asked "Who is {session?.name}?" with zero context.
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {(rd.defaultRecognition ?? []).map((item: any) => (
-              <DefaultCard key={item.engine} item={item} />
-            ))}
-          </div>
-        </Section>
-
         {/* Section 3: Name landscape */}
         {(rd.nameLandscape ?? []).length > 0 && (
           <LandscapeSection
@@ -355,6 +334,27 @@ export default function PeopleReport({ slug }: { slug: string }) {
         <Section title="Recommendations">
           <Recommendations scores={scores} sourceGraph={rd.sourceGraph} nameLandscape={rd.nameLandscape} claimFacts={rd.claimFacts} sessionName={session?.name} perEngineAppearance={perEngineAppearance} />
         </Section>
+
+        {/* Section 7: How AI sees you (collapsed) */}
+        <CollapsibleSection title="How AI sees you right now">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+            {(rd.engineCards ?? []).map((card: any) => (
+              <EngineCard key={card.engine} card={card} />
+            ))}
+          </div>
+        </CollapsibleSection>
+
+        {/* Section 8: Default recognition (collapsed) */}
+        <CollapsibleSection title="Default recognition — Who is you?">
+          <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
+            What each AI engine says when asked "Who is {session?.name}?" with zero context.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {(rd.defaultRecognition ?? []).map((item: any) => (
+              <DefaultCard key={item.engine} item={item} />
+            ))}
+          </div>
+        </CollapsibleSection>
       </main>
     </div>
   );
@@ -367,6 +367,26 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         {title}
       </h2>
       {children}
+    </div>
+  );
+}
+
+function CollapsibleSection({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+          background: "none", border: "none", borderBottom: "1px solid #e5e7eb",
+          paddingBottom: 12, marginBottom: open ? 20 : 0, cursor: "pointer", textAlign: "left",
+        }}
+      >
+        <span style={{ fontSize: 20, fontWeight: 800, color: "#0f0a2e" }}>{title}</span>
+        <span style={{ fontSize: 18, color: "#9ca3af", transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
+      </button>
+      {open && children}
     </div>
   );
 }

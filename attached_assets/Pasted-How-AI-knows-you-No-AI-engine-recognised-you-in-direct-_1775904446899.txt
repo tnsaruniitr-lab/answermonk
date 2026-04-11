@@ -1,0 +1,94 @@
+How AI knows you
+No AI engine recognised you in direct queries
+
+0%
+avg confirmed
+ChatGPT
+0/5 queries confirmed
+Not found
+"Here are several individuals named **Jake Stein**, each distinguished by their field and accomplishments. Without additional context, it's unclear which one you're referring to, so I’ve outlined the most notable figures:…"
+Read full response
+Wikipedia
+en.wikipedia.org
+Web
+jakestein.me
+Web
+commonpaper.com
+Gemini
+0/5 queries confirmed
+Wrong person
+"The name Jake Stein is associated with several notable individuals in different fields. Here's a look at some of the most prominent people named Jake Stein, what they do, and what they are best known for. ### The Tech E…"
+Read full response
+Web
+commonpaper.com
+Directory
+tracxn.com
+Wikipedia
+en.wikipedia.org
+Claude
+0/5 queries confirmed
+Wrong person
+"I don't have specific information about a notable person named Jake Stein in my knowledge base. This is a relatively common name, and without additional context, I cannot identify which Jake Stein you're referring to or…"
+Read full response
+Diagnosis: AI barely finds you unprompted but describes you correctly when given context. You need press mentions, Wikipedia presence, and broader web authority to surface by name alone.
+
+How AI sees you right now
+ChatGPT
+Confirmed you
+I couldn’t locate any credible, publicly available information about a **Jake Stein** currently working at **McKinsey & Company**—no official McKinsey profile, press release, or reputable news source mentions someone by that name in connection with the firm.
+
+Show full response ↓
+Facts cited
+current_role
+current_company
+education
+location
+Sources
+Web
+signalhire.com
+Web
+mckinsey.com
+Web
+oii.ox.ac.uk
+Gemini
+Wrong person
+Based on available information, there are several professionals named Jake Stein.
+
+Show full response ↓
+Facts cited
+current_role
+current_company
+education
+location
+Sources
+Web
+commonpaper.com
+Directory
+tracxn.com
+Directory
+tracxn.com
+Claude
+Wrong person
+I don't have specific information about this particular Jake Stein in my knowledge base.
+
+Show full response ↓
+Facts cited
+current_role
+current_company
+education
+location
+Default recognition — Who is you?
+What each AI engine says when asked "Who is Jake Stein?" with zero context.
+
+ChatGPT
+Not found
+"Here are several individuals named **Jake Stein**, each distinguished by their field and accomplishments. Without additional context, it's unclear which one you're referring to, so I’ve outlined the most notable figures: --- **1. Jake Stein – Australian Decathlete and Former AFL Player** - Born ..."
+
+Gemini
+Wrong person
+"The name Jake Stein is associated with several notable individuals in different fields. Here's a look at some of the most prominent people named Jake Stein, what they do, and what they are best known for. ### The Tech Entrepreneur Jake Stein is a notable figure in the tech industry, recognized as ..."
+
+Claude
+Wrong person
+"I don't have specific information about a notable person named Jake Stein in my knowledge base. This is a relatively common name, and without additional context, I cannot identify which Jake Stein you're referring to or provide accurate details about their background, work, or achievements. To help..."
+
