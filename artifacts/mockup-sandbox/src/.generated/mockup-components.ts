@@ -104,11 +104,11 @@ export const modules: ModuleMap = {
   "./components/mockups/segment-anim/DispatchFeed.tsx": () => import("../components/mockups/segment-anim/DispatchFeed.tsx"),
   "./components/mockups/segment-anim/EngineRace.tsx": () => import("../components/mockups/segment-anim/EngineRace.tsx"),
   "./components/mockups/segment-card/SegmentResultCard.tsx": () => import("../components/mockups/segment-card/SegmentResultCard.tsx"),
+  "./components/mockups/segment-select/SegmentSelectPanel.tsx": () => import("../components/mockups/segment-select/SegmentSelectPanel.tsx"),
   "./components/mockups/session-summary/AlarmFirst.tsx": () => import("../components/mockups/session-summary/AlarmFirst.tsx"),
   "./components/mockups/session-summary/CommandBrief.tsx": () => import("../components/mockups/session-summary/CommandBrief.tsx"),
   "./components/mockups/session-summary/CompactStrip.tsx": () => import("../components/mockups/session-summary/CompactStrip.tsx"),
   "./components/mockups/session-summary/ScoreGauge.tsx": () => import("../components/mockups/session-summary/ScoreGauge.tsx"),
   "./components/mockups/session-summary/ScoreHero.tsx": () => import("../components/mockups/session-summary/ScoreHero.tsx"),
-  "./components/mockups/session-summary/TwinPanel.tsx": () => import("../components/mockups/session-summary/TwinPanel.tsx"),
-  "./components/mockups/segment-select/SegmentSelectPanel.tsx": () => import("../components/mockups/segment-select/SegmentSelectPanel.tsx")
+  "./components/mockups/session-summary/TwinPanel.tsx": () => import("../components/mockups/session-summary/TwinPanel.tsx")
 };
