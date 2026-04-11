@@ -512,13 +512,29 @@ function buildReportData(
     }
     const mergedFacts = Array.from(factMap.values());
 
+    // All cited URLs across every round for this engine (de-duped)
+    const allRoundUrls = [...new Set(
+      engineTrackA.flatMap((r) => (r.cited_urls as string[]) ?? [])
+    )].map(resolveUrl).filter(Boolean);
+
+    // Per-round raw data so the report can show prompts + responses verbatim
+    const rounds = engineTrackA
+      .sort((a, b) => (a.round ?? 0) - (b.round ?? 0))
+      .map((r) => ({
+        round: r.round ?? 0,
+        promptText: r.query_text ?? "",
+        rawResponse: r.raw_response ?? "",
+        identityMatch: r.identity_match ?? "absent",
+      }));
+
     return {
       engine,
       description: bestMatch?.raw_response?.slice(0, 500) ?? "",
       identityMatch: consensusMatch,
       statedFacts: mergedFacts,
-      citedUrls: (bestMatch?.cited_urls ?? []).map(resolveUrl),
+      citedUrls: allRoundUrls,
       synthesis: engineSynthesis[engine] ?? null,
+      rounds,
     };
   });
 

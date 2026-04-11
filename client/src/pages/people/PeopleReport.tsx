@@ -480,6 +480,93 @@ function ConsistencyBadge({ score, label }: { score: number; label: string }) {
   );
 }
 
+function RawRoundAccordion({ rounds, color }: { rounds: any[]; color: string }) {
+  const [openRound, setOpenRound] = useState<number | null>(null);
+  if (!rounds || rounds.length === 0) return null;
+  return (
+    <div style={{ borderTop: "1px solid #f3f4f6", marginTop: 12, paddingTop: 12 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 8 }}>
+        Raw responses · {rounds.length} round{rounds.length !== 1 ? "s" : ""}
+      </div>
+      {rounds.map((r: any) => (
+        <div key={r.round} style={{ marginBottom: 6, border: "1px solid #f3f4f6", borderRadius: 8, overflow: "hidden" }}>
+          <button
+            onClick={() => setOpenRound(openRound === r.round ? null : r.round)}
+            style={{
+              width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "8px 12px", background: openRound === r.round ? "#f9fafb" : "#fff",
+              border: "none", cursor: "pointer", fontFamily: "inherit", gap: 8,
+            }}
+          >
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#374151" }}>Round {r.round}</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <IdentityBadge match={r.identityMatch} />
+              <span style={{ color: "#9ca3af", fontSize: 12 }}>{openRound === r.round ? "▲" : "▼"}</span>
+            </span>
+          </button>
+          {openRound === r.round && (
+            <div style={{ padding: "0 12px 12px", borderTop: "1px solid #f3f4f6" }}>
+              {/* Prompt */}
+              <div style={{ marginTop: 10 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: color, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 5 }}>Prompt sent</div>
+                <pre style={{
+                  fontSize: 11, color: "#374151", background: "#f8fafc", borderRadius: 6,
+                  padding: "8px 10px", margin: 0, whiteSpace: "pre-wrap", wordBreak: "break-word",
+                  lineHeight: 1.6, fontFamily: "inherit", maxHeight: 200, overflowY: "auto",
+                  border: "1px solid #e5e7eb",
+                }}>{r.promptText || "—"}</pre>
+              </div>
+              {/* Response */}
+              <div style={{ marginTop: 10 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 5 }}>Response received</div>
+                <pre style={{
+                  fontSize: 11, color: "#374151", background: "#fff", borderRadius: 6,
+                  padding: "8px 10px", margin: 0, whiteSpace: "pre-wrap", wordBreak: "break-word",
+                  lineHeight: 1.6, fontFamily: "inherit", maxHeight: 320, overflowY: "auto",
+                  border: "1px solid #e5e7eb",
+                }}>{r.rawResponse || "No response"}</pre>
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SourcesList({ urls }: { urls: string[] }) {
+  if (!urls || urls.length === 0) return null;
+  const unique = [...new Set(urls)];
+  return (
+    <div style={{ borderTop: "1px solid #f3f4f6", marginTop: 12, paddingTop: 12 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 8 }}>
+        Sources · {unique.length}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {unique.map((url: string, i: number) => {
+          let domain = url;
+          try { domain = new URL(url).hostname.replace(/^www\./, ""); } catch {}
+          const dt = getDomainType(domain);
+          return (
+            <a key={i} href={url} target="_blank" rel="noopener noreferrer" style={{
+              display: "flex", alignItems: "center", gap: 6, fontSize: 11,
+              color: "#374151", textDecoration: "none", padding: "4px 0",
+              borderBottom: i < unique.length - 1 ? "1px solid #f9fafb" : "none",
+            }}>
+              <span style={{
+                fontSize: 10, fontWeight: 700, color: dt.color, background: dt.bg,
+                borderRadius: 4, padding: "1px 5px", flexShrink: 0,
+              }}>{dt.label}</span>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#6b7280" }}>{domain}</span>
+              <ExternalLink size={10} color="#d1d5db" style={{ flexShrink: 0, marginLeft: "auto" }} />
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function AiProfileCard({ engineCards }: { engineCards: any[] }) {
   const ALL = ["chatgpt", "gemini", "claude"] as const;
 
@@ -529,60 +616,66 @@ function AiProfileCard({ engineCards }: { engineCards: any[] }) {
               )}
             </div>
 
-            {!hasContent ? (
-              <div style={{ padding: 16, color: "#9ca3af", fontSize: 12 }}>
-                No structured profile data extracted for this engine.
-              </div>
-            ) : (
-              <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
-                {/* One-liner */}
-                {oneLiner && (
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>AI definition</div>
-                    <p style={{ fontSize: 12, color: "#1f2937", lineHeight: 1.65, margin: 0, fontStyle: "italic" }}>"{oneLiner}"</p>
-                    {syn?.notes && (
-                      <p style={{ fontSize: 11, color: "#9ca3af", lineHeight: 1.5, margin: "6px 0 0 0", fontStyle: "normal" }}>{syn.notes}</p>
-                    )}
-                  </div>
-                )}
+            <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
+              {!hasContent && (
+                <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>
+                  No structured profile data extracted for this engine.
+                </p>
+              )}
 
-                {/* Key achievements */}
-                {achievements.length > 0 && (
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>Key achievements</div>
-                    <ul style={{ margin: 0, padding: "0 0 0 14px", display: "flex", flexDirection: "column", gap: 5 }}>
-                      {achievements.slice(0, 5).map((a: string, i: number) => (
-                        <li key={i} style={{ fontSize: 11, color: "#374151", lineHeight: 1.5 }}>{a}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+              {/* One-liner */}
+              {oneLiner && (
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>AI definition</div>
+                  <p style={{ fontSize: 12, color: "#1f2937", lineHeight: 1.65, margin: 0, fontStyle: "italic" }}>"{oneLiner}"</p>
+                  {syn?.notes && (
+                    <p style={{ fontSize: 11, color: "#9ca3af", lineHeight: 1.5, margin: "6px 0 0 0", fontStyle: "normal" }}>{syn.notes}</p>
+                  )}
+                </div>
+              )}
 
-                {/* Green flags */}
-                {greenFlags.length > 0 && (
-                  <div style={{ background: "#f0fdf4", borderRadius: 8, padding: "10px 12px" }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "#059669", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>Green flags</div>
-                    <ul style={{ margin: 0, padding: "0 0 0 14px", display: "flex", flexDirection: "column", gap: 5 }}>
-                      {greenFlags.slice(0, 4).map((f: string, i: number) => (
-                        <li key={i} style={{ fontSize: 11, color: "#065f46", lineHeight: 1.5 }}>{f}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+              {/* Key achievements */}
+              {achievements.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>Key achievements</div>
+                  <ul style={{ margin: 0, padding: "0 0 0 14px", display: "flex", flexDirection: "column", gap: 5 }}>
+                    {achievements.slice(0, 5).map((a: string, i: number) => (
+                      <li key={i} style={{ fontSize: 11, color: "#374151", lineHeight: 1.5 }}>{a}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-                {/* Red flags */}
-                {redFlags.length > 0 && (
-                  <div style={{ background: "#fef2f2", borderRadius: 8, padding: "10px 12px" }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "#dc2626", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>Red flags</div>
-                    <ul style={{ margin: 0, padding: "0 0 0 14px", display: "flex", flexDirection: "column", gap: 5 }}>
-                      {redFlags.slice(0, 4).map((f: string, i: number) => (
-                        <li key={i} style={{ fontSize: 11, color: "#7f1d1d", lineHeight: 1.5 }}>{f}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
+              {/* Green flags */}
+              {greenFlags.length > 0 && (
+                <div style={{ background: "#f0fdf4", borderRadius: 8, padding: "10px 12px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#059669", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>Green flags</div>
+                  <ul style={{ margin: 0, padding: "0 0 0 14px", display: "flex", flexDirection: "column", gap: 5 }}>
+                    {greenFlags.slice(0, 4).map((f: string, i: number) => (
+                      <li key={i} style={{ fontSize: 11, color: "#065f46", lineHeight: 1.5 }}>{f}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Red flags */}
+              {redFlags.length > 0 && (
+                <div style={{ background: "#fef2f2", borderRadius: 8, padding: "10px 12px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#dc2626", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>Red flags</div>
+                  <ul style={{ margin: 0, padding: "0 0 0 14px", display: "flex", flexDirection: "column", gap: 5 }}>
+                    {redFlags.slice(0, 4).map((f: string, i: number) => (
+                      <li key={i} style={{ fontSize: 11, color: "#7f1d1d", lineHeight: 1.5 }}>{f}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Sources — all URLs from all rounds for this engine */}
+              <SourcesList urls={card?.citedUrls ?? []} />
+
+              {/* Raw prompts + responses per round */}
+              <RawRoundAccordion rounds={card?.rounds ?? []} color={color} />
+            </div>
           </div>
         );
       })}
