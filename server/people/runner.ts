@@ -164,7 +164,7 @@ export async function runPeopleAudit(
               try {
                 const result = await queryPeopleEngine(engine, q.text, config);
                 const parsed = await parseTrackAResponse(result.rawText, session.name, profile);
-                const identityMatch = resolveIdentity(result.rawText, profile, parsed.targetFound, q.text);
+                const identityMatch = resolveIdentity(result.rawText, profile, parsed.targetFound, q.text, parsed.wrongPerson);
 
                 // Append new profile fields as extra fact entries so they're stored
                 // in the existing stated_facts column without a schema change.
@@ -400,7 +400,7 @@ export async function recomputeScores(sessionId: number): Promise<void> {
       // Re-parse Track A: refresh identity match AND update stated_facts with new profile fields
       // (one_liner, key_achievements, green_flags, red_flags) which may not exist in older rows.
       const parsedA = await parseTrackAResponse(row.raw_response, session.name, profileForResolve);
-      const freshMatch = reResolve(row.raw_response, profileForResolve, parsedA.targetFound, row.query_text);
+      const freshMatch = reResolve(row.raw_response, profileForResolve, parsedA.targetFound, row.query_text, parsedA.wrongPerson);
       row.identity_match = freshMatch;
 
       const extendedFacts = [

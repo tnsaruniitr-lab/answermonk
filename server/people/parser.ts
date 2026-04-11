@@ -16,6 +16,7 @@ export interface ParsedTrackAResult {
   subjectName: string | null;
   statedFacts: { fact: string; value: string; sourceUrl: string | null; status: string }[];
   targetFound: boolean;
+  wrongPerson: boolean;   // true when the AI described a DIFFERENT person with the same name
   summaryDescription: string;
   oneLiner: string;
   keyAchievements: string[];
@@ -48,14 +49,24 @@ export async function parseTrackAResponse(
   profile: { currentRole?: string | null; currentCompany?: string | null; education?: string[] }
 ): Promise<ParsedTrackAResult> {
   const empty: ParsedTrackAResult = {
-    subjectName: null, statedFacts: [], targetFound: false,
+    subjectName: null, statedFacts: [], targetFound: false, wrongPerson: false,
     summaryDescription: "", oneLiner: "", keyAchievements: [], greenFlags: [], redFlags: [],
   };
   if (!rawText || rawText.trim().length < 10) return empty;
 
   try {
-    const prompt = `You are analyzing an AI engine's response about a person named "${targetName}".
+    // Build an anchor description so the LLM knows WHICH person we're looking for,
+    // not just the name. This prevents "targetFound: true" for name-sharers.
+    const anchorLines: string[] = [];
+    if (profile.currentRole)    anchorLines.push(`- Role: ${profile.currentRole}`);
+    if (profile.currentCompany) anchorLines.push(`- Company: ${profile.currentCompany}`);
+    if (profile.education?.length) anchorLines.push(`- Education: ${profile.education.join(", ")}`);
+    const anchorBlock = anchorLines.length > 0
+      ? `\nThe SPECIFIC person we are auditing has these known details:\n${anchorLines.join("\n")}\n`
+      : "\nNote: we only have the name for this person — no role, company, or education data available.\n";
 
+    const prompt = `You are analyzing an AI engine's response about a specific individual named "${targetName}".
+${anchorBlock}
 AI Response:
 """
 ${rawText.slice(0, 3000)}
@@ -64,9 +75,10 @@ ${rawText.slice(0, 3000)}
 Extract structured information. Return JSON with this exact shape:
 {
   "subjectName": "full name mentioned, or null if no person found",
-  "targetFound": true/false (is this response specifically about ${targetName}?),
+  "targetFound": true if the response is clearly about the SPECIFIC person described above (matching role/company/education), false if: (a) the response says they cannot find this person, (b) the response is about a DIFFERENT person who happens to share the name, or (c) there is not enough information to confirm it is the same individual,
+  "wrongPerson": true if the response describes a DIFFERENT person with the same name (not the one we audited), false otherwise,
   "summaryDescription": "1-2 sentence summary of what the AI said",
-  "oneLiner": "the AI's one-sentence definition of this person, or empty string if not provided",
+  "oneLiner": "the AI's one-sentence definition of this person (only if targetFound=true), or empty string",
   "keyAchievements": ["achievement 1", "achievement 2"],
   "greenFlags": ["positive professional signal 1", "positive signal 2"],
   "redFlags": ["concern 1", "concern 2"],
@@ -79,7 +91,7 @@ Extract structured information. Return JSON with this exact shape:
   ]
 }
 
-For keyAchievements, greenFlags, redFlags: return empty arrays [] if the AI did not provide them.
+For keyAchievements, greenFlags, redFlags: return empty arrays [] if the AI did not provide them, or if targetFound=false.
 Only return valid JSON, no markdown, no explanation.`;
 
     const completion = await openai.chat.completions.create({
@@ -91,28 +103,25 @@ Only return valid JSON, no markdown, no explanation.`;
     });
 
     const parsed = JSON.parse(completion.choices[0]?.message?.content ?? "{}");
+    const targetFound = Boolean(parsed.targetFound);
+    const wrongPerson = Boolean(parsed.wrongPerson);
     return {
       subjectName: parsed.subjectName ?? null,
       statedFacts: parsed.statedFacts ?? [],
-      targetFound: Boolean(parsed.targetFound),
+      targetFound,
+      wrongPerson,
       summaryDescription: parsed.summaryDescription ?? "",
-      oneLiner: parsed.oneLiner ?? "",
-      keyAchievements: Array.isArray(parsed.keyAchievements) ? parsed.keyAchievements : [],
-      greenFlags: Array.isArray(parsed.greenFlags) ? parsed.greenFlags : [],
-      redFlags: Array.isArray(parsed.redFlags) ? parsed.redFlags : [],
+      oneLiner: targetFound ? (parsed.oneLiner ?? "") : "",
+      keyAchievements: targetFound && Array.isArray(parsed.keyAchievements) ? parsed.keyAchievements : [],
+      greenFlags:      targetFound && Array.isArray(parsed.greenFlags)      ? parsed.greenFlags      : [],
+      redFlags:        targetFound && Array.isArray(parsed.redFlags)         ? parsed.redFlags        : [],
     };
   } catch (err) {
     console.error("[parser] Track A parse error:", err);
-    const targetFound = rawText.toLowerCase().includes(targetName.toLowerCase().split(" ")[0]);
     return {
-      subjectName: targetFound ? targetName : null,
-      statedFacts: [],
-      targetFound,
-      summaryDescription: rawText.slice(0, 200),
-      oneLiner: "",
-      keyAchievements: [],
-      greenFlags: [],
-      redFlags: [],
+      subjectName: null, statedFacts: [], targetFound: false, wrongPerson: false,
+      summaryDescription: rawText.slice(0, 200), oneLiner: "",
+      keyAchievements: [], greenFlags: [], redFlags: [],
     };
   }
 }
