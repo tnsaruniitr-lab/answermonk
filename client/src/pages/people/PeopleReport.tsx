@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, ExternalLink, CheckCircle2, AlertCircle, XCircle, MinusCircle } from "lucide-react";
+import { Loader2, ExternalLink, CheckCircle2, AlertCircle, XCircle, MinusCircle, ChevronDown } from "lucide-react";
 import { MonkWordmark } from "@/components/MonkWordmark";
 
 const ENGINE_COLORS: Record<string, string> = {
@@ -269,24 +270,67 @@ function DefaultCard({ item }: { item: any }) {
 }
 
 function SourceRow({ src, max }: { src: any; max: number }) {
+  const [open, setOpen] = useState(false);
   const pct = Math.round((src.citationCount / max) * 100);
+  const urls: string[] = src.urls ?? [];
+  const hasUrls = urls.length > 0;
+
   return (
-    <div style={{
-      background: "#fff", borderRadius: 10, padding: "12px 16px",
-      border: "1px solid #f3f4f6", display: "flex", alignItems: "center", gap: 12,
-    }}>
-      <div style={{ flex: 1 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-          <a href={`https://${src.domain}`} target="_blank" rel="noopener noreferrer"
-            style={{ fontSize: 13, fontWeight: 600, color: "#4f46e5", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
-            {src.domain} <ExternalLink size={11} />
-          </a>
-          <span style={{ fontSize: 12, color: "#9ca3af" }}>{src.citationCount} citation{src.citationCount !== 1 ? "s" : ""}</span>
-        </div>
-        <div style={{ height: 4, background: "#f3f4f6", borderRadius: 100 }}>
-          <div style={{ height: "100%", background: "#6366f1", borderRadius: 100, width: `${pct}%` }} />
+    <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #f3f4f6", overflow: "hidden" }}>
+      <div
+        onClick={() => hasUrls && setOpen(o => !o)}
+        style={{
+          padding: "12px 16px", display: "flex", alignItems: "center", gap: 12,
+          cursor: hasUrls ? "pointer" : "default",
+        }}
+      >
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <a
+                href={`https://${src.domain}`} target="_blank" rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                style={{ fontSize: 13, fontWeight: 600, color: "#4f46e5", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}
+              >
+                {src.domain} <ExternalLink size={11} />
+              </a>
+              {hasUrls && (
+                <ChevronDown size={13} color="#9ca3af" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
+              )}
+            </div>
+            <span style={{ fontSize: 12, color: "#9ca3af" }}>{src.citationCount} citation{src.citationCount !== 1 ? "s" : ""}</span>
+          </div>
+          <div style={{ height: 4, background: "#f3f4f6", borderRadius: 100 }}>
+            <div style={{ height: "100%", background: "#6366f1", borderRadius: 100, width: `${pct}%` }} />
+          </div>
         </div>
       </div>
+
+      {open && hasUrls && (
+        <div style={{ borderTop: "1px solid #f3f4f6", padding: "8px 16px 12px" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>
+            Cited URLs
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {urls.map((url, i) => (
+              <a
+                key={i}
+                href={url} target="_blank" rel="noopener noreferrer"
+                style={{
+                  fontSize: 12, color: "#4b5563", textDecoration: "none",
+                  display: "flex", alignItems: "flex-start", gap: 6,
+                  wordBreak: "break-all", lineHeight: 1.5,
+                }}
+                onMouseEnter={e => (e.currentTarget.style.color = "#4f46e5")}
+                onMouseLeave={e => (e.currentTarget.style.color = "#4b5563")}
+              >
+                <ExternalLink size={11} style={{ flexShrink: 0, marginTop: 2, color: "#9ca3af" }} />
+                {url}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
