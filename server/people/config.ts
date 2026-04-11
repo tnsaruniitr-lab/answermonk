@@ -49,7 +49,7 @@ export const DEFAULT_PEOPLE_CONFIG: PeopleConfig = {
     },
     {
       index: 2, track: "B", angle: "Name landscape",
-      template: "Who are the most well-known and notable people named {{name}}? List up to 10 people, numbered 1 through 10 in order of prominence. For each person include their full name, profession, and what they are specifically known for.",
+      template: `Who are the most well-known and notable people named {{name}}? List exactly 10 people, numbered 1 through 10 in order of prominence. For each person write their full name with a parenthetical disambiguator (e.g. "Jake Stein (Australian footballer)"), their profession, and 1-2 sentences on what they are known for.`,
     },
     {
       index: 3, track: "B", angle: "Industry context",
@@ -65,11 +65,22 @@ export async function getPeopleConfig(): Promise<PeopleConfig> {
     );
     if (rows.length === 0) return DEFAULT_PEOPLE_CONFIG;
     const saved = rows[0].value as Partial<PeopleConfig>;
+    // Merge saved templates with defaults, but always enforce the default landscape
+    // template (B-index-2) because the regex parser in parser.ts depends on its
+    // "numbered 1 through 10" format — any older DB version would break extraction.
+    const LOCKED_TEMPLATES = new Set(["B-2"]);
+    const savedTemplates = saved.promptTemplates ?? [];
+    const mergedTemplates = DEFAULT_PEOPLE_CONFIG.promptTemplates.map((def) => {
+      const key = `${def.track}-${def.index}`;
+      if (LOCKED_TEMPLATES.has(key)) return def;  // always use default
+      const dbTpl = savedTemplates.find((t) => t.track === def.track && t.index === def.index);
+      return dbTpl ?? def;
+    });
     return {
       ...DEFAULT_PEOPLE_CONFIG,
       ...saved,
       webSearch: { ...DEFAULT_PEOPLE_CONFIG.webSearch, ...(saved.webSearch ?? {}) },
-      promptTemplates: saved.promptTemplates ?? DEFAULT_PEOPLE_CONFIG.promptTemplates,
+      promptTemplates: mergedTemplates,
     };
   } catch {
     return DEFAULT_PEOPLE_CONFIG;

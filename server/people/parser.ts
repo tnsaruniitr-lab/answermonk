@@ -96,35 +96,48 @@ export async function parseTrackBResponse(
     return { defaultSubject: null, defaultDescription: null, nameLandscape: [], targetFound: false, targetRank: null };
   }
 
+  // For landscape queries use a direct regex parser — no LLM needed, handles any length
+  if (queryType === "landscape") {
+    const landscape = parseNameLandscapeRegex(rawText);
+    const targetFound = rawText.toLowerCase().includes(targetName.toLowerCase());
+    return {
+      defaultSubject: null,
+      defaultDescription: null,
+      nameLandscape: landscape,
+      targetFound,
+      targetRank: null,  // isTarget resolved later in runner via profile anchors
+    };
+  }
+
   try {
     const prompt = `You are analyzing an AI engine's response about people named "${targetName}".
 
-Query type: "${queryType}" (default=who is X, landscape=list all Xs, industry=leading Xs in a field)
+Query type: "${queryType}" (default=who is X, industry=leading Xs in a field)
 
 AI Response:
 """
-${rawText.slice(0, 3000)}
+${rawText.slice(0, 6000)}
 """
 
 Extract structured information. Return JSON:
 {
-  "defaultSubject": "primary person described (for 'default' queries), or null",
-  "defaultDescription": "brief description of who the AI thinks ${targetName} is (for 'default' queries), or null",
+  "defaultSubject": "primary person described, or null",
+  "defaultDescription": "brief description of who the AI thinks ${targetName} is, or null",
   "nameLandscape": [
-    { "name": "full name", "description": "what they are known for", "rank": 1, "urls": [] }
+    { "name": "full name with disambiguator", "description": "what they are known for", "rank": 1, "urls": [] }
   ],
-  "targetFound": true/false,
-  "targetRank": number or null (rank position if found in landscape)
+  "targetFound": true/false (is the response specifically about ${targetName}?),
+  "targetRank": number or null
 }
 
 For 'default' queries: nameLandscape can be empty, focus on defaultSubject and defaultDescription.
-For 'landscape'/'industry' queries: extract ALL people mentioned with ranks.
+For 'industry' queries: extract ALL people mentioned with ranks.
 Only return valid JSON.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
-      max_completion_tokens: 800,
+      max_completion_tokens: 2500,
       temperature: 0,
       response_format: { type: "json_object" },
     });
@@ -148,4 +161,61 @@ Only return valid JSON.`;
       targetRank: null,
     };
   }
+}
+
+// Direct regex parser for numbered landscape lists — no LLM, handles full-length responses
+function parseNameLandscapeRegex(rawText: string): ParsedPerson[] {
+  const people: ParsedPerson[] = [];
+
+  // Split on numbered list items: "1. ", "1) ", "### 1. ", "## 1. ", "\n1."
+  const sections = rawText.split(/\n(?=\s*(?:#{1,3}\s*)?\d+[\.\)]\s)/);
+
+  for (const section of sections) {
+    const numMatch = section.match(/^\s*(?:#{1,3}\s*)?(\d+)[\.\)]\s/);
+    if (!numMatch) continue;
+    const rank = parseInt(numMatch[1]);
+    if (rank < 1 || rank > 10) continue;
+
+    // Strip the rank prefix to get content
+    const content = section.replace(/^\s*(?:#{1,3}\s*)?\d+[\.\)]\s*/, "").trim();
+
+    // Extract name: bold text first, else first line
+    let name = "";
+    const boldMatch = content.match(/^\*{1,2}([^*\n]+?)\*{1,2}/);
+    if (boldMatch) {
+      name = boldMatch[1].trim();
+    } else {
+      name = content.split("\n")[0].trim();
+    }
+    // Strip "- Subtitle" pattern Claude appends to names
+    name = name.replace(/\s*[-–—]\s+[A-Z][a-z].*$/, "").trim();
+    name = name.replace(/\*+/g, "").trim();
+
+    if (!name || name.length < 2 || name.length > 120) continue;
+
+    // Build description from subsequent lines (skip blank + clean markdown)
+    const lines = content.split("\n").slice(1);
+    const descParts: string[] = [];
+    for (const line of lines) {
+      const cleaned = line
+        .replace(/^\s*[-*•]\s*\*{1,2}[^*:]+\*{1,2}:\s*/, "")  // remove "**Label:** " prefixes
+        .replace(/\*{1,2}/g, "")
+        .replace(/^\s*[-*•#>\s]+/, "")
+        .trim();
+      if (cleaned.length > 12) {
+        descParts.push(cleaned);
+        if (descParts.length >= 4) break;
+      }
+    }
+    const description = descParts.join(" ").slice(0, 500);
+
+    // Extract URLs (exclude openai tracking params host)
+    const urls = [...section.matchAll(/https?:\/\/[^\s\)\]"'>,]+/g)]
+      .map(m => m[0].replace(/[,.)]+$/, ""))
+      .filter(u => !u.includes("vertexaisearch") && !u.includes("google.com/search"));
+
+    people.push({ name, description, rank, urls });
+  }
+
+  return people.sort((a, b) => a.rank - b.rank).slice(0, 10);
 }

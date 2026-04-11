@@ -316,18 +316,43 @@ function buildReportData(
     };
   });
 
+  // Keyword sets used to disambiguate people with identical base names
+  const PERSON_DISAMBIGUATORS: { key: string; words: string[] }[] = [
+    { key: "athlete",    words: ["athlete", "footballer", "decathlete", "football", "afl", "sport", "track", "field", "olympic", "rugby", "cricket", "swimming"] },
+    { key: "tech",       words: ["entrepreneur", "founder", "startup", "tech", "ceo", "software", "data", "company", "paper", "stitch", "rjmetrics", "venture", "saas", "engineer"] },
+    { key: "legal",      words: ["lawyer", "legal", "law", "attorney", "judge", "watergate", "court", "counsel", "litigator"] },
+    { key: "film",       words: ["film", "producer", "movie", "media", "imdb", "director", "documentary", "television", "tv"] },
+    { key: "nhl",        words: ["nhl", "hockey", "fan research", "sports analytics", "league"] },
+    { key: "academic",   words: ["oxford", "phd", "research", "university", "professor", "academic"] },
+    { key: "politics",   words: ["jill stein", "green party", "political", "senator", "candidate"] },
+    { key: "medicine",   words: ["doctor", "oncologist", "physician", "medical", "clinical", "hospital"] },
+    { key: "finance",    words: ["capital", "investor", "investment", "finance", "private equity", "hedge", "thrive"] },
+    { key: "realestate", words: ["real estate", "property", "commercial real", "residential"] },
+  ];
+
+  function getPersonKey(personName: string, description: string): string {
+    const base = personName
+      .toLowerCase()
+      .replace(/\([^)]*\)/g, "")   // strip parentheticals from name
+      .replace(/[^a-z0-9 ]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    // Search both the parenthetical content and the description for discriminators
+    const parenContent = (personName.match(/\(([^)]+)\)/g) ?? []).join(" ");
+    const searchText = (parenContent + " " + description).toLowerCase();
+    for (const { key, words } of PERSON_DISAMBIGUATORS) {
+      if (words.some(w => searchText.includes(w))) return `${base}__${key}`;
+    }
+    return base;
+  }
+
   // Name landscape: normalize names, merge across engines, rank by prominence
   const personMap = new Map<string, { name: string; description: string; engines: string[]; ranks: number[]; engineRanks: Record<string, number>; isTargetCount: number }>();
   const landscapeResults = trackBResults.filter((r) => r.query_index === 2);
   for (const r of landscapeResults) {
     const landscape = (r.name_landscape as any[]) ?? [];
     for (const person of landscape) {
-      const normKey = (person.name ?? "")
-        .toLowerCase()
-        .replace(/\([^)]*\)/g, "")  // strip parentheticals for deduplication
-        .replace(/[^a-z0-9 ]/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
+      const normKey = getPersonKey(person.name ?? "", person.description ?? "");
       if (!normKey) continue;
       // Flag as the audited person if: (a) engine's target_rank matches rank (precise),
       // or (b) description mentions their company/role as a heuristic fallback
