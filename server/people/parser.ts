@@ -239,21 +239,28 @@ export async function synthesiseTrackAResponses(
     .map((t, i) => `=== Response ${i + 1} ===\n${t.slice(0, 1800)}`)
     .join("\n\n");
 
-  const prompt = `You are analyzing ${valid.length} AI responses about "${targetName}". Each response is from a separate query round of the same prompt — they may agree or contradict each other.
+  const prompt = `You are analyzing ${valid.length} AI responses about a specific person named "${targetName}". Each response is from a separate query round of the same prompt — they may agree or contradict each other.
 
 ${responsesBlock}
 
-Your task: find what is CONSISTENT — meaning it appears in at least ${threshold} of the ${valid.length} responses. Discard anything mentioned by only one response.
+CRITICAL RULE: Your task is strictly about the SPECIFIC person described in the audit brief — NOT about any other person who happens to share the same name.
+
+Step 1 — determine if the specific target was found:
+Set "foundInMost" = true ONLY if most responses confirm finding and describing the exact same individual (same role, company, context) that was asked about. If most responses say the person is unknown, not found, or describe someone else with the same name, set "foundInMost" = false.
+
+Step 2 — extract consistent facts ONLY about the target:
+- If "foundInMost" = true: extract only what is consistent across at least ${threshold} of the ${valid.length} responses about that specific person.
+- If "foundInMost" = false: "keyAchievements", "greenFlags" and "redFlags" MUST be empty arrays []. Do NOT report facts about OTHER people who share the same name — that data is irrelevant and misleading for the audit subject.
 
 Return JSON:
 {
-  "oneLiner": "one sentence defining who this person is, based only on claims that appear in most responses. Use empty string if responses disagree too much to synthesise.",
-  "keyAchievements": ["only achievements mentioned in multiple responses"],
-  "greenFlags": ["only positive professional signals mentioned in multiple responses"],
-  "redFlags": ["only concerns or gaps mentioned in multiple responses"],
-  "consistencyScore": a number 0-100 where 100 = all responses say the same thing, 0 = completely contradictory,
-  "foundInMost": true if most responses describe the specific person "${targetName}" rather than someone else or returning no information,
-  "notes": "one sentence explaining why the consistency is high or low"
+  "oneLiner": "If foundInMost is true: one sentence defining who this specific person is, based only on claims that appear in most responses. If foundInMost is false: one sentence summarising why the AI does not recognise this specific person (e.g. name ambiguity, no public profile).",
+  "keyAchievements": ["ONLY if foundInMost=true: achievements of the specific target mentioned in multiple responses. Otherwise: []"],
+  "greenFlags": ["ONLY if foundInMost=true: positive signals about the specific target mentioned in multiple responses. Otherwise: []"],
+  "redFlags": ["ONLY if foundInMost=true: concerns about the specific target mentioned in multiple responses. Otherwise: []"],
+  "consistencyScore": a number 0-100 where 100 = all responses agree completely, 0 = completely contradictory,
+  "foundInMost": true or false as determined in Step 1,
+  "notes": "one sentence explaining the consistency level"
 }
 
 Only return valid JSON.`;
@@ -269,14 +276,18 @@ Only return valid JSON.`;
 
     const parsed = JSON.parse(completion.choices[0]?.message?.content ?? "{}");
     const score = Math.min(100, Math.max(0, Number(parsed.consistencyScore) || 0));
+    const foundInMost = Boolean(parsed.foundInMost);
+
+    // Hard guard: never surface facts about OTHER people with the same name.
+    // If the target wasn't found, achievements/flags belong to name-sharers — discard them.
     return {
       oneLiner: parsed.oneLiner ?? "",
-      keyAchievements: Array.isArray(parsed.keyAchievements) ? parsed.keyAchievements : [],
-      greenFlags: Array.isArray(parsed.greenFlags) ? parsed.greenFlags : [],
-      redFlags: Array.isArray(parsed.redFlags) ? parsed.redFlags : [],
+      keyAchievements: foundInMost && Array.isArray(parsed.keyAchievements) ? parsed.keyAchievements : [],
+      greenFlags:      foundInMost && Array.isArray(parsed.greenFlags)      ? parsed.greenFlags      : [],
+      redFlags:        foundInMost && Array.isArray(parsed.redFlags)         ? parsed.redFlags        : [],
       consistencyScore: score,
       consistencyLabel: score >= 65 ? "high" : score >= 35 ? "medium" : "low",
-      foundInMost: Boolean(parsed.foundInMost),
+      foundInMost,
       notes: parsed.notes ?? "",
     };
   } catch (err) {
