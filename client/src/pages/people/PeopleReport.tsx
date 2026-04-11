@@ -94,20 +94,152 @@ function AppearanceTable({ perEngineAppearance }: { perEngineAppearance: Record<
   );
 }
 
-function ProofScoreCard({ score, grade, description }: { score: number; grade: string; description: string }) {
-  const gradeColors: Record<string, string> = { A: "#059669", B: "#0891b2", C: "#d97706", D: "#ea580c", F: "#dc2626" };
+function AIIdentityCard({ perEngineQueryResults, perEngineAppearance }: { perEngineQueryResults: any[]; perEngineAppearance: Record<string, any> }) {
+  const [expandedEngines, setExpandedEngines] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (engine: string) => setExpandedEngines(prev => {
+    const next = new Set(prev);
+    if (next.has(engine)) next.delete(engine); else next.add(engine);
+    return next;
+  });
+
+  const overallPct = ALL_ENGINES.length > 0
+    ? Math.round(ALL_ENGINES.reduce((sum, e) => sum + (perEngineAppearance[e]?.appearanceRate ?? 0), 0) / ALL_ENGINES.length)
+    : 0;
+
+  const overallColor = overallPct >= 67 ? "#059669" : overallPct >= 33 ? "#d97706" : "#dc2626";
+
+  const verdictSummary: Record<string, string> = {};
+  for (const engine of ALL_ENGINES) {
+    const eData = perEngineQueryResults.find((p: any) => p.engine === engine);
+    const recQ1 = eData?.trackBRecognition?.find((q: any) => q.promptIndex === 1);
+    verdictSummary[engine] = recQ1?.identityMatch ?? "absent";
+  }
+  const confirmedCount = Object.values(verdictSummary).filter(v => v === "confirmed").length;
+  const partialCount = Object.values(verdictSummary).filter(v => v === "partial").length;
+
+  const summaryText = confirmedCount === 3
+    ? "All three AI engines confirmed your identity"
+    : confirmedCount > 0
+      ? `${confirmedCount} engine${confirmedCount > 1 ? "s" : ""} confirmed your identity, ${partialCount} partial`
+      : partialCount > 0
+        ? `No engine fully confirmed you — ${partialCount} returned a partial match`
+        : "No AI engine recognised you in direct queries";
+
   return (
     <div style={{
       background: "#fff", borderRadius: 16, padding: 28,
-      boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1px solid #f3f4f6",
-      display: "flex", flexDirection: "column", gap: 8, marginBottom: 16,
+      boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1px solid #f3f4f6", marginBottom: 16,
     }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em" }}>Identity Proof Score</div>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 12 }}>
-        <span style={{ fontSize: 52, fontWeight: 900, color: "#8b5cf6", lineHeight: 1 }}>{score}</span>
-        <span style={{ fontSize: 28, fontWeight: 800, color: gradeColors[grade] ?? "#dc2626", lineHeight: 1, marginBottom: 4 }}>{grade}</span>
+      {/* Header row */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
+            How AI knows you
+          </div>
+          <p style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.5, margin: 0, maxWidth: 520 }}>{summaryText}</p>
+        </div>
+        <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 24 }}>
+          <div style={{ fontSize: 44, fontWeight: 900, color: overallColor, lineHeight: 1 }}>{overallPct}%</div>
+          <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>avg confirmed</div>
+        </div>
       </div>
-      <p style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.5 }}>{description}</p>
+
+      {/* Per-engine panels */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {ALL_ENGINES.map(engine => {
+          const eData = perEngineQueryResults.find((p: any) => p.engine === engine);
+          const recQ1 = eData?.trackBRecognition?.find((q: any) => q.promptIndex === 1);
+          const identityMatch: string = recQ1?.identityMatch ?? "absent";
+          const rawQuote: string = recQ1?.bestResponse ?? "";
+          const foundCount: number = recQ1?.foundCount ?? 0;
+          const totalRounds: number = recQ1?.totalRounds ?? 0;
+          const citedUrls: string[] = recQ1?.citedUrls ?? [];
+          const engineColor = ENGINE_COLORS[engine];
+          const isExpanded = expandedEngines.has(engine);
+          const QUOTE_LIMIT = 220;
+          const shortQuote = rawQuote.length > QUOTE_LIMIT ? rawQuote.slice(0, QUOTE_LIMIT).trimEnd() + "…" : rawQuote;
+          const displayQuote = isExpanded ? rawQuote : shortQuote;
+          const hasMore = rawQuote.length > QUOTE_LIMIT;
+
+          const panelBg: Record<string, string> = {
+            confirmed: "#f0fdf4",
+            partial: "#fffbeb",
+            wrong: "#fef2f2",
+            absent: "#f9fafb",
+          };
+          const panelBorder: Record<string, string> = {
+            confirmed: "#bbf7d0",
+            partial: "#fde68a",
+            wrong: "#fecaca",
+            absent: "#f3f4f6",
+          };
+
+          return (
+            <div key={engine} style={{
+              borderRadius: 12, border: `1px solid ${panelBorder[identityMatch] ?? "#f3f4f6"}`,
+              background: panelBg[identityMatch] ?? "#f9fafb",
+              padding: "16px 20px",
+            }}>
+              {/* Engine header */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: rawQuote ? 14 : 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 9, height: 9, borderRadius: "50%", background: engineColor }} />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: engineColor }}>{ENGINE_LABELS[engine]}</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  {totalRounds > 0 && (
+                    <span style={{ fontSize: 11, color: "#9ca3af" }}>
+                      {foundCount}/{totalRounds} queries confirmed
+                    </span>
+                  )}
+                  <IdentityBadge match={identityMatch} />
+                </div>
+              </div>
+
+              {/* Quote */}
+              {rawQuote ? (
+                <div>
+                  <div style={{
+                    fontSize: 13, color: "#374151", lineHeight: 1.65,
+                    fontStyle: "italic", borderLeft: `3px solid ${engineColor}`,
+                    paddingLeft: 14, margin: "0 0 8px 0",
+                  }}>
+                    "{displayQuote}"
+                  </div>
+                  {hasMore && (
+                    <button
+                      onClick={() => toggleExpand(engine)}
+                      style={{ fontSize: 12, fontWeight: 600, color: engineColor, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit" }}
+                    >
+                      {isExpanded ? "Show less" : "Read full response"}
+                    </button>
+                  )}
+                  {citedUrls.length > 0 && (
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+                      {citedUrls.slice(0, 3).map((url: string, i: number) => {
+                        let domain = url;
+                        try { domain = new URL(url).hostname.replace(/^www\./, ""); } catch {}
+                        const dt = getDomainType(domain);
+                        return (
+                          <a key={i} href={url} target="_blank" rel="noopener noreferrer"
+                            style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "#6b7280", textDecoration: "none", background: "#fff", border: "1px solid #e5e7eb", borderRadius: 6, padding: "2px 8px" }}
+                          >
+                            <span style={{ fontWeight: 700, color: dt.color }}>{dt.label}</span>
+                            {domain}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: "#9ca3af", fontStyle: "italic" }}>No response returned for this engine</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -149,12 +281,11 @@ export default function PeopleReport({ slug }: { slug: string }) {
           {session?.headline && <p style={{ fontSize: 15, color: "#6b7280" }}>{session.headline}</p>}
         </div>
 
-        {/* Scorecard: appearance rate per engine + proof score */}
+        {/* Scorecard: appearance rate + identity confirmation */}
         <AppearanceTable perEngineAppearance={perEngineAppearance} />
-        <ProofScoreCard
-          score={scores?.proofScore ?? 0}
-          grade={scores?.proofGrade ?? "F"}
-          description="How accurately and well-sourced AI describes you when it does find you"
+        <AIIdentityCard
+          perEngineQueryResults={rd.perEngineQueryResults ?? []}
+          perEngineAppearance={perEngineAppearance}
         />
 
         {scores?.diagnosticText && (
