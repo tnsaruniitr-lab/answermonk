@@ -304,7 +304,7 @@ function buildReportData(
   });
 
   // Name landscape: normalize names, merge across engines, rank by prominence
-  const personMap = new Map<string, { name: string; description: string; engines: string[]; ranks: number[] }>();
+  const personMap = new Map<string, { name: string; description: string; engines: string[]; ranks: number[]; engineRanks: Record<string, number> }>();
   const landscapeResults = trackBResults.filter((r) => r.query_index === 2);
   for (const r of landscapeResults) {
     const landscape = (r.name_landscape as any[]) ?? [];
@@ -317,19 +317,22 @@ function buildReportData(
         .trim();
       if (!normKey) continue;
       if (!personMap.has(normKey)) {
-        personMap.set(normKey, { name: person.name, description: person.description ?? "", engines: [r.engine], ranks: [person.rank ?? 99] });
+        personMap.set(normKey, { name: person.name, description: person.description ?? "", engines: [r.engine], ranks: [person.rank ?? 99], engineRanks: { [r.engine]: person.rank ?? 99 } });
       } else {
         const entry = personMap.get(normKey)!;
         if (!entry.engines.includes(r.engine)) entry.engines.push(r.engine);
         entry.ranks.push(person.rank ?? 99);
+        entry.engineRanks[r.engine] = person.rank ?? 99;
       }
     }
   }
+  const TOTAL_ENGINES = 3;
   const nameLandscape = Array.from(personMap.values())
     .map((p) => {
       const avgRank = p.ranks.reduce((s, r) => s + r, 0) / p.ranks.length;
       const score = p.engines.length * 100 - avgRank;
-      return { name: p.name, description: p.description, engines: p.engines, avgRank, score, engineCount: p.engines.length };
+      const appearancePct = Math.round((p.engines.length / TOTAL_ENGINES) * 100);
+      return { name: p.name, description: p.description, engines: p.engines, avgRank, score, engineCount: p.engines.length, appearancePct, engineRanks: p.engineRanks };
     })
     .sort((a, b) => b.score - a.score)
     .slice(0, 15)

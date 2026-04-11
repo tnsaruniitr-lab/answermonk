@@ -15,6 +15,35 @@ const ENGINE_LABELS: Record<string, string> = {
   claude: "Claude",
 };
 
+const ENGINE_SHORT: Record<string, string> = {
+  chatgpt: "GPT",
+  gemini: "Gem",
+  claude: "Cla",
+};
+
+const ALL_ENGINES = ["chatgpt", "gemini", "claude"];
+
+function normForMatch(s: string): string {
+  return (s ?? "")
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, "")
+    .replace(/\s*[-–—].*$/, "")
+    .replace(/[^a-z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getDomainType(domain: string): { label: string; color: string; bg: string } {
+  if (/linkedin|twitter\.com|x\.com|instagram|facebook|tiktok|youtube/.test(domain)) return { label: "Social", color: "#0284c7", bg: "#e0f2fe" };
+  if (/wikipedia/.test(domain)) return { label: "Wikipedia", color: "#b45309", bg: "#fef3c7" };
+  if (/techcrunch|forbes|bloomberg|reuters|wsj\.com|ft\.com|nytimes|guardian|bbc|inc\.com|wired|entrepreneur|businessinsider|cnbc|theverge|fastcompany/.test(domain)) return { label: "Press", color: "#dc2626", bg: "#fee2e2" };
+  if (/crunchbase|angellist|f6s|apollo\.io|zoominfo|clearbit|pitchbook|owler|tracxn/.test(domain)) return { label: "Directory", color: "#059669", bg: "#dcfce7" };
+  if (/glassdoor|indeed|builtin|wellfound/.test(domain)) return { label: "Jobs", color: "#7c3aed", bg: "#ede9fe" };
+  if (/medium|substack|dev\.to|hashnode/.test(domain)) return { label: "Content", color: "#0891b2", bg: "#cffafe" };
+  if (/reddit/.test(domain)) return { label: "Forum", color: "#ea580c", bg: "#ffedd5" };
+  return { label: "Web", color: "#6b7280", bg: "#f3f4f6" };
+}
+
 function IdentityBadge({ match }: { match: string }) {
   const configs: Record<string, { icon: React.ReactNode; label: string; bg: string; color: string }> = {
     confirmed: { icon: <CheckCircle2 size={13} />, label: "Confirmed you", bg: "#ecfdf5", color: "#059669" },
@@ -181,7 +210,7 @@ export default function PeopleReport({ slug }: { slug: string }) {
 
         {/* Section 6: Recommendations */}
         <Section title="Recommendations">
-          <Recommendations scores={scores} sourceGraph={rd.sourceGraph} nameLandscape={rd.nameLandscape} />
+          <Recommendations scores={scores} sourceGraph={rd.sourceGraph} nameLandscape={rd.nameLandscape} claimFacts={rd.claimFacts} sessionName={session?.name} />
         </Section>
       </main>
     </div>
@@ -200,32 +229,67 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 function EngineCard({ card }: { card: any }) {
+  const [expanded, setExpanded] = useState(false);
   const color = ENGINE_COLORS[card.engine] ?? "#6366f1";
   const label = ENGINE_LABELS[card.engine] ?? card.engine;
+  const firstSentence = card.description ? card.description.split(/[.!?]\s/)[0] + "." : "";
+  const facts: any[] = card.statedFacts ?? [];
+  const hasMore = card.description && card.description.length > 150;
   return (
     <div style={{
-      background: "#fff", borderRadius: 12, padding: 20,
+      background: "#fff", borderRadius: 12, padding: 18,
       border: "1px solid #f3f4f6",
       boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+      display: "flex", flexDirection: "column", gap: 10,
     }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span style={{ fontSize: 13, fontWeight: 700, color }}>{label}</span>
         <IdentityBadge match={card.identityMatch ?? "absent"} />
       </div>
-      <p style={{ fontSize: 12, color: "#4b5563", lineHeight: 1.6, marginBottom: 12, minHeight: 60 }}>
-        {card.description ? `"${card.description.slice(0, 200)}..."` : "No response"}
-      </p>
+      {card.description ? (
+        <>
+          <p style={{ fontSize: 12, color: "#1f2937", fontWeight: 600, lineHeight: 1.5, margin: 0 }}>
+            {firstSentence}
+          </p>
+          {expanded && (
+            <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, margin: 0, whiteSpace: "pre-wrap" }}>
+              {card.description}
+            </p>
+          )}
+          {hasMore && (
+            <button onClick={() => setExpanded(e => !e)} style={{ fontSize: 11, color: "#6366f1", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit", fontWeight: 600, textAlign: "left" }}>
+              {expanded ? "Show less ↑" : "Show full response ↓"}
+            </button>
+          )}
+        </>
+      ) : (
+        <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>No response from this engine</p>
+      )}
+      {facts.length > 0 && (
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>Facts cited</div>
+          <ul style={{ margin: 0, padding: "0 0 0 16px", display: "flex", flexDirection: "column", gap: 3 }}>
+            {facts.slice(0, 4).map((f: any, i: number) => (
+              <li key={i} style={{ fontSize: 11, color: "#4b5563", lineHeight: 1.5 }}>{f.fact ?? f}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       {(card.citedUrls ?? []).length > 0 && (
         <div>
-          <div style={{ fontSize: 11, color: "#9ca3af", fontWeight: 600, marginBottom: 4 }}>Sources</div>
-          {(card.citedUrls ?? []).slice(0, 2).map((url: string, i: number) => {
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 }}>Sources</div>
+          {(card.citedUrls ?? []).slice(0, 3).map((url: string, i: number) => {
             let domain = url;
             try { domain = new URL(url).hostname.replace(/^www\./, ""); } catch {}
+            const dt = getDomainType(domain);
             return (
-              <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-                style={{ display: "block", fontSize: 11, color: "#6366f1", textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {domain}
-              </a>
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
+                <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: dt.bg, color: dt.color }}>{dt.label}</span>
+                <a href={url} target="_blank" rel="noopener noreferrer"
+                  style={{ fontSize: 11, color: "#4b5563", textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+                  {domain}
+                </a>
+              </div>
             );
           })}
         </div>
@@ -281,14 +345,58 @@ function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLa
     if (!urlsByEngine[engine].includes(url)) urlsByEngine[engine].push(url);
   }
   const hasSourceData = allLandscapeUrls.length > 0;
-
   const lastName = sessionName?.split(" ").pop() ?? "people";
+  const targetNorm = normForMatch(sessionName ?? "");
+
+  const targetEntry = targetNorm.length > 2
+    ? nameLandscape.find((p: any) => normForMatch(p.name) === targetNorm)
+    : null;
 
   return (
-    <Section title={`Name landscape — All ${lastName}s AI knows`}>
+    <Section title={`Name landscape — Who else is "${lastName}" in AI's mind`}>
       <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
-        Everyone with your name that AI surfaces, ranked by prominence across engines. Appearing in multiple engines at low rank number = most prominent. Click any row to see the full AI description.
+        All people sharing your name that AI surfaces, ranked by prominence. More engines + lower rank number = most prominent. Click any row to see the full AI description.
       </p>
+
+      {/* Your position callout */}
+      {targetEntry ? (
+        <div style={{ background: "#eef2ff", borderRadius: 12, padding: "16px 20px", marginBottom: 16, border: "1px solid #c7d2fe" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#6366f1", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>Your position in this name space</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: "#4f46e5", lineHeight: 1 }}>#{targetEntry.rank}</div>
+              <div style={{ fontSize: 11, color: "#6366f1", marginTop: 2 }}>Overall rank</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: "#4f46e5", lineHeight: 1 }}>{targetEntry.appearancePct ?? Math.round((targetEntry.engineCount / 3) * 100)}%</div>
+              <div style={{ fontSize: 11, color: "#6366f1", marginTop: 2 }}>{targetEntry.engineCount}/3 engines</div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#6366f1", marginBottom: 6 }}>Rank per engine</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {ALL_ENGINES.map(eng => {
+                  const rank = targetEntry.engineRanks?.[eng];
+                  return (
+                    <div key={eng} style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: ENGINE_COLORS[eng], marginBottom: 2 }}>{ENGINE_SHORT[eng]}</div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: rank != null ? "#1f2937" : "#d1d5db" }}>
+                        {rank != null ? `#${rank}` : "—"}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ background: "#fff7ed", borderRadius: 12, padding: "14px 18px", marginBottom: 16, border: "1px solid #fed7aa" }}>
+          <span style={{ fontSize: 13, color: "#9a3412", fontWeight: 500 }}>
+            You were not found in the name landscape — AI does not currently surface you when asked to list prominent people named "{sessionName}".
+          </span>
+        </div>
+      )}
+
       <div style={{ background: "#fff", borderRadius: 12, overflow: "hidden", border: "1px solid #f3f4f6" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
@@ -296,16 +404,17 @@ function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLa
               <th style={thStyle}>Rank</th>
               <th style={thStyle}>Person</th>
               <th style={thStyle}>Known for</th>
-              <th style={thStyle}>Engines</th>
-              <th style={thStyle}>Avg rank</th>
-              <th style={{ ...thStyle, width: 24 }}></th>
+              <th style={thStyle}>Appears in</th>
+              <th style={thStyle}>Rank per engine</th>
+              <th style={{ ...thStyle, width: 20 }}></th>
             </tr>
           </thead>
           <tbody>
             {nameLandscape.map((person: any, i: number) => {
-              const isTarget = sessionName && person.name?.toLowerCase().includes(sessionName.split(" ")[0]?.toLowerCase());
+              const isTarget = targetNorm.length > 2 && normForMatch(person.name) === targetNorm;
               const isOpen = openRows.has(i);
               const hasMore = person.description && person.description.length > 80;
+              const pct = person.appearancePct ?? Math.round(((person.engines ?? []).length / 3) * 100);
               return (
                 <Fragment key={i}>
                   <tr
@@ -314,47 +423,42 @@ function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLa
                     onMouseEnter={ev => { if (hasMore) (ev.currentTarget as HTMLElement).style.background = isTarget ? "#e0e7ff" : "#fafafa"; }}
                     onMouseLeave={ev => { (ev.currentTarget as HTMLElement).style.background = isTarget ? "#eef2ff" : "transparent"; }}
                   >
-                    <td style={{ ...tdStyle, fontWeight: 700, color: isTarget ? "#6366f1" : "#9ca3af" }}>#{person.rank ?? i + 1}</td>
-                    <td style={{ ...tdStyle, fontWeight: 600, color: isTarget ? "#4f46e5" : "#1f2937" }}>
-                      {person.name}
-                      {isTarget && <span style={{ fontSize: 11, background: "#c7d2fe", color: "#4f46e5", borderRadius: 4, padding: "1px 6px", marginLeft: 4 }}>You</span>}
+                    <td style={{ ...tdStyle, fontWeight: 700, color: isTarget ? "#6366f1" : "#9ca3af", width: 48 }}>
+                      #{person.rank ?? i + 1}
                     </td>
-                    <td style={{ ...tdStyle, color: "#6b7280", fontSize: 13 }}>{person.description?.slice(0, 80)}{hasMore && !isOpen ? "…" : ""}</td>
+                    <td style={{ ...tdStyle, fontWeight: 600, color: isTarget ? "#4f46e5" : "#1f2937", maxWidth: 200 }}>
+                      {person.name}
+                      {isTarget && <span style={{ display: "block", fontSize: 10, fontWeight: 700, background: "#c7d2fe", color: "#4f46e5", borderRadius: 4, padding: "1px 6px", marginTop: 3, width: "fit-content" }}>YOU</span>}
+                    </td>
+                    <td style={{ ...tdStyle, color: "#6b7280", fontSize: 12, maxWidth: 260 }}>
+                      {person.description?.slice(0, 90)}{hasMore && !isOpen ? "…" : ""}
+                    </td>
+                    <td style={{ ...tdStyle, fontSize: 12, whiteSpace: "nowrap" }}>
+                      <span style={{ fontWeight: 700, color: isTarget ? "#4f46e5" : "#1f2937" }}>{pct}%</span>
+                      <span style={{ color: "#9ca3af", fontSize: 11, marginLeft: 4 }}>({(person.engines ?? []).length}/3)</span>
+                    </td>
                     <td style={{ ...tdStyle, fontSize: 12 }}>
-                      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                        {(person.engines ?? []).map((e: string) => (
-                          <span key={e} style={{ fontSize: 11, fontWeight: 600, padding: "1px 6px", borderRadius: 4, background: "#f3f4f6", color: ENGINE_COLORS[e] ?? "#6b7280" }}>{e}</span>
-                        ))}
+                      <div style={{ display: "flex", gap: 6 }}>
+                        {ALL_ENGINES.map(eng => {
+                          const rank = person.engineRanks?.[eng];
+                          return (
+                            <span key={eng} style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: rank != null ? "#f3f4f6" : "transparent", color: rank != null ? (ENGINE_COLORS[eng] ?? "#6b7280") : "#e5e7eb", fontWeight: 600, whiteSpace: "nowrap" }}>
+                              {ENGINE_SHORT[eng]}{rank != null ? ` #${rank}` : " —"}
+                            </span>
+                          );
+                        })}
                       </div>
                     </td>
-                    <td style={{ ...tdStyle, fontSize: 12, color: "#9ca3af" }}>
-                      {person.avgRank != null ? `#${Math.round(person.avgRank)}` : "—"}
-                    </td>
-                    <td style={{ ...tdStyle, width: 24, textAlign: "center", color: "#d1d5db" }}>
-                      {hasMore && <ChevronDown size={14} style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />}
+                    <td style={{ ...tdStyle, width: 20, textAlign: "center", color: "#d1d5db" }}>
+                      {hasMore && <ChevronDown size={13} style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />}
                     </td>
                   </tr>
                   {isOpen && (
-                    <tr key={`${i}-detail`} style={{ background: isTarget ? "#f0f4ff" : "#fafafa", borderTop: "none" }}>
-                      <td colSpan={6} style={{ padding: "12px 16px 14px" }}>
-                        <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.7, fontStyle: "italic", paddingLeft: 8, borderLeft: "2px solid #e5e7eb" }}>
+                    <tr style={{ background: isTarget ? "#f0f4ff" : "#fafafa" }}>
+                      <td colSpan={6} style={{ padding: "10px 16px 14px 64px" }}>
+                        <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.7, fontStyle: "italic", borderLeft: "2px solid #e5e7eb", paddingLeft: 10 }}>
                           {person.description}
                         </div>
-                        {(person.urls ?? []).length > 0 && (
-                          <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 3 }}>
-                            <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 }}>Sources about this person</div>
-                            {person.urls.map((url: string, j: number) => (
-                              <a key={j} href={url} target="_blank" rel="noopener noreferrer"
-                                style={{ fontSize: 11, color: "#4b5563", textDecoration: "none", display: "flex", alignItems: "flex-start", gap: 5, wordBreak: "break-all", lineHeight: 1.5 }}
-                                onMouseEnter={ev => (ev.currentTarget.style.color = "#4f46e5")}
-                                onMouseLeave={ev => (ev.currentTarget.style.color = "#4b5563")}
-                              >
-                                <ExternalLink size={10} style={{ flexShrink: 0, marginTop: 2, color: "#9ca3af" }} />
-                                {url}
-                              </a>
-                            ))}
-                          </div>
-                        )}
                       </td>
                     </tr>
                   )}
@@ -366,22 +470,22 @@ function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLa
       </div>
 
       {hasSourceData && (
-        <div style={{ marginTop: 12 }}>
+        <div style={{ marginTop: 10 }}>
           <button
             onClick={() => setShowSources(s => !s)}
-            style={{ fontSize: 13, fontWeight: 600, color: "#6366f1", background: "none", border: "none", cursor: "pointer", padding: "4px 0", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6 }}
+            style={{ fontSize: 12, fontWeight: 600, color: "#6366f1", background: "none", border: "none", cursor: "pointer", padding: "4px 0", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5 }}
           >
-            <ChevronDown size={14} style={{ transform: showSources ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
-            {showSources ? "Hide" : "Show"} sources cited when AI listed prominent people ({allLandscapeUrls.length})
+            <ChevronDown size={13} style={{ transform: showSources ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
+            {showSources ? "Hide" : "Show"} sources AI cited when generating this list ({allLandscapeUrls.length} URLs)
           </button>
           {showSources && (
-            <div style={{ marginTop: 10, background: "#fff", borderRadius: 10, border: "1px solid #f3f4f6", overflow: "hidden" }}>
+            <div style={{ marginTop: 8, background: "#fff", borderRadius: 10, border: "1px solid #f3f4f6", overflow: "hidden" }}>
               {Object.entries(urlsByEngine).map(([engine, urls]) => (
-                <div key={engine} style={{ padding: "12px 16px", borderBottom: "1px solid #f9fafb" }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: ENGINE_COLORS[engine] ?? "#6b7280", marginBottom: 8 }}>
-                    {ENGINE_LABELS[engine] ?? engine}
+                <div key={engine} style={{ padding: "10px 16px", borderBottom: "1px solid #f9fafb" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: ENGINE_COLORS[engine] ?? "#6b7280", marginBottom: 6 }}>
+                    {ENGINE_LABELS[engine] ?? engine} — {urls.length} URL{urls.length !== 1 ? "s" : ""}
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                     {urls.map((url: string, j: number) => (
                       <a key={j} href={url} target="_blank" rel="noopener noreferrer"
                         style={{ fontSize: 11, color: "#4b5563", textDecoration: "none", display: "flex", alignItems: "flex-start", gap: 5, wordBreak: "break-all", lineHeight: 1.5 }}
@@ -513,6 +617,7 @@ function SourceRow({ src, max }: { src: any; max: number }) {
   const pct = Math.round((src.citationCount / max) * 100);
   const urls: string[] = src.urls ?? [];
   const hasUrls = urls.length > 0;
+  const domainType = getDomainType(src.domain);
 
   return (
     <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #f3f4f6", overflow: "hidden" }}>
@@ -525,7 +630,7 @@ function SourceRow({ src, max }: { src: any; max: number }) {
       >
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <a
                 href={`https://${src.domain}`} target="_blank" rel="noopener noreferrer"
                 onClick={e => e.stopPropagation()}
@@ -533,11 +638,14 @@ function SourceRow({ src, max }: { src: any; max: number }) {
               >
                 {src.domain} <ExternalLink size={11} />
               </a>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 4, background: domainType.bg, color: domainType.color, letterSpacing: "0.03em" }}>
+                {domainType.label}
+              </span>
               {hasUrls && (
                 <ChevronDown size={13} color="#9ca3af" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
               )}
             </div>
-            <span style={{ fontSize: 12, color: "#9ca3af" }}>{src.citationCount} citation{src.citationCount !== 1 ? "s" : ""}</span>
+            <span style={{ fontSize: 12, color: "#9ca3af" }}>{src.citationCount} citation{src.citationCount !== 1 ? "s" : ""} · {urls.length} URL{urls.length !== 1 ? "s" : ""}</span>
           </div>
           <div style={{ height: 4, background: "#f3f4f6", borderRadius: 100 }}>
             <div style={{ height: "100%", background: "#6366f1", borderRadius: 100, width: `${pct}%` }} />
@@ -574,46 +682,79 @@ function SourceRow({ src, max }: { src: any; max: number }) {
   );
 }
 
-function Recommendations({ scores, sourceGraph, nameLandscape }: any) {
-  const recs: { priority: number; text: string }[] = [];
+function Recommendations({ scores, sourceGraph, nameLandscape, claimFacts, sessionName }: any) {
+  const recs: { priority: number; title: string; text: string; urgent?: boolean }[] = [];
 
-  if ((scores?.recognitionScore ?? 0) < 40) {
-    recs.push({ priority: 1, text: "Wikipedia presence — the single biggest factor separating top-ranked people with your name. A Wikipedia stub with your name, role, and company creates an immediate high-authority anchor for AI engines." });
+  const domains: string[] = (sourceGraph ?? []).map((s: any) => s.domain as string);
+  const recognitionScore: number = scores?.recognitionScore ?? 0;
+  const proofScore: number = scores?.proofScore ?? 0;
+  const targetNorm = normForMatch(sessionName ?? "");
+  const myEntry = targetNorm.length > 2
+    ? (nameLandscape ?? []).find((p: any) => normForMatch(p.name) === targetNorm)
+    : null;
+  const nameCount: number = (nameLandscape ?? []).length;
+
+  const hasWikipedia = domains.some(d => /wikipedia/.test(d));
+  const hasPress = domains.some(d => /techcrunch|forbes|bloomberg|reuters|wsj\.com|ft\.com|nytimes|guardian|bbc|inc\.com|wired|entrepreneur|businessinsider|cnbc/.test(d));
+  const hasDirectory = domains.some(d => /crunchbase|angellist|f6s|pitchbook|tracxn/.test(d));
+  const onlySocial = domains.length > 0 && domains.every(d => /linkedin|twitter|instagram|facebook/.test(d));
+
+  if (!myEntry && nameCount > 0) {
+    recs.push({ priority: 1, urgent: true, title: "You are invisible in the name landscape", text: `AI surfaced ${nameCount} other people named "${sessionName}" but did not include you. You need uniquely attributed content that only references your specific role, company, and context — not just your name alone.` });
+  } else if (myEntry && myEntry.rank > 3 && nameCount > 3) {
+    recs.push({ priority: 1, urgent: true, title: `Name disambiguation challenge — you're #${myEntry.rank} of ${nameCount}`, text: `${nameCount - 1} other people share your name in AI's knowledge base. To rise in rank, create content that links your name with unique identifiers: your company, role, city, and specific achievements that others named "${sessionName}" don't share.` });
   }
-  if ((sourceGraph ?? []).length < 3) {
-    recs.push({ priority: 2, text: "Press mentions in authoritative publications — TechCrunch, Forbes, industry-specific outlets. One well-indexed profile feature gives AI engines a citable, high-authority source for your identity claims." });
+
+  if (!hasWikipedia) {
+    recs.push({ priority: 2, urgent: !hasWikipedia && recognitionScore < 40, title: "No Wikipedia article detected", text: "Wikipedia is the #1 cited source for personal identity across all three AI engines. A stub article (50–100 words) linking your name to your company, role, and one notable fact is often enough to become the default identity anchor." });
   }
-  if ((sourceGraph ?? []).every((s: any) => s.domain.includes("linkedin"))) {
-    recs.push({ priority: 3, text: "Diversify your source graph beyond LinkedIn. AI citing only LinkedIn for your identity is fragile — a single source means low confidence. Podcast appearances, speaker pages, and company blog profiles each add a distinct citation point." });
+
+  if (!hasPress) {
+    recs.push({ priority: 3, title: "No press coverage in your source graph", text: "AI engines heavily weight authoritative publications like TechCrunch, Forbes, and Bloomberg when resolving personal identity. One feature article, quoted comment, or named mention in an indexed outlet creates a citable, high-authority anchor for your name." });
   }
-  if ((scores?.proofScore ?? 0) < 50) {
-    recs.push({ priority: 4, text: "Claim and complete high-authority directory listings — Crunchbase, AngelList, F6S, relevant industry directories. These pages are indexed by AI engines and frequently cited in identity responses." });
+
+  if (onlySocial) {
+    recs.push({ priority: 4, urgent: true, title: "Source graph is 100% social media — highly fragile", text: "AI citing only LinkedIn or social profiles for your identity means one platform change could erase your presence. Podcast transcripts, speaker bio pages, Crunchbase profiles, and company blog posts each add a distinct, independent citation point." });
   }
-  if ((nameLandscape ?? []).length > 0 && (scores?.recognitionScore ?? 0) < 60) {
-    recs.push({ priority: 5, text: "Build industry-specific content under your name — bylined articles, LinkedIn newsletters, or a personal blog. Content that consistently references your name alongside your field creates a strong name-expertise association in AI training data." });
+
+  if (!hasDirectory) {
+    recs.push({ priority: 5, title: "No professional directory presence detected", text: "Crunchbase, AngelList, F6S, and Tracxn are heavily indexed by AI engines for professional identity. A complete profile (name, title, company, bio, photo) on 2–3 of these directories creates a persistent, structured identity anchor." });
+  }
+
+  const confirmedFacts = (claimFacts ?? []).filter((f: any) => f.count >= 2);
+  if (confirmedFacts.length > 0 && proofScore < 60) {
+    recs.push({ priority: 6, title: "AI is citing you but with low confidence", text: `AI mentions facts about you (e.g. "${confirmedFacts[0]?.fact?.slice(0, 80)}...") but your proof score is ${proofScore}/100. This means the sourcing is weak — publish a structured About page or press kit that explicitly states these facts so AI can cite them with confidence.` });
+  }
+
+  if (proofScore < 40 && (claimFacts ?? []).length === 0) {
+    recs.push({ priority: 6, title: "AI cannot verify any facts about you", text: "No confirmed facts surfaced in identity queries. Publish structured content (a personal About page, Crunchbase profile, or company team page) that explicitly lists: your full name, current title, company, years of experience, and one specific achievement." });
   }
 
   if (recs.length === 0) {
-    recs.push({ priority: 1, text: "Your AI identity is strong. Maintain it by publishing regularly under your name, updating your professional profiles, and pursuing press opportunities to keep your source graph fresh." });
+    recs.push({ priority: 1, title: "Strong AI identity footprint", text: "You have a well-established presence across AI engines with multiple source types. Maintain it by publishing regularly under your name, refreshing your profiles quarterly, and pursuing press opportunities to keep your citation graph growing." });
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {recs.sort((a, b) => a.priority - b.priority).map((rec, i) => (
         <div key={i} style={{
-          background: "#fff", borderRadius: 12, padding: "16px 20px",
-          border: "1px solid #f3f4f6", display: "flex", gap: 16, alignItems: "flex-start",
+          background: rec.urgent ? "#fff7ed" : "#fff", borderRadius: 12, padding: "16px 20px",
+          border: `1px solid ${rec.urgent ? "#fed7aa" : "#f3f4f6"}`,
+          display: "flex", gap: 16, alignItems: "flex-start",
         }}>
           <div style={{
-            width: 24, height: 24, borderRadius: "50%",
-            background: i === 0 ? "#6366f1" : "#e0e7ff",
-            color: i === 0 ? "#fff" : "#6366f1",
+            width: 26, height: 26, borderRadius: "50%",
+            background: i === 0 ? (rec.urgent ? "#ea580c" : "#6366f1") : (rec.urgent ? "#ffedd5" : "#e0e7ff"),
+            color: i === 0 ? "#fff" : (rec.urgent ? "#ea580c" : "#6366f1"),
             fontSize: 12, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center",
-            flexShrink: 0,
+            flexShrink: 0, marginTop: 1,
           }}>
             {i + 1}
           </div>
-          <p style={{ fontSize: 14, color: "#1f2937", lineHeight: 1.6, margin: 0 }}>{rec.text}</p>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: rec.urgent ? "#9a3412" : "#1f2937", marginBottom: 4 }}>{rec.title}</div>
+            <p style={{ fontSize: 13, color: "#4b5563", lineHeight: 1.6, margin: 0 }}>{rec.text}</p>
+          </div>
         </div>
       ))}
     </div>
