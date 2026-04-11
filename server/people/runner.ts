@@ -384,7 +384,9 @@ function buildReportData(
           });
         return {
           engine,
+          promptText: best.query_text ?? "",
           response: best.raw_response?.slice(0, 600) ?? "",
+          fullResponse: best.raw_response ?? "",
           identityMatch: best.identity_match ?? null,
           targetFound: best.target_found ?? false,
           targetRank: best.target_rank ?? null,

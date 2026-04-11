@@ -298,6 +298,7 @@ const TRACK_LABELS: Record<string, string> = { A: "Identity Proof", B: "Recognit
 
 function QueryResultRow({ qr }: { qr: any }) {
   const [open, setOpen] = useState(false);
+  const [expandedEngine, setExpandedEngine] = useState<string | null>(null);
   const totalUrls = (qr.engines ?? []).reduce((s: number, e: any) => s + (e.citedUrls?.length ?? 0), 0);
   const trackColor = qr.track === "A" ? "#6366f1" : "#0891b2";
 
@@ -327,45 +328,71 @@ function QueryResultRow({ qr }: { qr: any }) {
 
       {open && (
         <div style={{ borderTop: "1px solid #f3f4f6" }}>
-          {(qr.engines ?? []).map((e: any) => (
-            <div key={e.engine} style={{ padding: "12px 16px", borderBottom: "1px solid #f9fafb" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: ENGINE_COLORS[e.engine] ?? "#6b7280" }}>
-                  {ENGINE_LABELS[e.engine] ?? e.engine}
-                </span>
-                {e.identityMatch && (
-                  <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: e.identityMatch === "confirmed" ? "#dcfce7" : e.identityMatch === "partial" ? "#fef9c3" : "#fee2e2", color: e.identityMatch === "confirmed" ? "#166534" : e.identityMatch === "partial" ? "#854d0e" : "#991b1b" }}>
-                    {e.identityMatch}
+          {(qr.engines ?? []).map((e: any) => {
+            const isExpanded = expandedEngine === e.engine;
+            const hasMore = e.fullResponse && e.fullResponse.length > 600;
+            return (
+              <div key={e.engine} style={{ padding: "12px 16px", borderBottom: "1px solid #f9fafb" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: ENGINE_COLORS[e.engine] ?? "#6b7280" }}>
+                    {ENGINE_LABELS[e.engine] ?? e.engine}
                   </span>
-                )}
-                {e.targetFound === true && <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: "#dcfce7", color: "#166534" }}>found</span>}
-                {e.targetFound === false && qr.track === "B" && <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: "#fee2e2", color: "#991b1b" }}>not found</span>}
-                {e.targetRank != null && <span style={{ fontSize: 11, color: "#9ca3af" }}>rank #{e.targetRank}</span>}
-              </div>
-              {e.response && (
-                <p style={{ fontSize: 12, color: "#4b5563", lineHeight: 1.6, margin: "0 0 8px", background: "#f9fafb", borderRadius: 6, padding: "8px 10px" }}>
-                  "{e.response}"
-                </p>
-              )}
-              {(e.citedUrls ?? []).length > 0 && (
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Cited URLs</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    {e.citedUrls.map((url: string, i: number) => (
-                      <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-                        style={{ fontSize: 11, color: "#4b5563", textDecoration: "none", display: "flex", alignItems: "flex-start", gap: 5, wordBreak: "break-all", lineHeight: 1.5 }}
-                        onMouseEnter={ev => (ev.currentTarget.style.color = "#4f46e5")}
-                        onMouseLeave={ev => (ev.currentTarget.style.color = "#4b5563")}
-                      >
-                        <ExternalLink size={10} style={{ flexShrink: 0, marginTop: 2, color: "#9ca3af" }} />
-                        {url}
-                      </a>
-                    ))}
-                  </div>
+                  {e.identityMatch && (
+                    <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: e.identityMatch === "confirmed" ? "#dcfce7" : e.identityMatch === "partial" ? "#fef9c3" : "#fee2e2", color: e.identityMatch === "confirmed" ? "#166534" : e.identityMatch === "partial" ? "#854d0e" : "#991b1b" }}>
+                      {e.identityMatch}
+                    </span>
+                  )}
+                  {e.targetFound === true && <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: "#dcfce7", color: "#166534" }}>found</span>}
+                  {e.targetFound === false && qr.track === "B" && <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: "#fee2e2", color: "#991b1b" }}>not found</span>}
+                  {e.targetRank != null && <span style={{ fontSize: 11, color: "#9ca3af" }}>rank #{e.targetRank}</span>}
                 </div>
-              )}
-            </div>
-          ))}
+
+                {e.promptText && (
+                  <div style={{ marginBottom: 8 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 }}>Prompt sent</div>
+                    <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5, margin: 0, fontStyle: "italic", background: "#f9fafb", borderRadius: 6, padding: "6px 10px", borderLeft: "2px solid #e5e7eb" }}>
+                      {e.promptText}
+                    </p>
+                  </div>
+                )}
+
+                {(e.fullResponse || e.response) && (
+                  <div style={{ marginBottom: 8 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 }}>Response</div>
+                    <p style={{ fontSize: 12, color: "#4b5563", lineHeight: 1.6, margin: 0, background: "#f9fafb", borderRadius: 6, padding: "8px 10px", whiteSpace: "pre-wrap" }}>
+                      {isExpanded ? e.fullResponse : e.response}
+                    </p>
+                    {hasMore && (
+                      <button
+                        onClick={() => setExpandedEngine(isExpanded ? null : e.engine)}
+                        style={{ marginTop: 4, fontSize: 11, color: "#6366f1", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit", fontWeight: 600 }}
+                      >
+                        {isExpanded ? "Show less ↑" : "Show full response ↓"}
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {(e.citedUrls ?? []).length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Cited URLs</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      {e.citedUrls.map((url: string, i: number) => (
+                        <a key={i} href={url} target="_blank" rel="noopener noreferrer"
+                          style={{ fontSize: 11, color: "#4b5563", textDecoration: "none", display: "flex", alignItems: "flex-start", gap: 5, wordBreak: "break-all", lineHeight: 1.5 }}
+                          onMouseEnter={ev => (ev.currentTarget.style.color = "#4f46e5")}
+                          onMouseLeave={ev => (ev.currentTarget.style.color = "#4b5563")}
+                        >
+                          <ExternalLink size={10} style={{ flexShrink: 0, marginTop: 2, color: "#9ca3af" }} />
+                          {url}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

@@ -27,7 +27,9 @@ export function registerPeopleRoutes(app: Express): void {
       const profile = await crawlLinkedInProfile(linkedinUrl);
 
       const slug = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const name = profile.name || extractNameFromLinkedInUrl(linkedinUrl);
+      const BAD_NAMES = new Set(["profile not found", "unknown", ""]);
+      const rawName = (profile.name ?? "").trim();
+      const name = BAD_NAMES.has(rawName.toLowerCase()) ? extractNameFromLinkedInUrl(linkedinUrl) : rawName;
 
       const { rows } = await pool.query(
         `INSERT INTO people_sessions
