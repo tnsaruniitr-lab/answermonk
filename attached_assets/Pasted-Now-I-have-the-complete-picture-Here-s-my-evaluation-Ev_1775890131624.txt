@@ -1,0 +1,63 @@
+Now I have the complete picture. Here's my evaluation:
+
+Evaluation: People Identity Feature — 5-Phase Plan
+Current State
+Zero existing people code. This is fully greenfield. The plan needs to create server/people/ from scratch.
+
+What does exist and can be reused:
+
+Existing Pattern	Where	Reuse in People
+admin_config table	routes.ts:496 — key/value JSONB store	Phase 1: store people key alongside global
+Cost tracking	multiSegmentSessions.cost_breakdown JSONB	Phase 2: same pattern for people_sessions
+Vertex URL resolution	server/report/grounding-resolver.ts	Phase 3: extract to shared util, good call
+Engine abstraction	server/engines.ts	Phase 2: people engines can follow same shape
+Admin UI tabs	AdminSettings.tsx	Phase 4: add People tab
+Crawler pattern	server/segment-analysis/citation-crawler.ts	Phase 5: same concurrency/timeout approach
+Phase-by-Phase Fit Assessment
+Phase 1 (Config) — Clean fit
+
+admin_config already uses key = 'global'. Adding key = 'people' is natural.
+Creating server/people/config.ts as a standalone module is correct — matches existing modular structure under server/scoring/, server/promptgen/, etc.
+Two new routes in routes.ts — fine, though this file is already 5683 lines. Consider adding them via a registerPeopleRoutes(app) function to keep the monolith from growing.
+Phase 2 (Wire config into runner/engines) — Mostly good, two concerns:
+
+63 LLM calls per audit (3 rounds x 7 queries x 3 engines) — cost could spike. The plan mentions cost logging, which is good, but should also add a budget cap (abort if cost > $X, configurable in Phase 1 config).
+Concurrency cap of 3 is smart. But checking WHERE status = 'analyzing' is a race condition — two requests could check simultaneously and both pass. Use a SELECT ... FOR UPDATE or an atomic UPDATE ... WHERE (SELECT count(*) ...) < 3 RETURNING id instead.
+Phase 3 (Vertex URL resolution) — Good call, minor issue:
+
+Extracting resolveVertexRedirect to server/utils/resolve-vertex.ts is the right move. However, grounding-resolver.ts already exists at server/report/grounding-resolver.ts with resolveGroundingUrls() and resolveOneUrl(). Don't duplicate — just re-export from the existing file or move it.
+Phase 4 (Admin UI) — Fine, largest scope:
+
+Adding to existing AdminSettings.tsx vs new /admin/people route — I'd recommend a new route (/admin/people). AdminSettings is already handling engine toggles, classification modes, etc. A separate page keeps concerns clean.
+Prompt template editor with live preview is the biggest UI lift. Good feature, but scope it carefully.
+Phase 5 (Crawling) — Most novel, highest risk:
+
+New people_crawl_results table is correct — don't shoehorn into existing citationPageMentions.
+GPT-4o-mini for classification — matches existing pattern (brand uses LLM classification too). But add a timeout and fallback to heuristic classification.
+Gap analysis (Track B sources not in Track A) is the killer feature. Make sure the comparison logic is deterministic — normalize URLs/domains before comparing.
+Background async after complete — follow the existing fire-and-forget pattern, but add the .catch() that's currently missing in the brand flow (this was a high-severity finding in the audit).
+Schema Additions Needed
+The plan mentions people_sessions and people_query_results (Phase 2) and people_crawl_results (Phase 5) but doesn't explicitly list the Phase 2 tables. You'll need:
+
+people_sessions      — id, name, role, company, status, config_snapshot, cost_breakdown, report_data, created_at
+people_query_results — id, session_id, track, query_text, engine, round, response, identity_match, cited_urls, tokens
+people_crawl_results — id, session_id, url, domain, crawl_status, content_excerpt, mentions_target, source_type, identity_signal
+
+Risks & Recommendations
+Risk	Mitigation
+routes.ts grows even larger	Use registerPeopleRoutes(app) pattern like directory does
+63 LLM calls = high cost per audit	Add budget cap in config, show estimated cost before running
+Race condition on concurrency cap	Use atomic DB check-and-insert
+Vertex resolver duplication	Reuse existing grounding-resolver.ts, don't rewrite
+Fire-and-forget crawling fails silently	Add proper .catch() + status update to 'crawl_error'
+No tests (codebase has zero tests)	At minimum, add unit tests for identity matching logic — it's the core differentiator
+Verdict
+The plan is well-structured and fits the existing architecture. Dependency ordering is correct. The main adjustments:
+
+Route registration via registerPeopleRoutes(app) instead of inline additions
+Reuse grounding-resolver.ts instead of extracting a new util
+Add budget cap to config (Phase 1)
+Fix concurrency race condition (Phase 2)
+Add .catch() on all async fire-and-forget (Phase 5)
+New route /admin/people rather than stuffing into AdminSettings
+Ready for you to start Phase 1 — want me to store this as a spec in the auditor?
