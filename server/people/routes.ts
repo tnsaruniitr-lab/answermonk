@@ -57,12 +57,16 @@ export function registerPeopleRoutes(app: Express): void {
       const sessionId = parseInt(req.params.sessionId, 10);
       if (isNaN(sessionId)) return res.status(400).json({ error: "Invalid sessionId" });
 
-      const { anchors } = req.body;
-      if (anchors) {
-        await pool.query(
-          `UPDATE people_sessions SET selected_anchors = $1 WHERE id = $2`,
-          [JSON.stringify(anchors), sessionId]
-        );
+      const { anchors, name } = req.body;
+      if (anchors || name) {
+        const updates: string[] = [];
+        const vals: any[] = [];
+        if (anchors) { updates.push(`selected_anchors = $${vals.length + 1}`); vals.push(JSON.stringify(anchors)); }
+        if (name && typeof name === "string" && name.trim()) { updates.push(`name = $${vals.length + 1}`); vals.push(name.trim()); }
+        if (updates.length > 0) {
+          vals.push(sessionId);
+          await pool.query(`UPDATE people_sessions SET ${updates.join(", ")} WHERE id = $${vals.length}`, vals);
+        }
       }
 
       const config = await getPeopleConfig();

@@ -160,6 +160,9 @@ export default function PeopleAnchors({ sessionId }: { sessionId: number }) {
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedEducation, setSelectedEducation] = useState<string[]>([]);
   const [initialized, setInitialized] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+
+  const nameIsUnknown = !session?.name || session.name === "Profile Not Found";
 
   if (session && !initialized) {
     const workplaces = [session.current_company, ...(session.past_companies ?? [])].filter(Boolean) as string[];
@@ -168,6 +171,7 @@ export default function PeopleAnchors({ sessionId }: { sessionId: number }) {
     setSelectedWorkplaces(workplaces);
     setSelectedRoles(roles);
     setSelectedEducation(education);
+    if (!nameIsUnknown) setNameInput(session.name);
     setInitialized(true);
   }
 
@@ -193,13 +197,11 @@ export default function PeopleAnchors({ sessionId }: { sessionId: number }) {
 
   const runMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", `/api/people/run/${sessionId}`, {
-        anchors: {
-          workplaces: selectedWorkplaces,
-          roles: selectedRoles,
-          education: selectedEducation,
-        },
-      });
+      const body: any = {
+        anchors: { workplaces: selectedWorkplaces, roles: selectedRoles, education: selectedEducation },
+      };
+      if (nameInput.trim()) body.name = nameInput.trim();
+      const res = await apiRequest("POST", `/api/people/run/${sessionId}`, body);
       return res.json();
     },
     onSuccess: () => {
@@ -271,6 +273,35 @@ export default function PeopleAnchors({ sessionId }: { sessionId: number }) {
             </>
           )}
         </div>
+
+        {nameIsUnknown && (
+          <div style={{
+            background: "#fff", borderRadius: 16,
+            boxShadow: "0 4px 24px rgba(99,102,241,0.08), 0 1px 4px rgba(0,0,0,0.04)",
+            padding: 32, marginBottom: 16,
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>
+              Full name
+            </div>
+            <input
+              value={nameInput}
+              onChange={e => setNameInput(e.target.value)}
+              placeholder="e.g. Jane Smith"
+              data-testid="input-person-name"
+              style={{
+                width: "100%", border: "1.5px solid #e5e7eb", borderRadius: 8,
+                padding: "10px 14px", fontSize: 15, color: "#1f2937",
+                fontFamily: "inherit", outline: "none", boxSizing: "border-box",
+                transition: "border-color 0.15s",
+              }}
+              onFocus={e => (e.currentTarget.style.borderColor = "#6366f1")}
+              onBlur={e => (e.currentTarget.style.borderColor = "#e5e7eb")}
+            />
+            <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 8, marginBottom: 0 }}>
+              We couldn't extract a name from this LinkedIn URL. Enter it here and it'll be used in all AI prompts.
+            </p>
+          </div>
+        )}
 
         <div style={{
           background: "#fff", borderRadius: 16,
@@ -389,14 +420,14 @@ export default function PeopleAnchors({ sessionId }: { sessionId: number }) {
 
         <button
           onClick={() => runMutation.mutate()}
-          disabled={runMutation.isPending}
+          disabled={runMutation.isPending || (nameIsUnknown && !nameInput.trim())}
           data-testid="button-run-audit"
           style={{
             width: "100%",
-            background: runMutation.isPending ? "#c7d2fe" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
+            background: (runMutation.isPending || (nameIsUnknown && !nameInput.trim())) ? "#c7d2fe" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
             color: "#fff", border: "none", borderRadius: 12,
             padding: "16px 24px", fontSize: 16, fontWeight: 700,
-            cursor: runMutation.isPending ? "not-allowed" : "pointer",
+            cursor: (runMutation.isPending || (nameIsUnknown && !nameInput.trim())) ? "not-allowed" : "pointer",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             fontFamily: "inherit", transition: "all 0.2s",
           }}
