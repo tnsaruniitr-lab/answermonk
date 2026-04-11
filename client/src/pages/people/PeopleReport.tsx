@@ -462,6 +462,24 @@ function EngineCard({ card }: { card: any }) {
   );
 }
 
+function ConsistencyBadge({ score, label }: { score: number; label: string }) {
+  const cfg =
+    label === "high"   ? { bg: "#ecfdf5", color: "#059669", border: "#bbf7d0" } :
+    label === "medium" ? { bg: "#fffbeb", color: "#d97706", border: "#fde68a" } :
+                         { bg: "#fef2f2", color: "#dc2626", border: "#fecaca" };
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 4,
+      background: cfg.bg, color: cfg.color,
+      border: `1px solid ${cfg.border}`,
+      borderRadius: 100, padding: "2px 9px", fontSize: 11, fontWeight: 700,
+      whiteSpace: "nowrap",
+    }}>
+      {score}% consistent
+    </span>
+  );
+}
+
 function AiProfileCard({ engineCards }: { engineCards: any[] }) {
   const ALL = ["chatgpt", "gemini", "claude"] as const;
 
@@ -481,11 +499,14 @@ function AiProfileCard({ engineCards }: { engineCards: any[] }) {
         const color = ENGINE_COLORS[engine] ?? "#6366f1";
         const label = ENGINE_LABELS[engine] ?? engine;
         const facts: any[] = card?.statedFacts ?? [];
-        const oneLiner = getFact(facts, "one_liner");
-        const achievements = getList(facts, "key_achievements");
-        const greenFlags = getList(facts, "green_flags");
-        const redFlags = getList(facts, "red_flags");
-        const hasContent = oneLiner || achievements.length > 0 || greenFlags.length > 0 || redFlags.length > 0;
+
+        // Prefer synthesis (intersection of all rounds); fall back to single-round statedFacts
+        const syn = card?.synthesis;
+        const oneLiner     = syn?.oneLiner     || getFact(facts, "one_liner");
+        const achievements = syn?.keyAchievements?.length ? syn.keyAchievements : getList(facts, "key_achievements");
+        const greenFlags   = syn?.greenFlags?.length      ? syn.greenFlags      : getList(facts, "green_flags");
+        const redFlags     = syn?.redFlags?.length        ? syn.redFlags        : getList(facts, "red_flags");
+        const hasContent   = oneLiner || achievements.length > 0 || greenFlags.length > 0 || redFlags.length > 0;
 
         return (
           <div key={engine} style={{
@@ -495,11 +516,17 @@ function AiProfileCard({ engineCards }: { engineCards: any[] }) {
             {/* Engine header */}
             <div style={{
               padding: "12px 16px", borderBottom: "1px solid #f3f4f6",
-              borderTop: `3px solid ${color}`, display: "flex", alignItems: "center", gap: 8,
+              borderTop: `3px solid ${color}`,
+              display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
             }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: color, flexShrink: 0 }} />
               <span style={{ fontSize: 13, fontWeight: 700, color }}>{label}</span>
               {card?.identityMatch && <IdentityBadge match={card.identityMatch} />}
+              {syn && (
+                <span style={{ marginLeft: "auto" }}>
+                  <ConsistencyBadge score={syn.consistencyScore} label={syn.consistencyLabel} />
+                </span>
+              )}
             </div>
 
             {!hasContent ? (
@@ -513,6 +540,9 @@ function AiProfileCard({ engineCards }: { engineCards: any[] }) {
                   <div>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>AI definition</div>
                     <p style={{ fontSize: 12, color: "#1f2937", lineHeight: 1.65, margin: 0, fontStyle: "italic" }}>"{oneLiner}"</p>
+                    {syn?.notes && (
+                      <p style={{ fontSize: 11, color: "#9ca3af", lineHeight: 1.5, margin: "6px 0 0 0", fontStyle: "normal" }}>{syn.notes}</p>
+                    )}
                   </div>
                 )}
 

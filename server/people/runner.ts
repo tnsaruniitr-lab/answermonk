@@ -1,7 +1,7 @@
 import { pool } from "../db";
 import { buildTrackAQueries, buildTrackBQueries } from "./queries";
 import { queryPeopleEngine, PEOPLE_ENGINES } from "./engines";
-import { parseTrackAResponse, parseTrackBResponse } from "./parser";
+import { parseTrackAResponse, parseTrackBResponse, synthesiseTrackAResponses } from "./parser";
 import { resolveIdentity } from "./resolver";
 import { buildScores } from "./scorer";
 import { resolveGroundingUrls } from "../report/grounding-resolver";
@@ -301,11 +301,30 @@ export async function runPeopleAudit(
     const trackAResults = resultRows.filter((r: any) => r.track === "A");
     const trackBResults = resultRows.filter((r: any) => r.track === "B");
 
+    // Synthesis: one LLM call per engine across all Track A rounds in parallel.
+    // Finds the intersection of consistent claims and computes a consistency score.
+    const engineSynthesis: Record<string, any> = {};
+    await Promise.all(
+      PEOPLE_ENGINES.map(async (engine) => {
+        const rawTexts = (trackAResults as any[])
+          .filter((r) => r.engine === engine)
+          .map((r) => r.raw_response as string)
+          .filter(Boolean);
+        if (rawTexts.length > 0) {
+          try {
+            engineSynthesis[engine] = await synthesiseTrackAResponses(rawTexts, session.name);
+          } catch (e) {
+            console.error(`[runner] synthesis failed for ${engine}:`, e);
+          }
+        }
+      })
+    );
+
     const scores = buildScores(trackAResults as any, trackBResults as any);
     const reportData = buildReportData(session.name, trackAResults, trackBResults, scores, vertexResolved, {
       currentCompany: profile.currentCompany ?? "",
       currentRole: profile.currentRole ?? "",
-    });
+    }, engineSynthesis);
 
     await pool.query(
       `INSERT INTO people_scores
@@ -406,6 +425,24 @@ export async function recomputeScores(sessionId: number): Promise<void> {
   const trackAResults = resultRows.filter((r: any) => r.track === "A");
   const trackBResults = resultRows.filter((r: any) => r.track === "B");
 
+  // Re-synthesise: regenerate intersection-based profiles with updated stated_facts
+  const engineSynthesis: Record<string, any> = {};
+  await Promise.all(
+    PEOPLE_ENGINES.map(async (engine) => {
+      const rawTexts = (trackAResults as any[])
+        .filter((r) => r.engine === engine)
+        .map((r) => r.raw_response as string)
+        .filter(Boolean);
+      if (rawTexts.length > 0) {
+        try {
+          engineSynthesis[engine] = await synthesiseTrackAResponses(rawTexts, session.name);
+        } catch (e) {
+          console.error(`[runner] recompute synthesis failed for ${engine}:`, e);
+        }
+      }
+    })
+  );
+
   const anchors = session.selected_anchors ?? {
     workplaces: [session.current_company].filter(Boolean),
     roles: [session.current_role].filter(Boolean),
@@ -420,7 +457,7 @@ export async function recomputeScores(sessionId: number): Promise<void> {
   const reportData = buildReportData(session.name, trackAResults, trackBResults, scores, vertexResolved, {
     currentCompany: profile.currentCompany ?? "",
     currentRole: profile.currentRole ?? "",
-  });
+  }, engineSynthesis);
 
   await pool.query(
     `INSERT INTO people_scores
@@ -440,7 +477,8 @@ function buildReportData(
   trackBResults: any[],
   scores: any,
   vertexResolved: Map<string, any>,
-  identityAnchors: { currentCompany: string; currentRole: string } = { currentCompany: "", currentRole: "" }
+  identityAnchors: { currentCompany: string; currentRole: string } = { currentCompany: "", currentRole: "" },
+  engineSynthesis: Record<string, any> = {}
 ): Record<string, any> {
   function resolveUrl(raw: string): string {
     const r = vertexResolved.get(raw);
@@ -480,6 +518,7 @@ function buildReportData(
       identityMatch: consensusMatch,
       statedFacts: mergedFacts,
       citedUrls: (bestMatch?.cited_urls ?? []).map(resolveUrl),
+      synthesis: engineSynthesis[engine] ?? null,
     };
   });
 

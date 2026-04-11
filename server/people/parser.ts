@@ -31,6 +31,17 @@ export interface ParsedTrackBResult {
   targetRank: number | null;
 }
 
+export interface SynthesisResult {
+  oneLiner: string;
+  keyAchievements: string[];
+  greenFlags: string[];
+  redFlags: string[];
+  consistencyScore: number;   // 0–100
+  consistencyLabel: "high" | "medium" | "low";
+  foundInMost: boolean;
+  notes: string;
+}
+
 export async function parseTrackAResponse(
   rawText: string,
   targetName: string,
@@ -188,4 +199,88 @@ function parseNameLandscapeRegex(rawText: string): ParsedPerson[] {
   }
 
   return people.sort((a, b) => a.rank - b.rank).slice(0, 10);
+}
+
+// Synthesise N Track A raw responses for one engine into one authoritative profile.
+// Uses GPT-4o-mini to find only what is CONSISTENT across the majority of rounds,
+// discarding outliers and noise. Returns the intersection plus a consistency score.
+export async function synthesiseTrackAResponses(
+  rawTexts: string[],
+  targetName: string
+): Promise<SynthesisResult> {
+  const empty: SynthesisResult = {
+    oneLiner: "", keyAchievements: [], greenFlags: [], redFlags: [],
+    consistencyScore: 0, consistencyLabel: "low", foundInMost: false, notes: "",
+  };
+
+  const valid = rawTexts.filter((t) => t && t.trim().length > 20);
+  if (valid.length === 0) return empty;
+
+  // With only 1 response there is nothing to cross-check — parse it and assign a neutral score.
+  if (valid.length === 1) {
+    try {
+      const single = await parseTrackAResponse(valid[0], targetName, {});
+      const score = single.targetFound ? 50 : 10;
+      return {
+        oneLiner: single.oneLiner,
+        keyAchievements: single.keyAchievements,
+        greenFlags: single.greenFlags,
+        redFlags: single.redFlags,
+        consistencyScore: score,
+        consistencyLabel: "medium",
+        foundInMost: single.targetFound,
+        notes: "Only one response available — no cross-round consistency check possible.",
+      };
+    } catch { return empty; }
+  }
+
+  const threshold = Math.ceil(valid.length / 2);
+  const responsesBlock = valid
+    .map((t, i) => `=== Response ${i + 1} ===\n${t.slice(0, 1800)}`)
+    .join("\n\n");
+
+  const prompt = `You are analyzing ${valid.length} AI responses about "${targetName}". Each response is from a separate query round of the same prompt — they may agree or contradict each other.
+
+${responsesBlock}
+
+Your task: find what is CONSISTENT — meaning it appears in at least ${threshold} of the ${valid.length} responses. Discard anything mentioned by only one response.
+
+Return JSON:
+{
+  "oneLiner": "one sentence defining who this person is, based only on claims that appear in most responses. Use empty string if responses disagree too much to synthesise.",
+  "keyAchievements": ["only achievements mentioned in multiple responses"],
+  "greenFlags": ["only positive professional signals mentioned in multiple responses"],
+  "redFlags": ["only concerns or gaps mentioned in multiple responses"],
+  "consistencyScore": a number 0-100 where 100 = all responses say the same thing, 0 = completely contradictory,
+  "foundInMost": true if most responses describe the specific person "${targetName}" rather than someone else or returning no information,
+  "notes": "one sentence explaining why the consistency is high or low"
+}
+
+Only return valid JSON.`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      max_completion_tokens: 1200,
+      temperature: 0,
+      response_format: { type: "json_object" },
+    });
+
+    const parsed = JSON.parse(completion.choices[0]?.message?.content ?? "{}");
+    const score = Math.min(100, Math.max(0, Number(parsed.consistencyScore) || 0));
+    return {
+      oneLiner: parsed.oneLiner ?? "",
+      keyAchievements: Array.isArray(parsed.keyAchievements) ? parsed.keyAchievements : [],
+      greenFlags: Array.isArray(parsed.greenFlags) ? parsed.greenFlags : [],
+      redFlags: Array.isArray(parsed.redFlags) ? parsed.redFlags : [],
+      consistencyScore: score,
+      consistencyLabel: score >= 65 ? "high" : score >= 35 ? "medium" : "low",
+      foundInMost: Boolean(parsed.foundInMost),
+      notes: parsed.notes ?? "",
+    };
+  } catch (err) {
+    console.error("[parser] synthesiseTrackAResponses error:", err);
+    return empty;
+  }
 }
