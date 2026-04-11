@@ -14,11 +14,15 @@ function normalizeText(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
 }
 
+// Requires ALL significant words (length > 2) to appear in the haystack.
+// This prevents "Senior Business Analyst" from matching a response that mentions
+// "Finance Transformation Analyst" simply because the word "analyst" appears.
 function textContains(haystack: string, needle: string): boolean {
   if (!needle || needle.length < 2) return false;
   const h = normalizeText(haystack);
   const needleWords = normalizeText(needle).split(/\s+/).filter(w => w.length > 2);
-  return needleWords.some(w => h.includes(w));
+  if (needleWords.length === 0) return false;
+  return needleWords.every(w => h.includes(w));
 }
 
 export function resolveIdentity(
@@ -62,9 +66,14 @@ export function resolveIdentity(
   if (profile.pastCompanies && profile.pastCompanies.length > 0)
     signals.push(profile.pastCompanies.some(c => corroboratingSignal(c)));
 
-  // Citations are the strongest independent signal — if the AI returned URLs it searched
+  // Count identity signals first — citations only amplify, they never bootstrap a match.
+  // (ChatGPT with web search always returns URLs, so citations alone would create false
+  // positives for any common name regardless of whether the right person was found.)
+  const identitySignalCount = signals.filter(Boolean).length;
+
+  // Citations boost confidence only when at least one real identity signal already matched.
   const hasCitations = /https?:\/\//.test(rawResponse);
-  if (hasCitations) signals.push(true);
+  if (hasCitations && identitySignalCount > 0) signals.push(true);
 
   if (signals.length === 0) {
     return targetFound ? "partial" : "absent";

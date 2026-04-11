@@ -334,14 +334,45 @@ export async function recomputeScores(sessionId: number): Promise<void> {
   // Re-parse landscape raw responses so that any parser improvements (e.g. name
   // validation filtering Claude's sentence-fragment caveats) are applied without
   // needing to re-run the expensive AI queries.
-  const { parseTrackBResponse } = await import("./parser");
+  const { parseTrackBResponse, parseTrackAResponse } = await import("./parser");
+  const { resolveIdentity: reResolve } = await import("./resolver");
+
+  const anchorsForResolve = session.selected_anchors ?? {
+    workplaces: [session.current_company].filter(Boolean),
+    roles: [session.current_role].filter(Boolean),
+    education: session.education ?? [],
+  };
+  const profileForResolve = {
+    name: session.name,
+    currentRole: session.current_role ?? (anchorsForResolve.roles as string[])?.[0] ?? null,
+    currentCompany: session.current_company ?? (anchorsForResolve.workplaces as string[])?.[0] ?? null,
+    pastCompanies: (session.past_companies ?? []).length > 0
+      ? session.past_companies
+      : ((anchorsForResolve.workplaces as string[]) ?? []).slice(1),
+    education: (session.education ?? []).length > 0
+      ? session.education
+      : (anchorsForResolve.education as string[]) ?? [],
+    location: session.location,
+    industry: session.industry,
+  };
+
   for (const row of resultRows) {
     if (row.track === "B" && row.query_index === 2 && row.raw_response) {
+      // Re-parse landscape rows
       const parsed = await parseTrackBResponse(row.raw_response, session.name, "landscape");
       row.name_landscape = parsed.nameLandscape;
       await pool.query(
         `UPDATE people_query_results SET name_landscape = $1 WHERE id = $2`,
         [JSON.stringify(parsed.nameLandscape), row.id]
+      );
+    } else if (row.track === "A" && row.raw_response) {
+      // Re-evaluate identity match with the current (fixed) resolver
+      const parsedA = await parseTrackAResponse(row.raw_response, session.name, profileForResolve);
+      const freshMatch = reResolve(row.raw_response, profileForResolve, parsedA.targetFound, row.query_text);
+      row.identity_match = freshMatch;
+      await pool.query(
+        `UPDATE people_query_results SET identity_match = $1 WHERE id = $2`,
+        [freshMatch, row.id]
       );
     }
   }
