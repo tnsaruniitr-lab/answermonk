@@ -199,18 +199,9 @@ export default function PeopleReport({ slug }: { slug: string }) {
           />
         )}
 
-        {/* Section 4: Source graph */}
+        {/* Section 4: Citation sources */}
         {(rd.sourceGraph ?? []).length > 0 && (
-          <Section title="Source graph — Where AI gets its knowledge of you">
-            <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
-              Domains cited by AI engines when answering questions about you.
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {(rd.sourceGraph ?? []).map((src: any, i: number) => (
-                <SourceRow key={i} src={src} max={(rd.sourceGraph[0]?.citationCount ?? 1)} />
-              ))}
-            </div>
-          </Section>
+          <CitationSection sourceGraph={rd.sourceGraph} />
         )}
 
         {/* Section 5: Per-engine query results */}
@@ -720,62 +711,123 @@ function EngineQueryCard({ engineData }: { engineData: any }) {
   );
 }
 
-function SourceRow({ src, max }: { src: any; max: number }) {
+const CATEGORY_ORDER = ["Wikipedia", "Press", "Directory", "Content", "Social", "Jobs", "Forum", "Web"];
+
+const CATEGORY_META: Record<string, { color: string; bg: string; border: string; description: string }> = {
+  Wikipedia:  { color: "#b45309", bg: "#fef3c7", border: "#fde68a", description: "Highest-authority source — AI engines cite Wikipedia for factual identity claims" },
+  Press:      { color: "#dc2626", bg: "#fee2e2", border: "#fecaca", description: "Editorial coverage — strong trust signal for personal identity" },
+  Directory:  { color: "#059669", bg: "#dcfce7", border: "#bbf7d0", description: "Structured professional data — Crunchbase, AngelList, Pitchbook" },
+  Content:    { color: "#0891b2", bg: "#cffafe", border: "#a5f3fc", description: "Published content — Medium, Substack, podcasts, blogs" },
+  Social:     { color: "#0284c7", bg: "#e0f2fe", border: "#bae6fd", description: "Social profiles — LinkedIn, Twitter/X, Instagram" },
+  Jobs:       { color: "#7c3aed", bg: "#ede9fe", border: "#ddd6fe", description: "Jobs and hiring platforms — Glassdoor, Indeed, Wellfound" },
+  Forum:      { color: "#ea580c", bg: "#ffedd5", border: "#fed7aa", description: "Community discussions — Reddit and similar forums" },
+  Web:        { color: "#6b7280", bg: "#f3f4f6", border: "#e5e7eb", description: "General web sources" },
+};
+
+function CitationDomainRow({ src }: { src: any }) {
   const [open, setOpen] = useState(false);
-  const pct = Math.round((src.citationCount / max) * 100);
   const urls: string[] = src.urls ?? [];
   const hasUrls = urls.length > 0;
-  const domainType = getDomainType(src.domain);
 
   return (
-    <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #f3f4f6", overflow: "hidden" }}>
+    <div style={{ borderBottom: "1px solid #f3f4f6" }}>
       <div
         onClick={() => hasUrls && setOpen(o => !o)}
-        style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 12, cursor: hasUrls ? "pointer" : "default" }}
+        style={{ padding: "10px 16px", display: "flex", alignItems: "center", gap: 10, cursor: hasUrls ? "pointer" : "default" }}
       >
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <a
-                href={`https://${src.domain}`} target="_blank" rel="noopener noreferrer"
-                onClick={e => e.stopPropagation()}
-                style={{ fontSize: 13, fontWeight: 600, color: "#4f46e5", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}
-              >
-                {src.domain} <ExternalLink size={11} />
-              </a>
-              <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 4, background: domainType.bg, color: domainType.color, letterSpacing: "0.03em" }}>
-                {domainType.label}
-              </span>
-              {hasUrls && (
-                <ChevronDown size={13} color="#9ca3af" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
-              )}
-            </div>
-            <span style={{ fontSize: 12, color: "#9ca3af" }}>{src.citationCount} citation{src.citationCount !== 1 ? "s" : ""} · {urls.length} URL{urls.length !== 1 ? "s" : ""}</span>
-          </div>
-          <div style={{ height: 4, background: "#f3f4f6", borderRadius: 100 }}>
-            <div style={{ height: "100%", background: "#6366f1", borderRadius: 100, width: `${pct}%` }} />
-          </div>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
+          <a
+            href={`https://${src.domain}`} target="_blank" rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            style={{ fontSize: 13, fontWeight: 600, color: "#4f46e5", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}
+          >
+            {src.domain} <ExternalLink size={11} />
+          </a>
+          <span style={{ fontSize: 11, color: "#9ca3af" }}>
+            {src.citationCount} citation{src.citationCount !== 1 ? "s" : ""}
+            {urls.length > 0 ? ` · ${urls.length} URL${urls.length !== 1 ? "s" : ""}` : ""}
+          </span>
         </div>
+        {hasUrls && (
+          <ChevronDown size={13} color="#9ca3af" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }} />
+        )}
       </div>
 
       {open && hasUrls && (
-        <div style={{ borderTop: "1px solid #f3f4f6", padding: "8px 16px 12px" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>Cited URLs</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {urls.map((url, i) => (
+        <div style={{ padding: "0 16px 12px 32px", display: "flex", flexDirection: "column", gap: 5 }}>
+          {urls.map((url, i) => {
+            let path = url;
+            try { const u = new URL(url); path = u.pathname + (u.search || ""); if (path === "/") path = url; } catch {}
+            return (
               <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize: 12, color: "#4b5563", textDecoration: "none", display: "flex", alignItems: "flex-start", gap: 6, wordBreak: "break-all", lineHeight: 1.5 }}
+                style={{ fontSize: 12, color: "#4b5563", textDecoration: "none", display: "flex", alignItems: "flex-start", gap: 6, lineHeight: 1.5 }}
                 onMouseEnter={e => (e.currentTarget.style.color = "#4f46e5")}
                 onMouseLeave={e => (e.currentTarget.style.color = "#4b5563")}
               >
-                <ExternalLink size={11} style={{ flexShrink: 0, marginTop: 2, color: "#9ca3af" }} />
-                {url}
+                <ExternalLink size={10} style={{ flexShrink: 0, marginTop: 3, color: "#9ca3af" }} />
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{path}</span>
               </a>
-            ))}
-          </div>
+            );
+          })}
         </div>
       )}
     </div>
+  );
+}
+
+function CitationSection({ sourceGraph }: { sourceGraph: any[] }) {
+  // Group domains by category
+  const grouped: Record<string, any[]> = {};
+  for (const src of sourceGraph) {
+    const cat = getDomainType(src.domain).label;
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(src);
+  }
+
+  // Sort domains within each category by citation count descending
+  for (const cat of Object.keys(grouped)) {
+    grouped[cat].sort((a, b) => b.citationCount - a.citationCount);
+  }
+
+  const orderedCats = CATEGORY_ORDER.filter(cat => grouped[cat]?.length > 0);
+  const totalDomains = sourceGraph.length;
+  const totalCitations = sourceGraph.reduce((s, src) => s + src.citationCount, 0);
+
+  return (
+    <Section title="Citation sources — Ranked by quality">
+      <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 20 }}>
+        {totalDomains} domain{totalDomains !== 1 ? "s" : ""} · {totalCitations} total citation{totalCitations !== 1 ? "s" : ""} — grouped by source type, highest quality first
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {orderedCats.map(cat => {
+          const meta = CATEGORY_META[cat] ?? CATEGORY_META.Web;
+          const domains = grouped[cat];
+          const catCitations = domains.reduce((s: number, d: any) => s + d.citationCount, 0);
+          const catUrls = domains.reduce((s: number, d: any) => s + (d.urls?.length ?? 0), 0);
+          return (
+            <div key={cat} style={{ borderRadius: 12, border: `1px solid ${meta.border}`, overflow: "hidden" }}>
+              {/* Category header */}
+              <div style={{ background: meta.bg, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontSize: 13, fontWeight: 800, color: meta.color }}>{cat}</span>
+                <span style={{ fontSize: 12, color: meta.color, opacity: 0.8 }}>
+                  {domains.length} source{domains.length !== 1 ? "s" : ""} · {catCitations} citation{catCitations !== 1 ? "s" : ""}
+                  {catUrls > 0 ? ` · ${catUrls} URL${catUrls !== 1 ? "s" : ""}` : ""}
+                </span>
+                <span style={{ fontSize: 11, color: meta.color, opacity: 0.6, flex: 1, textAlign: "right", fontStyle: "italic" }}>
+                  {meta.description}
+                </span>
+              </div>
+              {/* Domain rows */}
+              <div style={{ background: "#fff" }}>
+                {domains.map((src: any, i: number) => (
+                  <CitationDomainRow key={i} src={src} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Section>
   );
 }
 
