@@ -146,7 +146,7 @@ export default function PeopleReport({ slug }: { slug: string }) {
         {(rd.nameLandscape ?? []).length > 0 && (
           <Section title={`Name landscape — All ${session?.name?.split(" ").pop()}s AI knows`}>
             <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
-              Everyone with your name that AI surfaces, ranked by prominence.
+              Everyone with your name that AI surfaces, ranked by prominence across engines. Appearing in multiple engines at low rank number = most prominent.
             </p>
             <div style={{ background: "#fff", borderRadius: 12, overflow: "hidden", border: "1px solid #f3f4f6" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -156,6 +156,7 @@ export default function PeopleReport({ slug }: { slug: string }) {
                     <th style={thStyle}>Person</th>
                     <th style={thStyle}>Known for</th>
                     <th style={thStyle}>Engines</th>
+                    <th style={thStyle}>Avg rank</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -165,10 +166,20 @@ export default function PeopleReport({ slug }: { slug: string }) {
                       <tr key={i} style={{ background: isTarget ? "#eef2ff" : "transparent", borderTop: "1px solid #f3f4f6" }}>
                         <td style={{ ...tdStyle, fontWeight: 700, color: isTarget ? "#6366f1" : "#9ca3af" }}>#{person.rank ?? i + 1}</td>
                         <td style={{ ...tdStyle, fontWeight: 600, color: isTarget ? "#4f46e5" : "#1f2937" }}>
-                          {person.name} {isTarget && <span style={{ fontSize: 11, background: "#c7d2fe", color: "#4f46e5", borderRadius: 4, padding: "1px 6px", marginLeft: 4 }}>You</span>}
+                          {person.name}
+                          {isTarget && <span style={{ fontSize: 11, background: "#c7d2fe", color: "#4f46e5", borderRadius: 4, padding: "1px 6px", marginLeft: 4 }}>You</span>}
                         </td>
                         <td style={{ ...tdStyle, color: "#6b7280", fontSize: 13 }}>{person.description?.slice(0, 80)}</td>
-                        <td style={{ ...tdStyle, fontSize: 12, color: "#9ca3af" }}>{(person.engines ?? []).join(", ")}</td>
+                        <td style={{ ...tdStyle, fontSize: 12 }}>
+                          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                            {(person.engines ?? []).map((e: string) => (
+                              <span key={e} style={{ fontSize: 11, fontWeight: 600, padding: "1px 6px", borderRadius: 4, background: "#f3f4f6", color: ENGINE_COLORS[e] ?? "#6b7280" }}>{e}</span>
+                            ))}
+                          </div>
+                        </td>
+                        <td style={{ ...tdStyle, fontSize: 12, color: "#9ca3af" }}>
+                          {person.avgRank != null ? `#${Math.round(person.avgRank)}` : "—"}
+                        </td>
                       </tr>
                     );
                   })}
@@ -192,7 +203,21 @@ export default function PeopleReport({ slug }: { slug: string }) {
           </Section>
         )}
 
-        {/* Section 5: Recommendations */}
+        {/* Section 5: Query results per prompt */}
+        {(rd.queryResults ?? []).length > 0 && (
+          <Section title="Query results — Every prompt, every engine">
+            <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
+              Results for each prompt run across all engines. Click any row to see the response and cited URLs.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {(rd.queryResults ?? []).map((qr: any) => (
+                <QueryResultRow key={`${qr.track}-${qr.promptIndex}`} qr={qr} />
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {/* Section 6: Recommendations */}
         <Section title="Recommendations">
           <Recommendations scores={scores} sourceGraph={rd.sourceGraph} nameLandscape={rd.nameLandscape} />
         </Section>
@@ -265,6 +290,84 @@ function DefaultCard({ item }: { item: any }) {
           {item.response ? `"${item.response.slice(0, 300)}..."` : "No response returned"}
         </p>
       </div>
+    </div>
+  );
+}
+
+const TRACK_LABELS: Record<string, string> = { A: "Identity Proof", B: "Recognition" };
+
+function QueryResultRow({ qr }: { qr: any }) {
+  const [open, setOpen] = useState(false);
+  const totalUrls = (qr.engines ?? []).reduce((s: number, e: any) => s + (e.citedUrls?.length ?? 0), 0);
+  const trackColor = qr.track === "A" ? "#6366f1" : "#0891b2";
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #f3f4f6", overflow: "hidden" }}>
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{ padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}
+      >
+        <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 4, background: qr.track === "A" ? "#eef2ff" : "#e0f2fe", color: trackColor, flexShrink: 0 }}>
+          Track {qr.track} · Prompt {qr.promptIndex}
+        </span>
+        <span style={{ fontSize: 13, color: "#6b7280", fontWeight: 500 }}>{TRACK_LABELS[qr.track] ?? ""}</span>
+        <div style={{ flex: 1 }} />
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          {(qr.engines ?? []).map((e: any) => (
+            <span key={e.engine} style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: "#f3f4f6", color: ENGINE_COLORS[e.engine] ?? "#6b7280", fontWeight: 600 }}>
+              {e.engine}
+            </span>
+          ))}
+          {totalUrls > 0 && (
+            <span style={{ fontSize: 11, color: "#9ca3af", marginLeft: 4 }}>{totalUrls} URL{totalUrls !== 1 ? "s" : ""}</span>
+          )}
+          <ChevronDown size={13} color="#9ca3af" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
+        </div>
+      </div>
+
+      {open && (
+        <div style={{ borderTop: "1px solid #f3f4f6" }}>
+          {(qr.engines ?? []).map((e: any) => (
+            <div key={e.engine} style={{ padding: "12px 16px", borderBottom: "1px solid #f9fafb" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: ENGINE_COLORS[e.engine] ?? "#6b7280" }}>
+                  {ENGINE_LABELS[e.engine] ?? e.engine}
+                </span>
+                {e.identityMatch && (
+                  <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: e.identityMatch === "confirmed" ? "#dcfce7" : e.identityMatch === "partial" ? "#fef9c3" : "#fee2e2", color: e.identityMatch === "confirmed" ? "#166534" : e.identityMatch === "partial" ? "#854d0e" : "#991b1b" }}>
+                    {e.identityMatch}
+                  </span>
+                )}
+                {e.targetFound === true && <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: "#dcfce7", color: "#166534" }}>found</span>}
+                {e.targetFound === false && qr.track === "B" && <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: "#fee2e2", color: "#991b1b" }}>not found</span>}
+                {e.targetRank != null && <span style={{ fontSize: 11, color: "#9ca3af" }}>rank #{e.targetRank}</span>}
+              </div>
+              {e.response && (
+                <p style={{ fontSize: 12, color: "#4b5563", lineHeight: 1.6, margin: "0 0 8px", background: "#f9fafb", borderRadius: 6, padding: "8px 10px" }}>
+                  "{e.response}"
+                </p>
+              )}
+              {(e.citedUrls ?? []).length > 0 && (
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Cited URLs</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    {e.citedUrls.map((url: string, i: number) => (
+                      <a key={i} href={url} target="_blank" rel="noopener noreferrer"
+                        style={{ fontSize: 11, color: "#4b5563", textDecoration: "none", display: "flex", alignItems: "flex-start", gap: 5, wordBreak: "break-all", lineHeight: 1.5 }}
+                        onMouseEnter={ev => (ev.currentTarget.style.color = "#4f46e5")}
+                        onMouseLeave={ev => (ev.currentTarget.style.color = "#4b5563")}
+                      >
+                        <ExternalLink size={10} style={{ flexShrink: 0, marginTop: 2, color: "#9ca3af" }} />
+                        {url}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

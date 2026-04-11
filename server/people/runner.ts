@@ -266,22 +266,27 @@ function buildReportData(
   scores: any,
   vertexResolved: Map<string, any>
 ): Record<string, any> {
+  function resolveUrl(raw: string): string {
+    const r = vertexResolved.get(raw);
+    return r?.resolvedUrl ?? raw;
+  }
+
+  const SKIP_DOMAINS = new Set(["vertexaisearch.cloud.google.com", "google.com"]);
+
   const engineCards = PEOPLE_ENGINES.map((engine) => {
     const engineTrackA = trackAResults.filter((r) => r.engine === engine);
     const bestMatch =
       engineTrackA.find((r) => r.identity_match === "confirmed") ||
       engineTrackA.find((r) => r.identity_match === "partial") ||
       engineTrackA[0];
-
     const matchVotes = engineTrackA.map((r) => r.identity_match).filter(Boolean);
     const consensusMatch = majorityVote(matchVotes);
-
     return {
       engine,
       description: bestMatch?.raw_response?.slice(0, 500) ?? "",
       identityMatch: consensusMatch,
       statedFacts: bestMatch?.stated_facts ?? [],
-      citedUrls: bestMatch?.cited_urls ?? [],
+      citedUrls: (bestMatch?.cited_urls ?? []).map(resolveUrl),
     };
   });
 
@@ -298,32 +303,48 @@ function buildReportData(
     };
   });
 
-  const allLandscapes = new Map<string, any>();
+  // Name landscape: normalize names, merge across engines, rank by prominence
+  const personMap = new Map<string, { name: string; description: string; engines: string[]; ranks: number[] }>();
   const landscapeResults = trackBResults.filter((r) => r.query_index === 2);
   for (const r of landscapeResults) {
     const landscape = (r.name_landscape as any[]) ?? [];
     for (const person of landscape) {
-      const key = person.name?.toLowerCase() ?? "";
-      if (!allLandscapes.has(key)) {
-        allLandscapes.set(key, { ...person, engines: [r.engine], targetRank: r.target_rank });
+      const normKey = (person.name ?? "")
+        .toLowerCase()
+        .replace(/\([^)]*\)/g, "")  // strip parentheticals
+        .replace(/[^a-z0-9 ]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (!normKey) continue;
+      if (!personMap.has(normKey)) {
+        personMap.set(normKey, { name: person.name, description: person.description ?? "", engines: [r.engine], ranks: [person.rank ?? 99] });
       } else {
-        allLandscapes.get(key).engines.push(r.engine);
+        const entry = personMap.get(normKey)!;
+        if (!entry.engines.includes(r.engine)) entry.engines.push(r.engine);
+        entry.ranks.push(person.rank ?? 99);
       }
     }
   }
-  const nameLandscape = Array.from(allLandscapes.values())
-    .sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99))
-    .slice(0, 10);
+  const nameLandscape = Array.from(personMap.values())
+    .map((p) => {
+      const avgRank = p.ranks.reduce((s, r) => s + r, 0) / p.ranks.length;
+      const score = p.engines.length * 100 - avgRank;
+      return { name: p.name, description: p.description, engines: p.engines, avgRank, score, engineCount: p.engines.length };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 15)
+    .map((p, i) => ({ ...p, rank: i + 1 }));
 
+  // Source graph: resolved URLs, skip tracker domains, more entries
   const allCitedUrls = [...trackAResults, ...trackBResults].flatMap(
     (r) => (r.cited_urls as string[]) ?? []
   );
   const domainCount: Record<string, { count: number; urls: string[] }> = {};
   for (const url of allCitedUrls) {
     try {
-      const resolved = vertexResolved.get(url);
-      const finalUrl = resolved?.resolvedUrl ?? url;
+      const finalUrl = resolveUrl(url);
       const domain = new URL(finalUrl).hostname.replace(/^www\./, "");
+      if (SKIP_DOMAINS.has(domain)) continue;
       if (!domainCount[domain]) domainCount[domain] = { count: 0, urls: [] };
       domainCount[domain].count++;
       if (!domainCount[domain].urls.includes(finalUrl)) {
@@ -333,13 +354,45 @@ function buildReportData(
   }
   const sourceGraph = Object.entries(domainCount)
     .sort(([, a], [, b]) => b.count - a.count)
-    .slice(0, 10)
+    .slice(0, 25)
     .map(([domain, data]) => ({
       domain,
       citationCount: data.count,
       url: `https://${domain}`,
-      urls: data.urls.slice(0, 5),
+      urls: data.urls.slice(0, 10),
     }));
+
+  // Per-query results: one entry per (track, promptIndex, engine) with resolved cited URLs
+  const allResults = [...trackAResults, ...trackBResults];
+  const promptKeys = Array.from(new Set(allResults.map((r) => `${r.track}-${r.query_index}`)));
+  const queryResults = promptKeys
+    .sort()
+    .map((key) => {
+      const [track, idxStr] = key.split("-");
+      const promptIndex = parseInt(idxStr);
+      const engines = PEOPLE_ENGINES.map((engine) => {
+        const rounds = allResults.filter((r) => r.track === track && r.query_index === promptIndex && r.engine === engine);
+        if (rounds.length === 0) return null;
+        const best =
+          rounds.find((r) => r.identity_match === "confirmed" || r.target_found) ||
+          rounds.find((r) => r.identity_match === "partial") ||
+          rounds[0];
+        const resolvedUrls = ((best.cited_urls as string[]) ?? [])
+          .map(resolveUrl)
+          .filter((u) => {
+            try { const d = new URL(u).hostname.replace(/^www\./, ""); return !SKIP_DOMAINS.has(d); } catch { return false; }
+          });
+        return {
+          engine,
+          response: best.raw_response?.slice(0, 600) ?? "",
+          identityMatch: best.identity_match ?? null,
+          targetFound: best.target_found ?? false,
+          targetRank: best.target_rank ?? null,
+          citedUrls: resolvedUrls,
+        };
+      }).filter(Boolean);
+      return { track, promptIndex, engines };
+    });
 
   const claimFacts = trackAResults
     .filter((r) => r.identity_match === "confirmed" || r.identity_match === "partial")
@@ -357,6 +410,7 @@ function buildReportData(
     defaultRecognition,
     nameLandscape,
     sourceGraph,
+    queryResults,
     claimFacts: Object.values(claimFacts),
   };
 }
