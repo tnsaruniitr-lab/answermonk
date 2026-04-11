@@ -346,11 +346,9 @@ function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLa
   }
   const hasSourceData = allLandscapeUrls.length > 0;
   const lastName = sessionName?.split(" ").pop() ?? "people";
-  const targetNorm = normForMatch(sessionName ?? "");
 
-  const targetEntry = targetNorm.length > 2
-    ? nameLandscape.find((p: any) => normForMatch(p.name) === targetNorm)
-    : null;
+  // isTarget is flagged server-side using target_rank cross-reference — don't use name matching
+  const targetEntry = nameLandscape.find((p: any) => p.isTarget === true) ?? null;
 
   return (
     <Section title={`Name landscape — Who else is "${lastName}" in AI's mind`}>
@@ -358,8 +356,8 @@ function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLa
         All people sharing your name that AI surfaces, ranked by prominence. More engines + lower rank number = most prominent. Click any row to see the full AI description.
       </p>
 
-      {/* Your position callout */}
-      {targetEntry ? (
+      {/* Your position callout — only shown when server has confirmed which entry is the user */}
+      {targetEntry && (
         <div style={{ background: "#eef2ff", borderRadius: 12, padding: "16px 20px", marginBottom: 16, border: "1px solid #c7d2fe" }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: "#6366f1", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>Your position in this name space</div>
           <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
@@ -389,12 +387,6 @@ function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLa
             </div>
           </div>
         </div>
-      ) : (
-        <div style={{ background: "#fff7ed", borderRadius: 12, padding: "14px 18px", marginBottom: 16, border: "1px solid #fed7aa" }}>
-          <span style={{ fontSize: 13, color: "#9a3412", fontWeight: 500 }}>
-            You were not found in the name landscape — AI does not currently surface you when asked to list prominent people named "{sessionName}".
-          </span>
-        </div>
       )}
 
       <div style={{ background: "#fff", borderRadius: 12, overflow: "hidden", border: "1px solid #f3f4f6" }}>
@@ -411,7 +403,7 @@ function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLa
           </thead>
           <tbody>
             {nameLandscape.map((person: any, i: number) => {
-              const isTarget = targetNorm.length > 2 && normForMatch(person.name) === targetNorm;
+              const isTarget = person.isTarget === true;
               const isOpen = openRows.has(i);
               const hasMore = person.description && person.description.length > 80;
               const pct = person.appearancePct ?? Math.round(((person.engines ?? []).length / 3) * 100);
@@ -688,10 +680,7 @@ function Recommendations({ scores, sourceGraph, nameLandscape, claimFacts, sessi
   const domains: string[] = (sourceGraph ?? []).map((s: any) => s.domain as string);
   const recognitionScore: number = scores?.recognitionScore ?? 0;
   const proofScore: number = scores?.proofScore ?? 0;
-  const targetNorm = normForMatch(sessionName ?? "");
-  const myEntry = targetNorm.length > 2
-    ? (nameLandscape ?? []).find((p: any) => normForMatch(p.name) === targetNorm)
-    : null;
+  const myEntry = (nameLandscape ?? []).find((p: any) => p.isTarget === true) ?? null;
   const nameCount: number = (nameLandscape ?? []).length;
 
   const hasWikipedia = domains.some(d => /wikipedia/.test(d));

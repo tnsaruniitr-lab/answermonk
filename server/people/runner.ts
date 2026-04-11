@@ -239,7 +239,10 @@ export async function runPeopleAudit(
     const trackBResults = resultRows.filter((r: any) => r.track === "B");
 
     const scores = buildScores(trackAResults as any, trackBResults as any);
-    const reportData = buildReportData(session.name, trackAResults, trackBResults, scores, vertexResolved);
+    const reportData = buildReportData(session.name, trackAResults, trackBResults, scores, vertexResolved, {
+      currentCompany: session.current_company ?? "",
+      currentRole: session["current_role"] ?? "",
+    });
 
     await pool.query(
       `INSERT INTO people_scores
@@ -264,7 +267,8 @@ function buildReportData(
   trackAResults: any[],
   trackBResults: any[],
   scores: any,
-  vertexResolved: Map<string, any>
+  vertexResolved: Map<string, any>,
+  identityAnchors: { currentCompany: string; currentRole: string } = { currentCompany: "", currentRole: "" }
 ): Record<string, any> {
   function resolveUrl(raw: string): string {
     const r = vertexResolved.get(raw);
@@ -304,25 +308,42 @@ function buildReportData(
   });
 
   // Name landscape: normalize names, merge across engines, rank by prominence
-  const personMap = new Map<string, { name: string; description: string; engines: string[]; ranks: number[]; engineRanks: Record<string, number> }>();
+  const personMap = new Map<string, { name: string; description: string; engines: string[]; ranks: number[]; engineRanks: Record<string, number>; isTargetCount: number }>();
   const landscapeResults = trackBResults.filter((r) => r.query_index === 2);
   for (const r of landscapeResults) {
     const landscape = (r.name_landscape as any[]) ?? [];
     for (const person of landscape) {
       const normKey = (person.name ?? "")
         .toLowerCase()
-        .replace(/\([^)]*\)/g, "")  // strip parentheticals
+        .replace(/\([^)]*\)/g, "")  // strip parentheticals for deduplication
         .replace(/[^a-z0-9 ]/g, "")
         .replace(/\s+/g, " ")
         .trim();
       if (!normKey) continue;
+      // Flag as the audited person if: (a) engine's target_rank matches rank (precise),
+      // or (b) description mentions their company/role as a heuristic fallback
+      const descLower = (person.description ?? "").toLowerCase();
+      const { currentCompany, currentRole } = identityAnchors;
+      const companyMatch = currentCompany.length > 3 && descLower.includes(currentCompany.toLowerCase());
+      const roleMatch = currentRole.length > 3 && descLower.includes(currentRole.toLowerCase());
+      const isThisPersonTarget =
+        (r.target_rank != null && r.target_rank === (person.rank ?? null)) ||
+        Boolean(companyMatch) || Boolean(roleMatch);
       if (!personMap.has(normKey)) {
-        personMap.set(normKey, { name: person.name, description: person.description ?? "", engines: [r.engine], ranks: [person.rank ?? 99], engineRanks: { [r.engine]: person.rank ?? 99 } });
+        personMap.set(normKey, {
+          name: person.name,
+          description: person.description ?? "",
+          engines: [r.engine],
+          ranks: [person.rank ?? 99],
+          engineRanks: { [r.engine]: person.rank ?? 99 },
+          isTargetCount: isThisPersonTarget ? 1 : 0,
+        });
       } else {
         const entry = personMap.get(normKey)!;
         if (!entry.engines.includes(r.engine)) entry.engines.push(r.engine);
         entry.ranks.push(person.rank ?? 99);
         entry.engineRanks[r.engine] = person.rank ?? 99;
+        if (isThisPersonTarget) entry.isTargetCount++;
       }
     }
   }
@@ -332,7 +353,8 @@ function buildReportData(
       const avgRank = p.ranks.reduce((s, r) => s + r, 0) / p.ranks.length;
       const score = p.engines.length * 100 - avgRank;
       const appearancePct = Math.round((p.engines.length / TOTAL_ENGINES) * 100);
-      return { name: p.name, description: p.description, engines: p.engines, avgRank, score, engineCount: p.engines.length, appearancePct, engineRanks: p.engineRanks };
+      const isTarget = p.isTargetCount > 0;
+      return { name: p.name, description: p.description, engines: p.engines, avgRank, score, engineCount: p.engines.length, appearancePct, engineRanks: p.engineRanks, isTarget };
     })
     .sort((a, b) => b.score - a.score)
     .slice(0, 15)
