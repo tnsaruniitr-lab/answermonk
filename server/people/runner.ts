@@ -532,6 +532,45 @@ function buildReportData(
     .slice(0, 10)
     .map((p, i) => ({ ...p, rank: i + 1 }));
 
+  // Per-engine landscape: each engine's own independent ranked list, sorted by that
+  // engine's own average rank across rounds. Independent of the combined list.
+  const perEngineLandscape: Record<string, any[]> = {};
+  for (const engine of PEOPLE_ENGINES) {
+    const engineRows = landscapeResults.filter((r) => r.engine === engine);
+    const engMap = new Map<string, { name: string; description: string; ranks: number[]; isTargetCount: number }>();
+    for (const r of engineRows) {
+      const landscape = (r.name_landscape as any[]) ?? [];
+      for (const person of landscape) {
+        const normKey = getPersonKey(person.name ?? "", person.description ?? "");
+        if (!normKey) continue;
+        const descLower = (person.description ?? "").toLowerCase();
+        const { currentCompany, currentRole } = identityAnchors;
+        const companyMatch = currentCompany.length > 3 && descLower.includes(currentCompany.toLowerCase());
+        const roleMatch = currentRole.length > 3 && descLower.includes(currentRole.toLowerCase());
+        const isThisPersonTarget =
+          (r.target_rank != null && r.target_rank === (person.rank ?? null)) ||
+          Boolean(companyMatch) || Boolean(roleMatch);
+        if (!engMap.has(normKey)) {
+          engMap.set(normKey, { name: person.name, description: person.description ?? "", ranks: [person.rank ?? 99], isTargetCount: isThisPersonTarget ? 1 : 0 });
+        } else {
+          const entry = engMap.get(normKey)!;
+          entry.ranks.push(person.rank ?? 99);
+          if (isThisPersonTarget) entry.isTargetCount++;
+        }
+      }
+    }
+    perEngineLandscape[engine] = Array.from(engMap.values())
+      .map((p) => ({
+        name: p.name,
+        description: p.description,
+        avgRank: p.ranks.reduce((s, r) => s + r, 0) / p.ranks.length,
+        isTarget: p.isTargetCount > 0,
+      }))
+      .sort((a, b) => a.avgRank - b.avgRank)
+      .slice(0, 10)
+      .map((p, i) => ({ ...p, rank: i + 1 }));
+  }
+
   // Source graph: resolved URLs, skip tracker domains, more entries
   const allCitedUrls = [...trackAResults, ...trackBResults].flatMap(
     (r) => (r.cited_urls as string[]) ?? []
@@ -643,6 +682,7 @@ function buildReportData(
     engineCards,
     defaultRecognition,
     nameLandscape,
+    perEngineLandscape,
     sourceGraph,
     perEngineQueryResults,
     claimFacts: Object.values(claimFacts),

@@ -326,6 +326,7 @@ export default function PeopleReport({ slug }: { slug: string }) {
         {(rd.nameLandscape ?? []).length > 0 && (
           <LandscapeSection
             nameLandscape={rd.nameLandscape}
+            perEngineLandscape={rd.perEngineLandscape ?? {}}
             perEngineQueryResults={rd.perEngineQueryResults}
             sessionName={session?.name}
           />
@@ -462,8 +463,8 @@ function DefaultCard({ item }: { item: any }) {
   );
 }
 
-function LandscapeSection({ nameLandscape, perEngineQueryResults, sessionName }: { nameLandscape: any[]; perEngineQueryResults?: any[]; sessionName?: string }) {
-  const [selectedEngine, setSelectedEngine] = useState<string>("chatgpt");
+function LandscapeSection({ nameLandscape, perEngineLandscape, perEngineQueryResults, sessionName }: { nameLandscape: any[]; perEngineLandscape?: Record<string, any[]>; perEngineQueryResults?: any[]; sessionName?: string }) {
+  const [selectedEngine, setSelectedEngine] = useState<string>("combined");
   const [openRows, setOpenRows] = useState<Set<string>>(new Set());
   const [showSources, setShowSources] = useState(false);
 
@@ -490,14 +491,16 @@ function LandscapeSection({ nameLandscape, perEngineQueryResults, sessionName }:
   }
   const hasSourceData = allLandscapeUrls.length > 0;
   const lastName = sessionName?.split(" ").pop() ?? "people";
-  const targetEntry = nameLandscape.find((p: any) => p.isTarget === true) ?? null;
+  // Target entry: from combined list for combined view, from that engine's list otherwise
+  const targetEntry = selectedEngine === "combined"
+    ? (nameLandscape.find((p: any) => p.isTarget === true) ?? null)
+    : ((perEngineLandscape?.[selectedEngine] ?? []).find((p: any) => p.isTarget === true) ?? null);
 
-  // Build the display list for the selected engine view
+  // Combined tab: merged cross-engine list sorted by appearance count.
+  // Engine tabs: each engine's own independent ranked list, in that engine's order.
   const displayList: any[] = selectedEngine === "combined"
     ? nameLandscape
-    : nameLandscape
-        .filter((p: any) => p.engineRanks?.[selectedEngine] != null)
-        .sort((a: any, b: any) => (a.engineRanks[selectedEngine] ?? 99) - (b.engineRanks[selectedEngine] ?? 99));
+    : (perEngineLandscape?.[selectedEngine] ?? []);
 
   const engineTabs = [
     { key: "combined", label: "Combined" },
@@ -564,7 +567,7 @@ function LandscapeSection({ nameLandscape, perEngineQueryResults, sessionName }:
               {tab.label}
               {tab.key !== "combined" && (
                 <span style={{ marginLeft: 5, fontSize: 10, fontWeight: 600 }}>
-                  ({nameLandscape.filter((p: any) => p.engineRanks?.[tab.key] != null).length})
+                  ({(perEngineLandscape?.[tab.key] ?? []).length})
                 </span>
               )}
             </button>
@@ -594,9 +597,8 @@ function LandscapeSection({ nameLandscape, perEngineQueryResults, sessionName }:
                 const rowKey = `${selectedEngine}-${person.name}-${i}`;
                 const isOpen = openRows.has(rowKey);
                 const isTarget = person.isTarget === true;
-                const displayRank = selectedEngine === "combined"
-                  ? person.rank
-                  : person.engineRanks?.[selectedEngine];
+                // Combined: use cross-engine rank. Per-engine: use that engine's own rank (1–10).
+                const displayRank = person.rank;
                 const shortDesc = person.description
                   ? (person.description.length > 90 ? person.description.slice(0, 88) + "…" : person.description)
                   : null;
@@ -642,7 +644,7 @@ function LandscapeSection({ nameLandscape, perEngineQueryResults, sessionName }:
                       <td style={{ ...tdStyle, fontWeight: 600, color: selectedEngine === "combined" ? "#6366f1" : "#1f2937" }}>
                         {selectedEngine === "combined"
                           ? `${person.appearancePct ?? Math.round((person.engineCount / 3) * 100)}%`
-                          : `#${person.engineRanks?.[selectedEngine] ?? "—"}`
+                          : `#${displayRank ?? "—"}`
                         }
                       </td>
                       {selectedEngine === "combined" && (
