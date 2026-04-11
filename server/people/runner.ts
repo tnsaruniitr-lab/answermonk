@@ -419,7 +419,7 @@ function buildReportData(
     const trackBRecognition = [1, 3].map((qi) => {
       const rounds = trackBResults.filter((r: any) => r.engine === engine && r.query_index === qi);
       if (rounds.length === 0) return null;
-      const foundCount = rounds.filter((r: any) => r.target_found).length;
+      const foundCount = rounds.filter((r: any) => r.identity_match === "confirmed" || r.identity_match === "partial").length;
       const best = rounds.find((r: any) => r.target_found) || rounds[0];
       const ranks = rounds.filter((r: any) => r.target_rank != null && r.target_rank > 0).map((r: any) => r.target_rank as number);
       return {

@@ -58,7 +58,7 @@ export function calculatePerEngineAppearance(trackBResults: RawQueryRow[]): Reco
   const result: Record<string, EngineAppearanceStat> = {};
   for (const engine of ENGINES) {
     const rows = recognitionRows.filter(r => r.engine === engine);
-    const found = rows.filter(r => r.target_found);
+    const found = rows.filter(r => r.identity_match === "confirmed" || r.identity_match === "partial");
     const ranks = found
       .map(r => r.target_rank)
       .filter((v): v is number => v != null && v > 0);

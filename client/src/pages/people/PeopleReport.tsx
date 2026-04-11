@@ -331,12 +331,13 @@ function DefaultCard({ item }: { item: any }) {
 }
 
 function LandscapeSection({ nameLandscape, perEngineQueryResults, sessionName }: { nameLandscape: any[]; perEngineQueryResults?: any[]; sessionName?: string }) {
-  const [openRows, setOpenRows] = useState<Set<number>>(new Set());
+  const [selectedEngine, setSelectedEngine] = useState<string>("chatgpt");
+  const [openRows, setOpenRows] = useState<Set<string>>(new Set());
   const [showSources, setShowSources] = useState(false);
 
-  const toggleRow = (i: number) => setOpenRows(prev => {
+  const toggleRow = (key: string) => setOpenRows(prev => {
     const next = new Set(prev);
-    if (next.has(i)) next.delete(i); else next.add(i);
+    if (next.has(key)) next.delete(key); else next.add(key);
     return next;
   });
 
@@ -357,13 +358,24 @@ function LandscapeSection({ nameLandscape, perEngineQueryResults, sessionName }:
   }
   const hasSourceData = allLandscapeUrls.length > 0;
   const lastName = sessionName?.split(" ").pop() ?? "people";
-
   const targetEntry = nameLandscape.find((p: any) => p.isTarget === true) ?? null;
+
+  // Build the display list for the selected engine view
+  const displayList: any[] = selectedEngine === "combined"
+    ? nameLandscape
+    : nameLandscape
+        .filter((p: any) => p.engineRanks?.[selectedEngine] != null)
+        .sort((a: any, b: any) => (a.engineRanks[selectedEngine] ?? 99) - (b.engineRanks[selectedEngine] ?? 99));
+
+  const engineTabs = [
+    { key: "combined", label: "Combined" },
+    ...ALL_ENGINES.map(e => ({ key: e, label: ENGINE_LABELS[e] ?? e })),
+  ];
 
   return (
     <Section title={`Name landscape — Who else is "${lastName}" in AI's mind`}>
       <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
-        All people sharing your name that AI surfaces, ranked by prominence. More engines + lower rank number = most prominent. Click any row to see the full AI description.
+        All people sharing your name surfaced by AI, ranked by prominence. Switch engines to see each AI's own ordering.
       </p>
 
       {targetEntry && (
@@ -398,81 +410,135 @@ function LandscapeSection({ nameLandscape, perEngineQueryResults, sessionName }:
         </div>
       )}
 
+      {/* Engine tab switcher */}
+      <div style={{ display: "flex", gap: 4, marginBottom: 12, background: "#f3f4f6", borderRadius: 10, padding: 4 }}>
+        {engineTabs.map(tab => {
+          const isActive = selectedEngine === tab.key;
+          const color = tab.key !== "combined" ? (ENGINE_COLORS[tab.key] ?? "#6366f1") : "#6366f1";
+          return (
+            <button
+              key={tab.key}
+              onClick={() => { setSelectedEngine(tab.key); setOpenRows(new Set()); }}
+              style={{
+                flex: 1, fontSize: 12, fontWeight: isActive ? 700 : 500,
+                padding: "6px 10px", borderRadius: 7, border: "none", cursor: "pointer",
+                background: isActive ? "#fff" : "transparent",
+                color: isActive ? color : "#6b7280",
+                boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                transition: "all 0.15s",
+                fontFamily: "inherit",
+              }}
+            >
+              {tab.label}
+              {tab.key !== "combined" && (
+                <span style={{ marginLeft: 5, fontSize: 10, fontWeight: 600 }}>
+                  ({nameLandscape.filter((p: any) => p.engineRanks?.[tab.key] != null).length})
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       <div style={{ background: "#fff", borderRadius: 12, overflow: "hidden", border: "1px solid #f3f4f6" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "#f9fafb", borderBottom: "1px solid #f3f4f6" }}>
-              <th style={thStyle}>#</th>
-              <th style={thStyle}>Name</th>
-              <th style={thStyle}>Engines</th>
-              <th style={thStyle}>Appear %</th>
-              <th style={thStyle}>Avg rank</th>
-              <th style={{ ...thStyle, width: 32 }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {nameLandscape.map((person: any, i: number) => {
-              const isOpen = openRows.has(i);
-              const isTarget = person.isTarget === true;
-              return (
-                <Fragment key={i}>
-                  <tr
-                    onClick={() => toggleRow(i)}
-                    style={{
-                      borderBottom: "1px solid #f3f4f6", cursor: "pointer",
-                      background: isTarget ? "#faf5ff" : "transparent",
-                    }}
-                  >
-                    <td style={{ ...tdStyle, fontWeight: 700, color: "#9ca3af", width: 40 }}>{person.rank}</td>
-                    <td style={tdStyle}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontWeight: 600, color: "#1f2937" }}>{person.name}</span>
-                        {isTarget && (
-                          <span style={{ fontSize: 10, fontWeight: 800, background: "#6366f1", color: "#fff", padding: "2px 7px", borderRadius: 100, letterSpacing: "0.04em" }}>YOU</span>
-                        )}
-                      </div>
-                    </td>
-                    <td style={tdStyle}>
-                      <div style={{ display: "flex", gap: 4 }}>
-                        {ALL_ENGINES.map(eng => {
-                          const inEngine = (person.engines ?? []).includes(eng);
-                          return (
-                            <span key={eng} style={{
-                              fontSize: 10, fontWeight: 700,
-                              padding: "1px 5px", borderRadius: 4,
-                              background: inEngine ? ENGINE_COLORS[eng] : "#f3f4f6",
-                              color: inEngine ? "#fff" : "#d1d5db",
-                            }}>
-                              {ENGINE_SHORT[eng]}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    </td>
-                    <td style={{ ...tdStyle, fontWeight: 600, color: "#6366f1" }}>
-                      {person.appearancePct ?? Math.round((person.engineCount / 3) * 100)}%
-                    </td>
-                    <td style={{ ...tdStyle, fontWeight: 600, color: "#1f2937" }}>
-                      #{Math.round(person.avgRank ?? 99)}
-                    </td>
-                    <td style={{ ...tdStyle, color: "#9ca3af" }}>
-                      <ChevronDown size={14} style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
-                    </td>
-                  </tr>
-                  {isOpen && person.description && (
-                    <tr style={{ background: isTarget ? "#faf5ff" : "#f9fafb", borderBottom: "1px solid #f3f4f6" }}>
-                      <td colSpan={6} style={{ padding: "10px 16px 14px 64px" }}>
-                        <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.7, fontStyle: "italic", borderLeft: "2px solid #e5e7eb", paddingLeft: 10 }}>
-                          {person.description}
+        {displayList.length === 0 ? (
+          <div style={{ padding: "24px 20px", textAlign: "center", fontSize: 13, color: "#9ca3af" }}>
+            No results for this engine
+          </div>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ background: "#f9fafb", borderBottom: "1px solid #f3f4f6" }}>
+                <th style={thStyle}>#</th>
+                <th style={thStyle}>Name &amp; identity</th>
+                {selectedEngine === "combined" && <th style={thStyle}>Engines</th>}
+                <th style={thStyle}>{selectedEngine === "combined" ? "Appear %" : "Rank"}</th>
+                {selectedEngine === "combined" && <th style={thStyle}>Avg rank</th>}
+                <th style={{ ...thStyle, width: 32 }}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayList.map((person: any, i: number) => {
+                const rowKey = `${selectedEngine}-${person.name}-${i}`;
+                const isOpen = openRows.has(rowKey);
+                const isTarget = person.isTarget === true;
+                const displayRank = selectedEngine === "combined"
+                  ? person.rank
+                  : person.engineRanks?.[selectedEngine];
+                const shortDesc = person.description
+                  ? (person.description.length > 90 ? person.description.slice(0, 88) + "…" : person.description)
+                  : null;
+                return (
+                  <Fragment key={rowKey}>
+                    <tr
+                      onClick={() => toggleRow(rowKey)}
+                      style={{
+                        borderBottom: "1px solid #f3f4f6", cursor: "pointer",
+                        background: isTarget ? "#faf5ff" : "transparent",
+                      }}
+                    >
+                      <td style={{ ...tdStyle, fontWeight: 700, color: "#9ca3af", width: 36 }}>{displayRank ?? i + 1}</td>
+                      <td style={tdStyle}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: shortDesc ? 2 : 0 }}>
+                          <span style={{ fontWeight: 600, color: "#1f2937" }}>{person.name}</span>
+                          {isTarget && (
+                            <span style={{ fontSize: 10, fontWeight: 800, background: "#6366f1", color: "#fff", padding: "2px 7px", borderRadius: 100, letterSpacing: "0.04em" }}>YOU</span>
+                          )}
                         </div>
+                        {shortDesc && (
+                          <div style={{ fontSize: 11, color: "#9ca3af", lineHeight: 1.4, maxWidth: 340 }}>{shortDesc}</div>
+                        )}
+                      </td>
+                      {selectedEngine === "combined" && (
+                        <td style={tdStyle}>
+                          <div style={{ display: "flex", gap: 4 }}>
+                            {ALL_ENGINES.map(eng => {
+                              const inEngine = (person.engines ?? []).includes(eng);
+                              return (
+                                <span key={eng} style={{
+                                  fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 4,
+                                  background: inEngine ? ENGINE_COLORS[eng] : "#f3f4f6",
+                                  color: inEngine ? "#fff" : "#d1d5db",
+                                }}>
+                                  {ENGINE_SHORT[eng]}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </td>
+                      )}
+                      <td style={{ ...tdStyle, fontWeight: 600, color: selectedEngine === "combined" ? "#6366f1" : "#1f2937" }}>
+                        {selectedEngine === "combined"
+                          ? `${person.appearancePct ?? Math.round((person.engineCount / 3) * 100)}%`
+                          : `#${person.engineRanks?.[selectedEngine] ?? "—"}`
+                        }
+                      </td>
+                      {selectedEngine === "combined" && (
+                        <td style={{ ...tdStyle, fontWeight: 600, color: "#1f2937" }}>
+                          #{Math.round(person.avgRank ?? 99)}
+                        </td>
+                      )}
+                      <td style={{ ...tdStyle, color: "#9ca3af" }}>
+                        {person.description && (
+                          <ChevronDown size={14} style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
+                        )}
                       </td>
                     </tr>
-                  )}
-                </Fragment>
-              );
-            })}
-          </tbody>
-        </table>
+                    {isOpen && person.description && (
+                      <tr style={{ background: isTarget ? "#faf5ff" : "#f9fafb", borderBottom: "1px solid #f3f4f6" }}>
+                        <td colSpan={selectedEngine === "combined" ? 6 : 4} style={{ padding: "10px 16px 14px 54px" }}>
+                          <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.7, fontStyle: "italic", borderLeft: "2px solid #e5e7eb", paddingLeft: 10 }}>
+                            {person.description}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {hasSourceData && (
