@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2, X, ArrowRight, User, Plus, History } from "lucide-react";
+import { Loader2, X, ArrowRight, User, Plus, History, Pencil } from "lucide-react";
 import { MonkWordmark } from "@/components/MonkWordmark";
 
 interface PeopleSession {
@@ -171,7 +171,8 @@ export default function PeopleAnchors({ sessionId }: { sessionId: number }) {
     setSelectedWorkplaces(workplaces);
     setSelectedRoles(roles);
     setSelectedEducation(education);
-    if (!nameIsUnknown) setNameInput(session.name);
+    // Always pre-populate name so user can edit even if LinkedIn returned a garbled value
+    if (session.name && session.name !== "Profile Not Found") setNameInput(session.name);
     setInitialized(true);
   }
 
@@ -199,8 +200,9 @@ export default function PeopleAnchors({ sessionId }: { sessionId: number }) {
     mutationFn: async () => {
       const body: any = {
         anchors: { workplaces: selectedWorkplaces, roles: selectedRoles, education: selectedEducation },
+        // Always send the (possibly edited) name so the prompt uses exactly what's shown here
+        name: nameInput.trim() || undefined,
       };
-      if (nameInput.trim()) body.name = nameInput.trim();
       const res = await apiRequest("POST", `/api/people/run/${sessionId}`, body);
       return res.json();
     },
@@ -234,7 +236,7 @@ export default function PeopleAnchors({ sessionId }: { sessionId: number }) {
       </nav>
 
       <main style={{ maxWidth: 600, margin: "0 auto", padding: "60px 24px" }}>
-        <div style={{ textAlign: "center", marginBottom: 40 }}>
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{
             width: 56, height: 56, borderRadius: "50%",
             background: "linear-gradient(135deg, #eef2ff, #e0e7ff)",
@@ -249,9 +251,6 @@ export default function PeopleAnchors({ sessionId }: { sessionId: number }) {
               <h1 style={{ fontSize: 28, fontWeight: 800, color: "#0f0a2e", marginBottom: 8 }}>
                 Here's what we found
               </h1>
-              {session.name && (
-                <p style={{ fontSize: 18, color: "#4f46e5", fontWeight: 700, marginBottom: 4 }}>{session.name}</p>
-              )}
               {session.headline && (
                 <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 0 }}>{session.headline}</p>
               )}
@@ -264,9 +263,6 @@ export default function PeopleAnchors({ sessionId }: { sessionId: number }) {
               <h1 style={{ fontSize: 28, fontWeight: 800, color: "#0f0a2e", marginBottom: 8 }}>
                 Tell us about yourself
               </h1>
-              {session.name && (
-                <p style={{ fontSize: 18, color: "#4f46e5", fontWeight: 700, marginBottom: 4 }}>{session.name}</p>
-              )}
               <p style={{ fontSize: 14, color: "#6b7280", marginTop: 8, lineHeight: 1.5 }}>
                 LinkedIn didn't share profile data with us. Add your company, role, and education below — these become your identity anchors and help AI engines find the right you.
               </p>
@@ -274,34 +270,38 @@ export default function PeopleAnchors({ sessionId }: { sessionId: number }) {
           )}
         </div>
 
-        {nameIsUnknown && (
-          <div style={{
-            background: "#fff", borderRadius: 16,
-            boxShadow: "0 4px 24px rgba(99,102,241,0.08), 0 1px 4px rgba(0,0,0,0.04)",
-            padding: 32, marginBottom: 16,
-          }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>
+        {/* Name field — always shown and always editable */}
+        <div style={{
+          background: "#fff", borderRadius: 16,
+          boxShadow: "0 4px 24px rgba(99,102,241,0.08), 0 1px 4px rgba(0,0,0,0.04)",
+          padding: "20px 28px", marginBottom: 16,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.08em", textTransform: "uppercase" }}>
               Full name
-            </div>
-            <input
-              value={nameInput}
-              onChange={e => setNameInput(e.target.value)}
-              placeholder="e.g. Jane Smith"
-              data-testid="input-person-name"
-              style={{
-                width: "100%", border: "1.5px solid #e5e7eb", borderRadius: 8,
-                padding: "10px 14px", fontSize: 15, color: "#1f2937",
-                fontFamily: "inherit", outline: "none", boxSizing: "border-box",
-                transition: "border-color 0.15s",
-              }}
-              onFocus={e => (e.currentTarget.style.borderColor = "#6366f1")}
-              onBlur={e => (e.currentTarget.style.borderColor = "#e5e7eb")}
-            />
-            <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 8, marginBottom: 0 }}>
-              We couldn't extract a name from this LinkedIn URL. Enter it here and it'll be used in all AI prompts.
-            </p>
+            </span>
+            <Pencil size={11} color="#9ca3af" />
           </div>
-        )}
+          <input
+            value={nameInput}
+            onChange={e => setNameInput(e.target.value)}
+            placeholder="e.g. Jane Smith"
+            data-testid="input-person-name"
+            style={{
+              width: "100%", border: "1.5px solid #e5e7eb", borderRadius: 8,
+              padding: "10px 14px", fontSize: 15, color: "#1f2937",
+              fontFamily: "inherit", outline: "none", boxSizing: "border-box",
+              transition: "border-color 0.15s",
+            }}
+            onFocus={e => (e.currentTarget.style.borderColor = "#6366f1")}
+            onBlur={e => (e.currentTarget.style.borderColor = "#e5e7eb")}
+          />
+          <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 6, marginBottom: 0 }}>
+            {nameIsUnknown
+              ? "We couldn't extract a name from this LinkedIn URL — enter it here."
+              : "Correct the name if it looks wrong. This is what gets sent to AI engines."}
+          </p>
+        </div>
 
         <div style={{
           background: "#fff", borderRadius: 16,
@@ -420,14 +420,14 @@ export default function PeopleAnchors({ sessionId }: { sessionId: number }) {
 
         <button
           onClick={() => runMutation.mutate()}
-          disabled={runMutation.isPending || (nameIsUnknown && !nameInput.trim())}
+          disabled={runMutation.isPending || !nameInput.trim()}
           data-testid="button-run-audit"
           style={{
             width: "100%",
-            background: (runMutation.isPending || (nameIsUnknown && !nameInput.trim())) ? "#c7d2fe" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
+            background: (runMutation.isPending || !nameInput.trim()) ? "#c7d2fe" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
             color: "#fff", border: "none", borderRadius: 12,
             padding: "16px 24px", fontSize: 16, fontWeight: 700,
-            cursor: (runMutation.isPending || (nameIsUnknown && !nameInput.trim())) ? "not-allowed" : "pointer",
+            cursor: (runMutation.isPending || !nameInput.trim()) ? "not-allowed" : "pointer",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             fontFamily: "inherit", transition: "all 0.2s",
           }}
