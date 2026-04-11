@@ -109,6 +109,9 @@ export async function runPeopleAudit(
   try {
     await updateStatus(sessionId, "analyzing");
 
+    // Clear any previous query results so re-runs don't accumulate duplicate rows
+    await pool.query(`DELETE FROM people_query_results WHERE session_id = $1`, [sessionId]);
+
     const { rows } = await pool.query<RunnerProfile>(
       `SELECT id, name, "current_role", current_company, past_companies, roles, education,
               location, industry, selected_anchors
@@ -125,12 +128,18 @@ export async function runPeopleAudit(
       education: session.education ?? [],
     };
 
+    // Merge crawled profile with user-selected anchors so resolveIdentity
+    // has signals even when the crawl failed or returned no data
     const profile = {
       name: session.name,
-      currentRole: session.current_role,
-      currentCompany: session.current_company,
-      pastCompanies: session.past_companies ?? [],
-      education: session.education ?? [],
+      currentRole: session.current_role ?? (anchors.roles as string[])?.[0] ?? null,
+      currentCompany: session.current_company ?? (anchors.workplaces as string[])?.[0] ?? null,
+      pastCompanies: (session.past_companies ?? []).length > 0
+        ? session.past_companies
+        : ((anchors.workplaces as string[]) ?? []).slice(1),
+      education: (session.education ?? []).length > 0
+        ? session.education
+        : (anchors.education as string[]) ?? [],
       location: session.location,
       industry: session.industry,
     };
@@ -240,8 +249,8 @@ export async function runPeopleAudit(
 
     const scores = buildScores(trackAResults as any, trackBResults as any);
     const reportData = buildReportData(session.name, trackAResults, trackBResults, scores, vertexResolved, {
-      currentCompany: session.current_company ?? "",
-      currentRole: session["current_role"] ?? "",
+      currentCompany: profile.currentCompany ?? "",
+      currentRole: profile.currentRole ?? "",
     });
 
     await pool.query(
