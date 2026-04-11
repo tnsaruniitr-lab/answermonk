@@ -53,6 +53,89 @@ function IdentityBadge({ match }: { match: string }) {
   );
 }
 
+function AppearanceAlertBanner({
+  perEngineAppearance, perEngineQueryResults, sourceGraph,
+}: { perEngineAppearance: Record<string, any>; perEngineQueryResults: any[]; sourceGraph: any[] }) {
+  const avgRate = Math.round(
+    ALL_ENGINES.reduce((s, e) => s + (perEngineAppearance[e]?.appearanceRate ?? 0), 0) / ALL_ENGINES.length
+  );
+
+  // Total prompts = all track A + track B rounds across all engines
+  const totalPrompts = (perEngineQueryResults ?? []).reduce((sum: number, ed: any) => {
+    const ta = (ed.trackA ?? []).reduce((s: number, t: any) => s + (t.totalRounds ?? 0), 0);
+    const tb = ed.trackBLandscape?.totalRounds ?? 0;
+    return sum + ta + tb;
+  }, 0);
+
+  // Total unique source URLs scanned
+  const totalUrls = [...new Set((sourceGraph ?? []).map((s: any) => s.url).filter(Boolean))].length;
+
+  const alarmColor  = avgRate === 0 ? "#dc2626" : avgRate < 30 ? "#d97706" : "#059669";
+  const alarmBg     = avgRate === 0 ? "#fff5f5" : avgRate < 30 ? "#fffbeb" : "#f0fdf4";
+  const alarmBorder = avgRate === 0 ? "#fecaca" : avgRate < 30 ? "#fde68a" : "#bbf7d0";
+
+  return (
+    <div style={{ background: alarmBg, borderRadius: 16, border: `1.5px solid ${alarmBorder}`, padding: "24px 28px", marginBottom: 28 }}>
+      {/* Header row */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20, gap: 16 }}>
+        <div style={{ flex: 1 }}>
+          {avgRate === 0 && (
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              background: "#dc2626", borderRadius: 6, padding: "3px 10px", marginBottom: 10,
+            }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: "#fff", letterSpacing: "0.07em" }}>⚠ NOT FOUND IN AI</span>
+            </div>
+          )}
+          <div style={{ fontSize: 22, fontWeight: 800, color: "#0f0a2e", marginBottom: 6, lineHeight: 1.2 }}>
+            {avgRate === 0
+              ? "This person is invisible to AI engines"
+              : avgRate < 30
+                ? "Barely visible — appears in very few AI responses"
+                : `Appearing in ${avgRate}% of AI queries`}
+          </div>
+          <div style={{ fontSize: 12, color: "#9ca3af", display: "flex", flexWrap: "wrap", gap: "4px 12px" }}>
+            {totalPrompts > 0 && <span>{totalPrompts} prompts sent</span>}
+            {totalUrls > 0  && <span>{totalUrls} source URLs scanned</span>}
+            <span>{ALL_ENGINES.length} AI engines tested</span>
+          </div>
+        </div>
+        <div style={{ textAlign: "center", flexShrink: 0 }}>
+          <div style={{ fontSize: 60, fontWeight: 900, color: alarmColor, lineHeight: 1 }}>{avgRate}%</div>
+          <div style={{ fontSize: 11, color: alarmColor, fontWeight: 600, marginTop: 2 }}>avg appearance</div>
+        </div>
+      </div>
+
+      {/* Per-engine tiles */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+        {ALL_ENGINES.map((engine) => {
+          const stat = perEngineAppearance[engine] ?? { appearanceRate: 0, foundCount: 0, totalQueries: 0 };
+          const rate = stat.appearanceRate ?? 0;
+          const isZero = rate === 0;
+          const color = ENGINE_COLORS[engine];
+          return (
+            <div key={engine} style={{
+              background: "#fff", borderRadius: 10, padding: "14px 16px",
+              border: isZero ? "1.5px solid #fecaca" : "1px solid #e5e7eb",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <div style={{ width: 7, height: 7, borderRadius: "50%", background: isZero ? "#dc2626" : color, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: isZero ? "#dc2626" : color }}>{ENGINE_LABELS[engine]}</span>
+              </div>
+              <div style={{ fontSize: 36, fontWeight: 900, color: isZero ? "#dc2626" : "#0f0a2e", lineHeight: 1, marginBottom: 4 }}>
+                {rate}%
+              </div>
+              <div style={{ fontSize: 11, color: "#9ca3af" }}>
+                {stat.foundCount} of {stat.totalQueries || "?"} landscape runs
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function AppearanceTable({ perEngineAppearance }: { perEngineAppearance: Record<string, any> }) {
   return (
     <div style={{
@@ -283,6 +366,13 @@ export default function PeopleReport({ slug }: { slug: string }) {
           <h1 style={{ fontSize: 32, fontWeight: 800, color: "#0f0a2e", marginBottom: 4 }}>{session?.name}</h1>
           {session?.headline && <p style={{ fontSize: 15, color: "#6b7280" }}>{session.headline}</p>}
         </div>
+
+        {/* Hero: AI Appearance Rate alarm — always shown at top */}
+        <AppearanceAlertBanner
+          perEngineAppearance={perEngineAppearance}
+          perEngineQueryResults={rd.perEngineQueryResults ?? []}
+          sourceGraph={rd.sourceGraph ?? []}
+        />
 
         {/* Section 3: Name landscape */}
         {(rd.nameLandscape ?? []).length > 0 && (
