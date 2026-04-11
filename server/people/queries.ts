@@ -120,7 +120,7 @@ export function buildTrackBQueries(
     {
       index: 2,
       type: "landscape",
-      text: `Who are the most well-known and notable people named ${name}? List them with their backgrounds, professions, and what each is known for. Rank them by how prominent or well-known they are.`,
+      text: `Who are the most well-known and notable people named ${name}? List up to 10 people, numbered 1 through 10 in order of prominence. For each person include their full name, profession, and what they are specifically known for.`,
     },
     {
       index: 3,

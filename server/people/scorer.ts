@@ -10,13 +10,23 @@ export interface RawQueryRow {
   stated_facts: any[] | null;
 }
 
+export interface EngineAppearanceStat {
+  appearanceRate: number;  // 0–100
+  totalQueries: number;
+  foundCount: number;
+  avgRank: number | null;  // null when foundCount === 0
+}
+
 export interface PeopleScoreResult {
   recognitionScore: number;
   recognitionGrade: string;
   proofScore: number;
   proofGrade: string;
   diagnosticText: string;
+  perEngineAppearance: Record<string, EngineAppearanceStat>;
 }
+
+const ENGINES = ["chatgpt", "gemini", "claude"];
 
 const ENGINE_WEIGHTS: Record<string, number> = {
   chatgpt: 0.40,
@@ -40,6 +50,26 @@ function rankToScore(rank: number | null | undefined, totalFound: number): numbe
   if (rank === 4) return 52;
   if (rank === 5) return 38;
   return Math.max(10, 38 - (rank - 5) * 4);
+}
+
+export function calculatePerEngineAppearance(trackBResults: RawQueryRow[]): Record<string, EngineAppearanceStat> {
+  // Use only recognition queries (index 1 and 3), not the landscape list (index 2)
+  const recognitionRows = trackBResults.filter(r => r.query_index === 1 || r.query_index === 3);
+  const result: Record<string, EngineAppearanceStat> = {};
+  for (const engine of ENGINES) {
+    const rows = recognitionRows.filter(r => r.engine === engine);
+    const found = rows.filter(r => r.target_found);
+    const ranks = found
+      .map(r => r.target_rank)
+      .filter((v): v is number => v != null && v > 0);
+    result[engine] = {
+      appearanceRate: rows.length > 0 ? Math.round((found.length / rows.length) * 100) : 0,
+      totalQueries: rows.length,
+      foundCount: found.length,
+      avgRank: ranks.length > 0 ? Math.round(ranks.reduce((a, b) => a + b, 0) / ranks.length) : null,
+    };
+  }
+  return result;
 }
 
 export function calculateRecognitionScore(trackBResults: RawQueryRow[]): number {
@@ -148,6 +178,7 @@ export function buildScores(
   const recognitionGrade = getGrade(recognitionScore);
   const proofGrade = getGrade(proofScore);
   const diagnosticText = buildDiagnosticText(recognitionScore, proofScore);
+  const perEngineAppearance = calculatePerEngineAppearance(trackBResults);
 
-  return { recognitionScore, recognitionGrade, proofScore, proofGrade, diagnosticText };
+  return { recognitionScore, recognitionGrade, proofScore, proofGrade, diagnosticText, perEngineAppearance };
 }

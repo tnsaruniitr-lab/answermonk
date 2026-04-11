@@ -149,6 +149,7 @@ export function registerPeopleRoutes(app: Express): void {
               proofScore: scores.proof_score,
               proofGrade: scores.proof_grade,
               diagnosticText: scores.diagnostic_text,
+              perEngineAppearance: (scores.report_data as any)?.perEngineAppearance ?? {},
             }
           : null,
         reportData: scores?.report_data ?? null,

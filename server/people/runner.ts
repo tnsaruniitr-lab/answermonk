@@ -357,7 +357,7 @@ function buildReportData(
       return { name: p.name, description: p.description, engines: p.engines, avgRank, score, engineCount: p.engines.length, appearancePct, engineRanks: p.engineRanks, isTarget };
     })
     .sort((a, b) => b.score - a.score)
-    .slice(0, 15)
+    .slice(0, 10)
     .map((p, i) => ({ ...p, rank: i + 1 }));
 
   // Source graph: resolved URLs, skip tracker domains, more entries
@@ -387,39 +387,73 @@ function buildReportData(
       urls: data.urls.slice(0, 10),
     }));
 
-  // Per-query results: one entry per (track, promptIndex, engine) with resolved cited URLs
-  const allResults = [...trackAResults, ...trackBResults];
-  const promptKeys = Array.from(new Set(allResults.map((r) => `${r.track}-${r.query_index}`)));
-  const queryResults = promptKeys
-    .sort()
-    .map((key) => {
-      const [track, idxStr] = key.split("-");
-      const promptIndex = parseInt(idxStr);
-      const engines = PEOPLE_ENGINES.map((engine) => {
-        const rounds = allResults.filter((r) => r.track === track && r.query_index === promptIndex && r.engine === engine);
-        if (rounds.length === 0) return null;
-        const best =
-          rounds.find((r) => r.identity_match === "confirmed" || r.target_found) ||
-          rounds.find((r) => r.identity_match === "partial") ||
-          rounds[0];
-        const resolvedUrls = ((best.cited_urls as string[]) ?? [])
-          .map(resolveUrl)
-          .filter((u) => {
-            try { const d = new URL(u).hostname.replace(/^www\./, ""); return !SKIP_DOMAINS.has(d); } catch { return false; }
-          });
-        return {
-          engine,
-          promptText: best.query_text ?? "",
-          response: best.raw_response?.slice(0, 600) ?? "",
-          fullResponse: best.raw_response ?? "",
-          identityMatch: best.identity_match ?? null,
-          targetFound: best.target_found ?? false,
-          targetRank: best.target_rank ?? null,
-          citedUrls: resolvedUrls,
-        };
-      }).filter(Boolean);
-      return { track, promptIndex, engines };
+  // Per-engine query results: 3 sections per engine (Track A, Track B recognition, Track B landscape)
+  function resolveAndFilter(urls: string[]): string[] {
+    return urls.map(resolveUrl).filter((u) => {
+      try { const d = new URL(u).hostname.replace(/^www\./, ""); return !SKIP_DOMAINS.has(d); } catch { return false; }
     });
+  }
+
+  const perEngineQueryResults = PEOPLE_ENGINES.map((engine) => {
+    // Track A: all prompt indices
+    const trackAIndices = Array.from(new Set(trackAResults.map((r: any) => r.query_index as number))).sort((a, b) => a - b);
+    const trackA = trackAIndices.map((qi) => {
+      const rounds = trackAResults.filter((r: any) => r.engine === engine && r.query_index === qi);
+      if (rounds.length === 0) return null;
+      const foundCount = rounds.filter((r: any) => r.identity_match === "confirmed" || r.identity_match === "partial").length;
+      const best = rounds.find((r: any) => r.identity_match === "confirmed") || rounds.find((r: any) => r.identity_match === "partial") || rounds[0];
+      return {
+        promptIndex: qi,
+        promptText: best?.query_text ?? "",
+        totalRounds: rounds.length,
+        foundCount,
+        appearanceRate: rounds.length > 0 ? Math.round((foundCount / rounds.length) * 100) : 0,
+        identityMatch: majorityVote(rounds.map((r: any) => r.identity_match).filter(Boolean)),
+        bestResponse: best?.raw_response ?? "",
+        statedFacts: (best?.stated_facts as any[]) ?? [],
+        citedUrls: resolveAndFilter((best?.cited_urls as string[]) ?? []),
+      };
+    }).filter(Boolean);
+
+    // Track B recognition: query_index 1 and 3
+    const trackBRecognition = [1, 3].map((qi) => {
+      const rounds = trackBResults.filter((r: any) => r.engine === engine && r.query_index === qi);
+      if (rounds.length === 0) return null;
+      const foundCount = rounds.filter((r: any) => r.target_found).length;
+      const best = rounds.find((r: any) => r.target_found) || rounds[0];
+      const ranks = rounds.filter((r: any) => r.target_rank != null && r.target_rank > 0).map((r: any) => r.target_rank as number);
+      return {
+        promptIndex: qi,
+        promptText: best?.query_text ?? "",
+        totalRounds: rounds.length,
+        foundCount,
+        appearanceRate: rounds.length > 0 ? Math.round((foundCount / rounds.length) * 100) : 0,
+        avgRank: ranks.length > 0 ? Math.round(ranks.reduce((a: number, b: number) => a + b, 0) / ranks.length) : null,
+        identityMatch: majorityVote(rounds.map((r: any) => r.identity_match).filter(Boolean)),
+        bestResponse: best?.raw_response ?? "",
+        citedUrls: resolveAndFilter((best?.cited_urls as string[]) ?? []),
+      };
+    }).filter(Boolean);
+
+    // Track B landscape: query_index 2
+    const landscapeRounds = trackBResults.filter((r: any) => r.engine === engine && r.query_index === 2);
+    const trackBLandscape = landscapeRounds.length > 0 ? (() => {
+      const foundCount = landscapeRounds.filter((r: any) => r.target_found).length;
+      const ranks = landscapeRounds.filter((r: any) => r.target_rank != null && r.target_rank > 0).map((r: any) => r.target_rank as number);
+      const best = landscapeRounds.find((r: any) => r.target_found) || landscapeRounds[0];
+      return {
+        promptText: best?.query_text ?? "",
+        totalRounds: landscapeRounds.length,
+        foundCount,
+        appearanceRate: Math.round((foundCount / landscapeRounds.length) * 100),
+        avgRank: ranks.length > 0 ? Math.round(ranks.reduce((a: number, b: number) => a + b, 0) / ranks.length) : null,
+        bestResponse: best?.raw_response ?? "",
+        citedUrls: resolveAndFilter((best?.cited_urls as string[]) ?? []),
+      };
+    })() : null;
+
+    return { engine, trackA, trackBRecognition, trackBLandscape };
+  });
 
   const claimFacts = trackAResults
     .filter((r) => r.identity_match === "confirmed" || r.identity_match === "partial")
@@ -433,11 +467,12 @@ function buildReportData(
   return {
     name,
     scores,
+    perEngineAppearance: scores.perEngineAppearance,
     engineCards,
     defaultRecognition,
     nameLandscape,
     sourceGraph,
-    queryResults,
+    perEngineQueryResults,
     claimFacts: Object.values(claimFacts),
   };
 }

@@ -1,6 +1,6 @@
 import { useState, Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, ExternalLink, CheckCircle2, AlertCircle, XCircle, MinusCircle, ChevronDown } from "lucide-react";
+import { Loader2, ExternalLink, CheckCircle2, AlertCircle, XCircle, MinusCircle, ChevronDown, ChevronRight } from "lucide-react";
 import { MonkWordmark } from "@/components/MonkWordmark";
 
 const ENGINE_COLORS: Record<string, string> = {
@@ -22,16 +22,6 @@ const ENGINE_SHORT: Record<string, string> = {
 };
 
 const ALL_ENGINES = ["chatgpt", "gemini", "claude"];
-
-function normForMatch(s: string): string {
-  return (s ?? "")
-    .toLowerCase()
-    .replace(/\([^)]*\)/g, "")
-    .replace(/\s*[-–—].*$/, "")
-    .replace(/[^a-z0-9 ]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 function getDomainType(domain: string): { label: string; color: string; bg: string } {
   if (/linkedin|twitter\.com|x\.com|instagram|facebook|tiktok|youtube/.test(domain)) return { label: "Social", color: "#0284c7", bg: "#e0f2fe" };
@@ -63,21 +53,59 @@ function IdentityBadge({ match }: { match: string }) {
   );
 }
 
-function ScoreCard({ score, grade, label, description, color }: {
-  score: number; grade: string; label: string; description: string; color: string;
-}) {
+function AppearanceTable({ perEngineAppearance }: { perEngineAppearance: Record<string, any> }) {
+  return (
+    <div style={{
+      background: "#fff", borderRadius: 16, padding: 28,
+      boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1px solid #f3f4f6", marginBottom: 16,
+    }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 20 }}>
+        AI Appearance Rate — per engine
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 0 }}>
+        {ALL_ENGINES.map((engine, i) => {
+          const stat = perEngineAppearance?.[engine] ?? { appearanceRate: 0, foundCount: 0, totalQueries: 0, avgRank: null };
+          const color = ENGINE_COLORS[engine];
+          const isLast = i === ALL_ENGINES.length - 1;
+          return (
+            <div key={engine} style={{
+              padding: "0 24px 0 0",
+              marginRight: isLast ? 0 : 24,
+              borderRight: isLast ? "none" : "1px solid #f3f4f6",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
+                <span style={{ fontSize: 13, fontWeight: 700, color }}>{ENGINE_LABELS[engine]}</span>
+              </div>
+              <div style={{ fontSize: 44, fontWeight: 900, color: stat.appearanceRate === 0 ? "#d1d5db" : "#0f0a2e", lineHeight: 1, marginBottom: 4 }}>
+                {stat.appearanceRate}%
+              </div>
+              <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 8 }}>
+                {stat.foundCount} of {stat.totalQueries} queries
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: stat.avgRank != null ? "#6366f1" : "#d1d5db" }}>
+                {stat.avgRank != null ? `Avg rank #${stat.avgRank}` : "—"}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ProofScoreCard({ score, grade, description }: { score: number; grade: string; description: string }) {
   const gradeColors: Record<string, string> = { A: "#059669", B: "#0891b2", C: "#d97706", D: "#ea580c", F: "#dc2626" };
-  const gradeColor = gradeColors[grade] ?? "#dc2626";
   return (
     <div style={{
       background: "#fff", borderRadius: 16, padding: 28,
       boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1px solid #f3f4f6",
-      display: "flex", flexDirection: "column", gap: 8,
+      display: "flex", flexDirection: "column", gap: 8, marginBottom: 16,
     }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em" }}>Identity Proof Score</div>
       <div style={{ display: "flex", alignItems: "flex-end", gap: 12 }}>
-        <span style={{ fontSize: 52, fontWeight: 900, color, lineHeight: 1 }}>{score}</span>
-        <span style={{ fontSize: 28, fontWeight: 800, color: gradeColor, lineHeight: 1, marginBottom: 4 }}>{grade}</span>
+        <span style={{ fontSize: 52, fontWeight: 900, color: "#8b5cf6", lineHeight: 1 }}>{score}</span>
+        <span style={{ fontSize: 28, fontWeight: 800, color: gradeColors[grade] ?? "#dc2626", lineHeight: 1, marginBottom: 4 }}>{grade}</span>
       </div>
       <p style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.5 }}>{description}</p>
     </div>
@@ -103,6 +131,7 @@ export default function PeopleReport({ slug }: { slug: string }) {
 
   const { session, scores, reportData } = data;
   const rd = reportData ?? {};
+  const perEngineAppearance = scores?.perEngineAppearance ?? rd.perEngineAppearance ?? {};
 
   return (
     <div style={{ minHeight: "100vh", background: "#f8f7ff", fontFamily: "Inter, system-ui, sans-serif" }}>
@@ -120,23 +149,13 @@ export default function PeopleReport({ slug }: { slug: string }) {
           {session?.headline && <p style={{ fontSize: 15, color: "#6b7280" }}>{session.headline}</p>}
         </div>
 
-        {/* Two-score dashboard */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-          <ScoreCard
-            score={scores?.recognitionScore ?? 0}
-            grade={scores?.recognitionGrade ?? "F"}
-            label="AI Recognition Score"
-            description="How well AI surfaces you by name alone, without context"
-            color="#6366f1"
-          />
-          <ScoreCard
-            score={scores?.proofScore ?? 0}
-            grade={scores?.proofGrade ?? "F"}
-            label="Identity Proof Score"
-            description="How accurately and well-sourced AI describes you when it finds you"
-            color="#8b5cf6"
-          />
-        </div>
+        {/* Scorecard: appearance rate per engine + proof score */}
+        <AppearanceTable perEngineAppearance={perEngineAppearance} />
+        <ProofScoreCard
+          score={scores?.proofScore ?? 0}
+          grade={scores?.proofGrade ?? "F"}
+          description="How accurately and well-sourced AI describes you when it does find you"
+        />
 
         {scores?.diagnosticText && (
           <div style={{
@@ -175,7 +194,7 @@ export default function PeopleReport({ slug }: { slug: string }) {
         {(rd.nameLandscape ?? []).length > 0 && (
           <LandscapeSection
             nameLandscape={rd.nameLandscape}
-            queryResults={rd.queryResults}
+            perEngineQueryResults={rd.perEngineQueryResults}
             sessionName={session?.name}
           />
         )}
@@ -194,15 +213,15 @@ export default function PeopleReport({ slug }: { slug: string }) {
           </Section>
         )}
 
-        {/* Section 5: Query results per prompt */}
-        {(rd.queryResults ?? []).length > 0 && (
-          <Section title="Query results — Every prompt, every engine">
+        {/* Section 5: Per-engine query results */}
+        {(rd.perEngineQueryResults ?? []).length > 0 && (
+          <Section title="Query results — Every engine, every prompt">
             <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
-              Results for each prompt run across all engines. Click any row to see the response and cited URLs.
+              Results for each engine across all prompts and rounds. Appearance rate = rounds where you were found ÷ total rounds run.
             </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {(rd.queryResults ?? []).map((qr: any) => (
-                <QueryResultRow key={`${qr.track}-${qr.promptIndex}`} qr={qr} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {(rd.perEngineQueryResults ?? []).map((engineData: any) => (
+                <EngineQueryCard key={engineData.engine} engineData={engineData} />
               ))}
             </div>
           </Section>
@@ -210,7 +229,7 @@ export default function PeopleReport({ slug }: { slug: string }) {
 
         {/* Section 6: Recommendations */}
         <Section title="Recommendations">
-          <Recommendations scores={scores} sourceGraph={rd.sourceGraph} nameLandscape={rd.nameLandscape} claimFacts={rd.claimFacts} sessionName={session?.name} />
+          <Recommendations scores={scores} sourceGraph={rd.sourceGraph} nameLandscape={rd.nameLandscape} claimFacts={rd.claimFacts} sessionName={session?.name} perEngineAppearance={perEngineAppearance} />
         </Section>
       </main>
     </div>
@@ -320,7 +339,7 @@ function DefaultCard({ item }: { item: any }) {
   );
 }
 
-function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLandscape: any[]; queryResults?: any[]; sessionName?: string }) {
+function LandscapeSection({ nameLandscape, perEngineQueryResults, sessionName }: { nameLandscape: any[]; perEngineQueryResults?: any[]; sessionName?: string }) {
   const [openRows, setOpenRows] = useState<Set<number>>(new Set());
   const [showSources, setShowSources] = useState(false);
 
@@ -330,12 +349,13 @@ function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLa
     return next;
   });
 
-  const landscapePrompts = (queryResults ?? []).filter((qr: any) => qr.track === "B" && qr.promptIndex === 2);
+  // Collect landscape URLs from perEngineQueryResults
   const allLandscapeUrls: { engine: string; url: string }[] = [];
-  for (const qr of landscapePrompts) {
-    for (const e of (qr.engines ?? [])) {
-      for (const url of (e.citedUrls ?? [])) {
-        allLandscapeUrls.push({ engine: e.engine, url });
+  for (const engineData of (perEngineQueryResults ?? [])) {
+    const landscape = engineData.trackBLandscape;
+    if (landscape) {
+      for (const url of (landscape.citedUrls ?? [])) {
+        allLandscapeUrls.push({ engine: engineData.engine, url });
       }
     }
   }
@@ -347,7 +367,6 @@ function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLa
   const hasSourceData = allLandscapeUrls.length > 0;
   const lastName = sessionName?.split(" ").pop() ?? "people";
 
-  // isTarget is flagged server-side using target_rank cross-reference — don't use name matching
   const targetEntry = nameLandscape.find((p: any) => p.isTarget === true) ?? null;
 
   return (
@@ -356,7 +375,6 @@ function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLa
         All people sharing your name that AI surfaces, ranked by prominence. More engines + lower rank number = most prominent. Click any row to see the full AI description.
       </p>
 
-      {/* Your position callout — only shown when server has confirmed which entry is the user */}
       {targetEntry && (
         <div style={{ background: "#eef2ff", borderRadius: 12, padding: "16px 20px", marginBottom: 16, border: "1px solid #c7d2fe" }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: "#6366f1", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>Your position in this name space</div>
@@ -392,61 +410,66 @@ function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLa
       <div style={{ background: "#fff", borderRadius: 12, overflow: "hidden", border: "1px solid #f3f4f6" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ background: "#f9fafb" }}>
-              <th style={thStyle}>Rank</th>
-              <th style={thStyle}>Person</th>
-              <th style={thStyle}>Known for</th>
-              <th style={thStyle}>Appears in</th>
-              <th style={thStyle}>Rank per engine</th>
-              <th style={{ ...thStyle, width: 20 }}></th>
+            <tr style={{ background: "#f9fafb", borderBottom: "1px solid #f3f4f6" }}>
+              <th style={thStyle}>#</th>
+              <th style={thStyle}>Name</th>
+              <th style={thStyle}>Engines</th>
+              <th style={thStyle}>Appear %</th>
+              <th style={thStyle}>Avg rank</th>
+              <th style={{ ...thStyle, width: 32 }}></th>
             </tr>
           </thead>
           <tbody>
             {nameLandscape.map((person: any, i: number) => {
-              const isTarget = person.isTarget === true;
               const isOpen = openRows.has(i);
-              const hasMore = person.description && person.description.length > 80;
-              const pct = person.appearancePct ?? Math.round(((person.engines ?? []).length / 3) * 100);
+              const isTarget = person.isTarget === true;
               return (
                 <Fragment key={i}>
                   <tr
-                    onClick={() => hasMore && toggleRow(i)}
-                    style={{ background: isTarget ? "#eef2ff" : "transparent", borderTop: "1px solid #f3f4f6", cursor: hasMore ? "pointer" : "default" }}
-                    onMouseEnter={ev => { if (hasMore) (ev.currentTarget as HTMLElement).style.background = isTarget ? "#e0e7ff" : "#fafafa"; }}
-                    onMouseLeave={ev => { (ev.currentTarget as HTMLElement).style.background = isTarget ? "#eef2ff" : "transparent"; }}
+                    onClick={() => toggleRow(i)}
+                    style={{
+                      borderBottom: "1px solid #f3f4f6", cursor: "pointer",
+                      background: isTarget ? "#faf5ff" : "transparent",
+                    }}
                   >
-                    <td style={{ ...tdStyle, fontWeight: 700, color: isTarget ? "#6366f1" : "#9ca3af", width: 48 }}>
-                      #{person.rank ?? i + 1}
+                    <td style={{ ...tdStyle, fontWeight: 700, color: "#9ca3af", width: 40 }}>{person.rank}</td>
+                    <td style={tdStyle}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontWeight: 600, color: "#1f2937" }}>{person.name}</span>
+                        {isTarget && (
+                          <span style={{ fontSize: 10, fontWeight: 800, background: "#6366f1", color: "#fff", padding: "2px 7px", borderRadius: 100, letterSpacing: "0.04em" }}>YOU</span>
+                        )}
+                      </div>
                     </td>
-                    <td style={{ ...tdStyle, fontWeight: 600, color: isTarget ? "#4f46e5" : "#1f2937", maxWidth: 200 }}>
-                      {person.name}
-                      {isTarget && <span style={{ display: "block", fontSize: 10, fontWeight: 700, background: "#c7d2fe", color: "#4f46e5", borderRadius: 4, padding: "1px 6px", marginTop: 3, width: "fit-content" }}>YOU</span>}
-                    </td>
-                    <td style={{ ...tdStyle, color: "#6b7280", fontSize: 12, maxWidth: 260 }}>
-                      {person.description?.slice(0, 90)}{hasMore && !isOpen ? "…" : ""}
-                    </td>
-                    <td style={{ ...tdStyle, fontSize: 12, whiteSpace: "nowrap" }}>
-                      <span style={{ fontWeight: 700, color: isTarget ? "#4f46e5" : "#1f2937" }}>{pct}%</span>
-                      <span style={{ color: "#9ca3af", fontSize: 11, marginLeft: 4 }}>({(person.engines ?? []).length}/3)</span>
-                    </td>
-                    <td style={{ ...tdStyle, fontSize: 12 }}>
-                      <div style={{ display: "flex", gap: 6 }}>
+                    <td style={tdStyle}>
+                      <div style={{ display: "flex", gap: 4 }}>
                         {ALL_ENGINES.map(eng => {
-                          const rank = person.engineRanks?.[eng];
+                          const inEngine = (person.engines ?? []).includes(eng);
                           return (
-                            <span key={eng} style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: rank != null ? "#f3f4f6" : "transparent", color: rank != null ? (ENGINE_COLORS[eng] ?? "#6b7280") : "#e5e7eb", fontWeight: 600, whiteSpace: "nowrap" }}>
-                              {ENGINE_SHORT[eng]}{rank != null ? ` #${rank}` : " —"}
+                            <span key={eng} style={{
+                              fontSize: 10, fontWeight: 700,
+                              padding: "1px 5px", borderRadius: 4,
+                              background: inEngine ? ENGINE_COLORS[eng] : "#f3f4f6",
+                              color: inEngine ? "#fff" : "#d1d5db",
+                            }}>
+                              {ENGINE_SHORT[eng]}
                             </span>
                           );
                         })}
                       </div>
                     </td>
-                    <td style={{ ...tdStyle, width: 20, textAlign: "center", color: "#d1d5db" }}>
-                      {hasMore && <ChevronDown size={13} style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />}
+                    <td style={{ ...tdStyle, fontWeight: 600, color: "#6366f1" }}>
+                      {person.appearancePct ?? Math.round((person.engineCount / 3) * 100)}%
+                    </td>
+                    <td style={{ ...tdStyle, fontWeight: 600, color: "#1f2937" }}>
+                      #{Math.round(person.avgRank ?? 99)}
+                    </td>
+                    <td style={{ ...tdStyle, color: "#9ca3af" }}>
+                      <ChevronDown size={14} style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
                     </td>
                   </tr>
-                  {isOpen && (
-                    <tr style={{ background: isTarget ? "#f0f4ff" : "#fafafa" }}>
+                  {isOpen && person.description && (
+                    <tr style={{ background: isTarget ? "#faf5ff" : "#f9fafb", borderBottom: "1px solid #f3f4f6" }}>
                       <td colSpan={6} style={{ padding: "10px 16px 14px 64px" }}>
                         <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.7, fontStyle: "italic", borderLeft: "2px solid #e5e7eb", paddingLeft: 10 }}>
                           {person.description}
@@ -478,7 +501,7 @@ function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLa
                     {ENGINE_LABELS[engine] ?? engine} — {urls.length} URL{urls.length !== 1 ? "s" : ""}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                    {urls.map((url: string, j: number) => (
+                    {(urls as string[]).map((url: string, j: number) => (
                       <a key={j} href={url} target="_blank" rel="noopener noreferrer"
                         style={{ fontSize: 11, color: "#4b5563", textDecoration: "none", display: "flex", alignItems: "flex-start", gap: 5, wordBreak: "break-all", lineHeight: 1.5 }}
                         onMouseEnter={ev => (ev.currentTarget.style.color = "#4f46e5")}
@@ -499,105 +522,198 @@ function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLa
   );
 }
 
-const TRACK_LABELS: Record<string, string> = { A: "Identity Proof", B: "Recognition" };
+// Per-engine query results components
 
-function QueryResultRow({ qr }: { qr: any }) {
+function StatPill({ value, color, bg }: { value: string; color: string; bg: string }) {
+  return (
+    <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 100, background: bg, color, flexShrink: 0 }}>
+      {value}
+    </span>
+  );
+}
+
+function PromptRow({ item, sectionColor }: { item: any; sectionColor: string }) {
   const [open, setOpen] = useState(false);
-  const [expandedEngine, setExpandedEngine] = useState<string | null>(null);
-  const totalUrls = (qr.engines ?? []).reduce((s: number, e: any) => s + (e.citedUrls?.length ?? 0), 0);
-  const trackColor = qr.track === "A" ? "#6366f1" : "#0891b2";
+  const hasContent = item.bestResponse && item.bestResponse.length > 0;
+  const foundRate = item.appearanceRate ?? 0;
+  const rateColor = foundRate >= 67 ? "#059669" : foundRate >= 33 ? "#d97706" : "#9ca3af";
+  const rateBg = foundRate >= 67 ? "#dcfce7" : foundRate >= 33 ? "#fef9c3" : "#f3f4f6";
 
   return (
-    <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #f3f4f6", overflow: "hidden" }}>
+    <div style={{ borderBottom: "1px solid #f3f4f6", lastChild: { borderBottom: "none" } }}>
       <div
-        onClick={() => setOpen(o => !o)}
-        style={{ padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}
+        onClick={() => hasContent && setOpen(o => !o)}
+        style={{ padding: "10px 16px", display: "flex", alignItems: "center", gap: 10, cursor: hasContent ? "pointer" : "default" }}
       >
-        <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 4, background: qr.track === "A" ? "#eef2ff" : "#e0f2fe", color: trackColor, flexShrink: 0 }}>
-          Track {qr.track} · Prompt {qr.promptIndex}
+        <ChevronRight size={12} color="#d1d5db" style={{ transform: open ? "rotate(90deg)" : "none", transition: "transform 0.15s", flexShrink: 0 }} />
+        <span style={{ fontSize: 12, color: "#4b5563", flex: 1, lineHeight: 1.4 }}>
+          {item.promptText ? `"${item.promptText.slice(0, 80)}${item.promptText.length > 80 ? "…" : ""}"` : `Prompt ${item.promptIndex}`}
         </span>
-        <span style={{ fontSize: 13, color: "#6b7280", fontWeight: 500 }}>{TRACK_LABELS[qr.track] ?? ""}</span>
-        <div style={{ flex: 1 }} />
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          {(qr.engines ?? []).map((e: any) => (
-            <span key={e.engine} style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: "#f3f4f6", color: ENGINE_COLORS[e.engine] ?? "#6b7280", fontWeight: 600 }}>
-              {e.engine}
-            </span>
-          ))}
-          {totalUrls > 0 && (
-            <span style={{ fontSize: 11, color: "#9ca3af", marginLeft: 4 }}>{totalUrls} URL{totalUrls !== 1 ? "s" : ""}</span>
-          )}
-          <ChevronDown size={13} color="#9ca3af" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
+        <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
+          <StatPill value={`${item.foundCount}/${item.totalRounds}`} color="#6b7280" bg="#f3f4f6" />
+          <StatPill value={`${foundRate}%`} color={rateColor} bg={rateBg} />
+          {item.avgRank != null && <StatPill value={`#${item.avgRank}`} color="#6366f1" bg="#eef2ff" />}
+          {item.identityMatch && <IdentityBadge match={item.identityMatch} />}
         </div>
       </div>
+      {open && hasContent && (
+        <div style={{ padding: "0 16px 12px 38px", display: "flex", flexDirection: "column", gap: 10 }}>
+          {item.promptText && (
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 }}>Prompt</div>
+              <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5, margin: 0, fontStyle: "italic", background: "#f9fafb", borderRadius: 6, padding: "6px 10px", borderLeft: `2px solid ${sectionColor}` }}>
+                {item.promptText}
+              </p>
+            </div>
+          )}
+          <BestResponseExpand text={item.bestResponse} />
+          {(item.statedFacts ?? []).length > 0 && (
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 }}>Facts cited</div>
+              <ul style={{ margin: 0, padding: "0 0 0 16px", display: "flex", flexDirection: "column", gap: 2 }}>
+                {(item.statedFacts ?? []).slice(0, 5).map((f: any, i: number) => (
+                  <li key={i} style={{ fontSize: 11, color: "#4b5563", lineHeight: 1.5 }}>{f.fact ?? f}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {(item.citedUrls ?? []).length > 0 && <UrlList urls={item.citedUrls} />}
+        </div>
+      )}
+    </div>
+  );
+}
 
+function BestResponseExpand({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!text) return null;
+  const short = text.slice(0, 500);
+  const hasMore = text.length > 500;
+  return (
+    <div>
+      <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 }}>Best response</div>
+      <p style={{ fontSize: 12, color: "#4b5563", lineHeight: 1.6, margin: 0, background: "#f9fafb", borderRadius: 6, padding: "8px 10px", whiteSpace: "pre-wrap" }}>
+        {expanded ? text : short}
+      </p>
+      {hasMore && (
+        <button onClick={() => setExpanded(e => !e)} style={{ marginTop: 4, fontSize: 11, color: "#6366f1", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit", fontWeight: 600 }}>
+          {expanded ? "Show less ↑" : "Show full response ↓"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function UrlList({ urls }: { urls: string[] }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 }}>Cited URLs</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        {urls.map((url: string, i: number) => {
+          let domain = url;
+          try { domain = new URL(url).hostname.replace(/^www\./, ""); } catch {}
+          const dt = getDomainType(domain);
+          return (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: dt.bg, color: dt.color }}>{dt.label}</span>
+              <a href={url} target="_blank" rel="noopener noreferrer"
+                style={{ fontSize: 11, color: "#4b5563", textDecoration: "none", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                onMouseEnter={ev => (ev.currentTarget.style.color = "#4f46e5")}
+                onMouseLeave={ev => (ev.currentTarget.style.color = "#4b5563")}
+              >
+                {domain}
+              </a>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TrackSection({ title, color, items, isLandscape }: { title: string; color: string; items: any[]; isLandscape?: boolean }) {
+  const [open, setOpen] = useState(false);
+  if (items.length === 0) return null;
+  const totalFound = items.reduce((s, it) => s + (it.foundCount ?? 0), 0);
+  const totalRounds = items.reduce((s, it) => s + (it.totalRounds ?? 0), 0);
+  const overallRate = totalRounds > 0 ? Math.round((totalFound / totalRounds) * 100) : 0;
+  const rateColor = overallRate >= 67 ? "#059669" : overallRate >= 33 ? "#d97706" : "#9ca3af";
+  const rateBg = overallRate >= 67 ? "#dcfce7" : overallRate >= 33 ? "#fef9c3" : "#f3f4f6";
+
+  return (
+    <div style={{ borderBottom: "1px solid #f3f4f6" }}>
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", background: open ? "#f9fafb" : "transparent" }}
+      >
+        <ChevronDown size={13} color="#9ca3af" style={{ transform: open ? "none" : "rotate(-90deg)", transition: "transform 0.15s", flexShrink: 0 }} />
+        <span style={{ fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 4, background: color + "22", color, flexShrink: 0 }}>
+          {title}
+        </span>
+        <span style={{ fontSize: 12, color: "#9ca3af" }}>{items.length} prompt{items.length !== 1 ? "s" : ""}</span>
+        <div style={{ flex: 1 }} />
+        <StatPill value={`${overallRate}% found`} color={rateColor} bg={rateBg} />
+      </div>
       {open && (
         <div style={{ borderTop: "1px solid #f3f4f6" }}>
-          {(qr.engines ?? []).map((e: any) => {
-            const isExpanded = expandedEngine === e.engine;
-            const hasMore = e.fullResponse && e.fullResponse.length > 600;
-            return (
-              <div key={e.engine} style={{ padding: "12px 16px", borderBottom: "1px solid #f9fafb" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: ENGINE_COLORS[e.engine] ?? "#6b7280" }}>
-                    {ENGINE_LABELS[e.engine] ?? e.engine}
-                  </span>
-                  {e.identityMatch && (
-                    <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: e.identityMatch === "confirmed" ? "#dcfce7" : e.identityMatch === "partial" ? "#fef9c3" : "#fee2e2", color: e.identityMatch === "confirmed" ? "#166534" : e.identityMatch === "partial" ? "#854d0e" : "#991b1b" }}>
-                      {e.identityMatch}
-                    </span>
-                  )}
-                  {e.targetFound === true && <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: "#dcfce7", color: "#166534" }}>found</span>}
-                  {e.targetFound === false && qr.track === "B" && <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: "#fee2e2", color: "#991b1b" }}>not found</span>}
-                  {e.targetRank != null && <span style={{ fontSize: 11, color: "#9ca3af" }}>rank #{e.targetRank}</span>}
-                </div>
+          {items.map((item: any, i: number) => (
+            <PromptRow key={i} item={item} sectionColor={color} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
-                {e.promptText && (
-                  <div style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 }}>Prompt sent</div>
-                    <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5, margin: 0, fontStyle: "italic", background: "#f9fafb", borderRadius: 6, padding: "6px 10px", borderLeft: "2px solid #e5e7eb" }}>
-                      {e.promptText}
-                    </p>
-                  </div>
-                )}
+function EngineQueryCard({ engineData }: { engineData: any }) {
+  const [open, setOpen] = useState(false);
+  const engine = engineData.engine;
+  const color = ENGINE_COLORS[engine] ?? "#6366f1";
+  const label = ENGINE_LABELS[engine] ?? engine;
 
-                {(e.fullResponse || e.response) && (
-                  <div style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 }}>Response</div>
-                    <p style={{ fontSize: 12, color: "#4b5563", lineHeight: 1.6, margin: 0, background: "#f9fafb", borderRadius: 6, padding: "8px 10px", whiteSpace: "pre-wrap" }}>
-                      {isExpanded ? e.fullResponse : e.response}
-                    </p>
-                    {hasMore && (
-                      <button
-                        onClick={() => setExpandedEngine(isExpanded ? null : e.engine)}
-                        style={{ marginTop: 4, fontSize: 11, color: "#6366f1", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit", fontWeight: 600 }}
-                      >
-                        {isExpanded ? "Show less ↑" : "Show full response ↓"}
-                      </button>
-                    )}
-                  </div>
-                )}
+  const trackA: any[] = engineData.trackA ?? [];
+  const trackBRecog: any[] = engineData.trackBRecognition ?? [];
+  const trackBLand = engineData.trackBLandscape;
+  const trackBItems = [
+    ...trackBRecog,
+    ...(trackBLand ? [{ ...trackBLand, promptIndex: 2, foundCount: trackBLand.foundCount, totalRounds: trackBLand.totalRounds, appearanceRate: trackBLand.appearanceRate, avgRank: trackBLand.avgRank, identityMatch: null, statedFacts: [] }] : []),
+  ];
 
-                {(e.citedUrls ?? []).length > 0 && (
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Cited URLs</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      {e.citedUrls.map((url: string, i: number) => (
-                        <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-                          style={{ fontSize: 11, color: "#4b5563", textDecoration: "none", display: "flex", alignItems: "flex-start", gap: 5, wordBreak: "break-all", lineHeight: 1.5 }}
-                          onMouseEnter={ev => (ev.currentTarget.style.color = "#4f46e5")}
-                          onMouseLeave={ev => (ev.currentTarget.style.color = "#4b5563")}
-                        >
-                          <ExternalLink size={10} style={{ flexShrink: 0, marginTop: 2, color: "#9ca3af" }} />
-                          {url}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+  // Summary stats
+  const allItems = [...trackA, ...trackBItems];
+  const totalFound = allItems.reduce((s, it) => s + (it.foundCount ?? 0), 0);
+  const totalRounds = allItems.reduce((s, it) => s + (it.totalRounds ?? 0), 0);
+  const overallRate = totalRounds > 0 ? Math.round((totalFound / totalRounds) * 100) : 0;
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #f3f4f6", overflow: "hidden" }}>
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{ padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", borderLeft: `4px solid ${color}` }}
+      >
+        <div style={{ width: 10, height: 10, borderRadius: "50%", background: color, flexShrink: 0 }} />
+        <span style={{ fontSize: 14, fontWeight: 700, color }}>{label}</span>
+        <span style={{ fontSize: 12, color: "#9ca3af" }}>
+          {trackA.length} identity proof · {trackBItems.length} recognition
+        </span>
+        <div style={{ flex: 1 }} />
+        <span style={{ fontSize: 13, fontWeight: 700, color: overallRate >= 50 ? "#059669" : overallRate > 0 ? "#d97706" : "#9ca3af" }}>
+          {overallRate}% overall found
+        </span>
+        <ChevronDown size={14} color="#9ca3af" style={{ transform: open ? "none" : "rotate(-90deg)", transition: "transform 0.2s", flexShrink: 0 }} />
+      </div>
+      {open && (
+        <div style={{ borderTop: "1px solid #f3f4f6" }}>
+          <TrackSection title="Track A — Identity Proof" color="#6366f1" items={trackA} />
+          <TrackSection title="Track B — Recognition" color="#0891b2" items={trackBRecog} />
+          {trackBLand && (
+            <TrackSection title="Track B — Name Landscape" color="#7c3aed" items={[{
+              ...trackBLand,
+              promptIndex: 2,
+              identityMatch: null,
+              statedFacts: [],
+            }]} />
+          )}
         </div>
       )}
     </div>
@@ -615,10 +731,7 @@ function SourceRow({ src, max }: { src: any; max: number }) {
     <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #f3f4f6", overflow: "hidden" }}>
       <div
         onClick={() => hasUrls && setOpen(o => !o)}
-        style={{
-          padding: "12px 16px", display: "flex", alignItems: "center", gap: 12,
-          cursor: hasUrls ? "pointer" : "default",
-        }}
+        style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 12, cursor: hasUrls ? "pointer" : "default" }}
       >
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
@@ -647,19 +760,11 @@ function SourceRow({ src, max }: { src: any; max: number }) {
 
       {open && hasUrls && (
         <div style={{ borderTop: "1px solid #f3f4f6", padding: "8px 16px 12px" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>
-            Cited URLs
-          </div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>Cited URLs</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {urls.map((url, i) => (
-              <a
-                key={i}
-                href={url} target="_blank" rel="noopener noreferrer"
-                style={{
-                  fontSize: 12, color: "#4b5563", textDecoration: "none",
-                  display: "flex", alignItems: "flex-start", gap: 6,
-                  wordBreak: "break-all", lineHeight: 1.5,
-                }}
+              <a key={i} href={url} target="_blank" rel="noopener noreferrer"
+                style={{ fontSize: 12, color: "#4b5563", textDecoration: "none", display: "flex", alignItems: "flex-start", gap: 6, wordBreak: "break-all", lineHeight: 1.5 }}
                 onMouseEnter={e => (e.currentTarget.style.color = "#4f46e5")}
                 onMouseLeave={e => (e.currentTarget.style.color = "#4b5563")}
               >
@@ -674,19 +779,29 @@ function SourceRow({ src, max }: { src: any; max: number }) {
   );
 }
 
-function Recommendations({ scores, sourceGraph, nameLandscape, claimFacts, sessionName }: any) {
+function Recommendations({ scores, sourceGraph, nameLandscape, claimFacts, sessionName, perEngineAppearance }: any) {
   const recs: { priority: number; title: string; text: string; urgent?: boolean }[] = [];
 
   const domains: string[] = (sourceGraph ?? []).map((s: any) => s.domain as string);
-  const recognitionScore: number = scores?.recognitionScore ?? 0;
   const proofScore: number = scores?.proofScore ?? 0;
   const myEntry = (nameLandscape ?? []).find((p: any) => p.isTarget === true) ?? null;
   const nameCount: number = (nameLandscape ?? []).length;
+
+  // Per-engine appearance data for recommendations
+  const appearanceEntries = Object.entries(perEngineAppearance ?? {}) as [string, any][];
+  const avgAppearanceRate = appearanceEntries.length > 0
+    ? Math.round(appearanceEntries.reduce((s, [, v]) => s + v.appearanceRate, 0) / appearanceEntries.length)
+    : 0;
+  const zeroEngines = appearanceEntries.filter(([, v]) => v.appearanceRate === 0).map(([k]) => ENGINE_LABELS[k] ?? k);
 
   const hasWikipedia = domains.some(d => /wikipedia/.test(d));
   const hasPress = domains.some(d => /techcrunch|forbes|bloomberg|reuters|wsj\.com|ft\.com|nytimes|guardian|bbc|inc\.com|wired|entrepreneur|businessinsider|cnbc/.test(d));
   const hasDirectory = domains.some(d => /crunchbase|angellist|f6s|pitchbook|tracxn/.test(d));
   const onlySocial = domains.length > 0 && domains.every(d => /linkedin|twitter|instagram|facebook/.test(d));
+
+  if (zeroEngines.length > 0) {
+    recs.push({ priority: 1, urgent: true, title: `${zeroEngines.join(", ")} never surfaced you`, text: `${zeroEngines.join(" and ")} returned zero matches across all recognition queries. These engines need specific content anchors — press mentions, Wikipedia, and directory profiles that explicitly name you.` });
+  }
 
   if (!myEntry && nameCount > 0) {
     recs.push({ priority: 1, urgent: true, title: "You are invisible in the name landscape", text: `AI surfaced ${nameCount} other people named "${sessionName}" but did not include you. You need uniquely attributed content that only references your specific role, company, and context — not just your name alone.` });
@@ -695,7 +810,7 @@ function Recommendations({ scores, sourceGraph, nameLandscape, claimFacts, sessi
   }
 
   if (!hasWikipedia) {
-    recs.push({ priority: 2, urgent: !hasWikipedia && recognitionScore < 40, title: "No Wikipedia article detected", text: "Wikipedia is the #1 cited source for personal identity across all three AI engines. A stub article (50–100 words) linking your name to your company, role, and one notable fact is often enough to become the default identity anchor." });
+    recs.push({ priority: 2, urgent: avgAppearanceRate < 40, title: "No Wikipedia article detected", text: "Wikipedia is the #1 cited source for personal identity across all three AI engines. A stub article (50–100 words) linking your name to your company, role, and one notable fact is often enough to become the default identity anchor." });
   }
 
   if (!hasPress) {
