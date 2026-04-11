@@ -97,8 +97,14 @@ export function resolveIdentity(
   if (matchRatio >= 0.5 && matchCount >= 2) return "confirmed";
   if (matchRatio >= 0.25 || matchCount >= 1) return "partial";
 
-  // Signals existed but NONE matched — the right name appears but no anchor lines up.
-  // This is a name-sharer, not the target person.
+  // All anchor signals failed echo protection — they were in the prompt so the AI
+  // "confirming" them proves nothing independently. But if the anchor-aware parser
+  // already said targetFound=true (it checked anchors in the actual AI response text),
+  // trust that verdict: give "partial" rather than "wrong".
+  // "Wrong" only applies when a DIFFERENT person with the same name is described,
+  // which is caught above via wrongPerson=true → early return at line 38.
+  if (targetFound) return "partial";
+
   return "wrong";
 }
 
