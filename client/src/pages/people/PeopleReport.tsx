@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, ExternalLink, CheckCircle2, AlertCircle, XCircle, MinusCircle, ChevronDown } from "lucide-react";
 import { MonkWordmark } from "@/components/MonkWordmark";
@@ -144,49 +144,11 @@ export default function PeopleReport({ slug }: { slug: string }) {
 
         {/* Section 3: Name landscape */}
         {(rd.nameLandscape ?? []).length > 0 && (
-          <Section title={`Name landscape — All ${session?.name?.split(" ").pop()}s AI knows`}>
-            <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
-              Everyone with your name that AI surfaces, ranked by prominence across engines. Appearing in multiple engines at low rank number = most prominent.
-            </p>
-            <div style={{ background: "#fff", borderRadius: 12, overflow: "hidden", border: "1px solid #f3f4f6" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ background: "#f9fafb" }}>
-                    <th style={thStyle}>Rank</th>
-                    <th style={thStyle}>Person</th>
-                    <th style={thStyle}>Known for</th>
-                    <th style={thStyle}>Engines</th>
-                    <th style={thStyle}>Avg rank</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(rd.nameLandscape ?? []).map((person: any, i: number) => {
-                    const isTarget = session?.name && person.name?.toLowerCase().includes(session.name.split(" ")[0]?.toLowerCase());
-                    return (
-                      <tr key={i} style={{ background: isTarget ? "#eef2ff" : "transparent", borderTop: "1px solid #f3f4f6" }}>
-                        <td style={{ ...tdStyle, fontWeight: 700, color: isTarget ? "#6366f1" : "#9ca3af" }}>#{person.rank ?? i + 1}</td>
-                        <td style={{ ...tdStyle, fontWeight: 600, color: isTarget ? "#4f46e5" : "#1f2937" }}>
-                          {person.name}
-                          {isTarget && <span style={{ fontSize: 11, background: "#c7d2fe", color: "#4f46e5", borderRadius: 4, padding: "1px 6px", marginLeft: 4 }}>You</span>}
-                        </td>
-                        <td style={{ ...tdStyle, color: "#6b7280", fontSize: 13 }}>{person.description?.slice(0, 80)}</td>
-                        <td style={{ ...tdStyle, fontSize: 12 }}>
-                          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                            {(person.engines ?? []).map((e: string) => (
-                              <span key={e} style={{ fontSize: 11, fontWeight: 600, padding: "1px 6px", borderRadius: 4, background: "#f3f4f6", color: ENGINE_COLORS[e] ?? "#6b7280" }}>{e}</span>
-                            ))}
-                          </div>
-                        </td>
-                        <td style={{ ...tdStyle, fontSize: 12, color: "#9ca3af" }}>
-                          {person.avgRank != null ? `#${Math.round(person.avgRank)}` : "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </Section>
+          <LandscapeSection
+            nameLandscape={rd.nameLandscape}
+            queryResults={rd.queryResults}
+            sessionName={session?.name}
+          />
         )}
 
         {/* Section 4: Source graph */}
@@ -291,6 +253,153 @@ function DefaultCard({ item }: { item: any }) {
         </p>
       </div>
     </div>
+  );
+}
+
+function LandscapeSection({ nameLandscape, queryResults, sessionName }: { nameLandscape: any[]; queryResults?: any[]; sessionName?: string }) {
+  const [openRows, setOpenRows] = useState<Set<number>>(new Set());
+  const [showSources, setShowSources] = useState(false);
+
+  const toggleRow = (i: number) => setOpenRows(prev => {
+    const next = new Set(prev);
+    if (next.has(i)) next.delete(i); else next.add(i);
+    return next;
+  });
+
+  const landscapePrompts = (queryResults ?? []).filter((qr: any) => qr.track === "B" && qr.promptIndex === 2);
+  const allLandscapeUrls: { engine: string; url: string }[] = [];
+  for (const qr of landscapePrompts) {
+    for (const e of (qr.engines ?? [])) {
+      for (const url of (e.citedUrls ?? [])) {
+        allLandscapeUrls.push({ engine: e.engine, url });
+      }
+    }
+  }
+  const urlsByEngine: Record<string, string[]> = {};
+  for (const { engine, url } of allLandscapeUrls) {
+    if (!urlsByEngine[engine]) urlsByEngine[engine] = [];
+    if (!urlsByEngine[engine].includes(url)) urlsByEngine[engine].push(url);
+  }
+  const hasSourceData = allLandscapeUrls.length > 0;
+
+  const lastName = sessionName?.split(" ").pop() ?? "people";
+
+  return (
+    <Section title={`Name landscape — All ${lastName}s AI knows`}>
+      <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
+        Everyone with your name that AI surfaces, ranked by prominence across engines. Appearing in multiple engines at low rank number = most prominent. Click any row to see the full AI description.
+      </p>
+      <div style={{ background: "#fff", borderRadius: 12, overflow: "hidden", border: "1px solid #f3f4f6" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ background: "#f9fafb" }}>
+              <th style={thStyle}>Rank</th>
+              <th style={thStyle}>Person</th>
+              <th style={thStyle}>Known for</th>
+              <th style={thStyle}>Engines</th>
+              <th style={thStyle}>Avg rank</th>
+              <th style={{ ...thStyle, width: 24 }}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {nameLandscape.map((person: any, i: number) => {
+              const isTarget = sessionName && person.name?.toLowerCase().includes(sessionName.split(" ")[0]?.toLowerCase());
+              const isOpen = openRows.has(i);
+              const hasMore = person.description && person.description.length > 80;
+              return (
+                <Fragment key={i}>
+                  <tr
+                    onClick={() => hasMore && toggleRow(i)}
+                    style={{ background: isTarget ? "#eef2ff" : "transparent", borderTop: "1px solid #f3f4f6", cursor: hasMore ? "pointer" : "default" }}
+                    onMouseEnter={ev => { if (hasMore) (ev.currentTarget as HTMLElement).style.background = isTarget ? "#e0e7ff" : "#fafafa"; }}
+                    onMouseLeave={ev => { (ev.currentTarget as HTMLElement).style.background = isTarget ? "#eef2ff" : "transparent"; }}
+                  >
+                    <td style={{ ...tdStyle, fontWeight: 700, color: isTarget ? "#6366f1" : "#9ca3af" }}>#{person.rank ?? i + 1}</td>
+                    <td style={{ ...tdStyle, fontWeight: 600, color: isTarget ? "#4f46e5" : "#1f2937" }}>
+                      {person.name}
+                      {isTarget && <span style={{ fontSize: 11, background: "#c7d2fe", color: "#4f46e5", borderRadius: 4, padding: "1px 6px", marginLeft: 4 }}>You</span>}
+                    </td>
+                    <td style={{ ...tdStyle, color: "#6b7280", fontSize: 13 }}>{person.description?.slice(0, 80)}{hasMore && !isOpen ? "…" : ""}</td>
+                    <td style={{ ...tdStyle, fontSize: 12 }}>
+                      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                        {(person.engines ?? []).map((e: string) => (
+                          <span key={e} style={{ fontSize: 11, fontWeight: 600, padding: "1px 6px", borderRadius: 4, background: "#f3f4f6", color: ENGINE_COLORS[e] ?? "#6b7280" }}>{e}</span>
+                        ))}
+                      </div>
+                    </td>
+                    <td style={{ ...tdStyle, fontSize: 12, color: "#9ca3af" }}>
+                      {person.avgRank != null ? `#${Math.round(person.avgRank)}` : "—"}
+                    </td>
+                    <td style={{ ...tdStyle, width: 24, textAlign: "center", color: "#d1d5db" }}>
+                      {hasMore && <ChevronDown size={14} style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />}
+                    </td>
+                  </tr>
+                  {isOpen && (
+                    <tr key={`${i}-detail`} style={{ background: isTarget ? "#f0f4ff" : "#fafafa", borderTop: "none" }}>
+                      <td colSpan={6} style={{ padding: "12px 16px 14px" }}>
+                        <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.7, fontStyle: "italic", paddingLeft: 8, borderLeft: "2px solid #e5e7eb" }}>
+                          {person.description}
+                        </div>
+                        {(person.urls ?? []).length > 0 && (
+                          <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 3 }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 }}>Sources about this person</div>
+                            {person.urls.map((url: string, j: number) => (
+                              <a key={j} href={url} target="_blank" rel="noopener noreferrer"
+                                style={{ fontSize: 11, color: "#4b5563", textDecoration: "none", display: "flex", alignItems: "flex-start", gap: 5, wordBreak: "break-all", lineHeight: 1.5 }}
+                                onMouseEnter={ev => (ev.currentTarget.style.color = "#4f46e5")}
+                                onMouseLeave={ev => (ev.currentTarget.style.color = "#4b5563")}
+                              >
+                                <ExternalLink size={10} style={{ flexShrink: 0, marginTop: 2, color: "#9ca3af" }} />
+                                {url}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {hasSourceData && (
+        <div style={{ marginTop: 12 }}>
+          <button
+            onClick={() => setShowSources(s => !s)}
+            style={{ fontSize: 13, fontWeight: 600, color: "#6366f1", background: "none", border: "none", cursor: "pointer", padding: "4px 0", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6 }}
+          >
+            <ChevronDown size={14} style={{ transform: showSources ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
+            {showSources ? "Hide" : "Show"} sources cited when AI listed prominent people ({allLandscapeUrls.length})
+          </button>
+          {showSources && (
+            <div style={{ marginTop: 10, background: "#fff", borderRadius: 10, border: "1px solid #f3f4f6", overflow: "hidden" }}>
+              {Object.entries(urlsByEngine).map(([engine, urls]) => (
+                <div key={engine} style={{ padding: "12px 16px", borderBottom: "1px solid #f9fafb" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: ENGINE_COLORS[engine] ?? "#6b7280", marginBottom: 8 }}>
+                    {ENGINE_LABELS[engine] ?? engine}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    {urls.map((url: string, j: number) => (
+                      <a key={j} href={url} target="_blank" rel="noopener noreferrer"
+                        style={{ fontSize: 11, color: "#4b5563", textDecoration: "none", display: "flex", alignItems: "flex-start", gap: 5, wordBreak: "break-all", lineHeight: 1.5 }}
+                        onMouseEnter={ev => (ev.currentTarget.style.color = "#4f46e5")}
+                        onMouseLeave={ev => (ev.currentTarget.style.color = "#4b5563")}
+                      >
+                        <ExternalLink size={10} style={{ flexShrink: 0, marginTop: 2, color: "#9ca3af" }} />
+                        {url}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </Section>
   );
 }
 
