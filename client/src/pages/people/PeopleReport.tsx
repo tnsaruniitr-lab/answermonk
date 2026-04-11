@@ -282,25 +282,6 @@ export default function PeopleReport({ slug }: { slug: string }) {
           {session?.headline && <p style={{ fontSize: 15, color: "#6b7280" }}>{session.headline}</p>}
         </div>
 
-        {/* Scorecard: appearance rate + identity confirmation */}
-        <AppearanceTable perEngineAppearance={perEngineAppearance} />
-        <AIIdentityCard
-          perEngineQueryResults={rd.perEngineQueryResults ?? []}
-          perEngineAppearance={perEngineAppearance}
-        />
-
-        {scores?.diagnosticText && (
-          <div style={{
-            background: "#fff", borderRadius: 12, padding: "16px 20px",
-            border: "1px solid rgba(99,102,241,0.15)", marginBottom: 40,
-            borderLeft: "4px solid #6366f1",
-          }}>
-            <p style={{ fontSize: 14, color: "#1f2937", lineHeight: 1.6, margin: 0 }}>
-              <strong>Diagnosis:</strong> {scores.diagnosticText}
-            </p>
-          </div>
-        )}
-
         {/* Section 3: Name landscape */}
         {(rd.nameLandscape ?? []).length > 0 && (
           <LandscapeSection
@@ -335,7 +316,27 @@ export default function PeopleReport({ slug }: { slug: string }) {
           <Recommendations scores={scores} sourceGraph={rd.sourceGraph} nameLandscape={rd.nameLandscape} claimFacts={rd.claimFacts} sessionName={session?.name} perEngineAppearance={perEngineAppearance} />
         </Section>
 
-        {/* Section 7: How AI sees you (collapsed) */}
+        {/* Section 7: How AI knows you (collapsed) */}
+        <CollapsibleSection title="How AI knows you">
+          <AppearanceTable perEngineAppearance={perEngineAppearance} />
+          <AIIdentityCard
+            perEngineQueryResults={rd.perEngineQueryResults ?? []}
+            perEngineAppearance={perEngineAppearance}
+          />
+          {scores?.diagnosticText && (
+            <div style={{
+              background: "#fff", borderRadius: 12, padding: "16px 20px",
+              border: "1px solid rgba(99,102,241,0.15)", marginBottom: 16,
+              borderLeft: "4px solid #6366f1",
+            }}>
+              <p style={{ fontSize: 14, color: "#1f2937", lineHeight: 1.6, margin: 0 }}>
+                <strong>Diagnosis:</strong> {scores.diagnosticText}
+              </p>
+            </div>
+          )}
+        </CollapsibleSection>
+
+        {/* Section 8: How AI sees you (collapsed) */}
         <CollapsibleSection title="How AI sees you right now">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
             {(rd.engineCards ?? []).map((card: any) => (
