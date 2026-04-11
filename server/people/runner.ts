@@ -164,7 +164,7 @@ export async function runPeopleAudit(
               try {
                 const result = await queryPeopleEngine(engine, q.text, config);
                 const parsed = await parseTrackAResponse(result.rawText, session.name, profile);
-                const identityMatch = resolveIdentity(result.rawText, profile, parsed.targetFound);
+                const identityMatch = resolveIdentity(result.rawText, profile, parsed.targetFound, q.text);
 
                 await saveQueryResult({
                   sessionId, track: "A", queryIndex: q.index, round,
@@ -202,7 +202,7 @@ export async function runPeopleAudit(
               try {
                 const result = await queryPeopleEngine(engine, q.text, config);
                 const parsed = await parseTrackBResponse(result.rawText, session.name, q.type);
-                const identityMatch = resolveIdentity(result.rawText, profile, parsed.targetFound);
+                const identityMatch = resolveIdentity(result.rawText, profile, parsed.targetFound, q.text);
 
                 await saveQueryResult({
                   sessionId, track: "B", queryIndex: q.index, round,

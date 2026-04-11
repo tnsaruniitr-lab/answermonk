@@ -24,29 +24,47 @@ function textContains(haystack: string, needle: string): boolean {
 export function resolveIdentity(
   rawResponse: string,
   profile: ProfileSignals,
-  targetFound: boolean
+  targetFound: boolean,
+  queryText?: string          // the prompt we sent — signals found here don't count (echo protection)
 ): IdentityMatch {
   if (!targetFound || !rawResponse) return "absent";
 
   const text = rawResponse.toLowerCase();
+  const query = (queryText ?? "").toLowerCase();
+
+  // A signal only counts if it appears in the RESPONSE but was NOT already in our prompt.
+  // This prevents Claude echoing "McKinsey & Company" from our own question from being
+  // counted as independent confirmation.
+  function freshSignal(value: string): boolean {
+    if (!value || value.length < 2) return false;
+    const inResponse = textContains(text, value);
+    const inQuery = textContains(query, value);
+    return inResponse && !inQuery;   // only credit if the AI introduced it independently
+  }
+
+  // "Corroborating" signals: things we would NOT have put in the prompt (past companies,
+  // education, location) are always valid even if they appear in the query text, because
+  // Track A prompts typically do NOT include them — so if they appear in the response the
+  // AI independently supplied them.
+  function corroboratingSignal(value: string): boolean {
+    return textContains(text, value);
+  }
 
   const signals: boolean[] = [];
 
-  if (profile.currentCompany) {
-    signals.push(textContains(text, profile.currentCompany));
-  }
-  if (profile.currentRole) {
-    signals.push(textContains(text, profile.currentRole));
-  }
-  if (profile.location) {
-    signals.push(textContains(text, profile.location));
-  }
-  if (profile.education && profile.education.length > 0) {
-    signals.push(profile.education.some(e => textContains(text, e)));
-  }
-  if (profile.pastCompanies && profile.pastCompanies.length > 0) {
-    signals.push(profile.pastCompanies.some(c => textContains(text, c)));
-  }
+  if (profile.currentCompany) signals.push(freshSignal(profile.currentCompany));
+  if (profile.currentRole)    signals.push(freshSignal(profile.currentRole));
+
+  // Past companies and education are harder to echo — count them without echo-protection
+  if (profile.location)   signals.push(corroboratingSignal(profile.location));
+  if (profile.education && profile.education.length > 0)
+    signals.push(profile.education.some(e => corroboratingSignal(e)));
+  if (profile.pastCompanies && profile.pastCompanies.length > 0)
+    signals.push(profile.pastCompanies.some(c => corroboratingSignal(c)));
+
+  // Citations are the strongest independent signal — if the AI returned URLs it searched
+  const hasCitations = /https?:\/\//.test(rawResponse);
+  if (hasCitations) signals.push(true);
 
   if (signals.length === 0) {
     return targetFound ? "partial" : "absent";
