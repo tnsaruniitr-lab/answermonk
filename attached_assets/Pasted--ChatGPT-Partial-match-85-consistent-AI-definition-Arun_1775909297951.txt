@@ -1,0 +1,44 @@
+
+ChatGPT
+Partial match
+85% consistent
+AI definition
+"Arun Sharma is an Indian‑Australian computer science professor and academic leader, currently Distinguished Professor Emeritus at Queensland University of Technology (QUT), known for his contributions to research and sustainability."
+
+The consistency is high as most responses focus on Arun Sharma's role as a computer scientist and academic leader, with overlapping achievements and positive professional signals.
+
+Key achievements
+Served as Deputy Vice‑Chancellor (Research & Commercialisation) at QUT from 2004 to 2019.
+Co‑founded Australia’s National ICT Research Centre of Excellence (NICTA), now part of CSIRO’s Data61.
+Green flags
+Recognized for leadership in research and innovation.
+Elevated the university’s global rankings.
+Gemini
+Partial match
+90% consistent
+AI definition
+"Arun Sharma is a renowned author and educator famous for his guidebooks for the Common Admission Test (CAT), the entrance exam for top business schools in India."
+
+The high consistency score is due to the majority of responses focusing on Arun Sharma's role as a CAT expert, highlighting his achievements and positive professional reputation.
+
+Key achievements
+Authored several bestselling books on CAT preparation
+Consistently achieved a top-tier percentile (99.9+) in the CAT for over two decades
+Co-founded Mindworkzz, a well-known coaching institute for management entrance exams
+Green flags
+His long and successful career as an author and trainer has established him as a leading authority in CAT preparation
+Many students credit his books and teaching methods for their success in cracking the CAT
+His consistent high scores in the exam underscore his deep understanding of the subject matter
+Red flags
+Some users and reviewers have pointed out that his books can contain errors and may not be consistently updated with the latest exam patterns.
+Critics suggest that relying solely on his books may not be sufficient for achieving a top percentile, recommending a broader range of study materials.
+Claude
+Partial match
+90% consistent
+AI definition
+"Arun Sharma is a notable figure known for authoring popular CAT (Common Admission Test) preparation books in India."
+
+The responses consistently identify Arun Sharma as an author of CAT preparation books, but they do not provide significant positive or negative professional signals.
+
+Key achievements
+Author of popular CAT (Common Admission Test) preparation books

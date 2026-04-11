@@ -20,9 +20,35 @@ function buildIdentityString(
   const parts: string[] = [name];
   if (anchors.roles[0]) parts.push(anchors.roles[0]);
   if (anchors.workplaces[0]) parts.push(`at ${anchors.workplaces[0]}`);
-  if (anchors.workplaces[1]) parts.push(`previously ${anchors.workplaces[1]}`);
+  if (anchors.workplaces[1]) parts.push(`(previously ${anchors.workplaces[1]})`);
   if (anchors.education[0]) parts.push(anchors.education[0]);
   return parts.join(", ");
+}
+
+// Builds a structured paragraph listing every known anchor so the AI can
+// identify exactly the right person rather than the most famous name-sharer.
+function buildIdentityBlock(
+  name: string,
+  anchors: { workplaces: string[]; roles: string[]; education: string[] },
+  industry?: string | null
+): string {
+  const lines: string[] = [];
+  lines.push(`- Full name: ${name}`);
+  if (anchors.roles[0])       lines.push(`- Current role: ${anchors.roles[0]}`);
+  if (anchors.roles[1])       lines.push(`- Previous role: ${anchors.roles[1]}`);
+  if (anchors.workplaces[0])  lines.push(`- Current company / organisation: ${anchors.workplaces[0]}`);
+  if (anchors.workplaces[1])  lines.push(`- Previous company: ${anchors.workplaces[1]}`);
+  if (anchors.workplaces[2])  lines.push(`- Also worked at: ${anchors.workplaces.slice(2).join(", ")}`);
+  if (anchors.education[0])   lines.push(`- Education: ${anchors.education.join(", ")}`);
+  if (industry)               lines.push(`- Industry: ${industry}`);
+
+  // If we have at least one anchor beyond the name, wrap in a block
+  if (lines.length > 1) {
+    return `To help identify the right person, here are their known details:\n${lines.join("\n")}`;
+  }
+
+  // Name only — warn the AI that disambiguation is limited
+  return `Note: only a name is available for this person — no role, company, or education data was provided. Please be explicit if you cannot confidently identify them.`;
 }
 
 export function buildTrackAQueries(
@@ -41,6 +67,7 @@ export function buildTrackAQueries(
     education: anchors.education[0] ?? "",
     industry: industry ?? "their industry",
     identity_string: buildIdentityString(name, anchors),
+    identity_block: buildIdentityBlock(name, anchors, industry),
   };
 
   // Use config templates if present, otherwise fall back to default single prompt
@@ -50,11 +77,12 @@ export function buildTrackAQueries(
   }
 
   const identityString = buildIdentityString(name, anchors);
+  const identityBlock = buildIdentityBlock(name, anchors, industry);
   return [
     {
       index: 1,
       angle: "Identity & profile",
-      text: `Tell me about ${identityString}. Who are they, what are they known for, and what is their professional background? Also provide: (1) a one-sentence definition of who this person is, (2) their key achievements, (3) their professional green flags, and (4) their professional red flags.`,
+      text: `Tell me about ${identityString}. Who are they, what are they known for professionally, and what is their professional background?\n\n${identityBlock}\n\nPlease provide:\n1. A one-sentence definition of who this specific person is\n2. Their key professional achievements\n3. Their professional green flags (recognised expertise, notable work, public credibility)\n4. Their professional red flags (limited public presence, incorrect attributions, gaps in record)\n\nImportant: if you cannot find information specifically about this person, say so clearly rather than describing someone else with the same name.`,
     },
   ];
 }

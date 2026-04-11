@@ -29,7 +29,17 @@ export const DEFAULT_PEOPLE_CONFIG: PeopleConfig = {
   promptTemplates: [
     {
       index: 1, track: "A", angle: "Identity & profile",
-      template: `Tell me about {{identity_string}}. Who are they, what are they known for, and what is their professional background? Also provide: (1) a one-sentence definition of who this person is, (2) their key achievements, (3) their professional green flags, and (4) their professional red flags.`,
+      template: `Tell me about {{identity_string}}. Who are they, what are they known for professionally, and what is their professional background?
+
+{{identity_block}}
+
+Please provide:
+1. A one-sentence definition of who this specific person is
+2. Their key professional achievements
+3. Their professional green flags (recognised expertise, notable work, public credibility)
+4. Their professional red flags (limited public presence, incorrect attributions, gaps in record)
+
+Important: if you cannot find information specifically about this person, say so clearly rather than describing someone else with the same name.`,
     },
     {
       index: 1, track: "B", angle: "Name landscape",
@@ -94,11 +104,13 @@ export function fillTemplate(
     education?: string;
     industry?: string;
     identity_string?: string;
+    identity_block?: string;
   }
 ): string {
   let result = template;
 
   result = result.replace(/\{\{identity_string\}\}/g, vars.identity_string || vars.name || "");
+  result = result.replace(/\{\{identity_block\}\}/g, vars.identity_block ?? "");
   result = result.replace(/\{\{name\}\}/g, vars.name || "");
   result = result.replace(/\{\{role\}\}/g, vars.role || "");
   result = result.replace(/\{\{company\}\}/g, vars.company || "");
