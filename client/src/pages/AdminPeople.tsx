@@ -19,6 +19,7 @@ const ROW: React.CSSProperties = {
 };
 
 const MODELS_CHATGPT = [
+  "gpt-5.2",
   "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano",
   "o4-mini", "o3", "o3-mini",
   "gpt-4o", "gpt-4o-mini",

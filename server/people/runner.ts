@@ -62,6 +62,7 @@ async function saveQueryResult(result: {
 async function logCost(sessionId: number, engine: string, model: string, inputTokens: number, outputTokens: number) {
   try {
     const costPerInputM: Record<string, number> = {
+      "gpt-5.2": 2.0,
       "gpt-4o": 2.5, "gpt-4o-mini": 0.15,
       "gpt-4.1": 2.0, "gpt-4.1-mini": 0.4, "gpt-4.1-nano": 0.1,
       "o3": 10.0, "o3-mini": 1.1, "o4-mini": 1.1,
@@ -73,6 +74,7 @@ async function logCost(sessionId: number, engine: string, model: string, inputTo
       "claude-3-7-sonnet-latest": 3.0, "claude-3-5-haiku-latest": 0.8,
     };
     const costPerOutputM: Record<string, number> = {
+      "gpt-5.2": 8.0,
       "gpt-4o": 10.0, "gpt-4o-mini": 0.6,
       "gpt-4.1": 8.0, "gpt-4.1-mini": 1.6, "gpt-4.1-nano": 0.4,
       "o3": 40.0, "o3-mini": 4.4, "o4-mini": 4.4,
