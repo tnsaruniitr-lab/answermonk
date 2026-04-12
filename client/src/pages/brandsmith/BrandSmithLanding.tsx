@@ -63,7 +63,10 @@ export default function BrandSmithLanding() {
         : "/api/brandsmith/mock/research";
       const res = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(apiBase ? { "ngrok-skip-browser-warning": "true" } : {}),
+        },
         body: JSON.stringify({ website_url: url, session_id: sessionId }),
       });
       if (!res.ok) throw new Error("Request failed");

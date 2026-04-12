@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -237,7 +237,6 @@ export default function BrandSmithResults({ params }: Props) {
   const [streamError, setStreamError] = useState<string | null>(null);
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
-  const sseRef = useRef<EventSource | null>(null);
 
   const { data: savedJob, isLoading: jobLoading } = useQuery({
     queryKey: ["/api/brandsmith/jobs", jobId],
@@ -288,49 +287,77 @@ export default function BrandSmithResults({ params }: Props) {
       if (savedJob.confirmedAt) setConfirmed(true);
       return;
     }
-    if (!jobLoading) {
-      const streamUrl = apiBase
-        ? `${apiBase}/api/brands/research/${jobId}/stream`
-        : `/api/brandsmith/mock/research/${jobId}/stream`;
+    if (jobLoading) return;
 
-      const sse = new EventSource(streamUrl);
-      sseRef.current = sse;
+    const streamUrl = apiBase
+      ? `${apiBase}/api/brands/research/${jobId}/stream`
+      : `/api/brandsmith/mock/research/${jobId}/stream`;
 
-      sse.addEventListener("status", (e: MessageEvent) => {
-        try { setProgress(JSON.parse(e.data)); } catch {}
-      });
+    const controller = new AbortController();
 
-      sse.addEventListener("complete", async (e: MessageEvent) => {
-        sse.close();
-        try {
-          const payload = JSON.parse(e.data);
-          const secs: BrandSection[] = payload.sections ?? [];
-          setSections(secs);
-          setProgress(null);
-          const websiteUrl = savedJob?.websiteUrl ?? payload.website_url ?? "unknown";
-          await saveJobMutation.mutateAsync({ secs, url: websiteUrl });
-        } catch {
-          setStreamError("Failed to process results. Please try again.");
+    (async () => {
+      try {
+        const headers: Record<string, string> = {};
+        if (apiBase) headers["ngrok-skip-browser-warning"] = "true";
+
+        const res = await fetch(streamUrl, { signal: controller.signal, headers });
+        if (!res.ok || !res.body) {
+          setStreamError("Failed to connect to analysis stream.");
+          return;
         }
-      });
 
-      sse.addEventListener("error", (e: MessageEvent) => {
-        sse.close();
-        try {
-          const payload = JSON.parse(e.data);
-          setStreamError(payload.message ?? "Analysis failed.");
-        } catch {
-          setStreamError("Connection lost. Please try again.");
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          const events = buffer.split("\n\n");
+          buffer = events.pop() ?? "";
+
+          for (const eventStr of events) {
+            if (!eventStr.trim()) continue;
+            const lines = eventStr.split("\n");
+            let eventType = "message";
+            let data = "";
+            for (const line of lines) {
+              if (line.startsWith("event:")) eventType = line.slice(6).trim();
+              if (line.startsWith("data:")) data = line.slice(5).trim();
+            }
+
+            if (eventType === "status") {
+              try { setProgress(JSON.parse(data)); } catch {}
+            } else if (eventType === "complete") {
+              try {
+                const payload = JSON.parse(data);
+                const secs: BrandSection[] = payload.sections ?? [];
+                setSections(secs);
+                setProgress(null);
+                const websiteUrl = savedJob?.websiteUrl ?? payload.website_url ?? "unknown";
+                await saveJobMutation.mutateAsync({ secs, url: websiteUrl });
+              } catch {
+                setStreamError("Failed to process results. Please try again.");
+              }
+            } else if (eventType === "error") {
+              try {
+                const payload = JSON.parse(data);
+                setStreamError(payload.message ?? "Analysis failed.");
+              } catch {
+                setStreamError("Connection lost. Please try again.");
+              }
+            }
+          }
         }
-      });
-
-      sse.onerror = () => {
-        if (sse.readyState === EventSource.CLOSED) return;
+      } catch (err: any) {
+        if (err?.name === "AbortError") return;
         setStreamError("Connection closed unexpectedly.");
-      };
+      }
+    })();
 
-      return () => { sse.close(); };
-    }
+    return () => { controller.abort(); };
   }, [jobLoading, savedJob]);
 
   function handleSaveEdit(updated: BrandSection) {
