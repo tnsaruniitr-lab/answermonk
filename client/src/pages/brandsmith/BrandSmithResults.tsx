@@ -50,11 +50,17 @@ function ObjectMiniCard({ obj }: { obj: Record<string, unknown> }) {
       {Object.entries(obj)
         .filter(([k, v]) => k !== titleKey && !isEmpty(v))
         .map(([k, v]) => (
-          <div key={k} style={{ display: "flex", gap: 8, fontSize: 12, marginBottom: 3, alignItems: "flex-start" }}>
-            <span style={{ color: "#9ca3af", minWidth: 90, flexShrink: 0, paddingTop: 1 }}>{k.replace(/_/g, " ")}</span>
-            <span style={{ color: "#4b5563", wordBreak: "break-word" }}>
+          <div key={k} style={{ display: "flex", gap: 8, fontSize: 12, marginBottom: 5, alignItems: "flex-start" }}>
+            <span style={{ color: "#9ca3af", minWidth: 90, flexShrink: 0, paddingTop: 3 }}>{k.replace(/_/g, " ")}</span>
+            <span style={{ color: "#4b5563", wordBreak: "break-word", flex: 1 }}>
               {Array.isArray(v)
-                ? (v as unknown[]).map(x => (typeof x === "object" ? JSON.stringify(x) : String(x))).join(", ")
+                ? <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 1 }}>
+                    {(v as unknown[]).map((x, xi) => (
+                      <span key={xi} style={{ fontSize: 11, background: "#e5e7eb", color: "#374151", borderRadius: 3, padding: "2px 6px" }}>
+                        {typeof x === "object" ? JSON.stringify(x) : String(x)}
+                      </span>
+                    ))}
+                  </div>
                 : String(v)}
             </span>
           </div>
@@ -333,6 +339,7 @@ export default function BrandSmithResults({ params }: Props) {
   const [streamError, setStreamError] = useState<string | null>(null);
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
+  const [hasEditsAfterConfirm, setHasEditsAfterConfirm] = useState(false);
 
   const { data: savedJob, isLoading: jobLoading } = useQuery({
     queryKey: ["/api/brandsmith/jobs", jobId],
@@ -364,17 +371,19 @@ export default function BrandSmithResults({ params }: Props) {
 
   const confirmMutation = useMutation({
     mutationFn: async () => {
-      if (apiBase && sections) {
+      if (apiBase) {
         await fetch(`${apiBase}/api/brandsmith/${jobId}/confirm`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ job_id: jobId, sections }),
+          headers: { "ngrok-skip-browser-warning": "true" },
         });
       }
       const r = await apiRequest("POST", `/api/brandsmith/jobs/${jobId}/confirm`, {});
       return r.json();
     },
-    onSuccess: () => setConfirmed(true),
+    onSuccess: () => {
+      setConfirmed(true);
+      setHasEditsAfterConfirm(false);
+    },
   });
 
   useEffect(() => {
@@ -462,6 +471,14 @@ export default function BrandSmithResults({ params }: Props) {
     setSections(next);
     setEditingSection(null);
     updateCardsMutation.mutate(next);
+    if (apiBase) {
+      fetch(`${apiBase}/api/brandsmith/${jobId}/cards`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+        body: JSON.stringify({ sections: [{ section: updated.section, data: updated.data }] }),
+      }).catch(() => {});
+    }
+    if (confirmed) setHasEditsAfterConfirm(true);
   }
 
   function handleExport() {
@@ -524,28 +541,41 @@ export default function BrandSmithResults({ params }: Props) {
             >
               <Download size={13} /> Export JSON
             </button>
-            <button
-              data-testid="button-confirm"
-              onClick={() => confirmMutation.mutate()}
-              disabled={confirmed || confirmMutation.isPending}
-              style={{
+            {confirmed && !hasEditsAfterConfirm && !confirmMutation.isPending ? (
+              <span style={{
                 display: "flex", alignItems: "center", gap: 5,
-                padding: "8px 16px",
-                background: confirmed ? "#059669" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                border: "none", borderRadius: 8,
-                color: "#fff", fontSize: 13, fontWeight: 700,
-                cursor: confirmed ? "default" : "pointer",
-                opacity: confirmMutation.isPending ? 0.7 : 1,
-                boxShadow: "0 1px 3px rgba(99,102,241,0.3)",
-              }}
-            >
-              {confirmed
-                ? <><CheckCircle2 size={13} /> Confirmed</>
-                : confirmMutation.isPending
-                ? <><Loader2 size={13} className="animate-spin" /> Confirming…</>
-                : <><CheckCircle2 size={13} /> Confirm profile</>
-              }
-            </button>
+                padding: "8px 14px", background: "#ecfdf5",
+                border: "1px solid #a7f3d0", borderRadius: 8,
+                color: "#059669", fontSize: 13, fontWeight: 700,
+              }}>
+                <CheckCircle2 size={13} /> Confirmed
+              </span>
+            ) : (
+              <button
+                data-testid="button-confirm"
+                onClick={() => confirmMutation.mutate()}
+                disabled={confirmMutation.isPending}
+                style={{
+                  display: "flex", alignItems: "center", gap: 5,
+                  padding: "8px 16px",
+                  background: hasEditsAfterConfirm
+                    ? "linear-gradient(135deg, #f59e0b, #d97706)"
+                    : "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                  border: "none", borderRadius: 8,
+                  color: "#fff", fontSize: 13, fontWeight: 700,
+                  cursor: confirmMutation.isPending ? "default" : "pointer",
+                  opacity: confirmMutation.isPending ? 0.7 : 1,
+                  boxShadow: "0 1px 3px rgba(99,102,241,0.3)",
+                }}
+              >
+                {confirmMutation.isPending
+                  ? <><Loader2 size={13} className="animate-spin" /> Confirming…</>
+                  : hasEditsAfterConfirm
+                  ? <><CheckCircle2 size={13} /> Re-confirm</>
+                  : <><CheckCircle2 size={13} /> Confirm profile</>
+                }
+              </button>
+            )}
           </div>
         )}
       </nav>
