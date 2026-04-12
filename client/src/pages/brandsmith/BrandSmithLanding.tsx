@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { Loader2, Globe, ArrowRight, Sparkles, Clock } from "lucide-react";
+import { Loader2, Globe, ArrowRight, Layers, Users, Mic, Search } from "lucide-react";
 import { MonkWordmark } from "@/components/MonkWordmark";
 import { useQuery } from "@tanstack/react-query";
 
@@ -76,55 +76,60 @@ export default function BrandSmithLanding() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0a", display: "flex", flexDirection: "column" }}>
-      <header style={{ padding: "20px 32px", borderBottom: "1px solid #1f1f1f", display: "flex", alignItems: "center", gap: "12px" }}>
-        <MonkWordmark />
-        <span style={{ color: "#4b5563", fontSize: "14px", marginLeft: "4px" }}>/</span>
-        <span style={{ color: "#e5e7eb", fontSize: "14px", fontWeight: 600, letterSpacing: "-0.01em" }}>BrandSmith</span>
-      </header>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #f8f7ff 0%, #eef2ff 50%, #f0f9ff 100%)", fontFamily: "Inter, system-ui, sans-serif" }}>
+      <nav style={{ padding: "20px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(99,102,241,0.1)" }}>
+        <a href="/" style={{ textDecoration: "none" }}>
+          <MonkWordmark />
+        </a>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "#6366f1", background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 100, padding: "4px 12px" }}>
+          BrandSmith
+        </span>
+      </nav>
 
-      <main style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "60px 24px" }}>
-        <div style={{ maxWidth: "620px", width: "100%", textAlign: "center" }}>
+      <main style={{ maxWidth: 680, margin: "0 auto", padding: "80px 24px 60px" }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
           <div style={{
-            display: "inline-flex", alignItems: "center", gap: "6px",
-            backgroundColor: "#111827", border: "1px solid #1f2937",
-            borderRadius: "20px", padding: "5px 14px", marginBottom: "28px",
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)",
+            borderRadius: 100, padding: "6px 14px", marginBottom: 24,
           }}>
-            <Sparkles size={13} color="#6366f1" />
-            <span style={{ fontSize: "12px", color: "#9ca3af", letterSpacing: "0.03em" }}>AI-powered brand intelligence</span>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#6366f1", animation: "pulse 2s infinite" }} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#6366f1" }}>AI Brand Intelligence</span>
           </div>
 
-          <h1 style={{
-            fontSize: "clamp(32px, 5vw, 52px)", fontWeight: 700,
-            color: "#f9fafb", lineHeight: 1.1, letterSpacing: "-0.03em", marginBottom: "16px",
-          }}>
-            Build your brand map<br />
-            <span style={{ color: "#6366f1" }}>from any website</span>
+          <h1 style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 800, color: "#0f0a2e", lineHeight: 1.15, marginBottom: 16, letterSpacing: "-0.02em" }}>
+            Build your complete brand map<br />from any website
           </h1>
-
-          <p style={{ fontSize: "17px", color: "#9ca3af", lineHeight: 1.6, marginBottom: "44px", maxWidth: "480px", margin: "0 auto 44px" }}>
-            Enter a website URL. BrandSmith crawls the site, researches the market, and returns a complete 7-section brand profile — ready to edit and export.
+          <p style={{ fontSize: 18, color: "#6b7280", lineHeight: 1.6, maxWidth: 500, margin: "0 auto" }}>
+            Enter a website URL. BrandSmith crawls the site, researches the market with Claude AI, and returns a 7-section brand profile — ready to edit and export.
           </p>
+        </div>
 
-          <form onSubmit={handleSubmit} style={{ display: "flex", gap: "10px", maxWidth: "520px", margin: "0 auto" }}>
-            <div style={{ position: "relative", flex: 1 }}>
-              <Globe size={16} color="#6b7280" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
+        <form onSubmit={handleSubmit}>
+          <div style={{
+            background: "#fff",
+            borderRadius: 16,
+            boxShadow: "0 4px 24px rgba(99,102,241,0.12), 0 1px 4px rgba(0,0,0,0.06)",
+            padding: 8,
+            display: "flex",
+            gap: 8,
+            marginBottom: error ? 8 : 24,
+          }}>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 12, padding: "0 16px" }}>
+              <Globe size={20} color="#6366f1" strokeWidth={1.5} />
               <input
                 data-testid="input-website-url"
                 type="text"
                 value={input}
-                onChange={e => setInput(e.target.value)}
+                onChange={e => { setInput(e.target.value); setError(""); }}
                 placeholder="acme.com"
                 disabled={loading}
                 style={{
-                  width: "100%", padding: "13px 14px 13px 40px",
-                  backgroundColor: "#111827", border: "1px solid #1f2937",
-                  borderRadius: "10px", color: "#f9fafb", fontSize: "15px",
-                  outline: "none", boxSizing: "border-box",
-                  transition: "border-color 0.15s",
+                  flex: 1, border: "none", outline: "none",
+                  fontSize: 16, color: "#1f2937", background: "transparent",
+                  fontFamily: "inherit",
                 }}
-                onFocus={e => (e.target.style.borderColor = "#6366f1")}
-                onBlur={e => (e.target.style.borderColor = "#1f2937")}
+                autoComplete="off"
               />
             </div>
             <button
@@ -132,39 +137,59 @@ export default function BrandSmithLanding() {
               type="submit"
               disabled={loading || !input.trim()}
               style={{
-                display: "flex", alignItems: "center", gap: "6px",
-                padding: "13px 22px", backgroundColor: loading || !input.trim() ? "#312e81" : "#6366f1",
-                color: "#fff", border: "none", borderRadius: "10px",
-                fontSize: "15px", fontWeight: 600, cursor: loading || !input.trim() ? "not-allowed" : "pointer",
-                opacity: !input.trim() ? 0.5 : 1, whiteSpace: "nowrap",
-                transition: "background-color 0.15s",
+                background: loading || !input.trim() ? "#c7d2fe" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                color: "#fff",
+                border: "none",
+                borderRadius: 10,
+                padding: "14px 24px",
+                fontSize: 15,
+                fontWeight: 700,
+                cursor: loading || !input.trim() ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                whiteSpace: "nowrap",
+                transition: "all 0.2s",
               }}
             >
-              {loading ? <Loader2 size={16} className="animate-spin" /> : <><span>Analyse</span><ArrowRight size={15} /></>}
+              {loading
+                ? <><Loader2 size={16} className="animate-spin" /> Connecting…</>
+                : <>Analyse brand <ArrowRight size={16} /></>
+              }
             </button>
-          </form>
+          </div>
 
           {error && (
-            <p data-testid="text-error" style={{ marginTop: "12px", color: "#f87171", fontSize: "13px" }}>
-              {error}
-            </p>
+            <p data-testid="text-error" style={{ color: "#ef4444", fontSize: 13, marginBottom: 16, paddingLeft: 4 }}>{error}</p>
           )}
+        </form>
 
-          <div style={{ marginTop: "16px", display: "flex", justifyContent: "center", gap: "24px" }}>
-            {["Crawls homepage + inner pages", "Claude AI synthesis", "7 editable brand cards"].map(item => (
-              <span key={item} style={{ fontSize: "12px", color: "#4b5563", display: "flex", alignItems: "center", gap: "5px" }}>
-                <span style={{ color: "#6366f1" }}>✓</span> {item}
-              </span>
-            ))}
-          </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginTop: 48 }}>
+          {[
+            { icon: <Search size={20} color="#6366f1" />, title: "Identity & positioning", desc: "Brand name, tagline, mission, founding story, and how the company presents itself." },
+            { icon: <Users size={20} color="#8b5cf6" />, title: "Audience & competitors", desc: "Ideal customer profiles, buyer personas, competitor map, and market positioning." },
+            { icon: <Mic size={20} color="#06b6d4" />, title: "Voice & SEO strategy", desc: "Tone guidelines, content pillars, primary keywords, and target search queries." },
+          ].map((item, i) => (
+            <div key={i} style={{
+              background: "#fff",
+              borderRadius: 12,
+              padding: 20,
+              boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+              border: "1px solid rgba(99,102,241,0.08)",
+            }}>
+              <div style={{ marginBottom: 10 }}>{item.icon}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1f2937", marginBottom: 6 }}>{item.title}</div>
+              <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>{item.desc}</div>
+            </div>
+          ))}
         </div>
 
         {recentJobs && recentJobs.length > 0 && (
-          <div style={{ marginTop: "64px", maxWidth: "620px", width: "100%" }}>
-            <p style={{ fontSize: "12px", color: "#4b5563", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
-              <Clock size={12} /> Recent analyses
+          <div style={{ marginTop: 56 }}>
+            <p style={{ fontSize: 12, color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>
+              Recent analyses
             </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {recentJobs.slice().reverse().slice(0, 5).map((job: any) => (
                 <button
                   key={job.jobId}
@@ -172,25 +197,32 @@ export default function BrandSmithLanding() {
                   onClick={() => navigate(`/agents/brandsmith/${job.jobId}`)}
                   style={{
                     display: "flex", alignItems: "center", justifyContent: "space-between",
-                    padding: "12px 16px", backgroundColor: "#111827",
-                    border: "1px solid #1f2937", borderRadius: "8px",
+                    padding: "12px 16px",
+                    background: "#fff",
+                    border: "1px solid rgba(99,102,241,0.12)",
+                    borderRadius: 10,
                     cursor: "pointer", width: "100%", textAlign: "left",
-                    transition: "border-color 0.15s",
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+                    transition: "box-shadow 0.15s",
                   }}
-                  onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.borderColor = "#374151")}
-                  onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.borderColor = "#1f2937")}
                 >
-                  <span style={{ fontSize: "14px", color: "#e5e7eb" }}>{job.websiteUrl}</span>
-                  <span style={{ fontSize: "12px", color: "#4b5563" }}>
+                  <span style={{ fontSize: 14, color: "#1f2937", fontWeight: 500 }}>{job.websiteUrl.replace(/^https?:\/\//, "")}</span>
+                  <span style={{ fontSize: 12, color: "#9ca3af" }}>
                     {new Date(job.createdAt).toLocaleDateString()}
-                    {job.confirmedAt && <span style={{ marginLeft: "8px", color: "#6366f1" }}>✓ confirmed</span>}
+                    {job.confirmedAt && <span style={{ marginLeft: 8, color: "#6366f1", fontWeight: 600 }}>✓ confirmed</span>}
                   </span>
                 </button>
               ))}
             </div>
           </div>
         )}
+
+        <p style={{ textAlign: "center", fontSize: 12, color: "#9ca3af", marginTop: 32 }}>
+          Powered by Claude AI · No account required
+        </p>
       </main>
+
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
     </div>
   );
 }
