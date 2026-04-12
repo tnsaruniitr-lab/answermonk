@@ -269,6 +269,13 @@ export default function BrandSmithResults({ params }: Props) {
 
   const confirmMutation = useMutation({
     mutationFn: async () => {
+      if (apiBase && sections) {
+        await fetch(`${apiBase}/api/brands/research/${jobId}/confirm`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ job_id: jobId, sections }),
+        });
+      }
       const r = await apiRequest("POST", `/api/brandsmith/jobs/${jobId}/confirm`, {});
       return r.json();
     },
