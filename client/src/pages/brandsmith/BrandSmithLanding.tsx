@@ -76,7 +76,7 @@ export default function BrandSmithLanding() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #f8f7ff 0%, #eef2ff 50%, #f0f9ff 100%)", fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)", fontFamily: "Inter, system-ui, sans-serif" }}>
       <nav style={{ padding: "20px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(99,102,241,0.1)" }}>
         <a href="/" style={{ textDecoration: "none" }}>
           <MonkWordmark />
