@@ -1,0 +1,58 @@
+
+
+
+Aligned on the backend contract. A few things to confirm about the Replit side before building:
+
+What I need to know about your Replit app
+Does the Replit app already exist? Is there an existing Express/Node app with Drizzle + PostgreSQL set up, or are we creating Brandsmith as the first backend there?
+
+Where does Brandsmith live? Two options:
+
+Inside the Replit app — add /api/brandsmith/* routes to the existing Replit Express server, use its Drizzle + Postgres
+Standalone in this repo — brandsmith/ directory here, deployed separately to Railway, Replit frontend calls it cross-origin
+Your plan says "Replit PostgreSQL (Drizzle, existing setup)" which implies Brandsmith routes live inside the Replit app. But your original brief said "this will just be a backend app" in this repo.
+
+Who builds the frontend pages? You listed /agents/brandsmith and /agents/brandsmith/:jobId as frontend pages. Am I building those too, or does your Replit app already have a shell/layout and you'll wire the pages yourself using the API contract?
+
+
+Used a tool
+Used a tool
+
+Clear. Here's where we land:
+
+Final Alignment
+Brandsmith = standalone backend in brandsmith/ in this repo. Own Express server, own package.json, deployed to Railway later. Replit frontend (which you'll build separately) calls it via HTTPS.
+
+DB situation changes: Since there's no existing Replit PostgreSQL with Drizzle, and Brandsmith is standalone, we should use Supabase directly as the primary DB — not a mirror. This avoids standing up a second Postgres just for two tables. You already have Supabase running with the brands table. Brandsmith writes to Supabase, Replit frontend reads from Supabase (or via Brandsmith API). One source of truth.
+
+Revised architecture:
+
+Replit Frontend (you build)
+    ↕ HTTPS
+Brandsmith API (this repo, Railway)
+    ↕ 
+Supabase (primary DB — brandsmith_jobs, brandsmith_cards)
+    ↕
+serp-analyzer blog creator (reads brand exports)
+
+What I build:
+
+brandsmith/ — Express 5, TypeScript, Zod, Supabase client
+2 Supabase tables (brandsmith_jobs, brandsmith_cards)
+6 API routes (the contract you confirmed)
+Research pipeline (crawl + Perplexity + Claude synthesis)
+7-section card builder
+Export generators (brand.md, brand-facts.json)
+What you build (on Replit):
+
+Frontend pages (/agents/brandsmith, /agents/brandsmith/:jobId)
+EventSource connection to the SSE stream endpoint
+Card editor UI consuming the sectioned JSON
+Session ID management (localStorage)
+What I don't build:
+
+Replit frontend
+Drizzle schema (using Supabase directly via @supabase/supabase-js)
+Auth layer
+Does this match your expectations? If so I'll start building.
+
