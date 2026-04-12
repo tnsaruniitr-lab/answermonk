@@ -373,7 +373,8 @@ export default function BrandSmithResults({ params }: Props) {
   const confirmMutation = useMutation({
     mutationFn: async () => {
       if (apiBase && sections) {
-        const rawUrl = urlFromNav || (savedJob?.websiteUrl !== "unknown" ? savedJob?.websiteUrl : "") || "";
+        const urlFromSections = sections?.find(s => s.section === "digital_presence")?.data?.website_url as string | undefined;
+        const rawUrl = urlFromNav || (savedJob?.websiteUrl !== "unknown" ? savedJob?.websiteUrl : "") || urlFromSections || "";
         const websiteUrl = rawUrl && !rawUrl.startsWith("http") ? `https://${rawUrl}` : rawUrl;
         if (!websiteUrl) {
           console.warn("[brandsmith] confirm skipped — no website_url available. Re-submit from landing page.");
