@@ -269,7 +269,7 @@ export default function BrandSmithResults({ params }: Props) {
   const confirmMutation = useMutation({
     mutationFn: async () => {
       if (apiBase && sections) {
-        await fetch(`${apiBase}/api/brands/research/${jobId}/confirm`, {
+        await fetch(`${apiBase}/api/brandsmith/${jobId}/confirm`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ job_id: jobId, sections }),
@@ -290,7 +290,7 @@ export default function BrandSmithResults({ params }: Props) {
     if (jobLoading) return;
 
     const streamUrl = apiBase
-      ? `${apiBase}/api/brands/research/${jobId}/stream`
+      ? `${apiBase}/api/brandsmith/research/${jobId}/stream`
       : `/api/brandsmith/mock/research/${jobId}/stream`;
 
     const controller = new AbortController();

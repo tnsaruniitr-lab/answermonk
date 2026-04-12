@@ -59,7 +59,7 @@ export default function BrandSmithLanding() {
     setLoading(true);
     try {
       const endpoint = apiBase
-        ? `${apiBase}/api/brands/research`
+        ? `${apiBase}/api/brandsmith/research`
         : "/api/brandsmith/mock/research";
       const res = await fetch(endpoint, {
         method: "POST",
