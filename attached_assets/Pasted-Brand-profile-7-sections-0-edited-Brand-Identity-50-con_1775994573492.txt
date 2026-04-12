@@ -1,0 +1,227 @@
+Brand profile
+7 sections · 0 edited
+
+🏷️
+Brand Identity
+50% confidence
+Cancel
+brand name
+
+TRYPS
+tagline
+
+Plan group trips together without the chaos
+mission statement
+
+brand description
+
+TRYPS is a group trip planning app for friends that helps coordinate dates, build shared itineraries, and split expenses all in one place. The platform requires no downloads or sign-ups - users send one link and groups can instantly start planning together.
+founding story
+
+founded year
+
+2025
+founder
+
+Jake Stein
+headquarters
+
+company size
+
+funding stage
+
+Save changes
+Cancel
+📦
+Product & Offerings
+50% confidence
+Edit
+core products
+
+{"name":"TRYPS Group Trip Planning App","description":"Web-based group trip coordination platform that handles date selection, itinerary building, and expense tracking","category":"Travel Planning Software"}
+key features
+
+{"feature":"Instant Group Access","description":"Send one link or iMessage for immediate group joining without downloads or sign-ups","benefit":"Eliminates friction and gets everyone participating immediately"}
+{"feature":"Date Polling","description":"One poll for everyone to vote on dates and lock in availability","benefit":"Ends endless back-and-forth messaging about scheduling"}
+{"feature":"Shared Itinerary","description":"Collaborative itinerary that everyone can see and update in real-time","benefit":"Keeps all planning centralized and prevents confusion"}
+{"feature":"Expense Tracking","description":"Track who paid what and who owes whom with clean settlement","benefit":"Eliminates awkward money conversations and disputes"}
+pricing model
+
+—
+pricing details
+
+tiers
+[]
+tech stack
+
+integrations
+
+🎯
+Target Audience
+100% confidence
+Edit
+icp profiles
+
+{"title":"Friend Groups Planning Trips","description":"Groups of friends organizing various types of trips from weekend getaways to international vacations","company_size":"N/A","industry":"Consumer/Personal Travel"}
+buyer personas
+
+{"name":"Trip Organizer","role":"The person who typically coordinates group activities and trips","pain_points":["Endless group chat coordination","People not responding to planning messages","Scattered notes and information","Awkward expense tracking and splitting"],"goals":["Get everyone aligned on dates quickly","Keep all trip information in one place","Make planning enjoyable instead of stressful"],"objections":["Friends won't want to use another app","Too complicated for casual trips"]}
+pain points
+
+Chaotic group trip coordination
+Endless back-and-forth messaging about dates
+Scattered planning information across multiple platforms
+Awkward money conversations and expense splitting
+jobs to be done
+
+Coordinate group availability and lock in dates
+Build and maintain a shared trip itinerary
+Track and split group expenses fairly
+Get all group members engaged in trip planning
+target industries
+
+Personal Travel
+Consumer Leisure
+target geographies
+
+United States
+⚔️
+Competitive Landscape
+80% confidence
+Edit
+competitors
+
+positioning statement
+
+A group trip planning app your friends actually use
+differentiators
+
+{"claim":"No app required for invitees","evidence":"Send one link, no downloads or sign-ups needed"}
+{"claim":"All-in-one coordination","evidence":"Dates, itinerary, and expenses in one shared flow"}
+{"claim":"Real group usage","evidence":"Over 500+ groups already planning trips"}
+market category
+
+Group Trip Planning Software
+competitive advantages
+
+Frictionless onboarding with no app requirements
+Integrated date polling, itinerary, and expense features
+Built specifically for friend group dynamics
+🎙️
+Brand Voice & Tone
+100% confidence
+Edit
+voice attributes
+
+conversational
+practical
+relatable
+direct
+friendly
+tone examples
+
+preferred
+["A group trip planning app your friends actually use","No awkward money conversations","without the chaos","From 'we should plan something' to booked and ready"]
+avoid
+["Enterprise-speak","Overly formal language","Complex technical jargon"]
+banned phrases
+
+Revolutionary
+Game-changing
+Best-in-class
+Cutting-edge solution
+Seamless experience
+content pillars
+
+{"pillar":"Group Trip Planning Education","description":"Practical guides and tips for coordinating group travel","example_topics":["Step-by-step group trip planning","Destination itineraries for groups"]}
+{"pillar":"Destination Guides","description":"Specific location-based itineraries designed for friend groups","example_topics":["7 Days in Oahu With Friends"]}
+naming rules
+
+brand
+TRYPS (all caps)
+always_use
+["group trip planning app","friends"]
+never_use
+["travel management platform","enterprise solution"]
+audience language
+
+preferred
+["friends","groups","your group","friend groups"]
+avoid
+["users","customers","clients","stakeholders"]
+editorial rules
+
+🌐
+Digital Presence
+77% confidence
+Edit
+website url
+
+https://trypsagent.com
+social profiles
+
+instagram
+https://www.instagram.com/tryps
+linkedin
+https://www.linkedin.com/company/tryps
+twitter
+https://x.com/tryps
+press mentions
+
+testimonial themes
+
+site navigation
+
+{"label":"TRYPS","href":"https://trypsagent.com/"}
+{"label":"Guide","href":"https://trypsagent.com/group-trip-planning-guide"}
+{"label":"Blog","href":"https://trypsagent.com/blog"}
+{"label":"About","href":"https://trypsagent.com/about"}
+{"label":"Privacy","href":"https://trypsagent.com/privacy"}
+{"label":"Terms","href":"https://trypsagent.com/terms"}
+{"label":"Contact","href":"https://trypsagent.com/contact"}
+footer navigation
+
+{"label":"About","href":"https://trypsagent.com/about"}
+{"label":"Privacy","href":"https://trypsagent.com/privacy"}
+{"label":"Terms","href":"https://trypsagent.com/terms"}
+{"label":"Contact","href":"https://trypsagent.com/contact"}
+{"label":"Guide","href":"https://trypsagent.com/group-trip-planning-guide"}
+{"label":"Blog","href":"https://trypsagent.com/blog"}
+📈
+SEO & Content Strategy
+100% confidence
+Edit
+primary keywords
+
+group trip planning
+group trip planning app
+plan group trips
+group travel planning
+trip planning with friends
+secondary keywords
+
+group trip coordination
+split trip expenses
+group travel app
+plan trips with friends
+group vacation planning
+coordinate group dates
+shared trip itinerary
+group trip organizer
+friend trip planning
+group date coordination
+content themes
+
+{"theme":"Group Trip Planning Guides","description":"Educational content on how to plan and coordinate group trips effectively","keywords":["group trip planning","how to plan group trip","group travel tips"]}
+{"theme":"Destination Itineraries","description":"Location-specific guides for group travel with practical itineraries","keywords":["group itinerary","friends itinerary","group travel destinations"]}
+target queries
+
+{"query":"how to plan a group trip","intent":"informational","priority":"high"}
+{"query":"group trip planning app","intent":"commercial","priority":"high"}
+{"query":"best way to coordinate group travel","intent":"informational","priority":"medium"}
+{"query":"split expenses group trip","intent":"informational","priority":"medium"}
+{"query":"group trip itinerary template","intent":"informational","priority":"medium"}
+existing content urls
+
+https://trypsagent.com/blog
+https://trypsagent.com/group-trip-planning-guide
