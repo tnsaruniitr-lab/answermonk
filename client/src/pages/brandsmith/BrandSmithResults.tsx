@@ -32,50 +32,139 @@ const SECTION_ICONS: Record<string, string> = {
   seo_content_strategy: "📈",
 };
 
-function ConfidenceBadge({ score }: { score: number }) {
-  const pct = Math.round(score * 100);
-  const color = pct >= 80 ? "#059669" : pct >= 60 ? "#d97706" : "#dc2626";
-  const bg = pct >= 80 ? "#ecfdf5" : pct >= 60 ? "#fffbeb" : "#fef2f2";
-  const border = pct >= 80 ? "#a7f3d0" : pct >= 60 ? "#fde68a" : "#fecaca";
+function isEmpty(val: unknown): boolean {
+  if (val === null || val === undefined || val === "") return true;
+  if (Array.isArray(val) && val.length === 0) return true;
+  if (typeof val === "object" && !Array.isArray(val) && Object.keys(val as Record<string, unknown>).length === 0) return true;
+  return false;
+}
+
+const OBJ_TITLE_KEYS = ["name", "title", "feature", "query", "theme", "pillar", "claim", "label", "person"];
+
+function ObjectMiniCard({ obj }: { obj: Record<string, unknown> }) {
+  const titleKey = OBJ_TITLE_KEYS.find(k => k in obj && typeof obj[k] === "string" && (obj[k] as string).length > 0);
+  const title = titleKey ? String(obj[titleKey as string]) : null;
   return (
-    <span style={{
-      fontSize: 11, fontWeight: 600, color,
-      background: bg, border: `1px solid ${border}`,
-      borderRadius: 4, padding: "2px 7px",
-    }}>
-      {pct}% confidence
-    </span>
+    <div style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 14px" }}>
+      {title && <div style={{ fontSize: 13, fontWeight: 600, color: "#1f2937", marginBottom: 5 }}>{title}</div>}
+      {Object.entries(obj)
+        .filter(([k, v]) => k !== titleKey && !isEmpty(v))
+        .map(([k, v]) => (
+          <div key={k} style={{ display: "flex", gap: 8, fontSize: 12, marginBottom: 3, alignItems: "flex-start" }}>
+            <span style={{ color: "#9ca3af", minWidth: 90, flexShrink: 0, paddingTop: 1 }}>{k.replace(/_/g, " ")}</span>
+            <span style={{ color: "#4b5563", wordBreak: "break-word" }}>
+              {Array.isArray(v)
+                ? (v as unknown[]).map(x => (typeof x === "object" ? JSON.stringify(x) : String(x))).join(", ")
+                : String(v)}
+            </span>
+          </div>
+        ))}
+    </div>
   );
 }
 
-function FieldValue({ val }: { val: unknown }) {
+function SocialLinks({ obj }: { obj: Record<string, unknown> }) {
+  const PLATFORM_LABEL: Record<string, string> = { linkedin: "LinkedIn", twitter: "X (Twitter)", instagram: "Instagram", facebook: "Facebook", youtube: "YouTube" };
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+      {Object.entries(obj).map(([platform, url]) => {
+        if (!url || typeof url !== "string" || !url.startsWith("http")) return null;
+        return (
+          <a key={platform} href={url} target="_blank" rel="noreferrer" style={{
+            display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12,
+            color: "#6366f1", background: "rgba(99,102,241,0.06)",
+            border: "1px solid rgba(99,102,241,0.15)", borderRadius: 6,
+            padding: "4px 10px", textDecoration: "none", fontWeight: 500,
+          }}>
+            {PLATFORM_LABEL[platform] ?? platform}
+          </a>
+        );
+      })}
+    </div>
+  );
+}
+
+function NavLinkList({ items }: { items: Array<Record<string, unknown>> }) {
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+      {items.map((item, i) => {
+        const label = String(item.label ?? item.name ?? "Link");
+        const href = String(item.href ?? item.url ?? "#");
+        return (
+          <a key={i} href={href} target="_blank" rel="noreferrer" style={{
+            fontSize: 12, color: "#374151", background: "#f3f4f6",
+            border: "1px solid #e5e7eb", borderRadius: 4, padding: "3px 8px", textDecoration: "none",
+          }}>
+            {label}
+          </a>
+        );
+      })}
+    </div>
+  );
+}
+
+function FieldValue({ val, fieldKey }: { val: unknown; fieldKey?: string }) {
+  if (isEmpty(val)) return null;
+
+  if (fieldKey === "social_profiles" && typeof val === "object" && !Array.isArray(val)) {
+    return <SocialLinks obj={val as Record<string, unknown>} />;
+  }
+
   if (Array.isArray(val)) {
+    if (val.length === 0) return null;
+    const isObjArray = typeof val[0] === "object" && val[0] !== null;
+    if (isObjArray) {
+      const isNavArray = (val as Record<string, unknown>[]).every(item => "href" in item || "url" in item);
+      if (isNavArray) return <NavLinkList items={val as Record<string, unknown>[]} />;
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {(val as Record<string, unknown>[]).map((item, i) => <ObjectMiniCard key={i} obj={item} />)}
+        </div>
+      );
+    }
     return (
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-        {val.map((item: unknown, i) => (
-          <span key={i} style={{
-            fontSize: 12, background: "#f3f4f6", color: "#4b5563",
-            border: "1px solid #e5e7eb", borderRadius: 4, padding: "3px 8px",
-          }}>
-            {typeof item === "object" ? JSON.stringify(item) : String(item)}
+        {(val as unknown[]).map((item, i) => (
+          <span key={i} style={{ fontSize: 12, background: "#f3f4f6", color: "#4b5563", border: "1px solid #e5e7eb", borderRadius: 4, padding: "3px 8px" }}>
+            {String(item)}
           </span>
         ))}
       </div>
     );
   }
+
   if (typeof val === "object" && val !== null) {
+    const entries = Object.entries(val as Record<string, unknown>).filter(([, v]) => !isEmpty(v));
+    if (entries.length === 0) return null;
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        {Object.entries(val).map(([k, v]) => (
+        {entries.map(([k, v]) => (
           <div key={k} style={{ display: "flex", gap: 8, fontSize: 13 }}>
-            <span style={{ color: "#9ca3af", minWidth: 100 }}>{k}</span>
-            <span style={{ color: "#374151" }}>{typeof v === "object" ? JSON.stringify(v) : String(v)}</span>
+            <span style={{ color: "#9ca3af", minWidth: 100, flexShrink: 0 }}>{k.replace(/_/g, " ")}</span>
+            <span style={{ color: "#374151", wordBreak: "break-word" }}>
+              {Array.isArray(v) ? (v as unknown[]).map(String).join(", ") : String(v)}
+            </span>
           </div>
         ))}
       </div>
     );
   }
-  return <span style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}>{String(val ?? "—")}</span>;
+
+  if (typeof val === "string" && val.startsWith("http")) {
+    return <a href={val} target="_blank" rel="noreferrer" style={{ fontSize: 14, color: "#6366f1" }}>{val}</a>;
+  }
+
+  return <span style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}>{String(val)}</span>;
+}
+
+function ConfidenceBadge({ score }: { score: number }) {
+  if (score >= 0.75) return null;
+  const pct = Math.round(score * 100);
+  return (
+    <span style={{ fontSize: 11, fontWeight: 600, color: "#d97706", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 4, padding: "2px 7px" }}>
+      {pct}% — needs review
+    </span>
+  );
 }
 
 function FieldEditor({ value, onChange }: { value: unknown; onChange: (v: unknown) => void }) {
@@ -99,14 +188,18 @@ function FieldEditor({ value, onChange }: { value: unknown; onChange: (v: unknow
   );
 }
 
-function SectionCard({ section, editing, onToggleEdit, onSaveEdit }: {
+function SectionCard({ section, initialOpen = false, editing, onToggleEdit, onSaveEdit }: {
   section: BrandSection;
+  initialOpen?: boolean;
   editing: boolean;
   onToggleEdit: () => void;
   onSaveEdit: (updated: BrandSection) => void;
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(initialOpen);
   const [localData, setLocalData] = useState<Record<string, unknown>>({ ...section.data });
+
+  const visibleEntries = Object.entries(section.data).filter(([, val]) => !isEmpty(val));
+  const summary = `${visibleEntries.length} field${visibleEntries.length !== 1 ? "s" : ""}`;
 
   function handleSave() {
     onSaveEdit({ ...section, data: localData, user_edited: true });
@@ -131,11 +224,14 @@ function SectionCard({ section, editing, onToggleEdit, onSaveEdit }: {
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 18 }}>{SECTION_ICONS[section.section] ?? "📄"}</span>
-          <span style={{ fontSize: 15, fontWeight: 700, color: "#0f0a2e" }}>{section.title}</span>
-          {section.user_edited && (
-            <span style={{ fontSize: 11, color: "#6366f1", fontWeight: 600 }}>edited</span>
-          )}
-          <ConfidenceBadge score={section.ai_confidence} />
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 15, fontWeight: 700, color: "#0f0a2e" }}>{section.title}</span>
+              {section.user_edited && <span style={{ fontSize: 11, color: "#6366f1", fontWeight: 600 }}>edited</span>}
+              <ConfidenceBadge score={section.ai_confidence} />
+            </div>
+            <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>{summary}</div>
+          </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {open && (
@@ -158,15 +254,15 @@ function SectionCard({ section, editing, onToggleEdit, onSaveEdit }: {
 
       {open && (
         <div style={{ padding: "0 20px 20px", borderTop: "1px solid rgba(99,102,241,0.06)" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingTop: 16 }}>
-            {Object.entries(editing ? localData : section.data).map(([key, val]) => (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingTop: 16 }}>
+            {(editing ? Object.entries(localData) : visibleEntries).map(([key, val]) => (
               <div key={key}>
                 <p style={{ fontSize: 11, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6, fontWeight: 600 }}>
                   {key.replace(/_/g, " ")}
                 </p>
                 {editing
                   ? <FieldEditor value={localData[key]} onChange={v => setLocalData(prev => ({ ...prev, [key]: v }))} />
-                  : <FieldValue val={val} />
+                  : <FieldValue val={val} fieldKey={key} />
                 }
               </div>
             ))}
@@ -517,10 +613,11 @@ export default function BrandSmithResults({ params }: Props) {
               {sections
                 .slice()
                 .sort((a, b) => a.card_order - b.card_order)
-                .map(section => (
+                .map((section, idx) => (
                   <SectionCard
                     key={section.section}
                     section={section}
+                    initialOpen={idx === 0}
                     editing={editingSection === section.section}
                     onToggleEdit={() => setEditingSection(prev => prev === section.section ? null : section.section)}
                     onSaveEdit={handleSaveEdit}
