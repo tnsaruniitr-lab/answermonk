@@ -30,7 +30,38 @@ const SECTION_ICONS: Record<string, string> = {
   voice_and_tone: "🎙️",
   digital_presence: "🌐",
   seo_content_strategy: "📈",
+  business_operations: "⚙️",
 };
+
+const BUSINESS_OPS_FIELDS: { key: string; label: string; placeholder: string }[] = [
+  { key: "stage", label: "Stage", placeholder: "e.g. Pre-seed, Seed, Series A, Growth" },
+  { key: "monthly_budget", label: "Monthly Budget", placeholder: "e.g. $5,000 / mo" },
+  { key: "current_channels", label: "Current Channels", placeholder: "e.g. Paid social, Email, SEO" },
+  { key: "key_metric_mrr", label: "MRR", placeholder: "e.g. $12,000 / mo" },
+  { key: "key_metric_retention", label: "Retention", placeholder: "e.g. 85%" },
+  { key: "key_metric_trial_to_paid", label: "Trial → Paid", placeholder: "e.g. 22%" },
+];
+
+const DEFAULT_BUSINESS_OPS_SECTION: BrandSection = {
+  section: "business_operations",
+  title: "Business Operations",
+  card_order: 8,
+  ai_confidence: 0,
+  user_edited: false,
+  data: {
+    stage: null,
+    monthly_budget: null,
+    current_channels: null,
+    key_metric_mrr: null,
+    key_metric_retention: null,
+    key_metric_trial_to_paid: null,
+  },
+};
+
+function withBusinessOps(secs: BrandSection[]): BrandSection[] {
+  if (secs.some(s => s.section === "business_operations")) return secs;
+  return [...secs, DEFAULT_BUSINESS_OPS_SECTION];
+}
 
 function isEmpty(val: unknown): boolean {
   if (val === null || val === undefined || val === "") return true;
@@ -173,7 +204,7 @@ function ConfidenceBadge({ score }: { score: number }) {
   );
 }
 
-function FieldEditor({ value, onChange }: { value: unknown; onChange: (v: unknown) => void }) {
+function FieldEditor({ value, onChange, placeholder }: { value: unknown; onChange: (v: unknown) => void; placeholder?: string }) {
   const strVal = Array.isArray(value)
     ? (value as unknown[]).map(x => (typeof x === "object" ? JSON.stringify(x) : String(x))).join(", ")
     : typeof value === "object" && value !== null
@@ -188,9 +219,9 @@ function FieldEditor({ value, onChange }: { value: unknown; onChange: (v: unknow
   };
 
   return isLong ? (
-    <textarea value={strVal} onChange={e => onChange(e.target.value)} rows={4} style={{ ...base, resize: "vertical" }} />
+    <textarea value={strVal} onChange={e => onChange(e.target.value)} rows={4} placeholder={placeholder} style={{ ...base, resize: "vertical" }} />
   ) : (
-    <input type="text" value={strVal} onChange={e => onChange(e.target.value)} style={base} />
+    <input type="text" value={strVal} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={base} />
   );
 }
 
@@ -204,8 +235,12 @@ function SectionCard({ section, initialOpen = false, editing, onToggleEdit, onSa
   const [open, setOpen] = useState(initialOpen);
   const [localData, setLocalData] = useState<Record<string, unknown>>({ ...section.data });
 
+  const isBusinessOps = section.section === "business_operations";
   const visibleEntries = Object.entries(section.data).filter(([, val]) => !isEmpty(val));
-  const summary = `${visibleEntries.length} field${visibleEntries.length !== 1 ? "s" : ""}`;
+  const filledCount = isBusinessOps ? BUSINESS_OPS_FIELDS.filter(f => !isEmpty(section.data[f.key])).length : 0;
+  const summary = isBusinessOps
+    ? `${filledCount} of ${BUSINESS_OPS_FIELDS.length} filled`
+    : `${visibleEntries.length} field${visibleEntries.length !== 1 ? "s" : ""}`;
 
   function handleSave() {
     onSaveEdit({ ...section, data: localData, user_edited: true });
@@ -234,7 +269,10 @@ function SectionCard({ section, initialOpen = false, editing, onToggleEdit, onSa
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <span style={{ fontSize: 15, fontWeight: 700, color: "#0f0a2e" }}>{section.title}</span>
               {section.user_edited && <span style={{ fontSize: 11, color: "#6366f1", fontWeight: 600 }}>edited</span>}
-              <ConfidenceBadge score={section.ai_confidence} />
+              {isBusinessOps
+                ? <span style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 4, padding: "2px 7px" }}>you fill this in</span>
+                : <ConfidenceBadge score={section.ai_confidence} />
+              }
             </div>
             <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>{summary}</div>
           </div>
@@ -261,17 +299,40 @@ function SectionCard({ section, initialOpen = false, editing, onToggleEdit, onSa
       {open && (
         <div style={{ padding: "0 20px 20px", borderTop: "1px solid rgba(99,102,241,0.06)" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingTop: 16 }}>
-            {(editing ? Object.entries(localData) : visibleEntries).map(([key, val]) => (
-              <div key={key}>
-                <p style={{ fontSize: 11, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6, fontWeight: 600 }}>
-                  {key.replace(/_/g, " ")}
-                </p>
-                {editing
-                  ? <FieldEditor value={localData[key]} onChange={v => setLocalData(prev => ({ ...prev, [key]: v }))} />
-                  : <FieldValue val={val} fieldKey={key} />
-                }
-              </div>
-            ))}
+            {isBusinessOps ? (
+              <>
+                {!editing && (
+                  <p style={{ fontSize: 12, color: "#9ca3af", margin: 0, lineHeight: 1.5 }}>
+                    These are private metrics Claude can't find online. Fill them in to give your brand profile full context when calling Claude skills.
+                  </p>
+                )}
+                {BUSINESS_OPS_FIELDS.map(({ key, label, placeholder }) => (
+                  <div key={key}>
+                    <p style={{ fontSize: 11, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6, fontWeight: 600 }}>
+                      {label}
+                    </p>
+                    {editing
+                      ? <FieldEditor value={localData[key]} onChange={v => setLocalData(prev => ({ ...prev, [key]: v }))} placeholder={placeholder} />
+                      : isEmpty(section.data[key])
+                        ? <span style={{ fontSize: 13, color: "#d1d5db", fontStyle: "italic" }}>{placeholder}</span>
+                        : <FieldValue val={section.data[key]} fieldKey={key} />
+                    }
+                  </div>
+                ))}
+              </>
+            ) : (
+              (editing ? Object.entries(localData) : visibleEntries).map(([key, val]) => (
+                <div key={key}>
+                  <p style={{ fontSize: 11, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6, fontWeight: 600 }}>
+                    {key.replace(/_/g, " ")}
+                  </p>
+                  {editing
+                    ? <FieldEditor value={localData[key]} onChange={v => setLocalData(prev => ({ ...prev, [key]: v }))} />
+                    : <FieldValue val={val} fieldKey={key} />
+                  }
+                </div>
+              ))
+            )}
           </div>
 
           {editing && (
@@ -401,7 +462,7 @@ export default function BrandSmithResults({ params }: Props) {
 
   useEffect(() => {
     if (savedJob?.sections && savedJob.sections.length > 0) {
-      setSections(savedJob.sections);
+      setSections(withBusinessOps(savedJob.sections));
       if (savedJob.confirmedAt) setConfirmed(true);
       return;
     }
@@ -451,7 +512,7 @@ export default function BrandSmithResults({ params }: Props) {
             } else if (eventType === "complete") {
               try {
                 const payload = JSON.parse(data);
-                const secs: BrandSection[] = payload.sections ?? [];
+                const secs: BrandSection[] = withBusinessOps(payload.sections ?? []);
                 setSections(secs);
                 setProgress(null);
                 const websiteUrl = urlFromNav || savedJob?.websiteUrl || payload.website_url || "unknown";
