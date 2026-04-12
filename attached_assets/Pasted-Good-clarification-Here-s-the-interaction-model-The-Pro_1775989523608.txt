@@ -1,0 +1,72 @@
+Good clarification. Here's the interaction model:
+
+The Problem with a Single HTTPS Call
+The research pipeline (crawl + Perplexity + Claude) takes 30-60 seconds. A single synchronous request has issues:
+
+HTTP timeouts (Replit, proxies, browsers typically cut at 30s)
+No progress feedback — user stares at a spinner
+If connection drops, all work is lost
+Two Options
+Option A: Async (2-call pattern) — recommended
+
+1. POST /api/brands/research  →  { job_id, status: "pending" }     (instant)
+2. GET  /api/brands/research/:jobId  →  { status: "researching", progress: "Analyzing competitors..." }  (poll every 3s)
+3. GET  /api/brands/research/:jobId  →  { status: "ready" }        (done!)
+4. GET  /api/brands/:jobId/cards  →  7 card sections               (instant)
+5. PUT  /api/brands/:jobId/cards  →  save edits                    (instant)
+6. POST /api/brands/:jobId/confirm  →  save to Supabase            (instant)
+
+Option B: SSE stream (single call, real-time)
+
+1. POST /api/brands/research  →  SSE stream that emits progress events, then final cards payload
+   event: progress  data: { step: "crawling", message: "Scanning pricing page..." }
+   event: progress  data: { step: "researching", message: "Analyzing competitors..." }
+   event: complete  data: { cards: [...7 sections...] }
+2. PUT  /api/brands/:jobId/cards  →  save edits
+3. POST /api/brands/:jobId/confirm  →  save to Supabase
+
+SSE is still a single HTTPS connection — the server just keeps it open and pushes events. No WebSocket complexity. The Replit frontend uses EventSource or fetch with streaming.
+
+
+Used a tool
+Used a tool
+
+Got it — SSE streaming. Here's the final API contract your Replit frontend will use:
+
+Replit ↔ Brandsmith API Contract
+Step 1: Start Research (SSE Stream)
+POST /api/brands/research
+Content-Type: application/json
+Accept: text/event-stream
+
+{ "website_url": "https://example.com", "session_id": "user-123" }
+
+Frontend receives streaming events:
+
+event: status
+data: {"step":"crawling","message":"Scanning homepage...","pct":10}
+
+event: status  
+data: {"step":"crawling","message":"Found pricing page...","pct":25}
+
+event: status
+data: {"step":"researching","message":"Analyzing competitors...","pct":50}
+
+event: status
+data: {"step":"synthesizing","message":"Building brand profile...","pct":80}
+
+event: complete
+data: {"job_id":"abc-123","cards":[...7 card sections...]}
+
+Step 2: Save Edits
+PUT /api/brands/:jobId/cards
+{ "sections": [{ "section": "identity", "data": { "brand_name": "Edited Name", ... } }] }
+→ 200 OK
+
+Step 3: Confirm & Save
+POST /api/brands/:jobId/confirm
+→ { "brand_id": 42, "profile_id": "uuid-..." }
+
+Step 4: Export (for blog creator)
+GET /api/brands/42/export?format=json   → brand-facts.json
+GET /api/brands/42/export?format=md     → brand.md
