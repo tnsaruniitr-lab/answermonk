@@ -10,6 +10,7 @@ import { registerBrandPageRoutes } from "./directory/brandPageRoute";
 import { registerCategoryHubRoutes } from "./directory/categoryHubRoute";
 import { registerComparisonPageRoutes } from "./directory/comparisonPageRoute";
 import { registerPeopleRoutes } from "./people/routes";
+import { registerBrandsmithRoutes } from "./brandsmith/routes";
 import { syncSessionToDirectory, backfillRecentSessions } from "./directory/sessionToDirectory";
 import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
@@ -5682,6 +5683,9 @@ ${listItems}
 
   // ====== PEOPLE AI IDENTITY AUDIT ROUTES ======
   registerPeopleRoutes(app);
+
+  // ====== BRANDSMITH ROUTES ======
+  registerBrandsmithRoutes(app);
 
   return httpServer;
 }

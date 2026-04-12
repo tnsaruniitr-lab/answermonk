@@ -479,3 +479,36 @@ export const peopleScores = pgTable("people_scores", {
 });
 
 export type PeopleScore = typeof peopleScores.$inferSelect;
+
+// === BRANDSMITH ===
+
+export const brandsmithJobs = pgTable("brandsmith_jobs", {
+  id: serial("id").primaryKey(),
+  jobId: text("job_id").notNull().unique(),
+  sessionId: text("session_id").notNull(),
+  websiteUrl: text("website_url").notNull(),
+  status: text("status").notNull().default("complete"),
+  sections: jsonb("sections").$type<BrandSection[]>(),
+  confirmedAt: timestamp("confirmed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export interface BrandSectionField {
+  key: string;
+  label: string;
+  type: "text" | "textarea" | "list" | "url";
+  value: string | string[];
+}
+
+export interface BrandSection {
+  section: string;
+  title: string;
+  card_order: number;
+  ai_confidence: number;
+  user_edited: boolean;
+  data: Record<string, unknown>;
+}
+
+export const insertBrandsmithJobSchema = createInsertSchema(brandsmithJobs).omit({ id: true, createdAt: true });
+export type BrandsmithJob = typeof brandsmithJobs.$inferSelect;
+export type InsertBrandsmithJob = z.infer<typeof insertBrandsmithJobSchema>;

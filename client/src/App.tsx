@@ -26,6 +26,8 @@ import PeopleLanding from "@/pages/people/PeopleLanding";
 import PeopleAnchors from "@/pages/people/PeopleAnchors";
 import PeopleAnalysis from "@/pages/people/PeopleAnalysis";
 import PeopleReport from "@/pages/people/PeopleReport";
+import BrandSmithLanding from "@/pages/brandsmith/BrandSmithLanding";
+import BrandSmithResults from "@/pages/brandsmith/BrandSmithResults";
 import ReportsSession from "@/pages/ReportsSession";
 import ReportsIndex from "@/pages/ReportsIndex";
 import DirectoryListing from "@/pages/DirectoryListing";
@@ -109,6 +111,8 @@ function AdminDashboard() {
       <Route path="/reports/geo-landing-page" component={GeoLandingPageReport} />
       <Route path="/reports/collectmaxx" component={CollectmaxxReport} />
       <Route path="/directory" component={DirectoryListing} />
+      <Route path="/agents/brandsmith" component={BrandSmithLanding} />
+      <Route path="/agents/brandsmith/:jobId">{(params) => <BrandSmithResults params={params} />}</Route>
       <Route path="/audit/:slug">{(params) => <AuditBySlug params={params} />}</Route>
       <Route path="/:slug">{(params) => <SlugTeaser params={params} />}</Route>
       <Route component={NotFound} />
