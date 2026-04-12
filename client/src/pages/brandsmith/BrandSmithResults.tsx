@@ -371,10 +371,15 @@ export default function BrandSmithResults({ params }: Props) {
 
   const confirmMutation = useMutation({
     mutationFn: async () => {
-      if (apiBase) {
-        await fetch(`${apiBase}/api/brandsmith/${jobId}/confirm`, {
+      if (apiBase && sections) {
+        await fetch(`${apiBase}/api/brandsmith/confirm`, {
           method: "POST",
-          headers: { "ngrok-skip-browser-warning": "true" },
+          headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+          body: JSON.stringify({
+            website_url: savedJob?.websiteUrl,
+            job_id: jobId,
+            sections,
+          }),
         });
       }
       const r = await apiRequest("POST", `/api/brandsmith/jobs/${jobId}/confirm`, {});
@@ -471,13 +476,6 @@ export default function BrandSmithResults({ params }: Props) {
     setSections(next);
     setEditingSection(null);
     updateCardsMutation.mutate(next);
-    if (apiBase) {
-      fetch(`${apiBase}/api/brandsmith/${jobId}/cards`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-        body: JSON.stringify({ sections: [{ section: updated.section, data: updated.data }] }),
-      }).catch(() => {});
-    }
     if (confirmed) setHasEditsAfterConfirm(true);
   }
 
