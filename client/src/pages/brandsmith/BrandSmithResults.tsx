@@ -347,8 +347,17 @@ export default function BrandSmithResults({ params }: Props) {
 
   const websiteDisplay = savedJob?.websiteUrl?.replace(/^https?:\/\//, "") ?? "";
 
+  useEffect(() => {
+    document.documentElement.style.background = "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)";
+    document.body.style.background = "transparent";
+    return () => {
+      document.documentElement.style.background = "";
+      document.body.style.background = "";
+    };
+  }, []);
+
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)", fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div className="relative min-h-screen w-full overflow-x-clip flex flex-col font-sans" style={{ background: "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)" }}>
       <nav style={{ padding: "20px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(99,102,241,0.1)", background: "rgba(255,255,255,0.7)", backdropFilter: "blur(8px)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <button
