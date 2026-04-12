@@ -79,7 +79,7 @@ export default function BrandSmithLanding() {
         console.error("[brandsmith] No job_id in response", data);
         throw new Error("No job_id returned");
       }
-      navigate(`/agents/brandsmith/${data.job_id}`);
+      navigate(`/agents/brandsmith/${data.job_id}?url=${encodeURIComponent(url)}`);
     } catch (err) {
       console.error("[brandsmith] submit error:", err);
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");

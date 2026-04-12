@@ -333,6 +333,7 @@ export default function BrandSmithResults({ params }: Props) {
   const sessionId = getSessionId();
   const apiBase = getApiBase();
   const qc = useQueryClient();
+  const urlFromNav = new URLSearchParams(window.location.search).get("url") ?? "";
 
   const [progress, setProgress] = useState<{ step: string; message: string; pct: number } | null>(null);
   const [sections, setSections] = useState<BrandSection[] | null>(null);
@@ -372,15 +373,15 @@ export default function BrandSmithResults({ params }: Props) {
   const confirmMutation = useMutation({
     mutationFn: async () => {
       if (apiBase && sections) {
-        await fetch(`${apiBase}/api/brandsmith/confirm`, {
+        const websiteUrl = urlFromNav || savedJob?.websiteUrl || "";
+        const payload = { website_url: websiteUrl, job_id: jobId, sections };
+        console.log("[brandsmith] confirm →", `${apiBase}/api/brandsmith/confirm`, { website_url: websiteUrl, sections: sections.length });
+        const confirmRes = await fetch(`${apiBase}/api/brandsmith/confirm`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-          body: JSON.stringify({
-            website_url: savedJob?.websiteUrl,
-            job_id: jobId,
-            sections,
-          }),
+          body: JSON.stringify(payload),
         });
+        console.log("[brandsmith] confirm ←", confirmRes.status, confirmRes.ok ? "ok" : await confirmRes.text());
       }
       const r = await apiRequest("POST", `/api/brandsmith/jobs/${jobId}/confirm`, {});
       return r.json();
@@ -446,7 +447,7 @@ export default function BrandSmithResults({ params }: Props) {
                 const secs: BrandSection[] = payload.sections ?? [];
                 setSections(secs);
                 setProgress(null);
-                const websiteUrl = savedJob?.websiteUrl ?? payload.website_url ?? "unknown";
+                const websiteUrl = urlFromNav || savedJob?.websiteUrl || payload.website_url || "unknown";
                 await saveJobMutation.mutateAsync({ secs, url: websiteUrl });
               } catch {
                 setStreamError("Failed to process results. Please try again.");
