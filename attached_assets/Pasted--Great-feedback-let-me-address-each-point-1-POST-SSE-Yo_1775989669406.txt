@@ -1,0 +1,65 @@
+
+
+
+Great feedback — let me address each point.
+
+1. POST + SSE: You're right
+EventSource is GET-only. Two options:
+
+GET with query params: GET /api/brands/research?website_url=...&session_id=... — clean, native EventSource works
+POST then GET: POST creates the job (returns job_id), then GET /api/brands/research/:jobId/stream opens the SSE — POST for complex input, GET for streaming
+I'd go with POST-then-GET since research input could grow (additional context, multiple hints) and query params get ugly. The Replit frontend does:
+
+const { job_id } = await fetch('/api/brands/research', { method: 'POST', body }).then(r => r.json())
+const sse = new EventSource(`/api/brands/research/${job_id}/stream`)
+
+Two calls but native EventSource works perfectly, and the job exists in DB immediately for recovery.
+
+2. Perplexity: Yes, it's a real dependency
+The pipeline is three distinct steps:
+
+Crawl — extract what's on the website (facts, copy, structure, social links)
+Perplexity — research what the website can't tell you (competitors, market position, press coverage, customer sentiment, SEO landscape). 5 parallel queries to https://api.perplexity.ai/chat/completions using model sonar
+Claude — synthesize crawl + Perplexity data into structured 7-section profile
+Perplexity fills the gap between "what's on the site" and "what the content machine needs to know." Without it, you'd have no competitor data, no market context, no external sentiment. It requires PERPLEXITY_API_KEY in env.
+
+3. The 7 Card Sections — defined
+#	Section Key	Title	What it covers
+0	identity	Brand Identity	name, tagline, mission, description, founding story, founder, HQ, company size, funding stage
+1	product	Product & Offerings	core products, key features, pricing model, tech stack, integrations
+2	audience	Target Audience	ICP profiles, buyer personas, pain points, jobs-to-be-done, target industries/geos
+3	competitive_landscape	Competitive Landscape	competitors (name, URL, overlap), positioning statement, differentiators, market category
+4	voice_and_tone	Brand Voice & Tone	voice attributes, tone examples (do/don't), banned phrases, content pillars, naming rules
+5	digital_presence	Digital Presence	website URL, social profiles, press mentions, testimonial themes, site nav, footer nav
+6	seo_content_strategy	SEO & Content Strategy	primary/secondary keywords, content themes, target queries, existing content URLs
+These 7 map directly to what the blog creator needs: sections 0-1 feed BlogBrandSchema, section 4 feeds voice + naming_rules in brand-facts.json, section 5 feeds navigation + urls, section 6 feeds keyword/topic selection for blog writing.
+
+4. Supabase vs existing DB
+The plan uses Supabase (project aldraxqsqeywluohskhs) — same one that already has the brands table, documents, crawl_history, etc. This isn't a second database, it IS the existing database for the Sieve ecosystem. Replit's built-in PostgreSQL is for Replit's frontend state. Brandsmith's data belongs in Supabase alongside the rest of the brand/content pipeline data since serp-analyzer reads from there too.
+
+5. Session ID vs Job ID relationship
+session_id — identifies the user/session (from Replit frontend, e.g. a UUID stored in localStorage). One user can have multiple jobs.
+job_id — identifies a single research pipeline run. Server-generated UUID.
+Reconnection: Yes. If connection drops, the frontend can:
+
+GET /api/brands/research?session_id=xxx — list all jobs for this session
+If a job is still running → new EventSource(/api/brands/research/${job_id}/stream) — reconnects and gets current status + remaining events
+If job is ready → go straight to GET /:jobId/cards
+The SSE endpoint is idempotent — opening it on an already-complete job just emits the complete event immediately.
+
+6. Shakespear
+You mentioned Shakespear — I don't have context on this. Was this something you're planning? From the original brief, the flow is:
+
+Brandsmith creates profile → export as brand.md/brand-facts.json → serp-analyzer blog creator consumes it
+
+If Shakespear is a second tool (content/copy generator?), I'd need to know: does it take Brandsmith's confirmed profile as input and layer content strategy on top, or is it independent?
+
+Summary of decisions:
+
+POST-then-GET pattern for SSE (native EventSource, clean separation)
+Perplexity is confirmed — 5 parallel queries, requires API key
+7 sections defined above
+Supabase is the DB — same project, not a second database
+session_id for user, job_id for pipeline — reconnection via session lookup
+Shakespear — need your input on what this is
+Shall I update the plan with these clarifications and start building?
