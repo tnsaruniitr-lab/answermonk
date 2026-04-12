@@ -245,6 +245,31 @@ function App() {
     );
   }
 
+  // BrandSmith — public, no auth
+  if (path === "/agents/brandsmith") {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <BrandSmithLanding />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  const brandsmithResultMatch = path.match(/^\/agents\/brandsmith\/([^/]+)$/);
+  if (brandsmithResultMatch) {
+    const jobId = brandsmithResultMatch[1];
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <BrandSmithResults params={{ jobId }} />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
   const peopleAnchorsMatch = path.match(/^\/people\/anchors\/(\d+)$/);
   if (peopleAnchorsMatch) {
     const sessionId = parseInt(peopleAnchorsMatch[1], 10);
