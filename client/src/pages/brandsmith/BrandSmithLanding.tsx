@@ -69,11 +69,20 @@ export default function BrandSmithLanding() {
         },
         body: JSON.stringify({ website_url: url, session_id: sessionId }),
       });
-      if (!res.ok) throw new Error("Request failed");
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        console.error("[brandsmith] POST failed", res.status, body);
+        throw new Error(`${res.status}: ${body}`);
+      }
       const data = await res.json();
+      if (!data.job_id) {
+        console.error("[brandsmith] No job_id in response", data);
+        throw new Error("No job_id returned");
+      }
       navigate(`/agents/brandsmith/${data.job_id}`);
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err) {
+      console.error("[brandsmith] submit error:", err);
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setLoading(false);
     }
   }
