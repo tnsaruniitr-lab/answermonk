@@ -373,15 +373,21 @@ export default function BrandSmithResults({ params }: Props) {
   const confirmMutation = useMutation({
     mutationFn: async () => {
       if (apiBase && sections) {
-        const websiteUrl = urlFromNav || savedJob?.websiteUrl || "";
-        const payload = { website_url: websiteUrl, job_id: jobId, sections };
-        console.log("[brandsmith] confirm →", `${apiBase}/api/brandsmith/confirm`, { website_url: websiteUrl, sections: sections.length });
-        const confirmRes = await fetch(`${apiBase}/api/brandsmith/confirm`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-          body: JSON.stringify(payload),
-        });
-        console.log("[brandsmith] confirm ←", confirmRes.status, confirmRes.ok ? "ok" : await confirmRes.text());
+        const rawUrl = urlFromNav || (savedJob?.websiteUrl !== "unknown" ? savedJob?.websiteUrl : "") || "";
+        const websiteUrl = rawUrl && !rawUrl.startsWith("http") ? `https://${rawUrl}` : rawUrl;
+        if (!websiteUrl) {
+          console.warn("[brandsmith] confirm skipped — no website_url available. Re-submit from landing page.");
+        } else {
+          const payload = { website_url: websiteUrl, job_id: jobId, sections };
+          console.log("[brandsmith] confirm →", `${apiBase}/api/brandsmith/confirm`, { website_url: websiteUrl, sections: sections.length });
+          const confirmRes = await fetch(`${apiBase}/api/brandsmith/confirm`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+            body: JSON.stringify(payload),
+          });
+          const confirmBody = confirmRes.ok ? await confirmRes.json() : await confirmRes.text();
+          console.log("[brandsmith] confirm ←", confirmRes.status, confirmBody);
+        }
       }
       const r = await apiRequest("POST", `/api/brandsmith/jobs/${jobId}/confirm`, {});
       return r.json();
