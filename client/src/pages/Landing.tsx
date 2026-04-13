@@ -387,9 +387,9 @@ function HeroFlipperText() {
 
   return (
     <>
-      Analyse and improve how you're recommended{" "}
+      Acquire customers and increase your traffic{" "}
       <span style={{ whiteSpace: "nowrap" }}>
-        across{" "}
+        through{" "}
         <span style={{ display: "inline-block", perspective: 400, verticalAlign: "middle", minWidth: "5.8em", textAlign: "left" }}>
           <span
             key={engine.name}
