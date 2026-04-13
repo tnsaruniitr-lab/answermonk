@@ -13,10 +13,6 @@ function getSessionId(): string {
   return sid;
 }
 
-function getApiBase(): string {
-  return import.meta.env.VITE_BRANDSMITH_API_URL || "";
-}
-
 function isValidUrl(val: string): boolean {
   try {
     const u = new URL(val.startsWith("http") ? val : `https://${val}`);
@@ -37,7 +33,6 @@ export default function BrandSmithLanding() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const sessionId = getSessionId();
-  const apiBase = getApiBase();
 
   const { data: recentJobs } = useQuery<any[]>({
     queryKey: ["/api/brandsmith/jobs", sessionId],
@@ -58,15 +53,9 @@ export default function BrandSmithLanding() {
     }
     setLoading(true);
     try {
-      const endpoint = apiBase
-        ? `${apiBase}/api/brandsmith/research`
-        : "/api/brandsmith/mock/research";
-      const res = await fetch(endpoint, {
+      const res = await fetch("/api/brandsmith/research", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(apiBase ? { "ngrok-skip-browser-warning": "true" } : {}),
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ website_url: url, session_id: sessionId }),
       });
       if (!res.ok) {

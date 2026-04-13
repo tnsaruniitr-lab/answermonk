@@ -3,7 +3,6 @@ import { db } from "../db";
 import { brandsmithJobs, type BrandSection, type InsertBrandsmithJob } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
-
 const MOCK_STEPS = [
   { step: "crawling", message: "Scanning homepage…", pct: 10 },
   { step: "crawling", message: "Reading about and pricing pages…", pct: 25 },
@@ -136,14 +135,135 @@ function buildMockSections(websiteUrl: string): BrandSection[] {
   ];
 }
 
+function getUpstreamBase(): string | null {
+  return process.env.BRANDSMITH_API_URL || null;
+}
+
 export function registerBrandsmithRoutes(app: Express) {
-  // --- MOCK ENDPOINTS (used when VITE_BRANDSMITH_API_URL is unset) ---
+
+  // --- PROXY: POST /api/brandsmith/research ---
+  app.post("/api/brandsmith/research", async (req: Request, res: Response) => {
+    const upstream = getUpstreamBase();
+    if (!upstream) {
+      // Fall back to mock when no upstream configured (dev without ngrok)
+      const { website_url } = req.body;
+      if (!website_url) return res.status(400).json({ error: "website_url is required" });
+      const jobId = crypto.randomUUID();
+      (global as any).__brandsmithMockJobs = (global as any).__brandsmithMockJobs || {};
+      (global as any).__brandsmithMockJobs[jobId] = { websiteUrl: website_url, createdAt: Date.now() };
+      return res.json({ job_id: jobId });
+    }
+    try {
+      const upstreamRes = await fetch(`${upstream}/api/brandsmith/research`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+        body: JSON.stringify(req.body),
+      });
+      const data = await upstreamRes.json();
+      return res.status(upstreamRes.status).json(data);
+    } catch (err: any) {
+      console.error("[brandsmith proxy] research error:", err.message);
+      return res.status(502).json({ error: "Claude backend unavailable" });
+    }
+  });
+
+  // --- PROXY: GET /api/brandsmith/research/:jobId/stream (SSE) ---
+  app.get("/api/brandsmith/research/:jobId/stream", async (req: Request, res: Response) => {
+    const upstream = getUpstreamBase();
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders();
+
+    if (!upstream) {
+      // Fall back to mock SSE stream
+      const store = (global as any).__brandsmithMockJobs || {};
+      const job = store[req.params.jobId];
+      const websiteUrl = job?.websiteUrl || "https://example.com";
+      let stepIndex = 0;
+      const interval = setInterval(() => {
+        if (stepIndex < MOCK_STEPS.length) {
+          const s = MOCK_STEPS[stepIndex];
+          res.write(`event: status\ndata: ${JSON.stringify(s)}\n\n`);
+          stepIndex++;
+        } else {
+          clearInterval(interval);
+          const sections = buildMockSections(websiteUrl);
+          res.write(`event: complete\ndata: ${JSON.stringify({ job_id: req.params.jobId, sections })}\n\n`);
+          res.end();
+        }
+      }, 1800);
+      req.on("close", () => clearInterval(interval));
+      return;
+    }
+
+    try {
+      const upstreamRes = await fetch(
+        `${upstream}/api/brandsmith/research/${req.params.jobId}/stream`,
+        {
+          headers: {
+            "ngrok-skip-browser-warning": "true",
+            "Accept": "text/event-stream",
+          },
+        }
+      );
+
+      if (!upstreamRes.ok || !upstreamRes.body) {
+        res.write(`event: error\ndata: ${JSON.stringify({ message: "Upstream stream unavailable" })}\n\n`);
+        return res.end();
+      }
+
+      const reader = upstreamRes.body.getReader();
+      const decoder = new TextDecoder();
+
+      req.on("close", () => reader.cancel().catch(() => {}));
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        res.write(decoder.decode(value, { stream: true }));
+      }
+      res.end();
+    } catch (err: any) {
+      console.error("[brandsmith proxy] stream error:", err.message);
+      res.write(`event: error\ndata: ${JSON.stringify({ message: err.message })}\n\n`);
+      res.end();
+    }
+  });
+
+  // --- PROXY: POST /api/brandsmith/confirm ---
+  app.post("/api/brandsmith/confirm", async (req: Request, res: Response) => {
+    const upstream = getUpstreamBase();
+    if (!upstream) {
+      return res.status(503).json({ error: "Claude backend not configured" });
+    }
+    try {
+      const upstreamRes = await fetch(`${upstream}/api/brandsmith/confirm`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+        body: JSON.stringify(req.body),
+      });
+      const data = await upstreamRes.json();
+      return res.status(upstreamRes.status).json(data);
+    } catch (err: any) {
+      console.error("[brandsmith proxy] confirm error:", err.message);
+      return res.status(502).json({ error: "Claude backend unavailable" });
+    }
+  });
+
+  // --- LEGACY MOCK ENDPOINTS (kept for backwards compat) ---
 
   app.post("/api/brandsmith/mock/research", (req: Request, res: Response) => {
     const { website_url } = req.body;
-    if (!website_url) {
-      return res.status(400).json({ error: "website_url is required" });
-    }
+    if (!website_url) return res.status(400).json({ error: "website_url is required" });
     const jobId = crypto.randomUUID();
     (global as any).__brandsmithMockJobs = (global as any).__brandsmithMockJobs || {};
     (global as any).__brandsmithMockJobs[jobId] = { websiteUrl: website_url, createdAt: Date.now() };
@@ -151,9 +271,8 @@ export function registerBrandsmithRoutes(app: Express) {
   });
 
   app.get("/api/brandsmith/mock/research/:jobId/stream", (req: Request, res: Response) => {
-    const { jobId } = req.params;
     const store = (global as any).__brandsmithMockJobs || {};
-    const job = store[jobId];
+    const job = store[req.params.jobId];
     const websiteUrl = job?.websiteUrl || "https://example.com";
 
     res.setHeader("Content-Type", "text/event-stream");
@@ -170,7 +289,7 @@ export function registerBrandsmithRoutes(app: Express) {
       } else {
         clearInterval(interval);
         const sections = buildMockSections(websiteUrl);
-        res.write(`event: complete\ndata: ${JSON.stringify({ job_id: jobId, sections })}\n\n`);
+        res.write(`event: complete\ndata: ${JSON.stringify({ job_id: req.params.jobId, sections })}\n\n`);
         res.end();
       }
     }, 1800);
@@ -178,7 +297,7 @@ export function registerBrandsmithRoutes(app: Express) {
     req.on("close", () => clearInterval(interval));
   });
 
-  // --- PERSISTENCE ENDPOINTS (save/retrieve results in this app's DB) ---
+  // --- PERSISTENCE ENDPOINTS ---
 
   app.post("/api/brandsmith/jobs", async (req: Request, res: Response) => {
     try {
@@ -187,13 +306,9 @@ export function registerBrandsmithRoutes(app: Express) {
         return res.status(400).json({ error: "jobId, sessionId, websiteUrl required" });
       }
       const existing = await db.select().from(brandsmithJobs).where(eq(brandsmithJobs.jobId, jobId)).limit(1);
-      if (existing.length > 0) {
-        return res.json(existing[0]);
-      }
+      if (existing.length > 0) return res.json(existing[0]);
       const [saved] = await db.insert(brandsmithJobs).values({
-        jobId,
-        sessionId,
-        websiteUrl,
+        jobId, sessionId, websiteUrl,
         sections: sections ?? [],
         status: "complete",
       } as InsertBrandsmithJob).returning();

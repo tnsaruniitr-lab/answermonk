@@ -18,10 +18,6 @@ function getSessionId(): string {
   return sid;
 }
 
-function getApiBase(): string {
-  return import.meta.env.VITE_BRANDSMITH_API_URL || "";
-}
-
 const SECTION_ICONS: Record<string, string> = {
   identity: "🏷️",
   product: "📦",
@@ -392,7 +388,6 @@ export default function BrandSmithResults({ params }: Props) {
   const { jobId } = params;
   const [, navigate] = useLocation();
   const sessionId = getSessionId();
-  const apiBase = getApiBase();
   const qc = useQueryClient();
   const urlFromNav = new URLSearchParams(window.location.search).get("url") ?? "";
 
@@ -433,7 +428,7 @@ export default function BrandSmithResults({ params }: Props) {
 
   const confirmMutation = useMutation({
     mutationFn: async () => {
-      if (apiBase && sections) {
+      if (sections) {
         const urlFromSections = sections?.find(s => s.section === "digital_presence")?.data?.website_url as string | undefined;
         const rawUrl = urlFromNav || (savedJob?.websiteUrl !== "unknown" ? savedJob?.websiteUrl : "") || urlFromSections || "";
         const websiteUrl = rawUrl && !rawUrl.startsWith("http") ? `https://${rawUrl}` : rawUrl;
@@ -441,10 +436,10 @@ export default function BrandSmithResults({ params }: Props) {
           console.warn("[brandsmith] confirm skipped — no website_url available. Re-submit from landing page.");
         } else {
           const payload = { website_url: websiteUrl, job_id: jobId, sections };
-          console.log("[brandsmith] confirm →", `${apiBase}/api/brandsmith/confirm`, { website_url: websiteUrl, sections: sections.length });
-          const confirmRes = await fetch(`${apiBase}/api/brandsmith/confirm`, {
+          console.log("[brandsmith] confirm →", "/api/brandsmith/confirm", { website_url: websiteUrl, sections: sections.length });
+          const confirmRes = await fetch("/api/brandsmith/confirm", {
             method: "POST",
-            headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           });
           const confirmBody = confirmRes.ok ? await confirmRes.json() : await confirmRes.text();
@@ -468,18 +463,13 @@ export default function BrandSmithResults({ params }: Props) {
     }
     if (jobLoading) return;
 
-    const streamUrl = apiBase
-      ? `${apiBase}/api/brandsmith/research/${jobId}/stream`
-      : `/api/brandsmith/mock/research/${jobId}/stream`;
+    const streamUrl = `/api/brandsmith/research/${jobId}/stream`;
 
     const controller = new AbortController();
 
     (async () => {
       try {
-        const headers: Record<string, string> = {};
-        if (apiBase) headers["ngrok-skip-browser-warning"] = "true";
-
-        const res = await fetch(streamUrl, { signal: controller.signal, headers });
+        const res = await fetch(streamUrl, { signal: controller.signal });
         if (!res.ok || !res.body) {
           setStreamError("Failed to connect to analysis stream.");
           return;

@@ -62,3 +62,6 @@ integrations = ["javascript_anthropic_ai_integrations:2.0.0", "javascript_openai
 
 [userenv.development]
 VITE_BRANDSMITH_API_URL = "https://tommye-invocative-arnita.ngrok-free.dev"
+
+[userenv.shared]
+BRANDSMITH_API_URL = "https://tommye-invocative-arnita.ngrok-free.dev"
