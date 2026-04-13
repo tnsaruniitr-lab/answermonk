@@ -387,9 +387,9 @@ function HeroFlipperText() {
 
   return (
     <>
-      Improve your AI search visibility{" "}
+      Analyse and improve your brand's visibility in{" "}
       <span style={{ whiteSpace: "nowrap" }}>
-        through{" "}
+        {" "}
         <span style={{ display: "inline-block", perspective: 400, verticalAlign: "middle", minWidth: "5.8em", textAlign: "left" }}>
           <span
             key={engine.name}
