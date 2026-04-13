@@ -729,7 +729,7 @@ export default function ProspectTeaser({ slug: propSlug }: { slug?: string } = {
             lineHeight: 1.3,
             marginBottom: 10,
           }}>
-            AI Search Visibility Audit
+            Acquire customers through ChatGPT, Claude, Gemini and Perplexity
           </div>
           <div style={{
             display: "inline-flex",
