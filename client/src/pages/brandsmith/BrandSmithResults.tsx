@@ -562,7 +562,7 @@ export default function BrandSmithResults({ params }: Props) {
 
   return (
     <div className="relative min-h-screen w-full overflow-x-clip flex flex-col font-sans" style={{ background: "linear-gradient(135deg, #ede9fe 0%, #ffffff 50%, #ecfdf5 100%)" }}>
-      <nav style={{ padding: "20px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(99,102,241,0.1)", background: "rgba(255,255,255,0.7)", backdropFilter: "blur(8px)" }}>
+      <nav style={{ padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, borderBottom: "1px solid rgba(99,102,241,0.1)", background: "rgba(255,255,255,0.7)", backdropFilter: "blur(8px)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <button
             data-testid="button-back"
@@ -584,7 +584,7 @@ export default function BrandSmithResults({ params }: Props) {
         </div>
 
         {sections && (
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
             <button
               data-testid="button-export"
               onClick={handleExport}
