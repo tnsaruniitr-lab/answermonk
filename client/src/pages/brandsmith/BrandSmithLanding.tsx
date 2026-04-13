@@ -29,7 +29,12 @@ function normalizeUrl(val: string): string {
 
 export default function BrandSmithLanding() {
   const [, navigate] = useLocation();
-  const [input, setInput] = useState("");
+
+  const params = new URLSearchParams(window.location.search);
+  const urlParam = params.get("url") ?? "";
+  const tcid = params.get("tcid") ?? "";
+
+  const [input, setInput] = useState(urlParam);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const sessionId = getSessionId();
@@ -56,7 +61,11 @@ export default function BrandSmithLanding() {
       const res = await fetch("/api/brandsmith/research", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ website_url: url, session_id: sessionId }),
+        body: JSON.stringify({
+          website_url: url,
+          session_id: sessionId,
+          ...(tcid ? { telegram_chat_id: tcid } : {}),
+        }),
       });
       if (!res.ok) {
         const body = await res.text().catch(() => "");
@@ -83,6 +92,34 @@ export default function BrandSmithLanding() {
       document.documentElement.style.background = "";
       document.body.style.background = "";
     };
+  }, []);
+
+  useEffect(() => {
+    if (urlParam && isValidUrl(normalizeUrl(urlParam))) {
+      const url = normalizeUrl(urlParam);
+      setLoading(true);
+      fetch("/api/brandsmith/research", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          website_url: url,
+          session_id: sessionId,
+          ...(tcid ? { telegram_chat_id: tcid } : {}),
+        }),
+      })
+        .then(async (res) => {
+          if (!res.ok) throw new Error(`${res.status}`);
+          return res.json();
+        })
+        .then((data) => {
+          if (!data.job_id) throw new Error("No job_id returned");
+          navigate(`/agents/brandsmith/${data.job_id}?url=${encodeURIComponent(url)}`);
+        })
+        .catch((err) => {
+          setError(err instanceof Error ? err.message : "Something went wrong.");
+          setLoading(false);
+        });
+    }
   }, []);
 
   return (
