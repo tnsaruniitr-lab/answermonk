@@ -389,7 +389,6 @@ function HeroFlipperText() {
     <>
       Analyse and improve your brand's visibility in{" "}
       <span style={{ whiteSpace: "nowrap" }}>
-        {" "}
         <span style={{ display: "inline-block", perspective: 400, verticalAlign: "middle", minWidth: "5.8em", textAlign: "left" }}>
           <span
             key={engine.name}
