@@ -5338,12 +5338,12 @@ Website: https://answermonk.ai
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JXHPRV5BM8');</script>
   <!-- End Google tag -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Acquire Customers Through ChatGPT, Claude, Gemini and Perplexity | AnswerMonk</title>
+  <title>Improve your AI search visibility | AnswerMonk</title>
   <meta name="description" content="Measure how your brand appears in ChatGPT, Gemini, Perplexity, and AI search. Benchmark competitors, find citation gaps, and get actions to improve your AI visibility." />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://answermonk.ai" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Acquire Customers Through ChatGPT, Claude, Gemini and Perplexity | AnswerMonk" />
+  <meta property="og:title" content="Improve your AI search visibility | AnswerMonk" />
   <meta property="og:description" content="Measure how your brand appears in ChatGPT, Gemini, Perplexity, and AI search. Benchmark competitors and find actions to improve AI citations and visibility." />
   <meta property="og:url" content="https://answermonk.ai" />
   <meta property="og:site_name" content="AnswerMonk" />
@@ -5351,7 +5351,7 @@ Website: https://answermonk.ai
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Acquire Customers Through ChatGPT, Claude, Gemini and Perplexity | AnswerMonk" />
+  <meta name="twitter:title" content="Improve your AI search visibility | AnswerMonk" />
   <meta name="twitter:description" content="Measure how your brand appears in ChatGPT, Gemini, and AI search. Free audit — enter your domain to start." />
   <meta name="twitter:image" content="https://answermonk.ai/og-default.svg" />
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://answermonk.ai/#organization","name":"AnswerMonk","url":"https://answermonk.ai","description":"AnswerMonk is an AI search visibility platform that helps brands and agencies measure and improve how they appear in ChatGPT, Gemini, Claude, and Perplexity responses.","logo":{"@type":"ImageObject","@id":"https://answermonk.ai/#logo","url":"https://answermonk.ai/favicon.png","width":512,"height":512}}</script>
