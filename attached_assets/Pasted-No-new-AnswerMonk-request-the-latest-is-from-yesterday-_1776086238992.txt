@@ -1,0 +1,32 @@
+No new AnswerMonk request — the latest is from yesterday (Apr 12). But I can see the problem from the previous runs:
+
+answermonk.ai is detected as SPA — "Website appears to be a single-page app (SPA) that renders client-side. Extracted content may be incomplete." with crawl quality partial. The brand name is null (ran before the brand name extraction fix).
+
+Let me check what the crawl actually extracted:
+
+
+Used supabase integration
+Used supabase integration
+
+Found it. answermonk.ai is a client-rendered SPA. The crawler got:
+
+Title: "AI Search Visibility Audit for Brands and Agencies | AnswerMonk" (good — server-rendered in <title> tag)
+Body text: 0 chars (empty — all content renders client-side via JavaScript)
+Pages crawled: 1 (homepage only, no internal pages discovered because the HTML is a shell)
+Total text: 0 chars → SPA detected → quality: partial
+The crawler uses fetch + cheerio which only sees the raw HTML — no JavaScript execution. answermonk.ai renders everything in React/Next client-side, so cheerio gets an empty <div id="root"></div>.
+
+What DID work: The <title> tag and likely OG meta tags are server-rendered (SSR for meta only). So the brand name extraction (new code) would now pick up "AnswerMonk" from the title. But all product features, descriptions, headings — zero.
+
+The pipeline fell back to Perplexity-only, which is why you still got 3 competitors and some content. But the profile is thin because there's no crawl data to enrich it.
+
+The real fix options:
+
+Headless browser (Playwright/Puppeteer) — renders JavaScript, sees all content. Adds ~200MB dependency and 5-10s per page. Heavy but definitive.
+Google Cache / Cached version — fetch webcache.googleusercontent.com version which is pre-rendered. Free but unreliable.
+Accept it and lean harder on Perplexity — for SPAs, the pipeline already falls back to research-only. Could add a more aggressive Perplexity query that specifically asks "describe all features and product details visible on answermonk.ai".
+For your use case, option 3 is probably enough for now — most brand websites are SSR (Linear, TRYPS, Valeo all worked fine). answermonk.ai is the exception. Want me to improve the SPA fallback path, or is this acceptable for now?
+
+Manual flow works perfectly. Let me verify the key results:
+
+
