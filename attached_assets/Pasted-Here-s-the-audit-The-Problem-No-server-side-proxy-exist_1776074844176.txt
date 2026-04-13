@@ -1,0 +1,32 @@
+Here's the audit:
+
+The Problem
+No server-side proxy exists. The Replit frontend calls your Brandsmith URL directly from the browser. The routing works like this:
+
+Browser → checks VITE_BRANDSMITH_API_URL → if set, calls ngrok directly
+                                         → if empty, calls /api/brandsmith/mock/*
+
+Why production fails: VITE_BRANDSMITH_API_URL is a build-time Vite variable set in .replit under [userenv.development]. It gets baked into the JavaScript bundle when Vite builds. In production deployment:
+
+The variable may not be in [userenv.production]
+Even if it is, the app must be rebuilt after setting it — changing it at runtime does nothing
+What Needs to Change (on Replit side)
+The plan mentioned in your message — server-side proxy — is the right fix but hasn't been implemented yet. Currently:
+
+server/brandsmith/routes.ts only has mock endpoints (/api/brandsmith/mock/research, etc.) and local DB persistence routes
+No proxy routes that forward to BRANDSMITH_API_URL
+The frontend (BrandSmithLanding.tsx, BrandSmithResults.tsx) makes the choice at line 61: external URL or mock
+What Replit needs to build:
+
+Add a server-side route /api/brandsmith/research (not /mock/research) that reads BRANDSMITH_API_URL from a runtime server secret and proxies to it
+Add SSE stream proxy at /api/brandsmith/research/:jobId/stream — must pipe through without buffering (the current mock stream does this correctly, so the pattern exists)
+Add proxy for /api/brandsmith/confirm
+Frontend changes: always call relative URLs (/api/brandsmith/research) — remove the VITE_BRANDSMITH_API_URL branching logic entirely
+What's Fine
+SSE streaming implementation is correct — uses fetch + ReadableStream, not EventSource
+ngrok-skip-browser-warning header is already added
+API paths are correct (/api/brandsmith/research, not /api/brands/)
+CORS is enabled on your Brandsmith backend
+Tell Replit: build the server-side proxy. The mock pattern in server/brandsmith/routes.ts already shows how to stream SSE — same approach, just forward to BRANDSMITH_API_URL instead of generating mock data.
+
+Manual flow works perfectly. Let me verify the key results:
