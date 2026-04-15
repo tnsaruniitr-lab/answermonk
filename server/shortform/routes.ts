@@ -103,6 +103,34 @@ const MOCK_RESULT = {
   warnings: ["Mode 2 (mid) skipped — Quick mode selected", "2 videos had no captions — excluded from pattern extraction"],
 };
 
+// Normalize async job response → shape our app expects
+function normalizeJobResult(job: any): any {
+  const partial = job.partialResults ?? {};
+  const startedAt = job.startedAt ?? job.createdAt;
+  const finishedAt = job.finishedAt ?? job.updatedAt;
+  const elapsedSec = startedAt && finishedAt
+    ? Math.round((new Date(finishedAt).getTime() - new Date(startedAt).getTime()) / 1000)
+    : null;
+  return {
+    runMetadata: {
+      requestId: job.jobId,
+      brandId: job.brandId,
+      brandName: job.brandName,
+      startedAt,
+      finishedAt,
+      elapsedSec,
+      modesRan: job.modesCompleted ?? job.modesRequested ?? [],
+    },
+    modes: partial.modes ?? {},
+    analysis: partial.analysis ?? {},
+    warnings: partial.warnings ?? [],
+    // keep status/phase so frontend polling can detect completion
+    status: job.status,
+    phase: job.phase,
+    progress: job.progress,
+  };
+}
+
 // In-memory store for pending job metadata (cleared on server restart, 30-min TTL on miner side)
 interface JobMeta {
   brandId: number;
@@ -213,23 +241,26 @@ export function registerShortformRoutes(app: Express) {
       }
       const job = await upstreamRes.json();
 
+      // Normalize: unwrap partialResults into the shape our app expects
+      const normalized = normalizeJobResult(job);
+
       // Auto-save when done
       if (job.status === "done") {
         const meta = pendingJobs.get(jobId);
         if (meta && !meta.savedPlanId && meta.brandId) {
           try {
-            const planId = await savePlan(meta.brandId, meta.keywords, meta.language, meta.mode, job);
+            const planId = await savePlan(meta.brandId, meta.keywords, meta.language, meta.mode, normalized);
             meta.savedPlanId = planId;
-            return res.json({ ...job, _planId: planId });
+            return res.json({ ...normalized, _planId: planId });
           } catch (err) {
             console.error("[shortform] failed to save plan:", err);
           }
         } else if (meta?.savedPlanId) {
-          return res.json({ ...job, _planId: meta.savedPlanId });
+          return res.json({ ...normalized, _planId: meta.savedPlanId });
         }
       }
 
-      return res.json(job);
+      return res.json(normalized);
     } catch (err: any) {
       console.error("[shortform job poll] error:", err.message);
       return res.status(502).json({ error: "Could not reach miner" });
