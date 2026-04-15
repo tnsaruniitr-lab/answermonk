@@ -93,18 +93,19 @@ function buildPayload(brand: Brand, keywords: string[], language: string, mode: 
   };
 }
 
-// ─── loading stages ───────────────────────────────────────────────────────────
+// ─── phase → label map ────────────────────────────────────────────────────────
 
-const STAGES = [
-  "Searching YouTube trends…",
-  "Filtering by engagement rate…",
-  "Fetching transcripts…",
-  "Analysing hook patterns…",
-  "Scoring content relevance…",
-  "Mapping narrative arcs…",
-  "Generating draft scripts…",
-  "Compiling your plan…",
-];
+function phaseLabel(phase: string | undefined, progressLabel?: string): string {
+  if (progressLabel) return progressLabel;
+  switch (phase) {
+    case "discovery":  return "Searching YouTube trends…";
+    case "relevance":  return "Scoring brand relevance…";
+    case "patterns":   return "Extracting hook patterns…";
+    case "drafts":     return "Generating draft scripts…";
+    case "complete":   return "Finalising your plan…";
+    default:           return "Starting miner…";
+  }
+}
 
 // ─── result helpers ───────────────────────────────────────────────────────────
 
@@ -471,9 +472,10 @@ export default function Socials() {
   const [mode, setMode] = useState<"quick" | "full">("quick");
   const [phase, setPhase] = useState<Phase>("idle");
   const [errorMsg, setErrorMsg] = useState("");
-  const [stageIdx, setStageIdx] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [localPlans, setLocalPlans] = useState<any[]>([]);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [jobDone, setJobDone] = useState(false);
   const elapsedRef = useRef<NodeJS.Timeout | null>(null);
 
   const selectedBrand = brandList.find(b => b.id === selectedId) ?? null;
@@ -482,6 +484,15 @@ export default function Socials() {
     queryKey: ["/api/shortform/plans", selectedId],
     queryFn: () => fetch(`/api/shortform/plans/${selectedId}`).then(r => r.json()),
     enabled: selectedId !== null,
+  });
+
+  // Poll job status while a job is running
+  const { data: jobData } = useQuery<any>({
+    queryKey: ["/api/shortform/job", jobId],
+    queryFn: () => fetch(`/api/shortform/job/${jobId}`).then(r => r.json()),
+    enabled: !!jobId && !jobDone,
+    refetchInterval: jobDone ? false : 2500,
+    refetchIntervalInBackground: true,
   });
 
   // Sync server plans into local state on brand change
@@ -496,39 +507,28 @@ export default function Socials() {
       setKeywords(selectedBrand.primaryKeywords?.slice(0, 6) ?? []);
       setPhase("idle");
       setErrorMsg("");
+      setJobId(null);
+      setJobDone(false);
     }
   }, [selectedId]);
 
+  // Elapsed timer while loading
   useEffect(() => {
     if (phase === "loading") {
-      setStageIdx(0);
       setElapsed(0);
       elapsedRef.current = setInterval(() => setElapsed(s => s + 1), 1000);
-      const rotator = setInterval(() => setStageIdx(i => (i + 1) % STAGES.length), 12000);
-      return () => { clearInterval(elapsedRef.current!); clearInterval(rotator); };
+      return () => { clearInterval(elapsedRef.current!); };
     } else {
       if (elapsedRef.current) clearInterval(elapsedRef.current);
     }
   }, [phase]);
 
-  const planMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedBrand) throw new Error("No brand selected");
-      const payload = buildPayload(selectedBrand, keywords, language, mode);
-      const res = await apiRequest("POST", "/api/shortform/plan", payload);
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        const code = res.status;
-        if (code === 401) throw new Error("AUTH:Authentication failed — contact admin");
-        if (code === 429) throw new Error("QUOTA:Daily YouTube quota exhausted. Try again tomorrow or reduce seeds.");
-        if (code === 504) throw new Error("TIMEOUT:Request timed out. Try Quick mode or fewer keywords.");
-        throw new Error(`ERROR:${body.error || "Something went wrong. Retry in a moment."}`);
-      }
-      return res.json();
-    },
-    onMutate: () => { setPhase("loading"); setErrorMsg(""); },
-    onSuccess: (data) => {
-      // Prepend the new plan to the local list immediately
+  // React to job status updates
+  useEffect(() => {
+    if (!jobData) return;
+    if (jobData.status === "done") {
+      setJobDone(true);
+      const data = jobData;
       const newPlan = {
         id: data._planId ?? Date.now(),
         brand_id: selectedId,
@@ -543,8 +543,53 @@ export default function Socials() {
       };
       setLocalPlans(prev => [newPlan, ...prev]);
       setPhase("idle");
-      // Invalidate so next brand switch refreshes from server
+      setJobId(null);
       qc.invalidateQueries({ queryKey: ["/api/shortform/plans", selectedId] });
+    } else if (jobData.status === "error") {
+      setJobDone(true);
+      setErrorMsg(jobData.error?.message || "The miner encountered an error. Please try again.");
+      setPhase("error");
+      setJobId(null);
+    }
+  }, [jobData]);
+
+  const startJobMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedBrand) throw new Error("No brand selected");
+      const payload = buildPayload(selectedBrand, keywords, language, mode);
+      const res = await apiRequest("POST", "/api/shortform/plan", payload);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        const code = res.status;
+        if (code === 401) throw new Error("AUTH:Authentication failed — contact admin");
+        if (code === 429) throw new Error("QUOTA:Daily YouTube quota exhausted. Try again tomorrow or reduce seeds.");
+        if (code === 400) throw new Error(`INVALID:${body.error?.message || body.message || "Request rejected by miner — check brand fields."}`);
+        throw new Error(`ERROR:${body.error || "Something went wrong. Retry in a moment."}`);
+      }
+      return res.json();
+    },
+    onMutate: () => { setPhase("loading"); setErrorMsg(""); setJobId(null); setJobDone(false); },
+    onSuccess: (data) => {
+      if (data.jobId) {
+        setJobId(data.jobId);
+      } else {
+        // Unexpected sync response fallback
+        const newPlan = {
+          id: data._planId ?? Date.now(),
+          brand_id: selectedId,
+          keywords_used: keywords,
+          language,
+          mode,
+          created_at: new Date().toISOString(),
+          run_metadata: data.runMetadata,
+          draft_count: data.analysis?.drafts?.length ?? 0,
+          result: data,
+          _isNew: true,
+        };
+        setLocalPlans(prev => [newPlan, ...prev]);
+        setPhase("idle");
+        qc.invalidateQueries({ queryKey: ["/api/shortform/plans", selectedId] });
+      }
     },
     onError: (err: any) => {
       const msg = err.message.includes(":") ? err.message.split(":").slice(1).join(":") : err.message;
@@ -706,10 +751,42 @@ export default function Socials() {
 
             {/* Loading state */}
             {phase === "loading" && (
-              <div style={{ textAlign: "center", padding: "48px 0" }}>
+              <div style={{ textAlign: "center", padding: "40px 0" }}>
                 <div style={{ width: 48, height: 48, borderRadius: "50%", border: "3px solid rgba(99,102,241,0.2)", borderTopColor: "#6366f1", animation: "spin 0.9s linear infinite", margin: "0 auto 20px" }} />
-                <div style={{ fontSize: 16, fontWeight: 700, color: "#111827", marginBottom: 6 }}>{STAGES[stageIdx]}</div>
-                <div style={{ fontSize: 13, color: "#9ca3af" }}>Elapsed: {elapsed}s · {mode === "quick" ? "Quick scan (~40s)" : "Full scan (~90s)"}</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: "#111827", marginBottom: 6 }}>
+                  {phaseLabel(jobData?.phase, jobData?.progress?.label)}
+                </div>
+                <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 16 }}>
+                  Elapsed: {elapsed}s · {mode === "quick" ? "Quick scan (~40s)" : "Full scan (~90s)"}
+                </div>
+                {/* Progressive partial counts */}
+                {(jobData?.modes || jobData?.analysis) && (
+                  <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
+                    {(() => {
+                      const videos = Object.values(jobData?.modes ?? {}).flatMap((m: any) => m.videos ?? []);
+                      const drafts = jobData?.analysis?.drafts ?? [];
+                      return (
+                        <>
+                          {videos.length > 0 && (
+                            <span style={{ fontSize: 12, color: "#059669", background: "#ecfdf5", borderRadius: 100, padding: "3px 10px", fontWeight: 600 }}>
+                              {videos.length} videos found
+                            </span>
+                          )}
+                          {jobData?.analysis?.patternBrief && (
+                            <span style={{ fontSize: 12, color: "#7c3aed", background: "rgba(124,58,237,0.08)", borderRadius: 100, padding: "3px 10px", fontWeight: 600 }}>
+                              Patterns ready
+                            </span>
+                          )}
+                          {drafts.length > 0 && (
+                            <span style={{ fontSize: 12, color: "#6366f1", background: "rgba(99,102,241,0.08)", borderRadius: 100, padding: "3px 10px", fontWeight: 600 }}>
+                              {drafts.length} drafts written
+                            </span>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
             )}
 
@@ -717,7 +794,7 @@ export default function Socials() {
             {phase !== "loading" && (
               <button
                 data-testid="button-create-plan"
-                onClick={() => planMutation.mutate()}
+                onClick={() => startJobMutation.mutate()}
                 disabled={keywords.length < 1}
                 style={{
                   width: "100%", padding: "14px 24px", border: "none", borderRadius: 12, cursor: keywords.length < 1 ? "not-allowed" : "pointer",

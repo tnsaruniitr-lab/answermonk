@@ -103,6 +103,27 @@ const MOCK_RESULT = {
   warnings: ["Mode 2 (mid) skipped — Quick mode selected", "2 videos had no captions — excluded from pattern extraction"],
 };
 
+// In-memory store for pending job metadata (cleared on server restart, 30-min TTL on miner side)
+interface JobMeta {
+  brandId: number;
+  keywords: string[];
+  language: string;
+  mode: string;
+  savedPlanId?: number;
+  createdAt: number;
+}
+const pendingJobs = new Map<string, JobMeta>();
+
+// Prune stale entries older than 35 minutes
+setInterval(() => {
+  const cutoff = Date.now() - 35 * 60 * 1000;
+  for (const [id, meta] of pendingJobs.entries()) {
+    if (meta.createdAt < cutoff) pendingJobs.delete(id);
+  }
+}, 10 * 60 * 1000);
+
+const MOCK_JOB_PREFIX = "mock-";
+
 async function savePlan(brandId: number, keywordsUsed: string[], language: string, mode: string, result: any): Promise<number> {
   const { rows } = await pool.query(
     `INSERT INTO shortform_plans (brand_id, keywords_used, language, mode, result)
@@ -114,7 +135,7 @@ async function savePlan(brandId: number, keywordsUsed: string[], language: strin
 }
 
 export function registerShortformRoutes(app: Express) {
-  // ── list saved plans for a brand ──
+  // ── list saved plans for a brand ──────────────────────────────────────────────
   app.get("/api/shortform/plans/:brandId", async (req: Request, res: Response) => {
     try {
       const brandId = parseInt(req.params.brandId, 10);
@@ -138,7 +159,7 @@ export function registerShortformRoutes(app: Express) {
     }
   });
 
-  // ── get full result for a single plan ──
+  // ── get full result for a single plan ─────────────────────────────────────────
   app.get("/api/shortform/plans/:brandId/:planId", async (req: Request, res: Response) => {
     try {
       const planId = parseInt(req.params.planId, 10);
@@ -156,7 +177,66 @@ export function registerShortformRoutes(app: Express) {
     }
   });
 
-  // ── create new plan (proxy to Claude + save) ──
+  // ── poll job status (proxy to miner) ──────────────────────────────────────────
+  app.get("/api/shortform/job/:jobId", async (req: Request, res: Response) => {
+    const { jobId } = req.params;
+
+    // Mock mode — return done immediately
+    if (jobId.startsWith(MOCK_JOB_PREFIX)) {
+      const meta = pendingJobs.get(jobId);
+      let planId: number | undefined = meta?.savedPlanId;
+      if (meta && !planId && meta.brandId) {
+        try {
+          planId = await savePlan(meta.brandId, meta.keywords, meta.language, meta.mode, { ...MOCK_RESULT, _mock: true });
+          meta.savedPlanId = planId;
+        } catch (err) {
+          console.error("[shortform mock] failed to save plan:", err);
+        }
+      }
+      return res.json({ status: "done", phase: "complete", ...MOCK_RESULT, _mock: true, _planId: planId ?? null });
+    }
+
+    const upstream = process.env.SHORTFORM_API_URL || null;
+    const secret = process.env.SHORTFORM_API_SECRET || null;
+    if (!upstream || !secret) {
+      return res.status(404).json({ error: "Job not found" });
+    }
+
+    try {
+      const upstreamRes = await fetch(`${upstream}/api/mine/job/${jobId}`, {
+        headers: { "Authorization": `Bearer ${secret}` },
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!upstreamRes.ok) {
+        const body = await upstreamRes.json().catch(() => ({}));
+        return res.status(upstreamRes.status).json(body);
+      }
+      const job = await upstreamRes.json();
+
+      // Auto-save when done
+      if (job.status === "done") {
+        const meta = pendingJobs.get(jobId);
+        if (meta && !meta.savedPlanId && meta.brandId) {
+          try {
+            const planId = await savePlan(meta.brandId, meta.keywords, meta.language, meta.mode, job);
+            meta.savedPlanId = planId;
+            return res.json({ ...job, _planId: planId });
+          } catch (err) {
+            console.error("[shortform] failed to save plan:", err);
+          }
+        } else if (meta?.savedPlanId) {
+          return res.json({ ...job, _planId: meta.savedPlanId });
+        }
+      }
+
+      return res.json(job);
+    } catch (err: any) {
+      console.error("[shortform job poll] error:", err.message);
+      return res.status(502).json({ error: "Could not reach miner" });
+    }
+  });
+
+  // ── start new plan job (async — returns jobId in ~100ms) ──────────────────────
   app.post("/api/shortform/plan", async (req: Request, res: Response) => {
     const upstream = process.env.SHORTFORM_API_URL || null;
     const secret = process.env.SHORTFORM_API_SECRET || null;
@@ -165,47 +245,43 @@ export function registerShortformRoutes(app: Express) {
     const language: string = brand?.draftLanguage ?? "en";
     const mode: string = (modes?.mid === true) ? "full" : "quick";
 
-    let result: any;
-
+    // Mock mode — return a local mock jobId
     if (!upstream || !secret) {
-      await new Promise(r => setTimeout(r, 1500));
-      result = { ...MOCK_RESULT, _mock: true };
-    } else {
-      try {
-        const upstreamRes = await fetch(`${upstream}/api/mine`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${secret}`,
-          },
-          body: JSON.stringify(req.body),
-          signal: AbortSignal.timeout(300_000),
-        });
-        if (!upstreamRes.ok) {
-          const body = await upstreamRes.json().catch(() => ({}));
-          return res.status(upstreamRes.status).json(body);
-        }
-        result = await upstreamRes.json();
-      } catch (err: any) {
-        const isTimeout = err.name === "TimeoutError";
-        console.error("[shortform proxy] error:", err.message);
-        return res.status(isTimeout ? 504 : 502).json({
-          error: isTimeout ? "Request timed out after 4 minutes — the miner may be overloaded. Try again shortly." : "Content planner unavailable",
-          code: isTimeout ? 504 : 502,
-        });
+      const mockJobId = `${MOCK_JOB_PREFIX}${crypto.randomUUID()}`;
+      if (brandId && typeof brandId === "number") {
+        pendingJobs.set(mockJobId, { brandId, keywords: keywordsUsed, language, mode, createdAt: Date.now() });
       }
+      return res.status(202).json({ jobId: mockJobId });
     }
 
-    // Persist the result
-    let planId: number | null = null;
-    if (brandId && typeof brandId === "number") {
-      try {
-        planId = await savePlan(brandId, keywordsUsed, language, mode, result);
-      } catch (err) {
-        console.error("[shortform] failed to save plan:", err);
+    try {
+      const upstreamRes = await fetch(`${upstream}/api/mine`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${secret}`,
+        },
+        body: JSON.stringify(req.body),
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!upstreamRes.ok) {
+        const body = await upstreamRes.json().catch(() => ({}));
+        return res.status(upstreamRes.status).json(body);
       }
-    }
+      const { jobId } = await upstreamRes.json();
 
-    return res.json({ ...result, _planId: planId });
+      if (jobId && brandId && typeof brandId === "number") {
+        pendingJobs.set(jobId, { brandId, keywords: keywordsUsed, language, mode, createdAt: Date.now() });
+      }
+
+      return res.status(202).json({ jobId });
+    } catch (err: any) {
+      const isTimeout = err.name === "TimeoutError";
+      console.error("[shortform proxy] error:", err.message);
+      return res.status(isTimeout ? 504 : 502).json({
+        error: isTimeout ? "Miner did not respond in time — try again shortly." : "Content planner unavailable",
+        code: isTimeout ? 504 : 502,
+      });
+    }
   });
 }

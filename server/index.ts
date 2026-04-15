@@ -112,6 +112,8 @@ function isPublicPath(path: string): boolean {
   if (path.startsWith("/api/brandsmith/")) return true;
   if (path === "/api/brands") return true;
   if (path === "/api/shortform/plan") return true;
+  if (path.startsWith("/api/shortform/job/")) return true;
+  if (path.startsWith("/api/shortform/plans/")) return true;
   if (path.match(/^\/api\/crawl\/status\/\d+$/)) return true;
   if (path.match(/^\/api\/crawl\/run\/\d+$/)) return true;
   if (path.match(/^\/api\/crawl\/analyze\/\d+$/)) return true;

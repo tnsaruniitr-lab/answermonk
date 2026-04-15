@@ -1,0 +1,81 @@
+✅ Async polling API SHIPPED and working
+What just changed on the miner side
+The POST /api/mine endpoint is now async by default. Returns 202 + jobId in ~100ms. The pipeline runs in the background, and clients poll GET /api/mine/job/:jobId to watch phases progress.
+
+What Replit needs to change
+This is the key message to send to the Replit dev:
+
+- // OLD: synchronous, times out at 90s
+- const response = await fetch(`${URL}/api/mine`, {...});
+- const data = await response.json();
+
++ // NEW: async + polling
++ const createRes = await fetch(`${URL}/api/mine`, {
++   method: 'POST',
++   headers: { 'Authorization': `Bearer ${SECRET}`, 'Content-Type': 'application/json' },
++   body: JSON.stringify(mineRequest),
++ });
++ const { jobId } = await createRes.json();
++
++ // Poll every 2.5s until done
++ while (true) {
++   const res = await fetch(`${URL}/api/mine/job/${jobId}`, {
++     headers: { 'Authorization': `Bearer ${SECRET}` },
++   });
++   const job = await res.json();
++   updateUI(job);  // render partial results
++   if (job.status === 'done' || job.status === 'error') break;
++   await new Promise(r => setTimeout(r, 2500));
++ }
+Their browser-side can use React Query:
+
+// In the BrandSmith UI
+const { data: job } = useQuery({
+  queryKey: ['mine-job', jobId],
+  queryFn: () => fetchJobStatus(jobId),
+  refetchInterval: 2500,
+  enabled: !!jobId && job?.status !== 'done' && job?.status !== 'error',
+});
+What the UI gets progressively (the whole point of this refactor)
+t=0s      User clicks "Create Shortform Plan"
+t=0.1s    → POST returns jobId, UI shows "Starting..." spinner
+t=3s      First poll: { phase: "discovery", progress.label: "Searching 1 mode(s)..." }
+t=25s     Poll: { phase: "discovery", modes: { nano: { videos: [7 videos], ... }}}
+          → UI renders the 7 video table IMMEDIATELY
+t=55s     Poll: { phase: "relevance", progress.label: "Scoring 7 videos..." }
+          → UI shows "Evaluating brand relevance..." banner
+t=80s     Poll: { phase: "patterns", analysis: { patternBrief: {...}, drafts: [] }}
+          → UI renders pattern brief section (hooks, arcs, gaps)
+t=105s    Poll: { phase: "drafts", analysis: { ..., drafts: [10 drafts] }}
+          → UI renders all 10 drafts
+t=112s    Poll: { status: "done", phase: "complete" }
+          → UI removes spinners, marks done
+User sees the first useful data (video table) at t=25s instead of t=112s. That's a 4x improvement in perceived responsiveness.
+
+Key changes for Replit engineer
+Change the POST flow to not wait for the full pipeline. It returns 202 in ~100ms.
+Implement polling against GET /api/mine/job/:jobId every 2-3 seconds.
+Render whatever's in partialResults on each poll — don't wait for status === "done".
+Stop polling when status === "done" or status === "error".
+Client timeouts: POST = 5s, each GET = 5s. No more 180s timeouts.
+Error state: check job.error — if non-null, the pipeline failed. Display job.error.message.
+Job TTL: jobs auto-expire 30 min after completion. If user walks away and comes back to a stale jobId, they'll get 404. Just re-run the discovery.
+For Replit's existing code that might still use sync mode
+If they can't update to polling immediately, POST /api/mine?sync=true still works like the old behavior. Extend their client timeout to 180s and it'll keep working. But polling is strongly recommended for the UX win.
+
+Status update for you to send to Replit
+Here's a paste-ready block for the Replit dev:
+
+The trend-miner API is now async. Changes on your side:
+1. POST /api/mine now returns 202 { jobId } in ~100ms instead of blocking for 90s.
+2. Poll GET /api/mine/job/{jobId} every 2-3 seconds to see partial results as they arrive.
+3. Progressive UI: modes fill in at t=25s, pattern brief at t=80s, drafts at t=105s, done at t=112s.
+4. Auth is the same — Bearer token on every call.
+5. Updated contract: see INTEGRATION.md section "Async flow".
+6. If you can't update to polling today, POST /api/mine?sync=true still works like before (just bump your client timeout to 180s).
+The server is running on the same ngrok URL and same bearer secret. No env var changes needed.
+Server is currently running in background
+Job cleanup loop is active. TTL is 30 minutes. Max concurrent jobs is 5 (returns 429 if exceeded).
+
+Ready for Replit to retry with the new polling flow. Whatever they send will work — async POST returns fast, and they can watch phases progress via polling.
+
