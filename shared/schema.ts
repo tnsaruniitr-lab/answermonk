@@ -547,3 +547,19 @@ export const brands = pgTable("brands", {
 export const insertBrandSchema = createInsertSchema(brands).omit({ id: true, createdAt: true });
 export type Brand = typeof brands.$inferSelect;
 export type InsertBrand = z.infer<typeof insertBrandSchema>;
+
+// === SHORTFORM PLANS (saved content planner results) ===
+
+export const shortformPlans = pgTable("shortform_plans", {
+  id: serial("id").primaryKey(),
+  brandId: integer("brand_id").notNull(),
+  keywordsUsed: text("keywords_used").array().notNull(),
+  language: text("language").notNull().default("en"),
+  mode: text("mode").notNull().default("quick"),
+  result: jsonb("result").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertShortformPlanSchema = createInsertSchema(shortformPlans).omit({ id: true, createdAt: true });
+export type ShortformPlan = typeof shortformPlans.$inferSelect;
+export type InsertShortformPlan = z.infer<typeof insertShortformPlanSchema>;

@@ -1,4 +1,5 @@
 import type { Express, Request, Response } from "express";
+import { pool } from "../db";
 
 const MOCK_RESULT = {
   runMetadata: {
@@ -102,35 +103,109 @@ const MOCK_RESULT = {
   warnings: ["Mode 2 (mid) skipped — Quick mode selected", "2 videos had no captions — excluded from pattern extraction"],
 };
 
+async function savePlan(brandId: number, keywordsUsed: string[], language: string, mode: string, result: any): Promise<number> {
+  const { rows } = await pool.query(
+    `INSERT INTO shortform_plans (brand_id, keywords_used, language, mode, result)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING id`,
+    [brandId, keywordsUsed, language, mode, JSON.stringify(result)]
+  );
+  return rows[0].id;
+}
+
 export function registerShortformRoutes(app: Express) {
+  // ── list saved plans for a brand ──
+  app.get("/api/shortform/plans/:brandId", async (req: Request, res: Response) => {
+    try {
+      const brandId = parseInt(req.params.brandId, 10);
+      if (isNaN(brandId)) return res.status(400).json({ error: "Invalid brandId" });
+
+      const { rows } = await pool.query(
+        `SELECT id, brand_id, keywords_used, language, mode, created_at,
+                result->'runMetadata' AS run_metadata,
+                jsonb_array_length(COALESCE(result->'analysis'->'drafts', '[]'::jsonb)) AS draft_count,
+                (SELECT COUNT(*) FROM jsonb_each(COALESCE(result->'modes', '{}'::jsonb))) AS video_mode_count
+         FROM shortform_plans
+         WHERE brand_id = $1
+         ORDER BY created_at DESC
+         LIMIT 20`,
+        [brandId]
+      );
+      return res.json({ plans: rows });
+    } catch (err) {
+      console.error("[shortform/plans GET]", err);
+      return res.status(500).json({ error: "Failed to fetch plans" });
+    }
+  });
+
+  // ── get full result for a single plan ──
+  app.get("/api/shortform/plans/:brandId/:planId", async (req: Request, res: Response) => {
+    try {
+      const planId = parseInt(req.params.planId, 10);
+      if (isNaN(planId)) return res.status(400).json({ error: "Invalid planId" });
+
+      const { rows } = await pool.query(
+        `SELECT * FROM shortform_plans WHERE id = $1`,
+        [planId]
+      );
+      if (rows.length === 0) return res.status(404).json({ error: "Plan not found" });
+      return res.json(rows[0]);
+    } catch (err) {
+      console.error("[shortform/plan GET]", err);
+      return res.status(500).json({ error: "Failed to fetch plan" });
+    }
+  });
+
+  // ── create new plan (proxy to Claude + save) ──
   app.post("/api/shortform/plan", async (req: Request, res: Response) => {
     const upstream = process.env.SHORTFORM_API_URL || null;
     const secret = process.env.SHORTFORM_API_SECRET || null;
+    const { brandId, keywords, brand, modes } = req.body;
+    const keywordsUsed: string[] = keywords?.seeds ?? [];
+    const language: string = brand?.draftLanguage ?? "en";
+    const mode: string = (modes?.mid === true) ? "full" : "quick";
+
+    let result: any;
 
     if (!upstream || !secret) {
       await new Promise(r => setTimeout(r, 1500));
-      return res.json({ ...MOCK_RESULT, _mock: true });
+      result = { ...MOCK_RESULT, _mock: true };
+    } else {
+      try {
+        const upstreamRes = await fetch(`${upstream}/api/mine`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${secret}`,
+          },
+          body: JSON.stringify(req.body),
+          signal: AbortSignal.timeout(120_000),
+        });
+        if (!upstreamRes.ok) {
+          const body = await upstreamRes.json().catch(() => ({}));
+          return res.status(upstreamRes.status).json(body);
+        }
+        result = await upstreamRes.json();
+      } catch (err: any) {
+        const isTimeout = err.name === "TimeoutError";
+        console.error("[shortform proxy] error:", err.message);
+        return res.status(isTimeout ? 504 : 502).json({
+          error: isTimeout ? "Request timed out — try Quick mode or fewer keywords" : "Content planner unavailable",
+          code: isTimeout ? 504 : 502,
+        });
+      }
     }
 
-    try {
-      const upstreamRes = await fetch(`${upstream}/api/mine`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${secret}`,
-        },
-        body: JSON.stringify(req.body),
-        signal: AbortSignal.timeout(120_000),
-      });
-      const data = await upstreamRes.json();
-      return res.status(upstreamRes.status).json(data);
-    } catch (err: any) {
-      const isTimeout = err.name === "TimeoutError";
-      console.error("[shortform proxy] error:", err.message);
-      return res.status(isTimeout ? 504 : 502).json({
-        error: isTimeout ? "Request timed out — try Quick mode or fewer keywords" : "Content planner unavailable",
-        code: isTimeout ? 504 : 502,
-      });
+    // Persist the result
+    let planId: number | null = null;
+    if (brandId && typeof brandId === "number") {
+      try {
+        planId = await savePlan(brandId, keywordsUsed, language, mode, result);
+      } catch (err) {
+        console.error("[shortform] failed to save plan:", err);
+      }
     }
+
+    return res.json({ ...result, _planId: planId });
   });
 }
