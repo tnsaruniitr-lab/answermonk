@@ -152,12 +152,17 @@ setInterval(() => {
 
 const MOCK_JOB_PREFIX = "mock-";
 
+function sanitizeForJson(obj: any): string {
+  // Strip lone Unicode surrogates that PostgreSQL rejects
+  return JSON.stringify(obj).replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "\uFFFD");
+}
+
 async function savePlan(brandId: number, keywordsUsed: string[], language: string, mode: string, result: any): Promise<number> {
   const { rows } = await pool.query(
     `INSERT INTO shortform_plans (brand_id, keywords_used, language, mode, result)
      VALUES ($1, $2, $3, $4, $5)
      RETURNING id`,
-    [brandId, keywordsUsed, language, mode, JSON.stringify(result)]
+    [brandId, keywordsUsed, language, mode, sanitizeForJson(result)]
   );
   return rows[0].id;
 }

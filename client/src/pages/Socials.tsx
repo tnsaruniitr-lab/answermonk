@@ -165,32 +165,39 @@ function TagInput({ tags, onChange }: { tags: string[]; onChange: (t: string[]) 
 }
 
 function VideoCard({ video }: { video: any }) {
+  const relevanceScore: number | null = video.relevance?.score ?? null;
+  const relevanceReason: string | null = video.relevance?.reason ?? null;
+  const scoreColor = relevanceScore === null ? "#9ca3af" : relevanceScore >= 8 ? "#059669" : relevanceScore >= 6 ? "#d97706" : "#6b7280";
   return (
     <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
         <a href={video.url} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700, fontSize: 13, color: "#111827", textDecoration: "none", flex: 1, lineHeight: 1.4 }}>
           {video.title} <ExternalLink size={10} style={{ display: "inline", marginLeft: 3, color: "#9ca3af" }} />
         </a>
-        <span style={{ fontSize: 18, fontWeight: 800, color: video.relevance.score >= 8 ? "#059669" : video.relevance.score >= 6 ? "#d97706" : "#6b7280", flexShrink: 0 }}>
-          {video.relevance.score}/10
-        </span>
+        {relevanceScore !== null && (
+          <span style={{ fontSize: 18, fontWeight: 800, color: scoreColor, flexShrink: 0 }}>
+            {relevanceScore}/10
+          </span>
+        )}
       </div>
-      <div style={{ fontSize: 12, color: "#6b7280" }}>{video.channel.title} · {video.channel.subscriberCount?.toLocaleString()} subs</div>
+      <div style={{ fontSize: 12, color: "#6b7280" }}>{video.channel?.title} · {video.channel?.subscriberCount?.toLocaleString()} subs</div>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         {[
-          { label: "Views", val: (video.metrics.viewCount / 1000).toFixed(0) + "K" },
-          { label: "Engagement", val: (video.metrics.engagementRate * 100).toFixed(1) + "%" },
-          { label: "Overperf", val: video.metrics.overperfRatio + "×" },
+          { label: "Views", val: video.metrics?.viewCount != null ? (video.metrics.viewCount / 1000).toFixed(0) + "K" : "—" },
+          { label: "Engagement", val: video.metrics?.engagementRate != null ? (video.metrics.engagementRate * 100).toFixed(1) + "%" : "—" },
+          { label: "Overperf", val: video.metrics?.overperfRatio != null ? video.metrics.overperfRatio + "×" : "—" },
         ].map(m => (
           <span key={m.label} style={{ fontSize: 11, color: "#374151", background: "#f9fafb", borderRadius: 6, padding: "3px 8px", border: "1px solid #f3f4f6" }}>
             {m.label}: <strong>{m.val}</strong>
           </span>
         ))}
       </div>
-      <p style={{ fontSize: 12, color: "#6b7280", margin: 0, fontStyle: "italic" }}>{video.relevance.reason}</p>
-      <span style={{ fontSize: 11, color: "#6366f1", background: "rgba(99,102,241,0.08)", borderRadius: 100, padding: "2px 8px", alignSelf: "flex-start" }}>
-        seed: {video.seedKeyword}
-      </span>
+      {relevanceReason && <p style={{ fontSize: 12, color: "#6b7280", margin: 0, fontStyle: "italic" }}>{relevanceReason}</p>}
+      {video.seedKeyword && (
+        <span style={{ fontSize: 11, color: "#6366f1", background: "rgba(99,102,241,0.08)", borderRadius: 100, padding: "2px 8px", alignSelf: "flex-start" }}>
+          seed: {video.seedKeyword}
+        </span>
+      )}
     </div>
   );
 }
