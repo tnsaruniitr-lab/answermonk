@@ -1,0 +1,206 @@
+ssues to address before building (prioritized)
+🔴 Issue 1: contentPillars extraction is underdefined
+You wrote: "extracted from rawSections → brand_voice". This is hand-wavy. rawSections is (I assume) unstructured text blob. How does extraction work?
+
+Three options, choose one:
+
+Dedicated DB field — add a contentPillars column to brands that BrandSmith fills during brand setup. Clean but requires BrandSmith change.
+LLM pre-processing — before calling the miner, Replit makes its own Claude call: "Given this brand voice section, list 4-6 content pillars as a JSON array." Adds ~$0.005 and ~2s per request. Clean but one extra moving part.
+Regex/heuristic split — split the brand_voice text on newlines/bullets, first 6 items become pillars. Zero cost, very brittle.
+My recommendation: Option 2 (LLM pre-processing) for v1 if BrandSmith can't add a field, then migrate to Option 1 when BrandSmith supports it. Reason: Option 3 will produce garbage pillars which will produce garbage drafts, and pillar quality directly affects draft quality.
+
+Without good pillars, the drafts fall back to generic brand-voice inference. With good pillars, drafts are on-strategy.
+
+🟡 Issue 2: voiceRules and noGoTopics being empty
+You have voiceRules: [] and noGoTopics: []. Acceptable but will degrade draft quality noticeably.
+
+With empty voice rules the LLM has no hard constraints. It'll produce "safe" drafts in a generic marketing voice. With rules like "Never say 'seamless'" or "Use first-person plural" the LLM sticks to brand voice much better.
+
+Three options:
+
+Empty for v1, add later — acceptable. Drafts will be OK but generic.
+Manual advanced fields in Replit UI — collapsible "Advanced voice rules" section where power users can add rules. Most users ignore it, power users use it.
+Auto-generate from voiceArchetype — one-shot Claude call converting "playful-chaotic-honest" into 3-5 voice rules. Same idea as Option 1 above for pillars.
+My recommendation: Empty for v1, add optional manual fields in v1.1 after you see first-run quality. Don't block v1 on this.
+
+🟡 Issue 3: brand.id = website_url is fragile
+Using URL as primary identifier has problems:
+
+URLs change (rebrands, domain moves)
+Contains protocol (https://), trailing slashes, www. prefix inconsistencies
+Harder to use in URLs, logs, CLI commands
+Better: Use a stable slug derived from brand name (tryps, brand-smith, dominos-india) or a UUID. The miner doesn't care what the ID is — it's just echoed back in runMetadata.theme. But for logging/debugging/support it should be human-readable and stable.
+
+My recommendation: Use slug(brand.name) — e.g., "TRYPS" → "tryps". Or a UUID if you want perfect stability across renames. Either way, avoid website_url as the key.
+
+🟡 Issue 4: Your Quick mode skips too much
+Your plan: Quick = nano: true, everything else false.
+
+Problem: trending modes cost ~5 quota each and take ~5 seconds each. They're basically free. Skipping them saves nothing but loses a ton of signal (in-niche trending context + cross-niche format inspiration).
+
+Better Quick mode definition:
+
+Quick scan (~40s, ~$0.08):
+  nano:              true
+  mid:               false   ← the expensive one to skip (500 quota + 20s)
+  trendingInNiche:   true    ← cheap (~5 quota, ~5s)
+  trendingCrossNiche: true   ← cheap (~5 quota, ~5s)
+Full scan (~90s, ~$0.15):
+  nano:              true
+  mid:               true    ← adds ~500 quota + 20s for mid-tier validation
+  trendingInNiche:   true
+  trendingCrossNiche: true
+Why: Trending modes are the format-inspiration layer. Users doing "quick iterations" still benefit hugely from cross-niche format signal. You only skip mid tier because it's the one expensive mode that adds validation value but not ideation value.
+
+This change makes Quick mode ~35-40s instead of ~30s (barely slower) but gives the user ~10x more signal for format borrowing. Trading 10 seconds for 10x signal is a no-brainer.
+
+🟡 Issue 5: Missing requestId in your payload
+You should include a client-generated UUID as requestId in the POST body. Reasons:
+
+Idempotency — if request times out and Replit retries, same ID means miner can return cached result (if we add caching)
+Logging — correlate Replit UI state with miner server logs when debugging
+Observability — trace requests through the whole pipeline
+Trivial to add. One UUID per submit click.
+
+🟢 Issue 6: "Stored locally" is ambiguous
+You wrote "Full JSON back → stored locally → rendered". Where?
+
+React state (lost on refresh)
+localStorage (survives refresh, lost when browser data cleared)
+Replit DB (persistent, enables history view later)
+For v1: React state is fine. User runs a plan, sees results, uses them. If they refresh they lose it — acceptable for v1.
+
+For v1.1: persist to Replit DB so you get a "past runs" history tab. Each brand has a log of plans over time. Useful for tracking what's been tried.
+
+My recommendation: React state for v1, plan for DB persistence in v1.1.
+
+🟢 Issue 7: No progress indicator beyond elapsed timer
+60-90 second wait with only a spinner + timer is mediocre UX. Users will wonder if it's frozen.
+
+Better options (in order of effort):
+
+Stage messages — rotate through "Searching YouTube... Extracting transcripts... Analyzing patterns... Generating drafts..." every 15 seconds. Fake progress but reassuring.
+Estimated countdown — "Estimated 60 seconds remaining". Requires a server-provided estimate.
+Server-Sent Events — miner pushes progress updates to Replit, Replit forwards to browser. Real progress. More work to build (~2 hours extra).
+My recommendation: Start with Option 1 (stage messages) for v1. SSE in v1.2 if users complain.
+
+🟢 Issue 8: Error state handling not spec'd
+What does the UI show when:
+
+401 (shouldn't happen in prod, but does in dev)
+429 (quota exhausted)
+500 (server error)
+Network timeout (>120s)
+Replit should handle each with a specific message:
+
+401 → "Authentication failed — contact admin"
+429 → "Daily YouTube quota exhausted. Try again tomorrow or reduce scope."
+500 → "Something broke on our end. Error ID: {requestId}. Retry in a moment."
+Timeout → "Request took too long. Try with fewer seeds or Quick mode."
+These go in your error-handling layer, not the happy path, but worth specifying now.
+
+My recommended refined payload
+Taking your draft and applying the fixes above:
+
+{
+  "requestId": "uuid-v4-generated-on-submit",
+  "brand": {
+    "id": "tryps",
+    "name": "TRYPS",
+    "tagline": "[from brands.tagline]",
+    "whatItIs": "[from brands.description]",
+    "targetUser": {
+      "demographic": "[optional, parsed from brand_voice if present]",
+      "context": "[optional]",
+      "painPoint": "[optional]",
+      "psychographic": "[optional]"
+    },
+    "positioning": "[from brands.positioningStatement]",
+    "tone": "[from brands.voiceArchetype]",
+    "contentPillars": ["[extracted via pre-processing step or DB field]"],
+    "voiceRules": [],
+    "noGoTopics": [],
+    "draftLanguage": "en"
+  },
+  "keywords": {
+    "seeds": ["user-edited keyword array from tag input"]
+  },
+  "modes": {
+    "nano": true,
+    "mid": false,
+    "trendingInNiche": true,
+    "trendingCrossNiche": true
+  }
+}
+Everything else (filters, trending region, output config) defaults to sensible values on the miner side. Your payload stays minimal.
+
+What I owe you on my end
+Your ask was crisp: SHORTFORM_API_URL and Bearer shared secret. That's what you get. But the honest answer is I need to do three things before I can hand those over:
+
+1. Build the miner service (~2-3 days of focused work)
+Phase A: surface existing data (~10 min)
+Phase B: transcripts + comments (~50 min)
+Phase C: LLM analyst (3 Claude calls) (~90 min)
+HTTP wrapper (Express + auth) (~2 hours)
+End-to-end testing with real TRYPS payload (~2 hours)
+Tuning the LLM prompts until first-run output feels good (this is the wildcard — could be 2 hours or 2 days depending on first-run quality)
+2. Deploy it somewhere with a public URL
+Option A: Small VPS (DigitalOcean droplet, $5/mo, I manage it)
+Option B: Fly.io or Railway (similar cost, less ops)
+Option C: Cloudflare Workers (free tier, but has 60s timeout → won't fit our 90s runs)
+Option D: Your own server where I deploy with instructions
+Recommendation: Fly.io for v1. It's designed for long-lived HTTP requests, free tier covers light usage, easy deploy. I can set it up in ~1 hour.
+
+3. Generate and securely share the bearer secret
+Generate 32-byte random token
+Set as REPLIT_SHARED_SECRET on the miner side
+Share with you via 1Password, secure pastebin, or encrypted DM (NOT in plaintext conversation)
+You set it as env var on your Replit server
+Total time before I can give you the URL + secret: ~3 days of build, ~1 hour of deploy, ~5 minutes of secret exchange.
+
+What I need from you on your end
+Four things:
+
+1. Confirm the BrandSmith → contract mappings
+You wrote the field mappings in your plan. I need to know two things:
+
+Does rawSections → brand_voice contain parseable text or is it freeform? (determines how we extract content pillars)
+Does voiceArchetype come from a fixed vocabulary or is it freeform text? (determines how we use it as tone)
+These affect whether I need to add LLM pre-processing on your side or if simple text passing works.
+
+2. Share one real brand payload for testing
+I need one full brand record from your DB (TRYPS if possible) as a JSON blob so I can:
+
+Smoke-test the miner end-to-end with realistic data
+Tune the LLM prompts against a real brand voice (not my fictional mockup)
+Verify the field mapping works without field name collisions
+A single copy-pasted JSON record is enough. Don't need DB access.
+
+3. Decide on Quick mode scope
+Is my refined Quick mode (nano + both trendings, skip mid) OK with you, or do you want it even cheaper (nano only)? This is a 10-second vs 30-second tradeoff.
+
+4. Decide on hosting
+I deploy on Fly.io (my recommendation, ~$0-5/mo, I manage)
+You deploy on your infra and I give you a Docker image (you manage)
+Something else
+Impacts who's on call when the service breaks.
+
+Go/no-go recommendation
+GO — build it. Your plan is 85% of the way to a solid v1. The 15% that needs refinement (pillars extraction, Quick mode scope, brand.id, requestId, error states) are all small tactical fixes, not architectural problems.
+
+Suggested sequence:
+
+Day 1 (me) — build the miner service, phases A + B + C
+Day 2 (me) — HTTP wrapper, deploy to Fly.io, generate secret
+Day 2 (you) — build Replit UI from your layout plan, using a mocked/local response first
+Day 3 (both) — I share URL + secret, you wire up real calls, we test end-to-end with real TRYPS data
+Day 3-4 (both) — tune LLM prompts based on first-run output quality, iterate until drafts feel good
+Day 4 — ship to production for TRYPS
+~4 working days to a shipped v1 with real drafts for TRYPS. Could be faster if we're both available full-time.
+
+The one thing I'd NOT do
+Do not ship v1 without real TRYPS data in the loop. The LLM prompts are tuned against a hypothetical brand in my head. First real-run output on actual TRYPS brand + actual BrandSmith data might be great or might be mediocre. That's normal — we iterate the prompts until drafts feel authentic to TRYPS voice. That iteration can only happen with real data.
+
+So please: before we deploy to production, we do one end-to-end dry run with TRYPS data on staging, review the drafts together, tune prompts if needed, then ship.
+
+Otherwise your plan is sound. Ready to start building on my end whenever you give me (a) BrandSmith mapping details, (b) one real TRYPS brand record, and (c) Quick mode + hosting decision.
