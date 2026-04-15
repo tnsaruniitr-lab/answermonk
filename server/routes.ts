@@ -11,6 +11,7 @@ import { registerCategoryHubRoutes } from "./directory/categoryHubRoute";
 import { registerComparisonPageRoutes } from "./directory/comparisonPageRoute";
 import { registerPeopleRoutes } from "./people/routes";
 import { registerBrandsmithRoutes } from "./brandsmith/routes";
+import { registerShortformRoutes } from "./shortform/routes";
 import { syncSessionToDirectory, backfillRecentSessions } from "./directory/sessionToDirectory";
 import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
@@ -5686,6 +5687,9 @@ ${listItems}
 
   // ====== BRANDSMITH ROUTES ======
   registerBrandsmithRoutes(app);
+
+  // ====== SHORTFORM CONTENT PLANNER ROUTES ======
+  registerShortformRoutes(app);
 
   return httpServer;
 }

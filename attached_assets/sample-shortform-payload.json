@@ -1,0 +1,63 @@
+{
+  "_comment": "Sample payload Replit sends to Claude /api/mine endpoint. Fields sourced from brands table + user input at time of submit.",
+  "requestId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "brand": {
+    "id": "answermonk",
+    "name": "AnswerMonk",
+    "tagline": "Improve your AI search visibility",
+    "whatItIs": "AnswerMonk is a GEO intelligence platform that helps brands understand and improve how they appear in AI-powered search engines like ChatGPT, Gemini, and Claude.",
+    "targetUser": {
+      "demographic": "Marketing managers and brand owners at mid-market companies",
+      "context": "Noticing traffic shifts from traditional SEO to AI search, unsure how to adapt",
+      "painPoint": "No visibility into whether their brand appears in AI answers — or how competitors are positioned",
+      "psychographic": "Data-driven, growth-oriented, early adopters of MarTech"
+    },
+    "positioning": "AnswerMonk helps brands measure and improve their presence in AI-generated answers — the new search battlefield.",
+    "tone": "Clear, authoritative, jargon-free",
+    "contentPillars": [
+      "AI search visibility",
+      "GEO vs SEO",
+      "Brand presence in LLMs",
+      "Content strategy for AI",
+      "Competitive intelligence"
+    ],
+    "voiceRules": [],
+    "noGoTopics": [
+      "leverage synergies",
+      "best-in-class",
+      "disruptive"
+    ],
+    "draftLanguage": "en"
+  },
+  "keywords": {
+    "seeds": [
+      "AI search visibility",
+      "GEO optimisation",
+      "ChatGPT brand mentions",
+      "LLM SEO",
+      "generative engine optimisation",
+      "brand presence in AI"
+    ],
+    "excludeWords": []
+  },
+  "modes": {
+    "nano": true,
+    "mid": false,
+    "trendingInNiche": true,
+    "trendingCrossNiche": true
+  },
+  "_field_sources": {
+    "requestId": "crypto.randomUUID() on submit click",
+    "brand.id": "slug(brands.brandName) — lowercase + hyphenate",
+    "brand.name": "brands.brandName",
+    "brand.tagline": "brands.tagline",
+    "brand.whatItIs": "brands.description",
+    "brand.positioning": "brands.positioningStatement",
+    "brand.tone": "brands.voiceArchetype",
+    "brand.contentPillars": "rawSections → voice_and_tone.data.content_pillars (array)",
+    "brand.noGoTopics": "rawSections → voice_and_tone.data.banned_phrases (array)",
+    "brand.targetUser": "rawSections → audience.data (icp, pain_points, buyer_personas)",
+    "keywords.seeds": "User-edited at submit time — pre-filled from brands.primaryKeywords",
+    "modes": "User choice: Quick = nano+trending, Full = all 4"
+  }
+}
