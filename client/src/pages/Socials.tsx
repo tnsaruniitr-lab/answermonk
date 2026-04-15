@@ -20,9 +20,16 @@ function extractContentPillars(rawSections: any[] | null): string[] {
   const voice = rawSections.find(s => s.section === "voice_and_tone" || s.section === "brand_voice");
   if (!voice?.data) return [];
   const d = voice.data;
-  if (Array.isArray(d.content_pillars) && d.content_pillars.length > 0) return d.content_pillars;
-  if (Array.isArray(d.contentPillars) && d.contentPillars.length > 0) return d.contentPillars;
-  return [];
+  const raw = (Array.isArray(d.content_pillars) && d.content_pillars.length > 0)
+    ? d.content_pillars
+    : (Array.isArray(d.contentPillars) && d.contentPillars.length > 0)
+    ? d.contentPillars
+    : [];
+  return raw.map((p: any) => {
+    if (typeof p === "string") return p;
+    if (p && typeof p === "object") return p.pillar ?? p.name ?? p.title ?? JSON.stringify(p);
+    return String(p);
+  });
 }
 
 function extractNoGoTopics(rawSections: any[] | null): string[] {
@@ -294,7 +301,15 @@ export default function Socials() {
     },
   });
 
-  const allVideos = result ? Object.values(result.modes ?? {}).flatMap((m: any) => m.videos ?? []) : [];
+  const allVideos = result
+    ? Array.from(
+        new Map(
+          Object.values(result.modes ?? {})
+            .flatMap((m: any) => m.videos ?? [])
+            .map((v: any) => [v.videoId, v])
+        ).values()
+      )
+    : [];
   const patterns = result?.analysis?.patternBrief ?? null;
   const drafts = result?.analysis?.drafts ?? [];
 
@@ -362,8 +377,8 @@ export default function Socials() {
                 {selectedBrand.tagline && <p style={{ fontSize: 13, color: "#6b7280", margin: "0 0 6px", fontStyle: "italic" }}>"{selectedBrand.tagline}"</p>}
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {selectedBrand.voiceArchetype && <span style={{ fontSize: 11, fontWeight: 700, color: "#7c3aed", background: "rgba(124,58,237,0.08)", borderRadius: 100, padding: "2px 8px" }}>{selectedBrand.voiceArchetype}</span>}
-                  {extractContentPillars(selectedBrand.rawSections as any[] | null).slice(0, 3).map(p => (
-                    <span key={p} style={{ fontSize: 11, color: "#6b7280", background: "#f3f4f6", borderRadius: 100, padding: "2px 8px" }}>{p}</span>
+                  {extractContentPillars(selectedBrand.rawSections as any[] | null).slice(0, 3).map((p, i) => (
+                    <span key={i} style={{ fontSize: 11, color: "#6b7280", background: "#f3f4f6", borderRadius: 100, padding: "2px 8px" }}>{p}</span>
                   ))}
                 </div>
               </div>
