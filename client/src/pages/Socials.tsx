@@ -58,18 +58,27 @@ function extractTargetUser(rawSections: any[] | null): Record<string, string> {
 }
 
 function buildPayload(brand: Brand, keywords: string[], language: string, mode: "quick" | "full") {
+  const brandName = brand.brandName || domain(brand.websiteUrl);
+  const targetUser = extractTargetUser(brand.rawSections as any[] | null);
   return {
     requestId: crypto.randomUUID(),
     brandId: brand.id,
     brand: {
-      id: slugify(brand.brandName || domain(brand.websiteUrl)),
-      name: brand.brandName || domain(brand.websiteUrl),
-      tagline: brand.tagline || "",
-      whatItIs: brand.description || "",
-      targetUser: extractTargetUser(brand.rawSections as any[] | null),
-      positioning: brand.positioningStatement || "",
-      tone: brand.voiceArchetype || "",
-      contentPillars: extractContentPillars(brand.rawSections as any[] | null),
+      id: slugify(brandName),
+      name: brandName,
+      tagline: brand.tagline || `${brandName} — explore what's possible`,
+      whatItIs: brand.description || brand.positioningStatement || `${brandName} is a brand in the ${keywords[0] ?? "travel"} space.`,
+      targetUser: {
+        demographic: targetUser.demographic || `Customers interested in ${keywords[0] ?? "travel"}`,
+        painPoint: targetUser.painPoint || `Finding the best ${keywords[0] ?? "travel"} solutions`,
+        psychographic: targetUser.psychographic || "Curious, growth-oriented individuals",
+        context: `Looking for content about ${keywords.slice(0, 3).join(", ")}`,
+      },
+      positioning: brand.positioningStatement || brand.description || `${brandName} helps people with ${keywords[0] ?? "travel"}.`,
+      tone: brand.voiceArchetype || "Friendly, clear, helpful",
+      contentPillars: extractContentPillars(brand.rawSections as any[] | null).length > 0
+        ? extractContentPillars(brand.rawSections as any[] | null)
+        : keywords.slice(0, 3),
       voiceRules: [],
       noGoTopics: extractNoGoTopics(brand.rawSections as any[] | null),
       draftLanguage: language,

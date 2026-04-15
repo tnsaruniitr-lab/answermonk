@@ -179,7 +179,7 @@ export function registerShortformRoutes(app: Express) {
             "Authorization": `Bearer ${secret}`,
           },
           body: JSON.stringify(req.body),
-          signal: AbortSignal.timeout(120_000),
+          signal: AbortSignal.timeout(240_000),
         });
         if (!upstreamRes.ok) {
           const body = await upstreamRes.json().catch(() => ({}));
@@ -190,7 +190,7 @@ export function registerShortformRoutes(app: Express) {
         const isTimeout = err.name === "TimeoutError";
         console.error("[shortform proxy] error:", err.message);
         return res.status(isTimeout ? 504 : 502).json({
-          error: isTimeout ? "Request timed out — try Quick mode or fewer keywords" : "Content planner unavailable",
+          error: isTimeout ? "Request timed out after 4 minutes — the miner may be overloaded. Try again shortly." : "Content planner unavailable",
           code: isTimeout ? 504 : 502,
         });
       }
