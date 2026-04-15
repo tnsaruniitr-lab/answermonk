@@ -179,7 +179,7 @@ export function registerShortformRoutes(app: Express) {
             "Authorization": `Bearer ${secret}`,
           },
           body: JSON.stringify(req.body),
-          signal: AbortSignal.timeout(240_000),
+          signal: AbortSignal.timeout(300_000),
         });
         if (!upstreamRes.ok) {
           const body = await upstreamRes.json().catch(() => ({}));
