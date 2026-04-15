@@ -1,0 +1,612 @@
+What Replit sends us (input contract)
+A single JSON POST body with 5 top-level sections. Only 2 are required — the rest have sensible defaults.
+
+1. brand (REQUIRED) — the brand profile for LLM drafting
+This is what gets injected into the pattern-extraction prompt and the draft-generation prompt. It's the "voice of the brand" the LLM uses when it writes content.
+
+brand: {
+  id:                  string    // internal key, e.g. "tryps-v1"
+  name:                string    // display name, "TRYPS"
+  tagline:             string    // one-line positioning
+  whatItIs:            string    // product description
+  targetUser: {
+    demographic:       string    // "22-35 year olds"
+    context:           string    // "planning trips with 3-15 friends"
+    painPoint:         string    // "coordination, not destination"
+    psychographic:     string    // "social, optimistic, impatient"
+  }
+  positioning:         string    // core message
+  tone:                string    // "relatable-chaotic-honest"
+  voiceRules:          string[]  // hard rules the LLM must follow
+  contentPillars:     string[]  // topics the brand covers
+  noGoTopics:         string[]  // topics to NEVER generate
+  draftLanguage:       string    // "en" | "hi" | "en-hi-mixed" | etc.
+}
+This object becomes the LLM's "system prompt persona" during drafting. Replit owns it, can edit it, version it, A/B test it.
+
+2. keywords (REQUIRED) — the thematic seeds for discovery
+keywords: {
+  seeds:                 string[]  // 3-8 keyword seeds for search.list
+  excludeWords:          string[]  // optional, defaults to system list
+  excludeChannelSuffixes: string[] // optional, defaults to ["- Topic"]
+}
+This replaces the seeds field in themes.ts. Replit dynamically chooses which keywords to use per brand per run. System-level exclusions (like "- Topic" for music auto-channels) still apply unless Replit overrides.
+
+3. filters (OPTIONAL) — override any filter threshold per request
+filters: {
+  durationMaxSec:      number    // default: 180 (Shorts cap)
+  channelMaxSubs:      number | null   // default: 50000 for nano tier
+  channelMinSubs:      number | null   // default: null
+  viewsMin:            number    // default: 500
+  minAgeHours:         number    // default: 2
+  minEngagementRate:   number    // default: 0.025 (2.5%)
+  minOverperfRatio:    number    // default: 2.0
+  windowHours:         number    // default: 48
+}
+Everything optional. If Replit sends nothing, we use our battle-tested defaults. If Replit sends partial values, we merge over defaults.
+
+4. modes (OPTIONAL) — which of the 4 modes to run
+modes: {
+  nano:                boolean   // default: true — Mode 1
+  mid:                 boolean   // default: true — Mode 2
+  trendingInNiche:     boolean   // default: true — Mode 3
+  trendingCrossNiche:  boolean   // default: false — Mode 4 (opt-in)
+}
+Replit can skip modes to control cost. Common patterns:
+
+Full brand scan: all 4 modes (~1200 quota + ~$0.15 LLM)
+Cheap probe: just nano (~600 quota + ~$0.10 LLM)
+Trending-only: just Mode 3 + Mode 4 (~12 quota + ~$0.10 LLM)
+5. trending (OPTIONAL) — trending-mode scope per brand
+trending: {
+  regionCode:                  string    // e.g. "US", "IN", "GB"
+  inNicheCategoryIds:          string[]  // for Mode 3
+  crossNicheCategoryIds:       string[]  // for Mode 4
+}
+Default region is omitted (YouTube picks by datacenter IP). Replit can target specific markets per brand — e.g. TRYPS probably wants IN because most group-travel content is Indian, while a US SaaS brand wants US.
+
+6. output (OPTIONAL) — what to return
+output: {
+  topN:                 number    // default: 15 — ranked videos to keep per mode
+  draftCount:           number    // default: 10 — drafts to generate
+  relevanceThreshold:   number    // default: 6 — 0-10, videos below this drop
+  includeTranscripts:   boolean   // default: true
+  includeComments:      boolean   // default: true (adds ~15 quota/run)
+  includeRawFunnel:     boolean   // default: true — funnel stats in response
+}
+Lets Replit dial the response shape. Smaller topN + draftCount = faster, cheaper. Skip includeComments to save quota if only patterns matter.
+
+Minimum viable request
+Replit only needs to send 2 things for a valid request:
+
+POST /api/mine
+{
+  "brand":    { ... full profile ... },
+  "keywords": { "seeds": [...] }
+}
+Everything else defaults. If Replit sends just these 2 sections, we run all 4 modes with our default filters, default regions, and full Phase 5 output.
+
+What we return (output contract)
+Single JSON response with 4 top-level sections: metadata, per-mode results, analysis, warnings.
+
+1. runMetadata — what the run did
+runMetadata: {
+  requestId:       string          // echo'd back from request
+  theme:           string          // brand.id
+  brandName:       string          // brand.name
+  startedAt:       ISO datetime
+  finishedAt:      ISO datetime
+  elapsedSec:      number
+  quotaUsed: {
+    youtube:       number          // total YouTube API units
+    anthropic:     number          // estimated $ cost
+  }
+  modesRan:        string[]        // ["nano", "mid", "trendingInNiche", ...]
+}
+2. modes — one section per mode that was run
+For each mode that was enabled in the request, we return:
+
+modes: {
+  nano: {
+    funnel:  [{ stage: string, count: number }, ...]   // 7 stages
+    totalFound:   number           // raw pool size
+    totalKept:    number           // after all filters
+    videos:       RankedVideo[]    // top N with transcripts + comments
+  }
+  mid: { ... same shape ... }
+  trendingInNiche:     { ... same shape ... }
+  trendingCrossNiche:  { ... same shape ... }
+}
+Each RankedVideo object:
+
+RankedVideo: {
+  videoId:             string
+  title:               string
+  url:                 string
+  description:         string           // full description (Phase A)
+  channel: {
+    id:                string
+    title:             string
+    subscriberCount:   number | null
+    country:           string | null    // 2-letter code
+    customUrl:         string | null    // @handle
+    videoCount:        number | null    // channel size
+    description:       string | null
+  }
+  metrics: {
+    viewCount:         number
+    likeCount:         number | null
+    commentCount:      number | null
+    durationSec:       number
+    ageHours:          number
+    velocity:          number
+    engagementRate:    number    // 0.032 = 3.2%
+    overperfRatio:     number | null
+    compositeScore:    number
+  }
+  topicCategories:     string[]  // Wikipedia URLs (Phase A topicDetails)
+  seedKeyword:         string    // which seed surfaced it
+  trendingSource:      "in-niche" | "cross-niche" | "both" | null
+  aggregator: {
+    isLikely:          boolean
+    signals:           string[]
+  }
+  relevance: {
+    score:             number    // 0-10, from Phase 3 LLM judge
+    reason:            string    // one sentence
+    transfersTo:       string | null  // brand content pillar
+  }
+  content: {
+    transcript: {
+      language:        string | null    // detected ISO code
+      segments:        [{ text, offsetSec, durationSec }, ...]
+      fullText:        string | null    // null if captions unavailable
+    }
+    topComments: [
+      { text, author, likeCount, publishedAt }
+    ]
+  }
+}
+This is the full per-video payload. Replit can render this however it wants — a video card UI, a transcript reader, a comment viewer, etc.
+
+3. analysis — the patterns + drafts (Phase 4 + 5 output)
+analysis: {
+  patternBrief: {
+    hookFormulas: [
+      {
+        template:      string    // "₹[amount] [destination] [hidden modifier]"
+        sourceVideos:  number[]  // video indices from modes.*.videos
+        example:       string
+        whyItWorks:    string
+        variations:    string[]
+      }
+    ]
+    narrativeArcs: [
+      {
+        name:          string    // "3-point breakdown"
+        structure:     string    // description of flow
+        timing:        string    // "3s + 7s + 7s + 8s + 5s"
+        sourceVideos:  number[]
+        whenToUse:     string
+      }
+    ]
+    universalVocabulary: [
+      {
+        phrase:        string
+        language:      string
+        occurrences:   number
+        sourceVideos:  number[]
+        meaning:       string
+      }
+    ]
+    topCTAs: [
+      {
+        type:          string    // "follow-for-part-2" | "silent-value" | ...
+        example:       string
+        count:         number
+        sourceVideos:  number[]
+      }
+    ]
+    audienceQuestions: [
+      {
+        theme:                  string   // "cost splitting"
+        mentions:               number
+        examples:               string[]
+        answeredInSourceVideos: boolean
+      }
+    ]
+    contentGapsForBrand: [
+      {
+        gap:           string
+        evidence:      string
+        brandFit:      string
+        priority:      "high" | "medium" | "low"
+      }
+    ]
+    topPerformingFormats: [
+      {
+        format:           string
+        averageOverperf:  number
+        sourceVideos:     number[]
+      }
+    ]
+  }
+  drafts: [
+    {
+      number:          number
+      title:           string
+      hookSpoken:      string
+      hookDerivesFrom: string    // references patternBrief.hookFormulas
+      arc: {
+        setup:         string
+        payoff:        string
+        cta:           string
+      }
+      arcDerivesFrom:  string    // references patternBrief.narrativeArcs
+      durationSec:     number
+      vibe:            string
+      addresses: {
+        brandPillar:        string
+        audienceQuestion:   string | null
+        contentGap:         string | null
+      }
+      difficulty:     "easy" | "medium" | "hard"
+      testHypothesis: {
+        targetViews:       string
+        targetEngagement:  string
+        signalOfSuccess:   string
+        failureSignal:     string | null
+      }
+      whyItllWork:    string
+      rationaleScore: number   // 0-10
+      priority:       "high" | "medium" | "low"
+    }
+  ]
+  diversityCheck: {
+    distinctHookFormulasUsed:   number
+    distinctNarrativeArcsUsed:  number
+    contentGapsAddressed:       number
+    brandPillarsCovered:        number
+  }
+}
+4. warnings — non-fatal issues
+warnings: string[]
+Examples:
+
+"Category 19 returned 404 in region US — Mode 3 fell back to [22,26]"
+"3 videos had no captions — excluded from pattern extraction (video IDs: ...)"
+"Relevance filter dropped 5 videos below threshold 6/10"
+"Anthropic API rate-limited — retried 1x successfully"
+Non-fatal. Run still succeeds. Replit can display or ignore.
+
+Transport — the HTTP contract
+Endpoint
+POST /api/mine
+Content-Type:  application/json
+Authorization: Bearer <shared_secret>
+Single endpoint, single method. Brand-in, analysis-out. Stateless.
+
+Synchronous vs async
+A full 4-mode run takes ~60-90 seconds end to end. That's within HTTP request limits for most runtimes. So v1 is synchronous:
+
+Replit POSTs to /api/mine
+HTTP connection stays open for ~60-90 seconds
+Response arrives when run is done
+No polling, no job IDs, no state
+If runs need to grow longer or Replit wants non-blocking UX, we add async mode in v1.5:
+
+POST /api/mine              → returns { jobId: "..." }
+GET  /api/mine/job/{jobId}  → returns { status, result? }
+But for v1, sync is simpler and sufficient. Replit shows a "mining..." loading state for a minute and gets the full payload.
+
+Status codes
+code	meaning	when
+200 OK	Success, full analysis in body	Normal completion
+400 Bad Request	Invalid input schema	Missing required fields, invalid types
+401 Unauthorized	Auth failed	Missing or wrong bearer token
+402 Payment Required	LLM API key invalid	Anthropic key rejected
+422 Unprocessable Entity	Input passed schema but semantically wrong	Seeds empty, brand profile empty
+429 Too Many Requests	YouTube quota exhausted	Daily quota cap hit
+500 Internal Server Error	Unexpected failure	Code bug, upstream outage
+503 Service Unavailable	YouTube API down	Google APIs failure
+Every error response also returns a JSON body with { error: { code, message, details } } so Replit can show a useful message to its users.
+
+Auth
+Simple bearer token, shared secret stored in environment variables on both sides:
+
+Trend miner has REPLIT_SHARED_SECRET=xxxx in its env
+Replit sends Authorization: Bearer xxxx with every request
+Miner verifies match on every call
+If wrong → 401
+Upgradeable to OAuth/JWT later if multi-tenant. Shared secret is fine for v1 single-caller.
+
+Timeouts
+Replit should set client timeout of 120 seconds (generous buffer over the ~60-90s typical run)
+Miner should enforce internal timeout of 110 seconds before sending partial/error response
+If any single stage (transcript fetch, LLM call) times out, we fall back gracefully and include in warnings
+Rate limiting
+The miner tracks its own YouTube quota usage. If a request would exceed daily quota, it returns 429 immediately without starting the run. Replit can retry tomorrow or reduce modes / topN.
+
+What stays in the miner's code vs what moves to Replit
+Stays in miner code (system-level, not brand-specific)
+Pipeline architecture — the 4 modes, filter funnel, ranking, composite scoring logic
+Default filter values — the battle-tested thresholds (2.5% engagement, 2x overperf, etc.)
+YouTube API client — all the search.list, videos.list, channels.list, commentThreads.list wiring
+Transcript scraping — the youtube-transcript integration
+Aggregator detection — the regex patterns + strong/weak signal logic
+Default exclude words — the system-level "- Topic", "(lyrics)", etc.
+Phase ordering — Discover → Extract → Score → Pattern → Draft flow
+LLM prompt templates — the system/user prompts for Phase 3, 4, 5 (tuned by us over time)
+Category ID reference — the YouTube category number mapping
+All parsing, error handling, retry logic
+Moves to Replit (brand-level, user-facing)
+Brand profile — name, positioning, tone, pillars, voice rules
+Seeds — the keywords per brand
+Filter overrides (optional) — if a specific brand needs tighter/looser filters
+Region selection — per brand market targeting
+Category overrides (optional) — if a brand wants different in-niche/cross-niche scope
+Mode selection — which of 4 modes to run per request
+Output sizing — topN, draftCount, relevanceThreshold
+Clean separation: Replit owns the brand. Miner owns the mechanics.
+
+What the CLI still does (backward compatibility)
+The existing npm run mine -- --theme travel command keeps working. Under the hood, it reads the current themes.ts file, builds a request object, and calls the SAME internal service function that the HTTP endpoint calls. So:
+
+CLI mode: reads themes.ts → internal function
+HTTP mode: reads request body → same internal function
+The internal function signature is:
+
+mine(request: MineRequest) → Promise<MineResponse>
+Both the CLI and the HTTP handler build a MineRequest object and call it. The response shape is identical. Zero duplication.
+
+Benefit: we can still run local dev/testing via CLI without needing Replit. And the HTTP endpoint is a thin wrapper around existing logic.
+
+The full request → response flow (walkthrough)
+Let me trace a single Replit call through the system end to end.
+
+Step 0 — Replit user action
+User in Replit UI clicks "Run brand scan for TRYPS". Replit builds the request JSON from its database (brand profile editable in UI, seeds editable in UI).
+
+Step 1 — HTTP POST
+Replit sends:
+
+POST https://miner.yourdomain.com/api/mine
+Authorization: Bearer <secret>
+Content-Type: application/json
+{
+  "requestId": "replit-req-abc123",
+  "brand": { ...TRYPS profile... },
+  "keywords": { "seeds": ["group travel", ...] },
+  "modes": { "nano": true, "mid": true, "trendingInNiche": true, "trendingCrossNiche": false },
+  "trending": { "regionCode": "IN", "inNicheCategoryIds": ["19", "22", "26"] },
+  "output": { "topN": 15, "draftCount": 10 }
+}
+Step 2 — Miner auth + validation
+Miner's Express handler:
+
+Checks Authorization: Bearer matches REPLIT_SHARED_SECRET → 401 if not
+Parses body with Zod schema → 400 if invalid
+Normalizes: merges provided filters with defaults
+Starts the run
+Step 3 — Discovery (Modes 1, 2, 3)
+Miner runs 3 modes in parallel (since they share zero state):
+
+Mode 1: keyword search with nano filters (~600 quota)
+Mode 2: keyword search with mid filters (~500 quota)
+Mode 3: trending chart with in-niche categories (~5 quota)
+Mode 4: skipped (not requested)
+Total: ~1105 quota, ~20-30 seconds
+
+Each mode returns its own RankedVideo[] + funnel stats.
+
+Step 4 — Content extraction (Phase B)
+For the kept videos across all 3 modes (maybe 40-60 total), fetch in parallel:
+
+Transcripts via youtube-transcript lib (zero quota)
+Top comments via commentThreads.list (~50 quota)
+Total: ~50 quota, ~15-20 seconds
+
+Step 5 — Relevance scoring (Phase C1 — LLM judge)
+Single Claude call with all 40-60 videos + brand profile:
+
+"Rate each video 0-10 for TRYPS content relevance"
+Returns scores per video. Drops anything <6/10. Keeps ~20-30 videos for pattern extraction.
+
+Cost: ~$0.02, ~5 seconds
+
+Step 6 — Pattern extraction (Phase C2 — LLM synthesis)
+Single Claude call with 20-30 high-relevance videos (transcripts + comments):
+
+"Extract replicable content patterns across these winning Shorts"
+Returns the pattern brief JSON (hook formulas, narrative arcs, vocabulary, CTAs, audience questions, content gaps).
+
+Cost: ~$0.06, ~15-25 seconds
+
+Step 7 — Draft generation (Phase C3 — LLM creative)
+Single Claude call with pattern brief + TRYPS brand profile:
+
+"Generate 10 TRYPS-specific Shorts using these patterns"
+Returns 10 ready-to-shoot drafts with hooks, arcs, CTAs, rationale.
+
+Cost: ~$0.05, ~15-25 seconds
+
+Step 8 — Response assembly
+Miner builds the response JSON:
+
+runMetadata with timing + quota
+modes dict with per-mode funnel + videos (videos enriched with transcripts, comments, relevance scores)
+analysis with patternBrief + drafts + diversityCheck
+warnings if anything non-fatal happened
+Step 9 — HTTP 200 response
+Sends full JSON to Replit. Replit stores/renders/whatever.
+
+Total request time: ~60-90 seconds. Total cost per request: ~1150 quota + ~$0.13 LLM.
+
+Error handling & partial success
+Things that can go wrong and how we handle them:
+
+failure	behavior
+One of 4 modes has 0 results	Include empty videos: [] for that mode, add warning, continue
+Some transcripts fail to fetch	Tag video transcript: null, add warning, still use for ranking
+All transcripts fail	Skip pattern extraction, return metadata-only response, warn "transcripts unavailable"
+Claude API rate limit	Retry 1x with backoff, then warn and return metadata + draft-less response
+Claude returns malformed JSON	Parse leniently, fall back to empty arrays, warn "LLM output parse error"
+YouTube quota exhausted mid-run	Return 200 with partial modes dict, add warning, skip remaining modes
+Category returns 404	Warn, skip that category, proceed with others
+Single seed's search fails	Warn for that seed, continue with others
+Total failure (nothing to return)	500 with error body
+Design principle: always return something useful. Degrade gracefully. A run that produces 8 drafts instead of 10 because one seed failed is still a success.
+
+Worked example — the minimum Replit request
+The smallest valid request Replit could send:
+
+POST /api/mine
+Authorization: Bearer xxxx
+
+{
+  "brand": {
+    "id": "tryps",
+    "name": "TRYPS",
+    "tagline": "Group travel, without the group chat chaos",
+    "whatItIs": "Mobile app for friend group trip planning",
+    "targetUser": {
+      "demographic": "22-35 year olds",
+      "context": "planning trips with 3-15 friends",
+      "painPoint": "coordination is the hardest part",
+      "psychographic": "social, impatient with group chats"
+    },
+    "positioning": "The coordination solver",
+    "tone": "relatable-chaotic-honest",
+    "voiceRules": [
+      "Never say 'seamless'",
+      "Use first-person plural",
+      "Specific numbers beat vague claims"
+    ],
+    "contentPillars": [
+      "coordination-pain stories",
+      "budget splitting",
+      "friend bailing",
+      "decision fatigue"
+    ],
+    "noGoTopics": ["luxury", "solo travel", "family"],
+    "draftLanguage": "en"
+  },
+  "keywords": {
+    "seeds": [
+      "group travel",
+      "friends trip",
+      "girls trip",
+      "plan trip with friends",
+      "group vacation",
+      "travel with strangers"
+    ]
+  }
+}
+Defaults applied by miner:
+
+modes: all 4 enabled
+filters: nano tier defaults (180s duration, 50k sub cap, etc.)
+trending: no region (YouTube picks by IP)
+output: topN 15, draftCount 10, threshold 6
+Miner runs everything and returns the full analysis object. Total request-side config: ~30 lines of JSON. Everything else is server-side defaults.
+
+What needs to happen to build this
+The conversion from current state to Replit-ready is surprisingly contained. Let me outline.
+
+Internal refactor (day 1, ~3-4 hours)
+Extract mine() to a pure service function
+Current mine() in src/mine.ts already takes options and returns results — it's already mostly service-shaped
+Formalize the input/output types as MineRequest / MineResponse in a new src/service-types.ts
+Move theme-loading logic to a buildRequestFromTheme() helper (so CLI still works)
+Add Phase A — surface existing data
+Display full descriptions, channel metadata, topic categories in response objects
+Add topicDetails to videos.list request
+Add Phase B — transcripts + comments
+New file: src/lib/transcript-fetcher.ts (uses youtube-transcript npm package)
+New method: YouTubeClient.getComments(videoId) (wraps commentThreads.list)
+Wire both into post-ranking pipeline
+Add Phase C — LLM analyst
+New file: src/lib/llm-analyst.ts with three functions:
+scoreRelevance(videos, brand) → Phase 3
+extractPatterns(videos) → Phase 4
+generateDrafts(patterns, brand) → Phase 5
+Copy the Anthropic SDK setup from youtube-digest-bot
+Update mine() to orchestrate phases
+Current mine returns RankedVideo[]
+New mine returns full MineResponse with patterns + drafts
+CLI formatting adapter reads the new response shape
+HTTP layer (day 2, ~2-3 hours)
+Add Express server
+New file: src/server.ts — Express app
+Route: POST /api/mine
+Middleware: JSON body parsing, bearer auth
+Handler: Zod validation → mine() → JSON response
+Error handling: map exceptions to status codes
+Environment configuration
+REPLIT_SHARED_SECRET in .env
+PORT in .env (default 3000)
+CORS config if Replit calls from browser (probably not needed for server-to-server)
+Deployment prep
+Dockerfile (optional but clean)
+Health check endpoint: GET /health
+Start script: npm run serve
+Replit contract documentation (day 2, ~1 hour)
+Write README section: INTEGRATION.md
+Full request schema with examples
+Full response schema with examples
+Error codes list
+Rate limits + quota notes
+Auth flow
+Testing (day 2-3, ~2 hours)
+Smoke test: end-to-end with curl
+Send a minimum request via curl
+Verify: response shape matches contract
+Verify: all 4 modes produce output
+Verify: LLM analysis completes
+Verify: error cases return correct status codes
+Integration test: Replit-mocked request
+Write a test script that sends a realistic Replit request
+Verify: response deserializes correctly in Replit's expected format
+Total build time: ~2 full days of focused work. Can be done in 1 long day if you skip niceties like Dockerfile and just run node directly.
+
+A few open decisions Replit needs to make
+I'd clarify these before committing to the contract:
+
+Hosting — where does this service run?
+Option A: Your machine + ngrok tunnel (dev/test only)
+Option B: Small VPS (DigitalOcean droplet, ~$5/mo)
+Option C: Serverless (Vercel/Netlify/Cloudflare Workers — harder because runs take 60-90s)
+Option D: Inside Replit itself as a companion service
+Recommendation: Option B (VPS) for v1 — simplest, predictable, supports long-running requests
+Draft language — how does Replit decide what language to generate drafts in?
+If TRYPS targets Indian audience → Hindi/Hinglish drafts
+If TRYPS targets Western audience → English drafts
+Replit owns this decision via brand.draftLanguage
+Run frequency — how often does Replit plan to call this?
+Once per brand per day? Once per brand per week? Ad-hoc?
+This determines YouTube quota ceiling — 10k/day gives ~8-10 full runs/day per YouTube key
+If more brands / more frequency: need quota management or multiple API keys
+Response caching — does Replit want identical requests to re-use recent results?
+If yes: we add a cache layer with TTL (e.g., don't re-run same brand within 6h)
+If no: every request runs fresh
+Recommendation: no cache in v1, add later if quota becomes a concern
+Draft storage — does Replit store drafts on its side, or does the miner need to persist them?
+If Replit stores: miner is pure stateless service, no DB needed
+If miner stores: we need the Supabase wiring we already set up
+Recommendation: Replit stores drafts, miner stays stateless for v1
+Summary — what the contract gives you
+Input: Replit sends brand profile + seeds (minimum ~30 lines JSON)
+Output: full analysis with ranked videos, transcripts, comments, patterns, and 10 ready-to-shoot drafts (~5-10KB JSON response)
+Transport: single HTTP POST, synchronous, bearer auth
+Cost per request: ~1100-1200 YouTube quota + ~$0.13 Anthropic = ~$0.15 effective
+Time per request: ~60-90 seconds
+Maintenance surface: Replit owns brand config, miner owns mechanics and prompts
+Replit can onboard new brands without any code changes on the miner side. Every brand is a different request payload. Every payload gets the same rigorous 5-phase pipeline applied to it.
+
+One thing I want to flag before building
+The biggest variable in output quality is the prompt templates in Phase 3/4/5. I've sketched them above, but real-world tuning will need iteration:
+
+First run will produce OK patterns and OK drafts
+Second-third runs after prompt refinement will produce good output
+Might need 5-10 tuning iterations per brand voice before drafts feel authentic
+My recommendation: build the infrastructure end-to-end first (CLI → service → HTTP → LLM), ship a working v1, then iterate on the prompts using real TRYPS data. Don't try to perfect the prompts before the pipeline is running — you'll be optimizing in the dark.
