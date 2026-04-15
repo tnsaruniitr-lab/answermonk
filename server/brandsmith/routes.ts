@@ -1,7 +1,41 @@
 import type { Express, Request, Response } from "express";
 import { db } from "../db";
-import { brandsmithJobs, type BrandSection, type InsertBrandsmithJob } from "@shared/schema";
+import { brandsmithJobs, brands, type BrandSection, type InsertBrandsmithJob } from "@shared/schema";
 import { eq } from "drizzle-orm";
+
+function extractBrandFields(sections: BrandSection[], websiteUrl: string) {
+  const get = (sectionKey: string) =>
+    sections.find(s => s.section === sectionKey)?.data ?? {};
+
+  const identity = get("brand_identity");
+  const social = get("social_presence") as any;
+  const digital = get("digital_presence") as any;
+  const positioning = get("competitive_positioning") as any;
+  const voice = get("brand_voice") as any;
+
+  const socialData = Object.keys(social).length ? social : digital;
+
+  return {
+    websiteUrl,
+    brandName: (identity.brand_name ?? identity.name ?? null) as string | null,
+    tagline: (identity.tagline ?? null) as string | null,
+    description: (identity.description ?? null) as string | null,
+    founded: (identity.founded ?? null) as string | null,
+    companySize: (identity.company_size ?? null) as string | null,
+    founder: (identity.founder ?? null) as string | null,
+    linkedin: (socialData.linkedin ?? null) as string | null,
+    twitter: (socialData.twitter ?? socialData.x ?? null) as string | null,
+    instagram: (socialData.instagram ?? null) as string | null,
+    facebook: (socialData.facebook ?? null) as string | null,
+    youtube: (socialData.youtube ?? null) as string | null,
+    tiktok: (socialData.tiktok ?? null) as string | null,
+    primaryKeywords: Array.isArray(socialData.primary_keywords) ? socialData.primary_keywords : null,
+    positioningStatement: (positioning.positioning_statement ?? null) as string | null,
+    voiceArchetype: (voice.voice_archetype ?? null) as string | null,
+    rawSections: sections,
+    updatedAt: new Date(),
+  };
+}
 
 const MOCK_STEPS = [
   { step: "crawling", message: "Scanning homepage…", pct: 10 },
@@ -351,10 +385,34 @@ export function registerBrandsmithRoutes(app: Express) {
         .where(eq(brandsmithJobs.jobId, req.params.jobId))
         .returning();
       if (!updated) return res.status(404).json({ error: "Not found" });
+
+      // Upsert into local brands table
+      if (updated.sections && updated.sections.length > 0 && updated.websiteUrl) {
+        try {
+          const fields = extractBrandFields(updated.sections, updated.websiteUrl);
+          await db.insert(brands).values(fields)
+            .onConflictDoUpdate({ target: brands.websiteUrl, set: fields });
+          console.log("[brands] upserted", updated.websiteUrl);
+        } catch (brandErr: any) {
+          console.error("[brands] upsert failed:", brandErr.message);
+        }
+      }
+
       return res.json(updated);
     } catch (err: any) {
       console.error("[brandsmith/confirm]", err.message);
       return res.status(500).json({ error: "Failed to confirm" });
+    }
+  });
+
+  // --- GET /api/brands ---
+  app.get("/api/brands", async (_req: Request, res: Response) => {
+    try {
+      const rows = await db.select().from(brands).orderBy(brands.confirmedAt);
+      return res.json(rows);
+    } catch (err: any) {
+      console.error("[brands GET]", err.message);
+      return res.status(500).json({ error: "Failed to fetch brands" });
     }
   });
 

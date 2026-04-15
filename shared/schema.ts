@@ -512,3 +512,38 @@ export interface BrandSection {
 export const insertBrandsmithJobSchema = createInsertSchema(brandsmithJobs).omit({ id: true, createdAt: true });
 export type BrandsmithJob = typeof brandsmithJobs.$inferSelect;
 export type InsertBrandsmithJob = z.infer<typeof insertBrandsmithJobSchema>;
+
+// === BRANDS (confirmed BrandSmith profiles) ===
+
+export const brands = pgTable("brands", {
+  id: serial("id").primaryKey(),
+  websiteUrl: text("website_url").notNull().unique(),
+  // Brand Identity
+  brandName: text("brand_name"),
+  tagline: text("tagline"),
+  description: text("description"),
+  founded: text("founded"),
+  companySize: text("company_size"),
+  founder: text("founder"),
+  // Social / Digital Presence
+  linkedin: text("linkedin"),
+  twitter: text("twitter"),
+  instagram: text("instagram"),
+  facebook: text("facebook"),
+  youtube: text("youtube"),
+  tiktok: text("tiktok"),
+  primaryKeywords: text("primary_keywords").array(),
+  // Positioning
+  positioningStatement: text("positioning_statement"),
+  // Voice
+  voiceArchetype: text("voice_archetype"),
+  // Full raw sections blob
+  rawSections: jsonb("raw_sections").$type<BrandSection[]>(),
+  confirmedAt: timestamp("confirmed_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertBrandSchema = createInsertSchema(brands).omit({ id: true, createdAt: true });
+export type Brand = typeof brands.$inferSelect;
+export type InsertBrand = z.infer<typeof insertBrandSchema>;
