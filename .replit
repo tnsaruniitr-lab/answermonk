@@ -65,3 +65,4 @@ VITE_BRANDSMITH_API_URL = "https://tommye-invocative-arnita.ngrok-free.dev"
 
 [userenv.shared]
 BRANDSMITH_API_URL = "https://tommye-invocative-arnita.ngrok-free.dev"
+SHORTFORM_API_URL = "https://tommye-invocative-arnita.ngrok-free.dev"
