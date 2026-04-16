@@ -1,0 +1,83 @@
+{
+  "job_id": "offline-1776176364249",
+  "generated_at": "2026-04-14T14:19:24.255Z",
+  "brand": {
+    "id": 5,
+    "name": "Valeo Health",
+    "website": "https://feelvaleo.com"
+  },
+  "post": {
+    "topic": "Your Q1 Health Check: Setting Realistic Wellness Goals for 2026",
+    "slug": "q1-health-check-2026-wellness-goals",
+    "format": "how-to",
+    "category": "Preventive Health",
+    "primary_keyword": "q1 health check 2026",
+    "secondary_keywords": [
+      "new year wellness goals 2026",
+      "q1 health plan",
+      "january health check",
+      "wellness goals UAE",
+      "health goals 2026",
+      "first quarter health review"
+    ]
+  },
+  "quality": {
+    "word_count": 1941,
+    "schema_count": 6,
+    "schema_types": [
+      "Article",
+      "Organization",
+      "WebPage",
+      "BreadcrumbList",
+      "HowTo",
+      "FAQPage"
+    ],
+    "audit_scores": [
+      {
+        "iteration": 1,
+        "score": 88,
+        "failing": [
+          "A1",
+          "A2",
+          "A5",
+          "B3",
+          "C8",
+          "D5",
+          "G1"
+        ],
+        "delta": null
+      },
+      {
+        "iteration": 2,
+        "score": 94,
+        "failing": [
+          "B3",
+          "C8",
+          "D5",
+          "G1"
+        ],
+        "delta": 6
+      },
+      {
+        "iteration": 3,
+        "score": 94,
+        "failing": [
+          "B3",
+          "C8",
+          "D5",
+          "G1"
+        ],
+        "delta": 0
+      }
+    ]
+  },
+  "files": {
+    "full-page.html": "Complete standalone HTML page — open in browser to preview",
+    "article-body.html": "Just the <article>...</article> content — paste into your existing page template",
+    "schemas.html": "Ready-to-paste <script type='application/ld+json'> blocks for <head>",
+    "schemas.json": "JSON-LD schemas as structured JSON array",
+    "meta-tags.html": "Ready-to-paste <meta> tags for <head>",
+    "meta-tags.json": "Meta tags as structured JSON",
+    "metadata.json": "This file — post info, audit scores, file descriptions"
+  }
+}
