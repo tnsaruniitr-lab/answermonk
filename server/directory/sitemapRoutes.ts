@@ -308,6 +308,10 @@ export function registerSitemapRoutes(app: Express): void {
       "/compare/answermonk-vs-ahrefs-brand-radar",
       "/sample-report",
       "/reports",
+      "/blog/how-to-get-traffic-from-chatgpt",
+      "/blog/increase-organic-traffic-from-llms",
+      "/blog/geo-vs-seo",
+      "/blog/q1-health-check-2026-wellness-goals",
     ];
     const urls = CONTENT_PAGES.map(path =>
       `  <url>\n    <loc>${base}${path}</loc>\n    <lastmod>${now}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`
