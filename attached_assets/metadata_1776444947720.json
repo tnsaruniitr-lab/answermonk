@@ -1,0 +1,89 @@
+{
+  "job_id": "offline-1776443944557",
+  "generated_at": "2026-04-17T16:39:04.563Z",
+  "brand": {
+    "id": 6,
+    "name": "Fiat Republic",
+    "website": "https://fiatrepublic.com"
+  },
+  "post": {
+    "topic": "What Is a Token? Understanding Crypto Tokens, Types, and Functionality",
+    "slug": "what-is-a-token-understanding-crypto-tokens-types-and-functionality",
+    "format": "how-to",
+    "category": "Crypto Education",
+    "primary_keyword": "what is a crypto token",
+    "secondary_keywords": [
+      "types of crypto tokens",
+      "crypto token vs coin",
+      "utility tokens",
+      "security tokens",
+      "stablecoins",
+      "governance tokens",
+      "ERC-20 tokens",
+      "token functionality"
+    ]
+  },
+  "quality": {
+    "word_count": 2745,
+    "schema_count": 7,
+    "schema_types": [
+      "Article",
+      "Organization",
+      "WebPage",
+      "BreadcrumbList",
+      "ItemList",
+      "HowTo",
+      "FAQPage"
+    ],
+    "audit_scores": [
+      {
+        "iteration": 1,
+        "score": 86,
+        "failing": [
+          "A1",
+          "A2",
+          "B3",
+          "C8",
+          "C13",
+          "D5",
+          "G1",
+          "G3",
+          "G7"
+        ],
+        "delta": null
+      },
+      {
+        "iteration": 2,
+        "score": 92,
+        "failing": [
+          "B3",
+          "C8",
+          "C13",
+          "D5",
+          "G1"
+        ],
+        "delta": 6
+      },
+      {
+        "iteration": 3,
+        "score": 94,
+        "failing": [
+          "B3",
+          "C8",
+          "D5",
+          "G1"
+        ],
+        "delta": 2
+      }
+    ]
+  },
+  "files": {
+    "full-page.html": "Complete standalone HTML page — open in browser to preview",
+    "article-body.html": "Just the <article>...</article> content — paste into your existing page template",
+    "schemas.html": "Ready-to-paste <script type='application/ld+json'> blocks for <head>",
+    "schemas.json": "JSON-LD schemas as structured JSON array",
+    "meta-tags.html": "Ready-to-paste <meta> tags for <head>",
+    "meta-tags.json": "Meta tags as structured JSON",
+    "metadata.json": "This file — post info, audit scores, file descriptions"
+  }
+}

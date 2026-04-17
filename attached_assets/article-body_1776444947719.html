@@ -1,0 +1,370 @@
+<article class="max-w-[720px] mx-auto px-6 py-10 pb-24">
+      <nav aria-label="Breadcrumb" class="mb-8">
+        <ol class="flex flex-wrap gap-1 text-xs text-[#D97706]">
+          <li><a href="https://fiatrepublic.com" class="hover:underline">Home</a></li>
+          <li class="text-[#6B5230]">/</li>
+          <li><a href="https://fiatrepublic.com/blog" class="hover:underline">Blog</a></li>
+          <li class="text-[#6B5230]">/</li>
+          <li><a href="https://fiatrepublic.com/blog/crypto-education" class="hover:underline">Crypto Education</a></li>
+          <li class="text-[#6B5230]">/</li>
+          <li class="text-[#1C1208] font-medium">What Is a Crypto Token?</li>
+        </ol>
+      </nav>
+
+      <header class="mb-10">
+        <span class="inline-block bg-[#FEF3C7] text-[#D97706] text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full mb-4">Crypto Education</span>
+        <h1 class="serif text-4xl md:text-5xl font-black leading-tight mb-4">What Is a <span class="text-[#D97706]">Crypto Token</span>? Understanding Types and Functionality</h1>
+        <p class="text-sm text-[#9CA3AF] mb-6">Fiat Republic Blog &middot; 17 April 2026 &middot; 12 min read</p>
+        <p class="serif text-xl md:text-2xl text-[#2D1A0A] leading-relaxed mb-6 border-l-4 border-[#D97706] pl-5">A crypto token is a digital asset built on top of an existing blockchain using smart contracts, whilst a coin is the native asset of its own blockchain.</p>
+        <figure class="my-10">
+          <img src="https://fiatrepublic.com/images/blog/what-is-a-token-understanding-crypto-tokens-types-and-functionality-hero.png" alt="Diagram showing different types of crypto tokens built on blockchain infrastructure" width="1200" height="630" loading="eager" class="w-full rounded-2xl shadow-md" />
+          <figcaption class="text-sm text-[#9CA3AF] mt-3 text-center italic">Different types of crypto tokens and their underlying blockchain infrastructure</figcaption>
+        </figure>
+      </header>
+
+      <div class="quick-answer bg-gradient-to-r from-[#B45309] to-[#D97706] rounded-2xl overflow-hidden mb-14" role="note" aria-label="Quick answer">
+        <div class="px-6 py-3 text-white font-bold text-sm flex items-center gap-2">&#10003; The short answer</div>
+        <div class="bg-white m-[2px] rounded-xl px-6 py-5">
+          <ol class="space-y-3 text-[17px] text-[#2D1A0A]">
+            <li class="flex items-start gap-3">
+              <span class="flex-shrink-0 w-7 h-7 bg-[#FEF3C7] text-[#D97706] rounded-full flex items-center justify-center text-sm font-bold">1</span>
+              <span>A token is a digital asset built on an existing blockchain (like Ethereum), whilst a coin is the native asset of its own blockchain</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="flex-shrink-0 w-7 h-7 bg-[#FEF3C7] text-[#D97706] rounded-full flex items-center justify-center text-sm font-bold">2</span>
+              <span>Main types: utility tokens, security tokens, stablecoins, governance tokens, NFTs, and wrapped tokens</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="flex-shrink-0 w-7 h-7 bg-[#FEF3C7] text-[#D97706] rounded-full flex items-center justify-center text-sm font-bold">3</span>
+              <span>Token standards like ERC-20, ERC-721, and BEP-20 define how tokens behave on their respective blockchains</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="flex-shrink-0 w-7 h-7 bg-[#FEF3C7] text-[#D97706] rounded-full flex items-center justify-center text-sm font-bold">4</span>
+              <span>Different token types have distinct regulatory and operational implications for crypto platforms</span>
+            </li>
+          </ol>
+          <p class="mt-5 text-[15px] text-[#6B5230]">Understanding token fundamentals is essential for any team building crypto infrastructure.</p>
+        </div>
+      </div>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">When you hear "crypto token," you might think of any digital asset in the crypto space. But there's a crucial technical distinction that affects everything from compliance to infrastructure design. <strong>Bitcoin</strong> is a coin — it's the native asset of the Bitcoin blockchain. <strong>USDC</strong>, however, is a token — it's built on top of Ethereum using smart contracts.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">This distinction matters because tokens and coins operate differently, have different regulatory implications, and require different technical approaches for crypto platforms. If your team is building payment infrastructure, running an exchange, or issuing digital assets, understanding these differences is fundamental to architecture decisions and operational setup — typically taking 3-6 months to properly implement.</p>
+
+      <h2 id="token-vs-coin" class="serif text-2xl md:text-3xl font-bold text-[#1C1208] border-l-4 border-[#D97706] pl-5 mb-6">What's the difference between a crypto token and a coin?</h2>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">A <strong>coin</strong> is the native digital asset of its own blockchain. <strong>Bitcoin</strong> (BTC) runs on the Bitcoin network, <strong>Ether</strong> (ETH) runs on Ethereum, and <strong>SOL</strong> runs on Solana. These coins are integral to their blockchain's operation — they're used for transaction fees, network security, and consensus mechanisms.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">A <strong>token</strong>, by contrast, is built on top of an existing blockchain using smart contracts. Tokens leverage the security, consensus, and infrastructure of established blockchains like <strong>Ethereum</strong>, <strong>Binance Smart Chain</strong>, or <strong>Solana</strong>. They don't have their own blockchain — they're smart contract applications.</p>
+
+      <div class="bg-[#FEF3C7]/60 rounded-xl border border-[#F5D78E] px-5 py-4 my-6">
+        <p class="text-[15px] text-[#2D1A0A]"><strong class="text-[#D97706]">Technical reality:</strong> When you send USDC on Ethereum, you're executing a smart contract function that takes 12-15 seconds for confirmation, not a native blockchain transaction. The Ethereum network processes the transaction, but USDC's smart contract handles the token logic.</p>
+      </div>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">For crypto platforms, this distinction affects settlement patterns, gas fee structures, and compliance frameworks. Tokens require interaction with smart contracts, whilst coin transfers use native blockchain functions. Most token operations cost £2-15 in gas fees on Ethereum during normal network conditions.</p>
+
+      <h2 id="types-of-tokens" class="serif text-2xl md:text-3xl font-bold text-[#1C1208] border-l-4 border-[#D97706] pl-5 mb-6">What are the main types of crypto tokens?</h2>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">Crypto tokens serve different functions and have different regulatory classifications. Understanding these categories is crucial for compliance, treasury management, and operational design — each requiring 2-4 weeks of technical integration work.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">Utility tokens</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">Utility tokens provide access to a product or service within a specific ecosystem. They're designed to be consumed or used rather than held as investments. Examples include <strong>Chainlink</strong> (LINK) for oracle services, <strong>Basic Attention Token</strong> (BAT) for digital advertising, and <strong>Filecoin</strong> (FIL) for decentralised storage.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">From a regulatory perspective, utility tokens generally face less scrutiny than security tokens, but they still require clear documentation of their utility function. Platforms typically need 6-8 weeks to implement proper utility token compliance frameworks. Understanding proper <a href="https://fiatrepublic.com/oxygen" class="text-[#D97706] hover:underline">compliance monitoring for crypto flows</a> is essential for utility token operations.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">Security tokens</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">Security tokens represent ownership rights, profit-sharing, or investment contracts. They're subject to securities regulations and typically require investor accreditation, compliance with disclosure requirements, and regulatory approval. Examples include tokenised equity, debt instruments, and real estate investment tokens priced from £1,000-10,000 minimum investment thresholds.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">Security tokens require the most comprehensive compliance framework and often involve traditional financial intermediaries for regulatory compliance. Implementation typically takes 4-6 months due to regulatory approval processes and costs £50,000-200,000 for full compliance setup.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">Stablecoins</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">Stablecoins are designed to maintain stable value relative to a reference asset, typically fiat currencies. <strong>USD Coin</strong> (USDC) and <strong>Tether</strong> (USDT) are fiat-collateralised, backed by equivalent reserves. <strong>DAI</strong> is crypto-collateralised, backed by overcollateralised crypto assets.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">Stablecoins are critical for crypto platforms because they bridge fiat and crypto ecosystems. USDC redemptions typically process within 1-2 business days, whilst USDT can vary based on blockchain selection — Tron taking 1-5 minutes, Ethereum taking 12-15 minutes. Integration with robust <a href="https://fiatrepublic.com/eaglenet" class="text-[#D97706] hover:underline">24/7 fiat settlement networks</a> eliminates traditional banking delays for stablecoin operations.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">Governance tokens</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">Governance tokens grant holders voting rights in decentralised protocols. <strong>Uniswap</strong> (UNI) holders vote on protocol upgrades, fee structures, and treasury allocation. <strong>Aave</strong> (AAVE) holders govern risk parameters and new market additions.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">These tokens often combine governance rights with utility functions and may have regulatory implications depending on the level of control they provide. Voting processes typically require 7-day proposal periods followed by 3-day voting windows. Gas costs for governance participation range from £5-25 per vote on Ethereum.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">Non-Fungible Tokens (NFTs)</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">NFTs represent unique digital assets with distinct characteristics. They're typically used for digital art, collectibles, gaming items, and domain names. NFTs use different token standards (like ERC-721) than fungible tokens.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">NFT platforms require different infrastructure patterns, including metadata storage, rarity algorithms, and marketplace functionality. Minting costs typically range from £10-50 on Ethereum, depending on network congestion. Trading fees usually run 2.5-7.5% of transaction value across major marketplaces.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">Wrapped tokens</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">Wrapped tokens represent assets from one blockchain on another blockchain. <strong>Wrapped Bitcoin</strong> (WBTC) brings Bitcoin to Ethereum, enabling Bitcoin holders to participate in Ethereum DeFi. The wrapping process typically involves custodians who hold the original asset and issue the wrapped version.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">Wrapped tokens require bridge infrastructure and introduce custodial risk that platforms must evaluate. WBTC wrapping typically takes 2-4 hours for initial minting, with unwrapping taking 8-24 hours depending on network conditions. Bridge fees usually cost £15-40 plus network gas fees.</p>
+
+      <div class="overflow-x-auto my-8">
+        <table class="w-full text-sm text-[#2D1A0A] border border-[#F5D78E] rounded-xl overflow-hidden" aria-label="Comparison of crypto token types">
+          <thead>
+            <tr class="bg-[#D97706] text-white text-left">
+              <th class="px-4 py-3 font-semibold">Type</th>
+              <th class="px-4 py-3 font-semibold">Primary Function</th>
+              <th class="px-4 py-3 font-semibold">Example</th>
+              <th class="px-4 py-3 font-semibold">Typical Costs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-t border-[#F5D78E]">
+              <td class="px-4 py-3 font-medium">Utility</td>
+              <td class="px-4 py-3">Access to services</td>
+              <td class="px-4 py-3">LINK, BAT</td>
+              <td class="px-4 py-3 text-[#6B5230]">£5-25/transaction</td>
+            </tr>
+            <tr class="border-t border-[#F5D78E]">
+              <td class="px-4 py-3 font-medium">Security</td>
+              <td class="px-4 py-3">Investment/ownership rights</td>
+              <td class="px-4 py-3">Tokenised equity</td>
+              <td class="px-4 py-3 text-[#6B5230]">£1,000-10,000 minimum</td>
+            </tr>
+            <tr class="border-t border-[#F5D78E]">
+              <td class="px-4 py-3 font-medium">Stablecoin</td>
+              <td class="px-4 py-3">Stable value</td>
+              <td class="px-4 py-3">USDC, USDT</td>
+              <td class="px-4 py-3 text-[#6B5230]">£2-15/transfer</td>
+            </tr>
+            <tr class="border-t border-[#F5D78E]">
+              <td class="px-4 py-3 font-medium">Governance</td>
+              <td class="px-4 py-3">Protocol voting rights</td>
+              <td class="px-4 py-3">UNI, AAVE</td>
+              <td class="px-4 py-3 text-[#6B5230]">£5-25/vote</td>
+            </tr>
+            <tr class="border-t border-[#F5D78E]">
+              <td class="px-4 py-3 font-medium">NFT</td>
+              <td class="px-4 py-3">Unique ownership</td>
+              <td class="px-4 py-3">CryptoPunks</td>
+              <td class="px-4 py-3 text-[#6B5230]">£10-50 minting</td>
+            </tr>
+            <tr class="border-t border-[#F5D78E]">
+              <td class="px-4 py-3 font-medium">Wrapped</td>
+              <td class="px-4 py-3">Cross-chain representation</td>
+              <td class="px-4 py-3">WBTC, WETH</td>
+              <td class="px-4 py-3 text-[#6B5230]">£15-40 bridge fees</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="token-standards" class="serif text-2xl md:text-3xl font-bold text-[#1C1208] border-l-4 border-[#D97706] pl-5 mb-6">How do token standards work?</h2>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">Token standards are technical specifications that define how tokens should behave on a blockchain. They ensure interoperability between different applications, wallets, and exchanges. Without standards, every token would require custom integration — typically adding 4-8 weeks to development timelines.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">Each blockchain has its own set of token standards, with different capabilities and use cases. The <a href="https://fiatrepublic.com/product" class="text-[#D97706] hover:underline">Fiat Republic multi-bank API</a> handles multiple token standards through unified endpoints, reducing integration complexity.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">ERC-20 (Ethereum)</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4"><strong>ERC-20</strong> is the most widely adopted fungible token standard. It defines six mandatory functions: totalSupply, balanceOf, transfer, transferFrom, approve, and allowance. These functions enable basic token operations like checking balances, transferring tokens, and delegating transfer permissions.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">Most stablecoins, utility tokens, and governance tokens on Ethereum follow ERC-20. The standard's widespread adoption means most wallets and exchanges support it natively — reducing integration time from weeks to days. Deployment costs range from £200-500 for basic ERC-20 tokens.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">ERC-721 (Ethereum NFTs)</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4"><strong>ERC-721</strong> defines non-fungible tokens where each token has a unique identifier. Unlike ERC-20 tokens that are identical, ERC-721 tokens can have different properties, ownership histories, and metadata.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">This standard enables digital collectibles, gaming items, and tokenised real-world assets with unique characteristics. NFT transfers typically cost £15-40 in gas fees during normal network conditions. Contract deployment runs £500-1,500 for basic NFT collections.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">ERC-1155 (Multi-Token Standard)</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4"><strong>ERC-1155</strong> allows a single smart contract to manage multiple token types — both fungible and non-fungible. This is particularly useful for gaming applications where you might have currency tokens (fungible) and unique items (non-fungible) in the same ecosystem.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">The standard reduces deployment costs by approximately 60-80% compared to deploying separate ERC-20 and ERC-721 contracts and enables more complex tokenomics within single contracts. Deployment typically costs £800-2,000 for comprehensive multi-token systems.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">BEP-20 (Binance Smart Chain)</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4"><strong>BEP-20</strong> is Binance Smart Chain's equivalent to ERC-20, with similar functionality but lower transaction costs. Many projects deploy on both Ethereum (ERC-20) and BSC (BEP-20) to offer users choice between decentralisation and cost efficiency.</p>
+
+      <div class="bg-[#FEF3C7]/60 rounded-xl border border-[#F5D78E] px-5 py-4 my-6">
+        <p class="text-[15px] text-[#2D1A0A]"><strong class="text-[#D97706]">Cross-chain complexity:</strong> The same token (like USDT) can exist on multiple blockchains using different standards. USDT exists as ERC-20 on Ethereum (£2-15 transfer cost), BEP-20 on BSC (£0.20 transfer cost), and TRC-20 on Tron (£0.10 transfer cost) — each with different confirmation times ranging from 1-15 minutes.</p>
+
+      </div>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">SPL Tokens (Solana)</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4"><strong>Solana Program Library</strong> (SPL) tokens are Solana's token standard, offering high throughput and low costs. SPL tokens benefit from Solana's proof-of-stake consensus and parallel transaction processing.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">Major projects like <strong>Serum</strong> and <strong>Raydium</strong> use SPL tokens, and many Ethereum projects have bridged to Solana to leverage lower transaction costs — typically £0.01-0.05 per transaction with 400ms confirmation times. Token creation costs approximately £2-5 on Solana.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">TRC-20 (Tron)</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6"><strong>TRC-20</strong> is Tron's token standard, similar to ERC-20 but designed for Tron's delegated proof-of-stake network. It's particularly popular for USDT transfers due to Tron's low transaction fees — typically £0.10 with 1-3 minute confirmation times. Token deployment costs around £10-20 on Tron.</p>
+
+      <h2 id="fiat-banking-implications" class="serif text-2xl md:text-3xl font-bold text-[#1C1208] border-l-4 border-[#D97706] pl-5 mb-6">How do different token types affect fiat banking operations?</h2>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">Each token type creates different requirements for fiat banking infrastructure. Understanding these patterns is essential for crypto platforms designing their operational architecture.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">The token type determines regulatory classification, reserve requirements, compliance obligations, and settlement patterns. The EagleNet settlement network provides 24/7 instant fiat settlement specifically designed for these token operation patterns.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">Stablecoins and reserve management</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">Fiat-collateralised stablecoins require equivalent fiat reserves held in traditional banking relationships. <strong>Circle</strong> (USDC issuer) maintains fully-reserved accounts with regulated financial institutions. When users mint USDC, Circle receives fiat and issues tokens. When users redeem, Circle burns tokens and releases fiat.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">This creates operational dependencies on banking infrastructure for reserve management, regulatory reporting, and redemption processing. Stablecoin issuers need banking partners that understand crypto business models and can provide real-time settlement capabilities — USDC redemptions typically process within 1-2 business days through traditional banking rails, costing £5-15 per redemption in banking fees.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">Security tokens and compliance</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">Security tokens often require integration with traditional financial infrastructure for compliance, investor verification, and regulatory reporting. They may need connections to cap table management systems, transfer agents, and regulatory filing systems.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">The fiat banking layer must support enhanced due diligence, transaction monitoring, and reporting requirements that exceed typical crypto platform standards. Security token transactions typically require 3-5 business day settlement periods due to compliance verification processes and cost £25-100 per transaction in compliance overhead.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">Utility and governance tokens</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">Whilst utility and governance tokens don't require direct fiat backing, they create fiat banking needs through platform operations. Exchanges need fiat on/off-ramps for these tokens, treasury management for platform revenues, and settlement capabilities for institutional trades.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">The banking infrastructure must handle the conversion between these tokens and fiat currencies efficiently, particularly for high-volume trading platforms processing hundreds of trades per hour. Wire transfer costs typically run £15-25 for international settlements. The Oxygen compliance engine provides real-time monitoring for these mixed token-fiat flows.</p>
+
+      <div class="bg-[#FEF3C7]/60 rounded-xl border border-[#F5D78E] px-5 py-4 my-6">
+        <p class="text-[15px] text-[#2D1A0A]"><strong class="text-[#D97706]">Banking complexity:</strong> A single crypto platform might handle multiple token types simultaneously — USDC redemptions requiring 1-2 day fiat settlement, governance token trading requiring efficient on/off-ramps, and NFT sales requiring payment processing. Each creates different banking infrastructure requirements with varying settlement times and compliance obligations costing £5-100 per transaction.</p>
+      </div>
+
+      <h2 id="operational-considerations" class="serif text-2xl md:text-3xl font-bold text-[#1C1208] border-l-4 border-[#D97706] pl-5 mb-6">What should crypto platforms consider when handling tokens?</h2>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">Building infrastructure for token operations requires careful consideration of technical, regulatory, and operational factors that vary significantly by token type. Proper implementation typically requires 3-6 months for comprehensive token support with development costs ranging from £100,000-500,000 depending on complexity.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">Smart contract risk management</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">Unlike coins that use native blockchain functions, tokens depend on smart contracts. This introduces additional risk vectors: contract bugs, upgrade mechanisms, admin keys, and dependency on external contracts. Platforms must evaluate each token's smart contract architecture before integration.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">Due diligence should include contract audits, upgrade patterns, and multisig configurations for any admin functions. Professional smart contract audits typically cost £15,000-50,000 and take 2-4 weeks to complete. Insurance for smart contract risks ranges from £10,000-100,000 annually depending on TVL.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">Gas optimisation strategies</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">Token transactions require smart contract execution, which typically costs more gas than native coin transfers. Platforms handling high volumes need gas optimisation strategies: batch processing, layer-2 solutions, or alternative blockchain deployment.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">Cost management becomes particularly important for platforms processing many small transactions or operating on high-gas-cost networks. Batch processing can reduce per-transaction costs by 60-80% during high-traffic periods. Layer-2 solutions can reduce costs from £15-40 per transaction to £0.10-1.00.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">Regulatory compliance frameworks</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">Different token types trigger different regulatory requirements. Platforms must implement flexible compliance frameworks that can adapt to token classification changes. What starts as a utility token might be reclassified as a security based on usage patterns or regulatory guidance.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">Compliance systems need to track token classifications, implement appropriate controls, and generate required reports for different token types. Regulatory compliance reviews typically occur quarterly and require 1-2 weeks of documentation preparation. Compliance software licensing costs £10,000-50,000 annually.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">Settlement and reconciliation</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">Token operations often require coordination between blockchain transactions and fiat banking systems. Stablecoin redemptions must match blockchain burns with fiat releases. Exchange operations must reconcile token trades with fiat settlement.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">Platforms need robust reconciliation systems that can handle the timing differences between blockchain finality and banking settlement. Traditional banking settlement can take 1-3 business days, whilst blockchain transactions confirm in minutes. The EagleNet settlement network eliminates these timing mismatches with 24/7 instant fiat settlement at £2-5 per transaction.</p>
+
+      <h3 class="serif text-xl font-bold text-[#1C1208] mb-4">Cross-chain token management</h3>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-4">Many tokens exist on multiple blockchains with different standards and characteristics. USDT operates on Ethereum (ERC-20), Binance Smart Chain (BEP-20), Tron (TRC-20), and other networks. Each deployment has different transaction costs, confirmation times, and liquidity profiles.</p>
+
+      <p class="text-[17px] leading-[1.85] text-[#2D1A0A] mb-6">Platforms must decide which networks to support, how to handle cross-chain transfers, and how to manage liquidity across different deployments. Cross-chain bridge operations typically take 10-30 minutes and cost £5-25 depending on network selection. Bridge infrastructure setup costs £50,000-200,000 for comprehensive multi-chain support.</p>
+
+      <div class="summary-box bg-gradient-to-r from-[#1C1208] via-[#6B5230] to-[#D97706] rounded-2xl p-8 mb-14 text-white">
+        <h2 class="serif text-2xl font-bold mb-6">The short version</h2>
+        <div class="space-y-3">
+          <div class="flex items-center gap-4">
+            <span class="flex-shrink-0 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg">🪙</span>
+            <div><span class="text-white/60 text-sm">Token vs Coin</span><br/><span class="font-semibold">Coins are native blockchain assets; tokens are smart contract applications</span></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="flex-shrink-0 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg">🏷️</span>
+            <div><span class="text-white/60 text-sm">Token Types</span><br/><span class="font-semibold">Utility, security, stablecoins, governance, NFTs, wrapped tokens</span></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="flex-shrink-0 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg">⚙️</span>
+            <div><span class="text-white/60 text-sm">Standards</span><br/><span class="font-semibold">ERC-20, ERC-721, BEP-20, SPL, TRC-20 define token behaviour</span></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="flex-shrink-0 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg">🏦</span>
+            <div><span class="text-white/60 text-sm">Banking Impact</span><br/><span class="font-semibold">Different tokens require different fiat infrastructure approaches</span></div>
+          </div>
+        </div>
+      </div>
+
+      <section class="mb-14">
+        <h2 id="faq" class="serif text-2xl md:text-3xl font-bold text-[#1C1208] border-l-4 border-[#D97706] pl-5 mb-6">Frequently asked questions</h2>
+        <div class="space-y-3">
+          <details class="group bg-white border border-[#F5D78E] rounded-xl overflow-hidden open:border-[#D97706] transition-colors">
+            <summary class="flex items-center justify-between px-5 py-4 cursor-pointer">
+              <h3 class="serif text-lg font-semibold text-[#1C1208]">What is the difference between a crypto token and a coin?</h3>
+              <span class="text-[#D97706] text-xl transition-transform group-open:rotate-45">+</span>
+            </summary>
+            <div class="px-5 pb-4 border-t border-[#F5D78E]/50">
+              <p class="faq-a text-[17px] leading-[1.85] text-[#2D1A0A] pt-3">A coin is the native digital asset of a blockchain (like Bitcoin on Bitcoin or Ether on Ethereum), whilst a token is built on top of an existing blockchain using smart contracts. Coins secure their own networks; tokens leverage existing blockchain infrastructure.</p>
+            </div>
+          </details>
+          
+          <details class="group bg-white border border-[#F5D78E] rounded-xl overflow-hidden open:border-[#D97706] transition-colors">
+            <summary class="flex items-center justify-between px-5 py-4 cursor-pointer">
+              <h3 class="serif text-lg font-semibold text-[#1C1208]">What are the main types of crypto tokens?</h3>
+              <span class="text-[#D97706] text-xl transition-transform group-open:rotate-45">+</span>
+            </summary>
+            <div class="px-5 pb-4 border-t border-[#F5D78E]/50">
+              <p class="faq-a text-[17px] leading-[1.85] text-[#2D1A0A] pt-3">The main types are utility tokens (access to services), security tokens (represent ownership rights), stablecoins (pegged to fiat currencies), governance tokens (voting rights in protocols), NFTs (unique digital assets), and wrapped tokens (representations of assets from other blockchains).</p>
+            </div>
+          </details>
+          
+          <details class="group bg-white border border-[#F5D78E] rounded-xl overflow-hidden open:border-[#D97706] transition-colors">
+            <summary class="flex items-center justify-between px-5 py-4 cursor-pointer">
+              <h3 class="serif text-lg font-semibold text-[#1C1208]">What is an ERC-20 token?</h3>
+              <span class="text-[#D97706] text-xl transition-transform group-open:rotate-45">+</span>
+            </summary>
+            <div class="px-5 pb-4 border-t border-[#F5D78E]/50">
+              <p class="faq-a text-[17px] leading-[1.85] text-[#2D1A0A] pt-3">ERC-20 is the most common token standard on Ethereum, defining how fungible tokens should behave. It specifies functions like transfer, balance checking, and approval mechanisms. Most tokens on Ethereum, including USDC and UNI, follow this standard.</p>
+            </div>
+          </details>
+          
+          <details class="group bg-white border border-[#F5D78E] rounded-xl overflow-hidden open:border-[#D97706] transition-colors">
+            <summary class="flex items-center justify-between px-5 py-4 cursor-pointer">
+              <h3 class="serif text-lg font-semibold text-[#1C1208]">How do stablecoins maintain their value?</h3>
+              <span class="text-[#D97706] text-xl transition-transform group-open:rotate-45">+</span>
+            </summary>
+            <div class="px-5 pb-4 border-t border-[#F5D78E]/50">
+              <p class="faq-a text-[17px] leading-[1.85] text-[#2D1A0A] pt-3">Stablecoins maintain their value through different mechanisms: fiat-collateralised stablecoins like USDC hold equivalent fiat reserves in banks, crypto-collateralised ones use overcollateralisation with crypto assets, and algorithmic stablecoins use market mechanisms to maintain their peg.</p>
+            </div>
+          </details>
+          
+          <details class="group bg-white border border-[#F5D78E] rounded-xl overflow-hidden open:border-[#D97706] transition-colors">
+            <summary class="flex items-center justify-between px-5 py-4 cursor-pointer">
+              <h3 class="serif text-lg font-semibold text-[#1C1208]">Why do crypto platforms need fiat banking for token operations?</h3>
+              <span class="text-[#D97706] text-xl transition-transform group-open:rotate-45">+</span>
+            </summary>
+            <div class="px-5 pb-4 border-t border-[#F5D78E]/50">
+              <p class="faq-a text-[17px] leading-[1.85] text-[#2D1A0A] pt-3">Crypto platforms need fiat banking for on/off-ramps (converting fiat to tokens and vice versa), reserve management for stablecoin issuers, settlement between platforms, and compliance with regulatory requirements for certain token types like security tokens.</p>
+            </div>
+          </details>
+          
+          <details class="group bg-white border border-[#F5D78E] rounded-xl overflow-hidden open:border-[#D97706] transition-colors">
+            <summary class="flex items-center justify-between px-5 py-4 cursor-pointer">
+              <h3 class="serif text-lg font-semibold text-[#1C1208]">What's the best banking infrastructure for crypto token platforms?</h3>
+              <span class="text-[#D97706] text-xl transition-transform group-open:rotate-45">+</span>
+            </summary>
+            <div class="px-5 pb-4 border-t border-[#F5D78E]/50">
+              <p class="faq-a text-[17px] leading-[1.85] text-[#2D1A0A] pt-3">Fiat Republic provides multi-bank API access, 24/7 instant settlement through EagleNet, and crypto-native compliance through Oxygen, enabling crypto platforms to handle the fiat side of token operations without debanking risk.</p>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section class="bg-gradient-to-br from-[#B45309] via-[#D97706] to-[#F59E0B] rounded-3xl p-10 mb-12 text-white text-center shadow-xl shadow-[#D97706]/20">
+        <h2 class="serif text-3xl font-bold mb-4">One tool that handles all of it.</h2>
+        <p class="text-white/80 max-w-lg mx-auto mb-6 text-lg">Your platform handles multiple token types with different banking requirements. Fiat Republic provides the unified fiat infrastructure that scales with your token operations.</p>
+        <a href="https://fiatrepublic.com/contact" class="inline-flex items-center gap-2 bg-white text-[#D97706] font-bold px-8 py-3 rounded-full hover:scale-105 transition-transform shadow-lg">
+          Build with Fiat Republic &rarr;
+        </a>
+      </section>
+
+      <section class="border-t border-[#F5D78E]/40 pt-10 mb-14">
+        <h2 class="serif text-2xl font-bold text-[#1C1208] mb-6">Related articles</h2>
+        <div class="grid md:grid-cols-2 gap-4">
+          <a href="https://fiatrepublic.com/product" class="block p-5 bg-white border border-[#F5D78E] rounded-xl hover:border-[#D97706] transition-colors">
+            <h3 class="serif text-lg font-semibold text-[#1C1208] mb-2">Fiat Republic Product Overview</h3>
+            <p class="text-sm text-[#6B5230]">Multi-bank API access, 24/7 settlement, and crypto-native compliance infrastructure</p>
+          </a>
+          <a href="https://fiatrepublic.com/oxygen" class="block p-5 bg-white border border-[#F5D78E] rounded-xl hover:border-[#D97706] transition-colors">
+            <h3 class="serif text-lg font-semibold text-[#1C1208] mb-2">Oxygen Compliance Engine</h3>
+            <p class="text-sm text-[#6B5230]">Purpose-built transaction monitoring for crypto business flows and token operations</p>
+          </a>
+        </div>
+      </section>
+    </article>

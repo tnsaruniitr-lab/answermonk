@@ -312,6 +312,7 @@ export function registerSitemapRoutes(app: Express): void {
       "/blog/increase-organic-traffic-from-llms",
       "/blog/geo-vs-seo",
       "/blog/q1-health-check-2026-wellness-goals",
+      "/what-is-a-token-understanding-crypto-tokens-types-and-functionality",
     ];
     const urls = CONTENT_PAGES.map(path =>
       `  <url>\n    <loc>${base}${path}</loc>\n    <lastmod>${now}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`

@@ -58,6 +58,7 @@ const AeoAudit = lazy(() => import("@/pages/seo/AeoAudit"));
 const LlmVisibilityTracking = lazy(() => import("@/pages/seo/LlmVisibilityTracking"));
 const AiSearchCompetitorAnalysis = lazy(() => import("@/pages/seo/AiSearchCompetitorAnalysis"));
 const BlogQ1HealthCheck2026 = lazy(() => import("@/pages/seo/BlogQ1HealthCheck2026"));
+const BlogCryptoToken = lazy(() => import("@/pages/seo/BlogCryptoToken"));
 
 const SEO_PREFIXES = [
   "/methodology", "/ai-search-audit", "/how-ai-search-works",
@@ -66,6 +67,7 @@ const SEO_PREFIXES = [
   "/ai-search-visibility-software", "/geo-audit-tool", "/aeo-audit",
   "/llm-visibility-tracking", "/ai-search-competitor-analysis",
   "/blog/q1-health-check-2026-wellness-goals",
+  "/what-is-a-token-understanding-crypto-tokens-types-and-functionality",
 ];
 
 function SlugTeaser({ params }: { params: { slug: string } }) {
@@ -208,6 +210,7 @@ function SeoRoutes({ path }: { path: string }) {
       {path === "/blog/increase-organic-traffic-from-llms" && <BlogLlmOrganicTraffic />}
       {path === "/blog/geo-vs-seo" && <BlogGeoVsSeo />}
       {path === "/blog/q1-health-check-2026-wellness-goals" && <BlogQ1HealthCheck2026 />}
+      {path === "/what-is-a-token-understanding-crypto-tokens-types-and-functionality" && <BlogCryptoToken />}
       {path === "/ai-search-visibility-software" && <AiSearchVisibilitySoftware />}
       {path === "/geo-audit-tool" && <GeoAuditTool />}
       {path === "/aeo-audit" && <AeoAudit />}
