@@ -18,8 +18,7 @@ const anthropic = new Anthropic({
 });
 
 const gemini = new GoogleGenAI({
-  apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
-  httpOptions: { baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL },
+  apiKey: process.env.GOOGLE_GEMINI_API_KEY,
 });
 
 type ScoringEngine = "chatgpt" | "gemini" | "claude";
@@ -53,7 +52,7 @@ const MODEL_PRICING: Record<string, { input_per_1m: number; output_per_1m: numbe
   "gpt-4o": { input_per_1m: 2.50, output_per_1m: 10.0 },
   "gpt-4o-mini": { input_per_1m: 0.15, output_per_1m: 0.60 },
   "claude-sonnet-4-5": { input_per_1m: 3.0, output_per_1m: 15.0 },
-  "gemini-2.5-flash": { input_per_1m: 0.075, output_per_1m: 0.30 },
+  "gemini-2.0-flash": { input_per_1m: 0.075, output_per_1m: 0.30 },
 };
 
 function calcCost(model: string, usage: TokenUsage): number {
@@ -103,7 +102,7 @@ export async function runScoring(
   const ENGINE_MODELS: Record<ScoringEngine, string> = {
     chatgpt: activeChatgptModel,
     claude: "claude-sonnet-4-5",
-    gemini: "gemini-2.5-flash",
+    gemini: "gemini-2.0-flash",
   };
 
   const costTracker: {
@@ -391,7 +390,7 @@ async function queryClaude(prompt: string): Promise<EngineResponse> {
 async function queryGemini(prompt: string): Promise<EngineResponse> {
   try {
     const response = await gemini.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.0-flash",
       contents: prompt,
       config: {
         maxOutputTokens: 8192,
@@ -433,7 +432,7 @@ async function queryGemini(prompt: string): Promise<EngineResponse> {
     const reason = err instanceof Error ? err.message : String(err);
     console.error("Quick mode Gemini web search failed, falling back to standard:", err);
     const response = await gemini.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.0-flash",
       contents: prompt,
       config: { maxOutputTokens: 1024 },
     });

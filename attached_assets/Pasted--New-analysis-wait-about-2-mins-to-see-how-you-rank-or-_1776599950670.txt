@@ -1,0 +1,306 @@
+← New analysis
+wait about 2 mins to see how you rank, or get it emailed
+you@email.com
+→
+⚡
+GEO Agent · Prompt Dispatch
+brevo.com · ChatGPT + Gemini · parallel
+LIVE
+32
+DISPATCHED
+0
+COMPLETE
+3
+IN FLIGHT
+0
+MENTIONS
+LIVE DISPATCH LOG
+· 2 segments running in parallel
+←
+[Gemini]
+1.7s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+←
+[Gemini]
+1.1s ·
+…scanning
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+←
+[ChatGPT]
+2.1s ·
+…scanning
+←
+[ChatGPT]
+1s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+←
+[Gemini]
+1.7s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+←
+[ChatGPT]
+1.4s ·
+…scanning
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+←
+[Gemini]
+2.1s ·
+…scanning
+←
+[Gemini]
+1.1s ·
+…scanning
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+←
+[ChatGPT]
+1.9s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+←
+[ChatGPT]
+1.6s ·
+…scanning
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+←
+[Gemini]
+1.8s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+←
+[Gemini]
+1.6s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+←
+[ChatGPT]
+2.5s ·
+…scanning
+←
+[ChatGPT]
+1.7s ·
+…scanning
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+←
+[ChatGPT]
+0.9s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+←
+[Gemini]
+2s ·
+…scanning
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+←
+[Gemini]
+2.3s ·
+…scanning
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+←
+[Gemini]
+1.4s ·
+…scanning
+←
+[ChatGPT]
+2.1s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+←
+[ChatGPT]
+1.9s ·
+…scanning
+←
+[ChatGPT]
+1s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+←
+[Gemini]
+2.5s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+←
+[Gemini]
+1.8s ·
+…scanning
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+←
+[ChatGPT]
+1.3s ·
+…scanning
+←
+[ChatGPT]
+2.5s ·
+…scanning
+←
+[Gemini]
+2.1s ·
+…scanning
+←
+[Gemini]
+0.9s ·
+…scanning
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+←
+[ChatGPT]
+1.9s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+←
+[Gemini]
+1.3s ·
+…scanning
+←
+[Gemini]
+2.6s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+←
+[ChatGPT]
+2.5s ·
+…scanning
+←
+[ChatGPT]
+1.8s ·
+…scanning
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+←
+[Gemini]
+1.4s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+←
+[ChatGPT]
+1.2s ·
+…scanning
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+←
+[Gemini]
+2.5s ·
+…scanning
+←
+[ChatGPT]
+2.4s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+←
+[Gemini]
+1.8s ·
+…scanning
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+←
+[Gemini]
+1.2s ·
+…scanning
+←
+[ChatGPT]
+2s ·
+…scanning
+→
+[ChatGPT]
+"Who leads "SaaS companies"?"
+→
+[Gemini]
+"Who leads "Enterprise companies"?"
+←
+[Gemini]
+1.7s ·
+…scanning
+SaaS companies
+Enterprise companies
+The Intelligence Pipeline
+From raw domain to actionable GEO insights in minutes.
+
+01
+Signal Extraction
+Understand your business model
