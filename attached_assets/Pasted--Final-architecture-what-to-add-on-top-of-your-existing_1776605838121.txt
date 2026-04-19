@@ -1,0 +1,241 @@
+
+Final architecture — what to add on top of your existing report
+Three new modules. Build them in this dependency order so each one reuses what came before.
+
+Module 1 — Competitor extraction (foundational, others depend on it)
+Input: audited URL.
+Output: scope-aware competitor list of 5 with confidence tier each.
+
+The improvement over your current flow:
+
+Classify the brand first (local / regional / global / hybrid) from schema + hreflang + location keywords
+Run 3–4 scoped queries based on that classification — local brands get best X in <city>, global SaaS gets best X 2026 + X alternatives
+Union the results across queries (more stable than one query)
+Strip aggregators, SEO-spam, and review sites (those are Module 2 material, not Module 3)
+Tag each competitor with: name, domain, how they surfaced, SERP position, type (direct / adjacent / aspirational)
+Why this matters: Modules 2 and 3 compare your brand against these 5. Wrong set = wrong comparison = useless report.
+
+Module 2 — Authority domain presence
+Input: brand name, category, the 5 competitors from Module 1.
+Output: comparison matrix, 5 rows × 6 columns (brand + 5 competitors).
+
+Rows are the signals that map to AI retrieval:
+
+Wikipedia entry (yes / no, notability score if missing)
+Reddit mentions (count across last 90 days)
+YouTube coverage (videos mentioning brand in last 180 days)
+Industry directory / review site (G2 for SaaS, HealthGrades for clinics, Trustpilot as universal fallback)
+Branded search volume (your number vs category range)
+Each cell shows your number + tier badge (HIGH/MID/LOW per the verification rules from earlier). Gap column on the right.
+
+Module 3 — Social media presence vs. competitors
+Input: same as Module 2.
+Output: comparison matrix, 6 rows × 6 columns (platforms × entities).
+
+Rows: Instagram, LinkedIn, YouTube, X/Twitter, TikTok, Reddit.
+Cells: follower count + latest post date + activity tier.
+
+The win here is showing "dead profile" vs "active profile" — competitors who post weekly beat competitors with more followers but no recent posts, and both beat you if you're silent.
+
+Cross-module shared infrastructure
+Build these once; use across all three modules:
+
+Category registry — per-category definitions of which authority domains + social platforms matter. Seed with 5 categories; grow as you audit.
+Fixed JSON evidence schema — every LLM call returns the same shape so downstream doesn't break.
+URL verifier — HEAD check every profile URL before showing it. Cache 7 days.
+Tier calculator — HIGH/MID/LOW from a single function, one source of truth.
+Vantage point stamp — every report declares from where the SERP was queried.
+The prompt to paste into Replit
+Save the following as your project description / README / AI instructions for Replit Agent. It's self-contained — Replit's AI coding agent can bootstrap from it directly, and a human engineer can read it as a spec.
+
+PROJECT: AI Visibility Authority Module
+CONTEXT
+We already have a working website audit tool that produces a visibility report
+and score from technical + content signals. This project adds three new
+modules on top: competitor extraction, authority domain presence, and social
+media benchmarking. These run after the existing audit completes and plug
+their output into the existing report UI as a new "Authority Sidebar."
+DELIVERABLE
+A TypeScript/Next.js + Python hybrid app hosted on Replit. Next.js for UI and
+API routes. Python (stdlib only, no pip deps beyond requests) for the
+heavy-lifting modules. Supabase for persistence.
+MODULES TO BUILD IN ORDER
+Module 1: Competitor Extraction
+- Input: target URL, optional user-supplied category override
+- Phase 1a: Classify the brand
+  - scope: local | regional | global | hybrid
+  - category: healthtech | saas | ecommerce | dtc | local-service | fintech | other
+  - vantage: city+country for local; user geo for global
+  - Signals: schema.org @type, areaServed, hreflang tag count, location
+    keywords in title/meta
+  - If confidence low, return a clarification request instead of guessing
+- Phase 1b: Discover competitors using scope-aware query templates
+  - local: "best {category} in {city}", "{category} near me {city}"
+  - regional: "best {category} {region}", "{category} comparison {region}"
+  - global: "best {category} 2026", "{category} alternatives",
+            "{brand} vs", "{category} comparison"
+  - hybrid: union of local + global sets, returned as two separate groups
+- Phase 1c: Dedupe, filter (remove aggregators, review sites, self),
+  take top 5 by aggregate SERP rank across queries
+- Output: JSON array of 5 competitors, each with {name, domain,
+  surfaced_by_query, serp_position, type}
+Module 2: Authority Domain Presence
+- Input: brand name, category, competitor list from Module 1, vantage
+- For each entity (brand + 5 competitors) and each authority surface,
+  run one LLM-with-web-search call with the fixed JSON schema below
+- Authority surfaces vary by category — use the registry below
+- Enforce strict nulls: any unverifiable number = null
+- HEAD-verify every profile URL before surfacing
+- Derive tier (HIGH/MID/LOW) via the tier calculator
+- Output: 2D matrix, rows=authority domains (~5 per category),
+  cols=entities (6: brand + 5 competitors), cells=full JSON evidence
+Module 3: Social Media Presence
+- Input: same as Module 2
+- Platforms: Instagram, LinkedIn, YouTube, X/Twitter, TikTok, Reddit
+  (fixed set, always queried — not category-dependent)
+- For each (entity × platform) cell, run the same schema call
+- Metric per platform: follower count + latest post date
+- Tier based on recency + followers + post frequency
+- Output: 2D matrix, rows=platforms, cols=entities
+SHARED SCHEMA (every LLM evidence call returns this shape)
+{
+  "entity": string,
+  "surface": string,
+  "profile_url": string | null,
+  "profile_verified": boolean,
+  "primary_metric_name": string,
+  "primary_metric_value": number | null,
+  "secondary_metric_name": string | null,
+  "secondary_metric_value": number | null,
+  "latest_activity_date": string | null,  // ISO 8601
+  "sample_evidence": [{ "text": string, "source_url": string }],
+  "tier": "HIGH" | "MID" | "LOW",
+  "evidence_confidence_note": string
+}
+TIER RULES (single source of truth)
+HIGH: profile_url verified 2xx AND primary_metric_value not null
+  AND at least one sample_evidence with source_url AND
+  latest_activity_date within last 180 days
+MID: profile_url verified AND (primary_metric_value not null
+  OR sample_evidence non-empty) but fails HIGH criteria
+LOW: everything else
+CATEGORY REGISTRY (authority surfaces per category, seed list)
+{
+  "healthtech": ["wikipedia.org", "trustpilot.com", "reddit.com",
+                 "healthgrades.com", "techcrunch.com"],
+  "saas":       ["wikipedia.org", "g2.com", "capterra.com",
+                 "reddit.com", "producthunt.com"],
+  "dtc":        ["wikipedia.org", "trustpilot.com", "reddit.com",
+                 "youtube.com", "instagram.com"],
+  "local":      ["google.com/business", "yelp.com",
+                 "tripadvisor.com", "reddit.com",
+                 "<country-specific-directory>"],
+  "fintech":    ["wikipedia.org", "crunchbase.com", "g2.com",
+                 "reddit.com", "trustpilot.com"],
+  "ecommerce":  ["wikipedia.org", "trustpilot.com", "reddit.com",
+                 "youtube.com", "reviews.io"]
+}
+SOCIAL PLATFORMS (fixed; query with "site:" operator)
+instagram.com, linkedin.com/company, youtube.com,
+x.com (and twitter.com as fallback), tiktok.com, reddit.com
+LLM CALL SHAPE (pseudocode — adapt to your chosen provider)
+prompt = f"""
+You are a research assistant. For the entity "{entity_name}" ({entity_domain}),
+find its presence on {surface}. Use web search.
+Return ONLY a JSON object matching this schema exactly. If a field cannot be
+verified with a cited source, set it to null. Do not estimate. Do not fill
+gaps with plausible numbers.
+Required: primary_metric_value must come from a specific page you can link to.
+Schema:
+{{ ...shared schema from above... }}
+Every URL in sample_evidence must be a direct link to the content you are
+quoting, not a search result page.
+"""
+ENFORCEMENT
+- After each LLM call, validate the JSON against the schema — reject and
+  retry up to 2x if malformed
+- HEAD-check profile_url; if 4xx/5xx, set profile_verified=false and
+  downgrade tier
+- HEAD-check each sample_evidence.source_url; if any fails, remove that
+  evidence row
+PRESENTATION
+- Authority Sidebar renders as two tabs: "Authority Domains" + "Social"
+- Each tab is a matrix, rows=surfaces, cols=entities
+- Cells show: metric value + tier badge (colored dot)
+- Clicking a cell reveals the sample_evidence quotes and profile URL
+- One headline above the sidebar: "You appear on X of Y authority signals
+  vs category average Z" (computed from the matrix)
+- Vantage stamp at the bottom: "Queried from {city, country} on {date}"
+PERFORMANCE
+- Module 2 runs ~30 LLM calls (6 entities × 5 surfaces)
+- Module 3 runs ~36 LLM calls (6 entities × 6 platforms)
+- Run all in parallel (asyncio or Promise.all)
+- Budget ~2–3 minutes wall clock for the full 66-call sidebar
+- Cache entity×surface results with a 7-day TTL keyed by
+  (entity_name, surface, vantage)
+DATA MODEL (Supabase tables to add to existing schema)
+Table: competitor_sets
+  audit_id: uuid (fk to existing website_audits)
+  scope: text
+  category: text
+  vantage: text
+  competitors: jsonb  // array of competitor objects
+  created_at: timestamptz
+Table: authority_evidence
+  audit_id: uuid
+  entity: text
+  surface: text
+  payload: jsonb  // full evidence JSON
+  tier: text
+  verified_at: timestamptz
+  expires_at: timestamptz  // verified_at + 7 days
+Table: social_evidence
+  // same shape as authority_evidence
+Table: category_medians
+  category: text
+  surface: text
+  median_value: numeric
+  p25_value: numeric
+  p75_value: numeric
+  sample_size: int
+  updated_at: timestamptz
+  // Seed with ranges, not medians, until sample_size > 30
+CONSTRAINTS
+- Python backend must be stdlib-only (requests is acceptable)
+- No scraping that violates ToS — use web search (Brave, Bing, SerpAPI,
+  or chosen provider) as the query layer; let the LLM synthesize
+- Every claim in the UI must trace to a URL in the underlying evidence
+- Tier badges are the ONLY way confidence is communicated — no
+  precise percentages without verified sources behind them
+- If any Module fails (timeout, API error, rate limit), other Modules
+  must still render their partial results. Partial = degraded, not broken
+LAUNCH CHECKLIST
+- Category registry validated against 3 real brands per category
+- Tier calculator unit-tested against 20 synthetic evidence objects
+- URL verifier tested with a known 404 and a known 200 URL
+- End-to-end smoke test: run full sidebar for a known brand in <3 minutes
+- Manual review of 10 audit outputs by a non-technical reader
+  ("does this feel specific to this brand or could it apply to anyone?")
+DO NOT BUILD FOR LAUNCH
+- Outcome predictions ("25-40% lift in 60-90 days") — needs calibration data
+- Numeric visibility scores with precise decimals — bands only
+- Shareable preview images — v2
+- Continuous monitoring — v2, part of paid tier
+- Email capture flow for "unlock full report" — separate concern, not
+  part of these modules
+How to hand this to Replit
+Option A — Replit Agent (fastest):
+Paste the whole prompt above into Replit Agent as the initial build instruction. Agent will scaffold Next.js + Python + Supabase. Iterate from there with specific follow-ups ("add the Module 1 classifier first", "now show me Module 2 on a test brand").
+
+Option B — Manual setup:
+Create a Replit, paste the prompt as SPEC.md in the repo, start with Module 1 classifier as the first implementation. Each module gets its own PR/commit.
+
+Option C — Lift from your existing GitHub repo:
+git clone https://github.com/tnsaruniitr-lab/aeo-seo-auditor into Replit, add SPEC.md with this prompt, then ask Replit Agent to extend the existing Python scripts with these three new modules.
+
+One final thing — the sequencing that saves you weeks
+Do not build Modules 1, 2, 3 in parallel. Do them in order. Reason: Module 2 and Module 3 both consume Module 1's competitor list. If Module 1 is wrong, Modules 2 and 3 produce a polished report full of the wrong comparisons — which is worse than producing nothing. Ship Module 1, validate on 5 real brands, then build Modules 2 and 3 on that foundation.
+
+Total shippable v1: ~10–12 working days if single developer. Modules 2 and 3 reuse 80% of each other's code, so they're cheaper than they look once Module 1 is stable.
+
+Everything else from your earlier brief — rankings grid, visibility bands, share images — sits on top of this. But without the authority sidebar, the rankings grid has no context to anchor against. Build the data layer first, the UI pattern second.
