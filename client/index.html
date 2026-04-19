@@ -59,7 +59,26 @@
         "url": "https://answermonk.ai/favicon.png",
         "width": 512,
         "height": 512
-      }
+      },
+      "sameAs": [
+        "https://www.linkedin.com/company/answermonk",
+        "https://twitter.com/answermonk"
+      ],
+      "contactPoint": [{ "@type": "ContactPoint", "contactType": "customer support", "url": "https://answermonk.ai" }],
+      "founder": { "@type": "Person", "name": "", "url": "https://answermonk.ai" }
+    }
+    </script>
+
+    <!-- Person schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "@id": "https://answermonk.ai/#founder",
+      "name": "",
+      "url": "https://answermonk.ai",
+      "worksFor": { "@id": "https://answermonk.ai/#organization" },
+      "jobTitle": "Founder"
     }
     </script>
 
@@ -122,18 +141,18 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "What is GEO (Generative Engine Optimization)?",
+          "name": "What is AnswerMonk?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "GEO is the practice of optimizing a brand's presence in AI-generated search results from engines like ChatGPT, Claude, Gemini, and Perplexity. Unlike traditional SEO which targets ranked URL lists, GEO focuses on how often and how prominently a brand is mentioned within AI-generated answers."
+            "text": "AnswerMonk is a GEO intelligence platform that measures and improves how brands appear in AI-generated answers from ChatGPT, Gemini, Claude, and Perplexity. It runs your category's buyer prompts across AI engines and returns an AI share-of-voice score, competitor leaderboard, and citation source breakdown."
           }
         },
         {
           "@type": "Question",
-          "name": "How does the Prompt Network Creator (PNC) work?",
+          "name": "What is GEO (Generative Engine Optimization)?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "The PNC analyzes a brand's website to extract its service types and customer segments. It then auto-generates 25–30 natural-language search prompts that a real customer might ask an AI engine. These prompts are run against ChatGPT, Claude, and Gemini, and results are scored for brand presence, rank position, and share of voice."
+            "text": "GEO is the practice of optimizing a brand's visibility in AI-generated search results. Unlike traditional SEO which targets ranked URL lists, GEO focuses on how often and how prominently a brand appears within AI-generated answers. As AI search handles an increasing share of discovery queries, GEO has become essential for brand visibility."
           }
         },
         {
@@ -141,31 +160,47 @@
           "name": "Which AI engines does AnswerMonk analyze?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "AnswerMonk analyzes brand visibility across ChatGPT (OpenAI), Claude (Anthropic), Gemini (Google), and Perplexity. Each engine is weighted in the share-of-voice score: ChatGPT 35%, Gemini 35%, Claude 20%, Perplexity 10%."
+            "text": "AnswerMonk analyzes ChatGPT (OpenAI), Gemini (Google), Claude (Anthropic), and Perplexity. Engine weights in the share-of-voice score: ChatGPT 35%, Gemini 35%, Claude 20%, Perplexity 10%."
           }
         },
         {
           "@type": "Question",
-          "name": "What is a share-of-voice score in AI search?",
+          "name": "What is AI share-of-voice?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Share of voice in AI search measures how often your brand appears in AI engine responses relative to competitors, weighted by rank position and engine importance. A score of 100 means your brand is the top-cited answer across all tested prompts and engines. A score of 0 means your brand does not appear."
+            "text": "AI share-of-voice measures how often your brand appears in AI engine responses for category queries relative to competitors. A score of 100 means your brand is the top-cited answer across all tested prompts and all engines. A score of 0 means AI engines never mention your brand in your category."
           }
         },
         {
           "@type": "Question",
-          "name": "What are citation sources in AI search results?",
+          "name": "How long does a GEO audit take?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "AI engines cite external sources when generating answers. These sources — which may include review platforms, directories, industry publications, and brand websites — determine which brands appear in AI responses. AnswerMonk crawls and classifies these citation sources to show which third-party sites drive AI visibility for your brand and competitors."
+            "text": "A full GEO audit typically completes in 3 to 8 minutes depending on the number of service segments detected and AI engine response times."
           }
         },
         {
           "@type": "Question",
-          "name": "How long does a GEO analysis take?",
+          "name": "How is AnswerMonk different from Otterly, Peec AI, or other GEO tools?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "A full GEO analysis — including website extraction, prompt generation, cross-engine scoring, and report generation — typically completes in 3 to 8 minutes depending on the number of service segments and AI engine response times."
+            "text": "AnswerMonk uses an audit-first methodology — it crawls your site, generates your specific prompt network, and produces a prioritized action report rather than a monitoring dashboard. The focus is on diagnosing why AI engines are not mentioning your brand and which citation sources to target to fix it."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is the AI visibility audit free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The initial AI visibility audit is free — enter your domain to receive a full report including share-of-voice score, competitor rankings, and top citation sources in your category."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What are citation sources in AI search?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Citation sources are the third-party websites — review platforms, directories, industry publications — that AI engines reference when forming recommendations. Appearing on G2, Capterra, or industry publications significantly increases the likelihood of being cited by ChatGPT, Gemini, or Perplexity."
           }
         }
       ]

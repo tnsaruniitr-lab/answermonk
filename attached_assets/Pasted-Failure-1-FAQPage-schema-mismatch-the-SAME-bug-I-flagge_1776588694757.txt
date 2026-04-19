@@ -1,0 +1,131 @@
+Failure 1: FAQPage schema mismatch — the SAME bug I flagged on April 14 is still there
+PROOF (exact bytes from fresh HTML):
+
+Visible FAQ:
+
+<dt> count: 8    (eight question terms)
+<dd> count: 8    (eight answer definitions)
+<details>: 0    (not using accordion — using semantic definition list)
+The 8 visible questions are:
+
+What is AnswerMonk?
+What is GEO (Generative Engine Optimization)?
+Which AI engines does AnswerMonk analyze?
+What is AI share-of-voice?
+How long does a GEO audit take?
+How is AnswerMonk different from Otterly, Peec AI, or other GEO tools?
+Is the AI visibility audit free?
+What are citation sources in AI search?
+FAQPage schema mainEntity:
+
+Block 4: @type=FAQPage
+  FAQ pair count: 4   ← only 4!
+  - What is GEO (Generative Engine Optimization)?
+  - Which AI engines does AnswerMonk analyze?
+  - What is a share-of-voice score in AI search?
+  - How long does a GEO analysis take?
+4 schema pairs vs 8 visible pairs — 4 visible Q&A pairs have no schema markup. Google will see the FAQPage markup but it covers only 50% of the visible FAQ.
+
+Note on severity: This is the OPPOSITE problem from the trypsagent.com case. There, schema had MORE entries than visible (orphan markup pattern — flagged by AP #813). Here, schema has FEWER entries than visible — also a violation, but less severe because there are no "orphan" schema entries pointing to missing content. However, 4 Q&A pairs that COULD be AI-citation anchors are invisible to the markup.
+
+SOURCE (live from Sieve):
+
+🥇 Rule #1495 — "FAQPage Markup Requires Visible Content" — Google, 0.98
+🥇 Rule #1496 — "FAQPage Markup Text Must Match Visible Page Content Exactly" — Google, 0.98
+🥇 Rule #1600 — "FAQPage mainEntity and acceptedAnswer Required" — Schema.org, 0.98
+Confidence: HIGH. Counts are exact from grep. This finding has been true continuously since my April 14 audit.
+
+Failure 2: Organization has no sameAs, no founder, no contactPoint
+PROOF (from fresh JSON-LD parse):
+
+Block 1: @type=Organization
+  name: AnswerMonk
+  url: https://answermonk.ai
+  sameAs: MISSING    ← no social profiles linked
+  founder: MISSING   ← no Person entity referenced
+  contactPoint: MISSING  ← no phone/email in schema
+  logo: present (ImageObject 512x512) ✓
+  @id: present ✓
+Why it matters:
+
+No sameAs → no knowledge graph anchor. AI engines have no way to connect "AnswerMonk" in this schema to its LinkedIn/Twitter/X presence (which may or may not exist — if any of it exists and isn't linked here, it's pure loss)
+No founder → no E-E-A-T Author signal for the brand
+No contactPoint → no telephone or email in structured data
+SOURCE (live from Sieve):
+
+🥇 Rule #1668 — "Organization Schema Must Include Name and URL" — Schema.org, 0.98 (sameAs is recommended in the same spec)
+🥇 Rule #1676 — "Person Author Property for E-E-A-T Signal" — Schema.org, 0.98
+📌 AP #910 — "Omitting sameAs references for organization entity disambiguation" — Schema.org, medium risk:
+Without sameAs, knowledge graphs cannot reliably disambiguate the organization entity, weakening entity recognition and E-E-A-T signals
+
+Confidence: HIGH. Unchanged from April 14.
+
+Failure 3: No Person schema anywhere
+PROOF: 0 schema blocks with @type: "Person". The page has an H2 "Who uses AnswerMonk" but no team/founder attribution.
+
+SOURCE:
+
+🥇 Rule #1676 — "Person Author Property for E-E-A-T Signal" — Schema.org, 0.98
+📌 AP #911 — "Omitting sameAs links for Person entity disambiguation" — Schema.org, medium risk
+Confidence: HIGH. Unchanged from April 14.
+
+Failure 4: No aggregateRating on SoftwareApplication
+PROOF:
+
+Block 3: @type=SoftwareApplication
+  aggregateRating: MISSING
+Why it matters: A review SaaS product (literally "AI search visibility audit") should ideally have its own rating signal. If AnswerMonk has any customer testimonials, Product Hunt reviews, G2 reviews, or Trustpilot reviews, they should be surfaced in schema.
+
+Caveat: Only add AggregateRating if you have REAL user reviews. Fabricated ratings carry high penalty risk per Rule #1534 (Schema.org, 0.97): "AggregateRating Fabricated or Inflated Ratings Penalty Risk".
+
+SOURCE (live from Sieve):
+
+🥇 Rule #1755 — "SoftwareApplication Should Include aggregateRating" — Schema.org, 0.92
+🥇 Rule #1532 — "AggregateRating Must Have ratingValue and Count" — Schema.org, 0.99
+🥇 Rule #1533 — "AggregateRating Requires Real User Reviews" — Schema.org, 0.98
+Confidence: MEDIUM. This is a best-practice gap, not a broken element. Worth adding IF real reviews exist.
+
+Failure 5: dateModified is stale — says 2026-04-10 but the page has been edited since
+PROOF:
+
+SoftwareApplication.datePublished: 2024-01-01
+SoftwareApplication.dateModified: 2026-04-10
+But between April 10 and April 19, the site clearly changed:
+
+@id fragments were added to all schemas
+Logo upgraded from plain URL to ImageObject
+WebSite publisher cross-link added
+TTFB improved (suggesting infrastructure/build changes)
+None of those changes were reflected in a new dateModified. The stamp says "last updated April 10" but the structure proves edits happened after.
+
+This is different from the cosmetic-timestamp problem I saw on Valeo (where dateModified was dynamically set to request-time, giving a fake-fresh signal). AnswerMonk has the OPPOSITE problem — genuine edits happened but the timestamp wasn't bumped, giving a fake-stale signal.
+
+SOURCE (live from Sieve):
+
+🥇 Rule #1474 — "Signal Content Freshness with Visible Timestamps and Substantive Updates" — Perplexity, 0.95
+🥇 Rule #1569 — "Include dateModified on Frequently Updated Content" — Schema.org, 0.95
+📌 AP #799 — "Cosmetic Timestamp Updates Without Substantive Content Changes" (Perplexity, medium) — does NOT apply here because the opposite pattern is the problem (substantive changes without timestamp update)
+
+Confidence: HIGH for the measurement. The interpretation (that this hurts retrieval) is MEDIUM confidence — AI engines may or may not notice a stale stamp, but Perplexity docs specifically say they weight freshness signals.
+
+Failure 6: TTFB still 1,307ms — "Needs Improvement" band
+PROOF (fresh single-sample):
+
+TTFB: 1,307 ms
+Total load: 1,307 ms
+Page size: 12,247 bytes
+Server: Express + `via: 1.1 google` (Google Cloud proxy)
+Google Core Web Vitals TTFB thresholds:
+
+< 800ms: Good
+800–1,800ms: Needs Improvement
+1,800ms: Poor
+
+1,307ms sits in the "Needs Improvement" band. Better than April 14 (2,056ms was in Poor) but still not Good.
+
+SOURCE (live from Sieve):
+
+🥇 Rule #602 — "LCP Threshold: Good Performance" — Google, 0.98
+🥈 Rule #7190 — "LCP Must Load Within 2.5 Seconds" — backlinko.com, 0.97
+📎 Rule #2021 — "Page Load Speed Critical Threshold for AI Crawlers" — amsive.com, 0.90
+Confidence: MEDIUM-HIGH on the TTFB measurement. Single sample — ideally should average 3-5 samples (I only took one this run). But a 1.3s TTFB is a real number, not an outlier.
