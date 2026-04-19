@@ -189,18 +189,19 @@ Rules:
 ${customerBoundOnly
   ? "- by_service: return empty array [] — do NOT generate service-only prompts in global mode\n- by_customer: 8 prompts per customer, every prompt pairs a service with a customer type"
   : "- 8 prompts per service, 8 per customer\n- by_service: about the service with offering type suffix"}
-- by_customer prompts: MUST use the fixed primary service "${primaryService}" with its offering type combined with the customer. Never substitute a different service. Never use "options for [customer]".
-- Offering type: append the appropriate word to each service name based on its nature:
+- by_customer prompts: MUST use the EXACT phrase "${primaryService}" in every prompt. Do NOT rename, rephrase, replace, or substitute "${primaryService}" with any synonym, related term, or broader/narrower category — not even if you believe the website is better known by another name. The user chose this label deliberately. Use it VERBATIM.
+- Offering type: append ONE word to "${primaryService}" based on its nature to form the searchable phrase:
   * SaaS / software / digital products → append "software", "tools", or "platform"
   * Professional / agency services → append "services", "agency", or "providers"
   * Marketplace / aggregator → append "platform" or "marketplace"
   * Physical products → no suffix needed
-  * Examples: "email marketing" → "email marketing software", "home healthcare" → "home healthcare services", "recruitment" → "recruitment agency", "CRM" → "CRM platform"
+  * WRONG: replacing "${primaryService}" with a different term first. RIGHT: "${primaryService}" + suffix only.
+  * Example: if primaryService = "marketing automation" → use "marketing automation software" or "marketing automation platform". NEVER "email marketing software".
 - Qualifiers: most trusted, most reliable, most affordable, highest rated, most experienced, best reviewed, most recommended, top rated — vary, no repeats within a group
 ${hasLocation ? `- Location: "${loc}". Always end every prompt with "in ${loc}".` : "- Global mode: NEVER include any city or location in prompts. Do not add 'in [city]' anywhere."}
 - Natural language. ONLY use listed services and customers.`;
 
-  const userMsg = `Primary service (use in ALL customer prompts): "${primaryService}"\nAll services: ${JSON.stringify(services)}\nCustomer types: ${JSON.stringify(customers)}\n${hasLocation ? `Location: "${loc}"` : "Mode: Global (no location — omit city from all prompts)"}\nURL: ${url}\nGenerate grouped prompts.`;
+  const userMsg = `Primary service (use VERBATIM in ALL customer prompts — do NOT substitute or rename): "${primaryService}"\nAll services: ${JSON.stringify(services)}\nCustomer types: ${JSON.stringify(customers)}\n${hasLocation ? `Location: "${loc}"` : "Mode: Global (no location — omit city from all prompts)"}\nURL: ${url}\nGenerate grouped prompts. Remember: every customer prompt MUST contain the exact phrase "${primaryService}" — no substitutions.`;
 
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-5",
