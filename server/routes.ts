@@ -861,9 +861,9 @@ export async function registerRoutes(
         })),
         ...((pncResult as any).by_customer || []).map((group: any, i: number) => ({
           id: `cust-${i}`,
-          persona: group.customer,
+          persona: group.service ? `${group.service} for ${group.customer}` : group.customer,
           seedType: group.customer,
-          serviceType: null,
+          serviceType: group.service || null,
           customerType: group.customer,
           customerTypeEnabled: true,
           location: city,

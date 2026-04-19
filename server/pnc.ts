@@ -137,113 +137,129 @@ Rules for scope: physical+1 city=city, multi-city=country; SaaS: regional TLD/VA
   return { result: extractJSON(tb.text, "{"), cost: calcCost(response.usage) };
 }
 
-function enforceFlrFormat(result: any, primaryService?: string, loc?: string): any {
-  const qualifiers = [
-    "most trusted", "most reliable", "most affordable", "highest rated",
-    "most experienced", "best reviewed", "most recommended", "top rated",
-  ];
+const FLR_QUALIFIERS = [
+  "most trusted", "most reliable", "most affordable", "highest rated",
+  "most experienced", "best reviewed", "most recommended", "top rated",
+];
 
-  // Repair service prompts — only fix ones that don't start with the right verb
-  const fixService = (prompts: any[], subject: string) =>
-    (prompts || []).map((p: any, i: number) => {
-      let text: string = p.text || "";
-      if (!text.toLowerCase().startsWith("find, list and rank")) {
-        text = `Find, list and rank 10 ${qualifiers[i % qualifiers.length]} ${subject}`;
-      }
-      return { verb: "Find, list and rank", text };
-    });
+// Heuristic: pick the right offering-type suffix for a given service label
+function getOfferingSuffix(service: string): string {
+  const s = service.toLowerCase();
+  if (/agency|studio|firm|consultanc/.test(s)) return " agency";
+  if (/marketplace|exchange|directory/.test(s)) return " platform";
+  if (
+    /healthcare|medical|care|therapy|nursing|clinic|physiother|homecare/.test(s)
+  ) return " services";
+  if (
+    /consulting|legal|accounting|coaching|training|staffing|recruitment|outsourc/.test(s)
+  ) return " services";
+  return " software"; // default for SaaS / digital / automation / analytics / etc
+}
 
-  // Detect offering-type suffix (software / platform / tools / services / etc)
-  // from whatever Claude wrote, so we can reuse it with the correct service label
-  const detectSuffix = (text: string): string => {
-    const m = text.match(/\b(software|platform|tools|services|agency|providers|marketplace)\b/i);
-    return m ? ` ${m[1].toLowerCase()}` : "";
-  };
-
-  // Always rebuild customer prompts from scratch with the exact primaryService label.
-  // This is the only reliable way to prevent AI substitution (e.g. "email marketing"
-  // appearing instead of user-chosen "marketing automation").
-  const rebuildCustomer = (prompts: any[], customer: string, svc: string, suffix: string) => {
-    const count = Math.max((prompts || []).length, 1);
-    return qualifiers.slice(0, count).map((q) => {
-      const locPart = loc ? ` in ${loc}` : "";
-      return {
-        verb: "Find, list and rank",
-        text: `Find, list and rank 10 ${q} ${svc}${suffix} for ${customer}${locPart}`,
-      };
-    });
-  };
-
-  if (result.by_service) {
-    result.by_service = result.by_service.map((s: any) => ({
-      ...s,
-      prompts: fixService(s.prompts, loc ? `${s.service} in ${loc}` : s.service),
-    }));
-  }
-
-  if (result.by_customer) {
-    if (primaryService) {
-      // Detect the offering-type suffix from Claude's first customer prompt
-      const firstText: string = result.by_customer[0]?.prompts?.[0]?.text || "";
-      const suffix = detectSuffix(firstText);
-      result.by_customer = result.by_customer.map((c: any) => ({
-        ...c,
-        prompts: rebuildCustomer(c.prompts, c.customer, primaryService, suffix),
-      }));
-    } else {
-      // No primaryService provided — just fix malformed prompts
-      result.by_customer = result.by_customer.map((c: any) => {
-        const svc = c.service || "";
-        const base = svc ? `${svc} for ${c.customer}` : `options for ${c.customer}`;
-        return {
-          ...c,
-          prompts: fixService(c.prompts, loc ? `${base} in ${loc}` : base),
-        };
+// Build the full deterministic S×C cross-product customer segments
+function buildCrossProduct(services: string[], customers: string[], loc: string): any[] {
+  const locPart = loc ? ` in ${loc}` : "";
+  const segments: any[] = [];
+  for (const svc of services) {
+    const suffix = getOfferingSuffix(svc);
+    for (const cust of customers) {
+      segments.push({
+        customer: cust,
+        service: svc,
+        prompts: FLR_QUALIFIERS.map((q) => ({
+          verb: "Find, list and rank",
+          text: `Find, list and rank 10 ${q} ${svc}${suffix} for ${cust}${locPart}`,
+        })),
       });
     }
   }
+  return segments;
+}
 
+// Fix service prompts: only repair ones that don't start with the right verb
+function enforceFlrFormat(result: any, loc?: string): any {
+  if (result.by_service) {
+    result.by_service = result.by_service.map((s: any) => ({
+      ...s,
+      prompts: (s.prompts || []).map((p: any, i: number) => {
+        let text: string = p.text || "";
+        if (!text.toLowerCase().startsWith("find, list and rank")) {
+          text = `Find, list and rank 10 ${FLR_QUALIFIERS[i % FLR_QUALIFIERS.length]} ${
+            loc ? `${s.service} in ${loc}` : s.service
+          }`;
+        }
+        return { verb: "Find, list and rank", text };
+      }),
+    }));
+  }
   return result;
 }
 
 export async function pncClassifyGenerate(services: string[], customers: string[], loc: string, url: string) {
-  const primaryService = services[0] || "";
   const hasLocation = loc.trim().length > 0;
-  const locSuffix = hasLocation ? ` in ${loc}` : "";
 
-  const byServiceSchema = `"by_service":[{"service":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [service + offering type]${locSuffix}"}]}]`;
+  if (!hasLocation) {
+    // ── GLOBAL MODE ────────────────────────────────────────────────────────────
+    // Claude only needed for business_name. All prompts built deterministically.
+    const sysP = `You are a business analyst. Return ONLY raw valid JSON — no markdown:
+{"business_name":"the brand or company name from this URL"}`;
+    const response = await anthropic.messages.create({
+      model: "claude-sonnet-4-5",
+      max_tokens: 200,
+      system: sysP,
+      messages: [{ role: "user", content: `URL: ${url}` }],
+    });
+    const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
+    if (!tb) throw new Error("No response from Claude");
+    const { business_name = "" } = extractJSON(tb.text, "{");
+    return {
+      result: {
+        business_name,
+        by_service: [],
+        by_customer: buildCrossProduct(services, customers, ""),
+      },
+      cost: calcCost(response.usage),
+    };
+  }
 
-  const sysP = `Search prompt strategist. Generate prompts using ONLY confirmed services and customers.
-Return ONLY raw valid JSON:
-{"business_name":"",${byServiceSchema},"by_customer":[{"customer":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [${primaryService} + offering type] for [customer]${locSuffix}"}]}]}
+  // ── CITY MODE ──────────────────────────────────────────────────────────────
+  // Claude generates business_name + service-only segments (with city).
+  // Customer segments are always built as deterministic S×C cross-product.
+  const locSuffix = ` in ${loc}`;
+  const sysP = `Search prompt strategist. Generate service prompts for a business located in "${loc}".
+Return ONLY raw valid JSON — no markdown:
+{"business_name":"","by_service":[{"service":"exact service label from input","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [service + offering type]${locSuffix}"}]}]}
 Rules:
+- business_name: brand/company name from the URL
+- by_service: one group per service, 8 prompts each
 - Every prompt MUST start with "Find, list and rank 10" followed by a qualifier
-- 8 prompts per service, 8 per customer
-- by_service: about the service with offering type suffix
-- by_customer prompts: MUST use the EXACT phrase "${primaryService}" in every prompt. Do NOT rename, rephrase, replace, or substitute "${primaryService}" with any synonym, related term, or broader/narrower category — not even if you believe the website is better known by another name. The user chose this label deliberately. Use it VERBATIM.
-- Offering type: append ONE word to "${primaryService}" based on its nature to form the searchable phrase:
-  * SaaS / software / digital products → append "software", "tools", or "platform"
-  * Professional / agency services → append "services", "agency", or "providers"
-  * Marketplace / aggregator → append "platform" or "marketplace"
-  * Physical products → no suffix needed
-  * WRONG: replacing "${primaryService}" with a different term first. RIGHT: "${primaryService}" + suffix only.
-  * Example: if primaryService = "marketing automation" → use "marketing automation software" or "marketing automation platform". NEVER "email marketing software".
-- Qualifiers: most trusted, most reliable, most affordable, highest rated, most experienced, best reviewed, most recommended, top rated — vary, no repeats within a group
-${hasLocation ? `- Location: "${loc}". Always end every prompt with "in ${loc}".` : "- Global mode: NEVER include any city or location in prompts. Do not add 'in [city]' anywhere."}
-- Natural language. ONLY use listed services and customers.`;
+- Offering type: append "software"/"platform"/"tools" for digital; "services"/"agency" for professional
+- Qualifiers (vary, no repeats per group): most trusted, most reliable, most affordable, highest rated, most experienced, best reviewed, most recommended, top rated
+- End EVERY prompt with "${locSuffix}"
+- Use the EXACT service labels provided — do not rename or substitute them`;
 
-  const userMsg = `Primary service (use VERBATIM in ALL customer prompts — do NOT substitute or rename): "${primaryService}"\nAll services: ${JSON.stringify(services)}\nCustomer types: ${JSON.stringify(customers)}\n${hasLocation ? `Location: "${loc}"` : "Mode: Global (no location — omit city from all prompts)"}\nURL: ${url}\nGenerate grouped prompts. Remember: every customer prompt MUST contain the exact phrase "${primaryService}" — no substitutions.`;
+  const userMsg = `Services: ${JSON.stringify(services)}\nLocation: "${loc}"\nURL: ${url}`;
 
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-5",
-    max_tokens: 8000,
+    max_tokens: 4000,
     system: sysP,
     messages: [{ role: "user", content: userMsg }],
   });
 
   const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
   if (!tb) throw new Error("No response from Claude");
-  return { result: enforceFlrFormat(extractJSON(tb.text, "{"), primaryService, hasLocation ? loc : undefined), cost: calcCost(response.usage) };
+  const claudeResult = extractJSON(tb.text, "{");
+  const fixed = enforceFlrFormat({ by_service: claudeResult.by_service || [] }, loc);
+
+  return {
+    result: {
+      business_name: claudeResult.business_name || "",
+      by_service: fixed.by_service,
+      by_customer: buildCrossProduct(services, customers, loc),
+    },
+    cost: calcCost(response.usage),
+  };
 }
 
 export async function pncV2Generate(url: string, loc: string) {
