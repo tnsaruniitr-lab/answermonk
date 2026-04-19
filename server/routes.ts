@@ -883,7 +883,7 @@ export async function registerRoutes(
         }
         console.log(`[preview-gate] promptPreviewMode=${adminCfg.promptPreviewMode} (type=${typeof adminCfg.promptPreviewMode})`);
         if (adminCfg.promptPreviewMode) {
-          await storage.updateLandingSubmission(submissionId, { status: "pending" } as any);
+          await storage.updateLandingSubmission(submissionId, { status: "complete" } as any);
           return res.json({
             previewMode: true,
             brandName,
