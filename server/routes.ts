@@ -819,8 +819,9 @@ export async function registerRoutes(
         engines: z.array(z.enum(["chatgpt", "gemini", "claude"])).min(1).optional(),
         chatgptModel: z.enum(["gpt-5.2", "gpt-4o", "gpt-4o-mini"]).optional(),
         searchContextSize: z.enum(["low", "medium", "high"]).optional(),
+        bypassPreviewMode: z.boolean().optional(),
       });
-      const { submissionId, services, customers, city, engines, chatgptModel, searchContextSize } = schema.parse(req.body);
+      const { submissionId, services, customers, city, engines, chatgptModel, searchContextSize, bypassPreviewMode } = schema.parse(req.body);
       console.log(`[AnswerMonk] run-analysis received — engines: ${JSON.stringify(engines ?? "default")}, model: ${chatgptModel ?? "default"}, context: ${searchContextSize ?? "medium"}`);
 
       const submissions = await storage.listLandingSubmissions();
@@ -875,14 +876,15 @@ export async function registerRoutes(
       // ── Prompt Preview Mode gate (admin-only, read from DB) ─────────────────
       // If enabled in admin_config, return segments+prompts immediately without
       // firing any scoring. Regular users cannot set this — it lives server-side.
+      // bypassPreviewMode=true means user already saw the preview and confirmed.
       {
         const { rows: cfgRows } = await pool.query(`SELECT value FROM admin_config WHERE key = 'global'`);
         let adminCfg: any = cfgRows[0]?.value ?? {};
         if (typeof adminCfg === "string") {
           try { adminCfg = JSON.parse(adminCfg); } catch { adminCfg = {}; }
         }
-        console.log(`[preview-gate] promptPreviewMode=${adminCfg.promptPreviewMode} (type=${typeof adminCfg.promptPreviewMode})`);
-        if (adminCfg.promptPreviewMode) {
+        console.log(`[preview-gate] promptPreviewMode=${adminCfg.promptPreviewMode} (type=${typeof adminCfg.promptPreviewMode}) bypass=${bypassPreviewMode}`);
+        if (adminCfg.promptPreviewMode && !bypassPreviewMode) {
           await storage.updateLandingSubmission(submissionId, { status: "complete" } as any);
           return res.json({
             previewMode: true,

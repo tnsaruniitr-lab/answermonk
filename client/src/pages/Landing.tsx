@@ -571,10 +571,10 @@ function LandingInner() {
   }, [isComplete]);
 
   const runMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async ({ bypassPreviewMode = false }: { bypassPreviewMode?: boolean } = {}) => {
       const enabledEngines = getEnabledEngines();
       const { chatgptModel, searchContextSize } = getAdminSettings();
-      console.log("[AnswerMonk] run-analysis firing — engines:", enabledEngines, "model:", chatgptModel, "context:", searchContextSize);
+      console.log("[AnswerMonk] run-analysis firing — engines:", enabledEngines, "model:", chatgptModel, "context:", searchContextSize, "bypass:", bypassPreviewMode);
       const res = await apiRequest("POST", "/api/landing/run-analysis", {
         submissionId,
         services: Array.from(selectedServices),
@@ -583,6 +583,7 @@ function LandingInner() {
         engines: enabledEngines,
         chatgptModel,
         searchContextSize,
+        bypassPreviewMode,
       });
       return res.json();
     },
@@ -2189,7 +2190,7 @@ function LandingInner() {
             )}
             <button
               type="button"
-              onClick={() => { setError(null); runMutation.mutate(); }}
+              onClick={() => { setError(null); runMutation.mutate({ bypassPreviewMode: previewSegments !== null }); }}
               disabled={!canRun || isRunning}
               className="w-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_30px_rgba(99,102,241,0.2)] hover:shadow-[0_0_40px_rgba(99,102,241,0.35)]"
               data-testid="button-run-analysis"
