@@ -1,9 +1,10 @@
 # AnswerMonk — AI Visibility Authority Extension
-## Product Specification v1.0
+## Product Specification v1.1
 
 **Date:** April 2026  
 **Author:** AnswerMonk Engineering  
-**Status:** Pre-build — pending audit  
+**Status:** Post-audit — ready to build  
+**Changelog v1.1:** Added §12.5 (preview extraction layer), fixed §10 category_medians schema, added Google SERP gap note, added "what you're good at" UI line, clarified bands-vs-scores decision, flagged share image as v2 priority.
 
 ---
 
@@ -379,14 +380,16 @@ All added to `shared/schema.ts` and pushed via `npm run db:push`.
   id: serial PK
   category: text
   surface: text
-  median_value: numeric
-  p25_value: numeric
-  p75_value: numeric
-  sample_size: integer
+  is_manual_estimate: boolean        // true = hand-seeded range, false = computed from real audits
+  low_bound: numeric                 // lower range estimate (replaces p25 until sample_size > 30)
+  high_bound: numeric                // upper range estimate (replaces p75 until sample_size > 30)
+  median_value: numeric | null       // null until is_manual_estimate = false
+  sample_size: integer               // 0 when hand-seeded; increments with each real audit
   updated_at: timestamp
-  // Seeded with manual range estimates until sample_size > 30
 }
 ```
+
+**Why this matters:** Storing a `median_value` on day 1 implies observed data precision that doesn't exist. The `is_manual_estimate` flag gates which fields the UI reads: when `true`, render `"{low_bound}–{high_bound} typical"` rather than a precise median. Flip to `false` and compute real stats once `sample_size >= 30` per category. This prevents manual seed data from being mistaken for observed medians once real data starts flowing.
 
 ---
 
@@ -419,6 +422,8 @@ New tabs added to `ReportsSession.tsx` alongside existing citation/intelligence 
 
 **Authority tab**
 - Headline: `"You appear on X of Y authority signals vs. category average Z"`
+- Note on headline: This is a count (`X of Y`), not a percentage or score. Intentional — it's a direct, verifiable claim. The per-cell HIGH/MID/LOW tier dots communicate confidence at the cell level. No single overall band is shown at v1; add a `Strong/Moderate/Weak` summary band in v2 once category medians are computed from real data.
+- One-line positive: Below the headline, always show one signal the brand leads on vs. competitors (e.g. `"Your Reddit presence outperforms 4 of 5 competitors"`). This balances the gap narrative and increases credibility of the critical findings.
 - Matrix: rows = authority surfaces, columns = 6 entities
 - Each cell: metric value + tier dot (green=HIGH, amber=MID, red=LOW)
 - Click cell → drawer showing sample_evidence quotes, profile URL, confidence note
@@ -430,10 +435,102 @@ New tabs added to `ReportsSession.tsx` alongside existing citation/intelligence 
 - Cell shows: follower count + latest post date + activity tier
 - "Dead profile" is explicitly called out (last post > 90 days)
 
+### Note on Google SERP and Perplexity
+The existing AnswerMonk scoring engine tracks 3 AI engines (ChatGPT, Gemini, Claude) but does **not** currently track:
+- **Google SERP organic position** — the "you rank #1 on Google but invisible on ChatGPT" contrast requires this as a baseline
+- **Perplexity** — a 4th AI engine increasingly relevant for citation visibility
+
+Both are meaningful additions for the conversion-optimised preview, but are **separate scope from this extension**. They belong in a companion spec for the core scoring engine. Do not block this extension on them. Flag as high-priority v2 additions for the scoring engine.
+
 ### Loading states
 - Both tabs show a skeleton matrix while modules run
 - If a module fails entirely: tab shows `"Authority data unavailable for this audit"` — does not crash the report
 - Partial data (some cells null): cells render as LOW tier with `"Unverified"` label
+
+---
+
+## 12.5 Preview Extraction Layer
+
+> **Why this section exists:** The matrix is the engine output. The extraction layer is the product. Without it, customers see a 36-cell grid and parse it themselves — the opposite of a 10-second insight. This section specifies how raw matrix data compresses into customer-facing findings.
+
+### Purpose
+After Modules 2 and 3 complete, run one additional pass that reads the full authority + social matrix and extracts the top 5 highest-impact gap findings for the brand. These findings are the primary visible output above the matrix tabs — the matrix is the evidence layer, the findings are the story.
+
+### Input
+- Full authority matrix (6×5 evidence cells) from Module 2
+- Full social matrix (6×6 evidence cells) from Module 3
+- Competitor set from Module 1 (to frame comparisons)
+- Brand name + category
+
+### Gap Scoring Logic
+For each cell where the **brand** is LOW or MID and **≥2 competitors** are MID or HIGH, compute a gap score:
+
+```
+gap_score = (competitor_high_count × 2) + (competitor_mid_count × 1) - (brand_tier_value)
+
+where brand_tier_value: HIGH=2, MID=1, LOW=0
+```
+
+Sort all gaps by `gap_score` descending. Take top 5. These become the findings.
+
+### Finding Structure (per gap)
+Each finding card contains:
+```typescript
+{
+  rank: number;                    // 1–5
+  surface: string;                 // e.g. "G2 Reviews"
+  problem: string;                 // "You have no verified G2 presence"
+  gap: string;                     // "3 of 5 competitors have HIGH-tier G2 profiles"
+  fix: string;                     // "Create a G2 profile and request 10 customer reviews"
+  effort: "low" | "medium" | "high";
+  priority: "critical" | "high" | "medium";
+  evidence_cell: EvidenceCell;     // the brand's cell — click to expand
+}
+```
+
+The `problem`, `gap`, and `fix` fields are generated by one Claude Haiku call per finding (5 calls total), given the cell data and category context. They must be **brand-specific and surface-specific** — the review question for launch is "does this finding apply to any brand in this category, or only this brand?" If the answer is "any brand," the generation prompt needs tightening.
+
+### "What you're good at" line
+Always extract the **single best signal** from the full matrix — the cell where the brand has the highest tier relative to competitors — and surface it above the 5 gaps:
+
+> `"Your LinkedIn presence outperforms 4 of 5 competitors — build on this"`
+
+This is not optional. It balances the gap narrative and makes the critical findings more credible. One positive per report. Not five.
+
+### LLM Calls (additional)
+- **5 calls** — one per finding, Claude Haiku, structured JSON output
+- **1 call** — extract the "what you're good at" line, Claude Haiku
+- **Total: 6 additional calls** at ~$0.001 total cost
+- Run after Modules 2+3, not in parallel (depends on matrix output)
+
+### UI Placement
+Rendered **above** the Authority + Social tabs, as a "Findings" section:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Your LinkedIn presence outperforms 4 of 5...        │   ← positive line
+├─────────────────────────────────────────────────────┤
+│  5 Authority Gaps Found                              │   ← findings header
+│  ┌──────────────────────────────────────────────┐   │
+│  │  #1  G2 Reviews  [CRITICAL]                  │   │
+│  │  "You have no G2 presence..."                │   │
+│  │  3 of 5 competitors are HIGH-tier            │   │
+│  │  Fix: Create profile + request 10 reviews    │   │
+│  └──────────────────────────────────────────────┘   │
+│  [ #2 ]  [ #3 ]  [ #4 ]  [ #5 ]                    │
+├─────────────────────────────────────────────────────┤
+│  [ Authority ]  [ Social ]          ← matrix tabs   │
+└─────────────────────────────────────────────────────┘
+```
+
+### Files (new)
+```
+server/authority/extractor.ts    — gap scoring logic + finding generation
+```
+
+### Error handling
+- If extraction fails: findings section shows "Gap analysis unavailable" — matrix tabs still render
+- If fewer than 5 gaps qualify: show what exists, do not pad with low-score gaps
 
 ---
 
@@ -447,10 +544,10 @@ New tabs added to `ReportsSession.tsx` alongside existing citation/intelligence 
 | JSON schema validation / retry | Claude Haiku (claude-haiku-4-5) | Best strict JSON adherence for retry pass |
 | Existing scoring (unchanged) | ChatGPT / Claude / Gemini | No change |
 
-**Cost estimate per full audit (Modules 1+2+3):**
-- ~70 calls × ~700 tokens average = ~49K tokens input
-- Gemini 2.5 Flash: $0.075 / 1M tokens input → **~$0.004 per audit**
-- Claude Haiku retry (worst case 20% retry rate): 14 calls × ~500 tokens → **~$0.001**
+**Cost estimate per full audit (Modules 1+2+3 + extraction layer):**
+- ~70 Gemini calls × ~700 tokens average = ~49K tokens → **~$0.004**
+- Claude Haiku retry (worst case 20% retry rate, 14 calls × ~500 tokens) → **~$0.001**
+- Claude Haiku extraction layer (6 calls × ~800 tokens) → **~$0.001**
 - **Total authority extension cost per audit: < $0.01**
 
 ---
@@ -489,8 +586,9 @@ On re-audit of the same brand within 7 days: Modules 2 and 3 read from cache, on
 | 4 | **Validation gate** — manually review Module 1 on 5 real brands | Module 1 |
 | 5 | Module 2 — authority runner, registry, API routes | Module 1 validated |
 | 6 | Module 3 — social runner (reuses Module 2 pattern) | Module 2 |
-| 7 | UI — Authority + Social tabs, skeleton states, cell drawer | Modules 2 + 3 |
-| 8 | Category medians — seed manually, compute once 30+ audits done | Module 2 data |
+| 7 | Extraction layer — gap scorer + finding generator + "what you're good at" line | Modules 2 + 3 |
+| 8 | UI — Findings section + Authority + Social tabs, skeleton states, cell drawer | Extraction layer |
+| 9 | Category medians — seed manually with `is_manual_estimate: true`, compute once 30+ audits done | Module 2 data |
 
 ---
 
@@ -501,18 +599,24 @@ On re-audit of the same brand within 7 days: Modules 2 and 3 read from cache, on
 - [ ] URL verifier tested with a known 200 URL and a known 404 URL
 - [ ] Module 1 competitor list manually reviewed for 5 brands across different scopes
 - [ ] End-to-end smoke test: full authority + social sidebar renders for a known brand in < 3 minutes
+- [ ] Extraction layer reviewed: do the 5 findings feel specific to *this* brand, or could they apply to any brand in the category?
+- [ ] "What you're good at" line confirmed present on every audit output
+- [ ] `category_medians` seeded with `is_manual_estimate: true` for all 5 categories before launch
 - [ ] Manual review: do 10 audit outputs feel specific to the brand, or generic?
 - [ ] Partial failure tested: kill Module 2 mid-run, confirm scoring report unaffected
-- [ ] Cost tracked: confirm < $0.05 per audit across all three modules
+- [ ] Cost tracked: confirm < $0.05 per audit across all modules including extraction layer
 
 ---
 
 ## 18. Explicitly Out of Scope for v1
 
 - Outcome predictions ("25–40% lift in 60–90 days") — needs calibration data
-- Numeric visibility scores with precise decimals — bands and tiers only
-- Shareable preview images or PDF export
+- Numeric visibility scores with precise decimals — bands and tiers only; `Strong/Moderate/Weak` summary band deferred to v2 pending real category median data
+- Shareable preview images or PDF export — **v2 priority, named organic-acquisition lever; spec it separately**
 - Continuous monitoring / scheduled re-audits
 - Email capture gating the authority report
 - Webhooks or external integrations
 - Mobile-optimised matrix view (desktop-first for v1)
+- **Google SERP organic position tracking** — the "rank #1 on Google but invisible on ChatGPT" contrast requires this; belongs in a companion spec for the core scoring engine, not this extension. **v2 priority.**
+- **Perplexity as a 4th scoring engine** — same companion spec. **v2 priority.**
+- `Strong/Moderate/Weak` overall authority band — add in v2 once `category_medians.is_manual_estimate = false` for the brand's category

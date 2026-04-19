@@ -1,0 +1,106 @@
+✅ What the spec gets exactly right
+We discussed	Spec captures
+Three modules: competitor extraction → authority → social	§§3, 5–7 — identical structure, identical dependency order
+Module 1 feeds Modules 2 & 3; wrong Module 1 = useless downstream	§5 opening, §16 build order w/ validation gate at step 4
+Scope classification (local / regional / global / hybrid)	§5 Phase 1a
+Scope-aware query templates per classification	§5 Phase 1b — exact table as discussed
+Strip aggregators/review sites as competitors (they're Module 2 surfaces)	§5 Phase 1c — explicit
+Shared evidence schema across all LLM calls	§8 — EvidenceCell with all 10 fields we agreed on
+Strict-null rule (no fabricated numbers)	§6 prompt shape: "If a field cannot be verified with a cited source, set it to null. Do not estimate."
+HEAD-verify every profile URL before surfacing	§6 URL Verification subsection
+Single tier calculator, one source of truth	§9 — exact HIGH/MID/LOW logic from our conversation
+Category registry for authority surfaces	§6 — matches our seed
+Fixed social platforms (not discovered per-brand)	§7 — the 6 platforms we agreed on
+Parallel execution of Modules 2 + 3	§4 timeline diagram
+Partial failure tolerance (one module dies, others still render)	§14 — comprehensive
+7-day cache TTL on evidence rows	§15
+Vantage-point stamp on every report	§12 Authority tab layout
+Explicit out-of-scope list	§18 — includes the lift-prediction and precise-score items I flagged not to ship
+That last one is rare. Most specs bury scope cuts. This one declares them.
+
+🟡 Where the spec tightens what we discussed (good)
+These weren't in our conversation — the spec added them and I think they're correct additions:
+
+t=0/+5s/+30s/+60s/+90s timeline (§4). We talked about "run in parallel." Spec pins actual wall-clock targets and ties them to the existing scoring pipeline. Makes the timing assertion testable.
+Cost estimate per audit (§13). We didn't price this. Spec says <$0.01 per audit for all three modules and shows the math (49K tokens × Gemini 2.5 Flash rate). That's an important decision input for whether to run the authority extension on every free-preview audit or gate it.
+Gemini 2.5 Flash + Google Search grounding as the workhorse model; Claude Haiku as retry validator (§13). We said "LLM with web search." Spec picks the specific model that's already wired into the existing scoring runner, which means less new auth/infrastructure, which means faster build.
+Build validation gate at step 4 (§16). We talked about doing Module 1 first. Spec makes the validation explicit: "manually review Module 1 on 5 real brands before proceeding." This one bullet saves weeks — if Module 1 is wrong and you proceed, Modules 2 & 3 get rebuilt anyway.
+Error hierarchy per module (§14). We said "partial failure tolerance." Spec spells it out: Module 1 fails → 2+3 don't run, both tabs say Unavailable, scoring report unaffected. Module 2 fails → Module 3 still runs because it has Module 1's output. This is the right cascade.
+Existing system reference (§2). Spec documents the existing AnswerMonk tables and data shape. We talked abstractly about "plugging into the existing audit." Spec names the exact tables (multi_segment_sessions, analysis_results) and the segments JSONB shape. This means the implementing engineer doesn't have to hunt.
+All six are genuine improvements on the conversation, not fabrications.
+
+🔴 Where the spec diverges from our conversation (matters)
+1. The "wow factor" preview layer isn't in the spec
+We discussed at length: The preview output pattern — 5 critical gaps + rankings grid (Google × ChatGPT × Perplexity × Claude) + authority signals comparison table + competitor anxiety line + "what you're good at" line + category benchmarks. The entire conversion-optimized preview structure from the launch brief.
+
+Spec coverage: Missing entirely. §12 UI describes two tabs (Authority + Social matrices) and that's it. Nothing about:
+
+A headline "5 critical gaps" extraction layer
+A rankings grid showing citation gaps across 4 AI engines
+A "you vs. category benchmark" presentation
+Outcome prediction framing (even as an v2 intent)
+Visibility band framing (Strong/Moderate/Weak)
+Why this might be intentional: The spec is titled "AI Visibility Authority Extension" — as a backend extension to an existing scoring pipeline. The preview + gap presentation may belong in a separate spec about the report UX. §18 does explicitly exclude "Shareable preview images" and "Email capture gating" from v1.
+
+Risk: If the spec is the only planning document, the build will produce a matrix UI with no compression into the customer-facing findings layer. The matrix is the data source; the preview is the product. Shipping just the matrix ships 70% of the work and 20% of the customer value.
+
+Recommendation: Either (a) add a §12.5 "Preview extraction layer" — take the matrix, identify top 5 gaps, render as findings cards — or (b) confirm there's a companion spec for that.
+
+2. "5 critical gaps" extraction logic isn't specified
+Even within the Authority + Social tabs, the spec describes the matrix but not how to compress it into findings. The conversation had a "5 specific, named findings with problem + gap + fix + effort + priority" pattern.
+
+Spec gap: No logic for "given a 6×5 authority matrix + 6×6 social matrix, which 5 cells are the biggest gaps?" This is the key compression step between raw data and customer-readable insight.
+
+Why it matters: Without this logic, customers see a 36-cell grid and have to parse it themselves. That's the opposite of what we agreed on ("users look at 10 seconds max per finding").
+
+3. Rankings grid (spec vs. existing feature)
+We discussed: A 3-query × 4-engine grid (Google, ChatGPT, Perplexity, Claude) showing brand-citation status per query — the centerpiece of the preview that creates the visceral "AI can't find you" moment.
+
+Spec treatment: §2 says the existing system already scores across ChatGPT, Gemini, Claude. Missing: Google SERP position as the comparison baseline. Also missing: Perplexity (spec only lists ChatGPT/Gemini/Claude as the scoring engines).
+
+Why this matters: The conversion pitch for the preview ("you rank #1 on Google but invisible on ChatGPT") requires all four — Google ranking AND the three AI engines side-by-side. The existing AnswerMonk tracks 3 AI engines but apparently not Google SERP position. Unless that already exists elsewhere, it's a gap.
+
+4. "Bands not scores" framing didn't land
+We discussed: Present confidence as Strong/Moderate/Weak bands at launch, move to precise scores only when methodology is public. The "43%" precision implies objectivity evidence doesn't support.
+
+Spec: §18 excludes "Numeric visibility scores with precise decimals" — ✅ correctly excluded. But §12 Authority tab UI says "You appear on X of Y authority signals vs. category average Z" — which is a precise number, not a band. And the tier badges (HIGH/MID/LOW per cell) are per-cell, not overall.
+
+Not a contradiction, but worth naming. The spec is consistent internally; it just doesn't adopt the Strong/Moderate/Weak overall-band framing. Probably fine — per-cell tiers are arguably more useful than a one-band summary. But decide consciously.
+
+5. Category medians — the seed-vs-observed problem
+We discussed: Don't show category medians until you have 30+ audits per category; use ranges ("between 200 and 500 Reddit mentions") until then.
+
+Spec §10: category_medians table has median_value, p25_value, p75_value. Implies numeric precision from day 1.
+
+Spec §18 partial save: "Category medians — seed manually, compute once 30+ audits done." So the intent is right. But the table schema stores a median_value field which will be misleading if populated with manual estimates on day 1. Fix: add an is_manual_estimate: boolean column, or use low_bound/high_bound instead of p25/median/p75.
+
+6. Two things from our conversation that didn't make it
+Discussed	Spec
+"What you're good at" line — one positive to balance the criticism, makes gap claims more credible	Not mentioned
+Share image auto-generation as an organic-acquisition lever	§18 excludes it from v1 — fine, but flag as v2 priority
+Neither is critical for v1 but both worth tracking.
+
+🟢 Things the spec handles better than I did in conversation
+Being honest here:
+
+Existing data reuse. Spec §2 shows the PNC scoring already produces city, country, business_name, service types — which means Module 1's scope/category classification can reuse PNC output with zero new LLM calls. I didn't catch this in conversation. The spec does. Big cost + latency win.
+Tier downgrade on HEAD failure. §14: "HEAD check fails for profile_url → profile_verified: false, tier downgraded accordingly." I said URL verification; spec specifies the cascade (verification fails → cell tier drops, but still renders). That's the right behavior.
+Cache hit strategy. §15 spells out that on re-audit of the same brand within 7 days, only Module 1 re-runs (competitor landscape can shift) and Modules 2+3 read from cache. That's the smart caching boundary — the expensive modules stay cached, the volatile one (competitor set) refreshes. I didn't articulate this in the conversation.
+Summary
+If the spec is frozen: you're ready to build.
+All the load-bearing decisions are correct:
+
+Shared evidence schema ✓
+Tier calculator ✓
+Strict nulls + URL verification ✓
+Partial failure tolerance ✓
+Cost/model choices ✓
+Cache strategy ✓
+If the spec is still editable, add these three clarifications before starting:
+§12.5 — Preview extraction layer. How matrix data compresses into the customer-facing top-N findings. Without this, you ship a data tool, not a product.
+§12 tab integration with rankings grid. Confirm whether the Google-SERP-vs-AI-citation grid (the conversion centerpiece) lives in this spec, a separate spec, or is assumed already done elsewhere. If none of those, add it.
+§10 category_medians schema adjustment. Add an is_manual_estimate flag or switch to low_bound/high_bound columns so day-1 seed data isn't mistaken for observed medians once real data starts flowing.
+My honest overall read
+The spec is production-grade planning. I've seen far worse from senior teams who've been building for years. The three gaps above are presentation-layer and data-integrity nuances — not architectural errors.
+
+If I had to pick one sentence to describe the gap: the spec nails the engine, but leaves the dashboard implicit. Matrix tabs are the engine output. The customer-facing gap-compression + rankings grid + benchmark comparisons are the dashboard. Both are needed to ship. The spec assumes the dashboard exists elsewhere or doesn't need specifying — and that assumption is the biggest single risk I'd name.
