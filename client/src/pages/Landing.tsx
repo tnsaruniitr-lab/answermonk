@@ -438,6 +438,7 @@ function LandingInner() {
   const [selectedServices, setSelectedServices] = useState<Set<string>>(new Set());
   const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
   const [city, setCity] = useState("");
+  const [includeCity, setIncludeCity] = useState(true);
   const [newServiceInput, setNewServiceInput] = useState("");
   const [newCustomerInput, setNewCustomerInput] = useState("");
   const [intelligenceExpanded, setIntelligenceExpanded] = useState(false);
@@ -576,7 +577,7 @@ function LandingInner() {
         submissionId,
         services: Array.from(selectedServices),
         customers: Array.from(selectedCustomers),
-        city: city.trim() || "Global",
+        city: includeCity ? (city.trim() || "Global") : "",
         engines: enabledEngines,
         chatgptModel,
         searchContextSize,
@@ -835,7 +836,7 @@ function LandingInner() {
     setNewCustomerInput("");
   }
 
-  const canRun = selectedServices.size > 0 && selectedCustomers.size > 0 && city.trim().length > 0;
+  const canRun = selectedServices.size > 0 && selectedCustomers.size > 0 && (!includeCity || city.trim().length > 0);
 
   const steps = [
     {
@@ -2070,18 +2071,35 @@ function LandingInner() {
 
             {/* City */}
             <div className="bg-white/80 border border-gray-200 rounded-2xl p-5 mb-5 shadow-sm">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Location</p>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</p>
+                <button
+                  type="button"
+                  onClick={() => setIncludeCity(v => !v)}
+                  data-testid="toggle-include-city"
+                  className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  <span className={`relative inline-flex h-5 w-9 rounded-full transition-colors duration-200 ${includeCity ? "bg-violet-500" : "bg-gray-200"}`}>
+                    <span className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 ${includeCity ? "translate-x-4" : "translate-x-0"}`} />
+                  </span>
+                  <span>{includeCity ? "Included" : "Global only"}</span>
+                </button>
+              </div>
+              <div className={`flex items-center gap-3 transition-opacity duration-200 ${includeCity ? "opacity-100" : "opacity-40 pointer-events-none"}`}>
                 <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 <input
                   type="text"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder="e.g. Dubai, New York, London"
-                  className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 outline-none focus:border-violet-300 transition-colors"
+                  disabled={!includeCity}
+                  className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 outline-none focus:border-violet-300 transition-colors disabled:bg-gray-50"
                   data-testid="input-city"
                 />
               </div>
+              {!includeCity && (
+                <p className="text-xs text-gray-400 mt-2">Prompts will run without a location — results reflect global AI visibility.</p>
+              )}
             </div>
 
             {/* Generate button */}
@@ -2102,7 +2120,7 @@ function LandingInner() {
               <ArrowRight className="w-4 h-4" />
             </button>
             {!canRun && (
-              <p className="text-gray-400 text-xs text-center mt-2">Select at least one service, one customer type, and enter a city.</p>
+              <p className="text-gray-400 text-xs text-center mt-2">Select at least one service and one customer type{includeCity ? ", and enter a city" : ""}.</p>
             )}
           </div>
         )}
