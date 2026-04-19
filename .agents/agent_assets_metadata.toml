@@ -48,3 +48,9 @@ id = "_ReSPzWDQYaxh28FadQMg"
 uri = "file://citation_insights_raw.json"
 type = "unspecified"
 title = "Citation Insights — Raw Claude Output (runs 14–18)"
+
+[[outputs]]
+id = "yl_qm9GsNNPnAyhNVziui"
+uri = "file://product-spec.md"
+type = "text"
+title = "AnswerMonk — AI Visibility Authority Extension Spec v1.0"
