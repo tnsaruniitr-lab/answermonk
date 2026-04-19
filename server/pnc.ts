@@ -137,7 +137,7 @@ Rules for scope: physical+1 city=city, multi-city=country; SaaS: regional TLD/VA
   return { result: extractJSON(tb.text, "{"), cost: calcCost(response.usage) };
 }
 
-function enforceFlrFormat(result: any, primaryService?: string): any {
+function enforceFlrFormat(result: any, primaryService?: string, loc?: string): any {
   const qualifiers = [
     "most trusted", "most reliable", "most affordable", "highest rated",
     "most experienced", "best reviewed", "most recommended", "top rated",
@@ -154,15 +154,14 @@ function enforceFlrFormat(result: any, primaryService?: string): any {
   if (result.by_service) {
     result.by_service = result.by_service.map((s: any) => ({
       ...s,
-      prompts: fix(s.prompts, `${s.service} in ${s.location || ""}`),
+      prompts: fix(s.prompts, loc ? `${s.service} in ${loc}` : s.service),
     }));
   }
   if (result.by_customer) {
     result.by_customer = result.by_customer.map((c: any) => {
       const svc = c.service || primaryService || null;
-      const subject = svc
-        ? `${svc} for ${c.customer}`
-        : `options for ${c.customer}`;
+      const base = svc ? `${svc} for ${c.customer}` : `options for ${c.customer}`;
+      const subject = loc ? `${base} in ${loc}` : base;
       return {
         ...c,
         prompts: fix(c.prompts, subject),
@@ -174,18 +173,34 @@ function enforceFlrFormat(result: any, primaryService?: string): any {
 
 export async function pncClassifyGenerate(services: string[], customers: string[], loc: string, url: string) {
   const primaryService = services[0] || "";
+  const hasLocation = loc.trim().length > 0;
+  const locSuffix = hasLocation ? ` in ${loc}` : "";
+  const customerBoundOnly = !hasLocation;
+
+  const byServiceSchema = customerBoundOnly
+    ? `"by_service":[]`
+    : `"by_service":[{"service":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [service + offering type]${locSuffix}"}]}]`;
+
   const sysP = `Search prompt strategist. Generate prompts using ONLY confirmed services and customers.
 Return ONLY raw valid JSON:
-{"business_name":"","by_service":[{"service":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [service] in ${loc}"}]}],"by_customer":[{"customer":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted ${primaryService} for [customer] in ${loc}"}]}]}
+{"business_name":"",${byServiceSchema},"by_customer":[{"customer":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [${primaryService} + offering type] for [customer]${locSuffix}"}]}]}
 Rules:
-- 8 prompts per service, 8 per customer
 - Every prompt MUST start with "Find, list and rank 10" followed by a qualifier
-- by_service prompts: about the service only — format: "Find, list and rank 10 [qualifier] [service] in [location]"
-- by_customer prompts: MUST use the fixed primary service "${primaryService}" combined with the customer — format: "Find, list and rank 10 [qualifier] ${primaryService} for [customer] in [location]". Never substitute a different service. Never use "options for [customer]".
+${customerBoundOnly
+  ? "- by_service: return empty array [] — do NOT generate service-only prompts in global mode\n- by_customer: 8 prompts per customer, every prompt pairs a service with a customer type"
+  : "- 8 prompts per service, 8 per customer\n- by_service: about the service with offering type suffix"}
+- by_customer prompts: MUST use the fixed primary service "${primaryService}" with its offering type combined with the customer. Never substitute a different service. Never use "options for [customer]".
+- Offering type: append the appropriate word to each service name based on its nature:
+  * SaaS / software / digital products → append "software", "tools", or "platform"
+  * Professional / agency services → append "services", "agency", or "providers"
+  * Marketplace / aggregator → append "platform" or "marketplace"
+  * Physical products → no suffix needed
+  * Examples: "email marketing" → "email marketing software", "home healthcare" → "home healthcare services", "recruitment" → "recruitment agency", "CRM" → "CRM platform"
 - Qualifiers: most trusted, most reliable, most affordable, highest rated, most experienced, best reviewed, most recommended, top rated — vary, no repeats within a group
-- Location: "${loc}". Natural language. ONLY use listed services and customers.`;
+${hasLocation ? `- Location: "${loc}". Always end every prompt with "in ${loc}".` : "- Global mode: NEVER include any city or location in prompts. Do not add 'in [city]' anywhere."}
+- Natural language. ONLY use listed services and customers.`;
 
-  const userMsg = `Primary service (use in ALL customer prompts): "${primaryService}"\nAll services: ${JSON.stringify(services)}\nCustomer types: ${JSON.stringify(customers)}\nLocation: "${loc}"\nURL: ${url}\nGenerate grouped prompts.`;
+  const userMsg = `Primary service (use in ALL customer prompts): "${primaryService}"\nAll services: ${JSON.stringify(services)}\nCustomer types: ${JSON.stringify(customers)}\n${hasLocation ? `Location: "${loc}"` : "Mode: Global (no location — omit city from all prompts)"}\nURL: ${url}\nGenerate grouped prompts.`;
 
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-5",
@@ -196,7 +211,7 @@ Rules:
 
   const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
   if (!tb) throw new Error("No response from Claude");
-  return { result: enforceFlrFormat(extractJSON(tb.text, "{"), primaryService), cost: calcCost(response.usage) };
+  return { result: enforceFlrFormat(extractJSON(tb.text, "{"), primaryService, hasLocation ? loc : undefined), cost: calcCost(response.usage) };
 }
 
 export async function pncV2Generate(url: string, loc: string) {
