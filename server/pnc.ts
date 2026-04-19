@@ -142,32 +142,67 @@ function enforceFlrFormat(result: any, primaryService?: string, loc?: string): a
     "most trusted", "most reliable", "most affordable", "highest rated",
     "most experienced", "best reviewed", "most recommended", "top rated",
   ];
-  const fix = (prompts: any[], subject: string) =>
+
+  // Repair service prompts — only fix ones that don't start with the right verb
+  const fixService = (prompts: any[], subject: string) =>
     (prompts || []).map((p: any, i: number) => {
       let text: string = p.text || "";
       if (!text.toLowerCase().startsWith("find, list and rank")) {
-        const q = qualifiers[i % qualifiers.length];
-        text = `Find, list and rank 10 ${q} ${subject}`;
+        text = `Find, list and rank 10 ${qualifiers[i % qualifiers.length]} ${subject}`;
       }
       return { verb: "Find, list and rank", text };
     });
+
+  // Detect offering-type suffix (software / platform / tools / services / etc)
+  // from whatever Claude wrote, so we can reuse it with the correct service label
+  const detectSuffix = (text: string): string => {
+    const m = text.match(/\b(software|platform|tools|services|agency|providers|marketplace)\b/i);
+    return m ? ` ${m[1].toLowerCase()}` : "";
+  };
+
+  // Always rebuild customer prompts from scratch with the exact primaryService label.
+  // This is the only reliable way to prevent AI substitution (e.g. "email marketing"
+  // appearing instead of user-chosen "marketing automation").
+  const rebuildCustomer = (prompts: any[], customer: string, svc: string, suffix: string) => {
+    const count = Math.max((prompts || []).length, 1);
+    return qualifiers.slice(0, count).map((q) => {
+      const locPart = loc ? ` in ${loc}` : "";
+      return {
+        verb: "Find, list and rank",
+        text: `Find, list and rank 10 ${q} ${svc}${suffix} for ${customer}${locPart}`,
+      };
+    });
+  };
+
   if (result.by_service) {
     result.by_service = result.by_service.map((s: any) => ({
       ...s,
-      prompts: fix(s.prompts, loc ? `${s.service} in ${loc}` : s.service),
+      prompts: fixService(s.prompts, loc ? `${s.service} in ${loc}` : s.service),
     }));
   }
+
   if (result.by_customer) {
-    result.by_customer = result.by_customer.map((c: any) => {
-      const svc = c.service || primaryService || null;
-      const base = svc ? `${svc} for ${c.customer}` : `options for ${c.customer}`;
-      const subject = loc ? `${base} in ${loc}` : base;
-      return {
+    if (primaryService) {
+      // Detect the offering-type suffix from Claude's first customer prompt
+      const firstText: string = result.by_customer[0]?.prompts?.[0]?.text || "";
+      const suffix = detectSuffix(firstText);
+      result.by_customer = result.by_customer.map((c: any) => ({
         ...c,
-        prompts: fix(c.prompts, subject),
-      };
-    });
+        prompts: rebuildCustomer(c.prompts, c.customer, primaryService, suffix),
+      }));
+    } else {
+      // No primaryService provided — just fix malformed prompts
+      result.by_customer = result.by_customer.map((c: any) => {
+        const svc = c.service || "";
+        const base = svc ? `${svc} for ${c.customer}` : `options for ${c.customer}`;
+        return {
+          ...c,
+          prompts: fixService(c.prompts, loc ? `${base} in ${loc}` : base),
+        };
+      });
+    }
   }
+
   return result;
 }
 
@@ -175,20 +210,16 @@ export async function pncClassifyGenerate(services: string[], customers: string[
   const primaryService = services[0] || "";
   const hasLocation = loc.trim().length > 0;
   const locSuffix = hasLocation ? ` in ${loc}` : "";
-  const customerBoundOnly = !hasLocation;
 
-  const byServiceSchema = customerBoundOnly
-    ? `"by_service":[]`
-    : `"by_service":[{"service":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [service + offering type]${locSuffix}"}]}]`;
+  const byServiceSchema = `"by_service":[{"service":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [service + offering type]${locSuffix}"}]}]`;
 
   const sysP = `Search prompt strategist. Generate prompts using ONLY confirmed services and customers.
 Return ONLY raw valid JSON:
 {"business_name":"",${byServiceSchema},"by_customer":[{"customer":"","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [${primaryService} + offering type] for [customer]${locSuffix}"}]}]}
 Rules:
 - Every prompt MUST start with "Find, list and rank 10" followed by a qualifier
-${customerBoundOnly
-  ? "- by_service: return empty array [] — do NOT generate service-only prompts in global mode\n- by_customer: 8 prompts per customer, every prompt pairs a service with a customer type"
-  : "- 8 prompts per service, 8 per customer\n- by_service: about the service with offering type suffix"}
+- 8 prompts per service, 8 per customer
+- by_service: about the service with offering type suffix
 - by_customer prompts: MUST use the EXACT phrase "${primaryService}" in every prompt. Do NOT rename, rephrase, replace, or substitute "${primaryService}" with any synonym, related term, or broader/narrower category — not even if you believe the website is better known by another name. The user chose this label deliberately. Use it VERBATIM.
 - Offering type: append ONE word to "${primaryService}" based on its nature to form the searchable phrase:
   * SaaS / software / digital products → append "software", "tools", or "platform"
