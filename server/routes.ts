@@ -815,7 +815,7 @@ export async function registerRoutes(
         submissionId: z.number().int().positive(),
         services: z.array(z.string().min(1)).min(1),
         customers: z.array(z.string().min(1)).min(1),
-        city: z.string().min(1),
+        city: z.string(),
         engines: z.array(z.enum(["chatgpt", "gemini", "claude"])).min(1).optional(),
         chatgptModel: z.enum(["gpt-5.2", "gpt-4o", "gpt-4o-mini"]).optional(),
         searchContextSize: z.enum(["low", "medium", "high"]).optional(),
