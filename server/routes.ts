@@ -876,10 +876,13 @@ export async function registerRoutes(
       // If enabled in admin_config, return segments+prompts immediately without
       // firing any scoring. Regular users cannot set this — it lives server-side.
       {
-        const { pool } = await import("./db");
-        const { rows } = await pool.query(`SELECT value FROM admin_config WHERE key = 'global'`);
-        const adminCfg = rows[0]?.value ?? {};
-        if (adminCfg.promptPreviewMode === true) {
+        const { rows: cfgRows } = await pool.query(`SELECT value FROM admin_config WHERE key = 'global'`);
+        let adminCfg: any = cfgRows[0]?.value ?? {};
+        if (typeof adminCfg === "string") {
+          try { adminCfg = JSON.parse(adminCfg); } catch { adminCfg = {}; }
+        }
+        console.log(`[preview-gate] promptPreviewMode=${adminCfg.promptPreviewMode} (type=${typeof adminCfg.promptPreviewMode})`);
+        if (adminCfg.promptPreviewMode) {
           await storage.updateLandingSubmission(submissionId, { status: "pending" } as any);
           return res.json({
             previewMode: true,
