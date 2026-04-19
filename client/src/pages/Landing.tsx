@@ -458,6 +458,8 @@ function LandingInner() {
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
   const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  const [previewSegments, setPreviewSegments] = useState<null | { id: string; persona: string; serviceType: string | null; customerType: string | null; location: string; prompts: { id: string; text: string }[] }[]>(null);
+  const [previewExpanded, setPreviewExpanded] = useState<Set<string>>(new Set());
 
   const _adminSettings = useLiveAdminSettings();
   const MAX_SERVICES = _adminSettings.maxServices;
@@ -587,6 +589,14 @@ function LandingInner() {
     onSuccess: (data) => {
       if (data.queued) {
         setQueuedData({ website: data.website, submissionId: data.submissionId });
+        return;
+      }
+      if (data.previewMode) {
+        setPreviewSegments(data.segments ?? []);
+        setPreviewExpanded(new Set((data.segments ?? []).map((s: any) => s.id)));
+        setTimeout(() => {
+          document.getElementById("prompt-preview-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 120);
         return;
       }
       setActiveSessionId(data.sessionId);
@@ -1326,6 +1336,75 @@ function LandingInner() {
                     <div className="text-xs text-gray-400 mt-0.5">{label}</div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Prompt Preview Panel — shown in preview mode only ── */}
+        {previewSegments !== null && (
+          <div id="prompt-preview-panel" className="mt-4 max-w-xl mx-auto" style={{ scrollMarginTop: 72 }}>
+            <div style={{ background: "#0a1628", borderRadius: 12, border: "1px solid rgba(245,158,11,0.25)", overflow: "hidden" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid rgba(245,158,11,0.12)", background: "rgba(245,158,11,0.05)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b" }} />
+                  <span style={{ color: "#f59e0b", fontSize: 11, fontFamily: "monospace", letterSpacing: 2, fontWeight: 600 }}>PROMPT PREVIEW — SCORING NOT RUN</span>
+                </div>
+                <button
+                  onClick={() => setPreviewSegments(null)}
+                  style={{ color: "#475569", fontSize: 12, fontFamily: "monospace", background: "none", border: "none", cursor: "pointer" }}
+                >
+                  ✕ DISMISS
+                </button>
+              </div>
+              <div style={{ padding: "16px 18px 8px" }}>
+                <p style={{ color: "#64748b", fontSize: 11, fontFamily: "monospace", margin: "0 0 16px" }}>
+                  {previewSegments.length} segment{previewSegments.length !== 1 ? "s" : ""} · {previewSegments.reduce((n, s) => n + s.prompts.length, 0)} prompts total · no scoring cost incurred
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {previewSegments.map((seg) => {
+                    const isOpen = previewExpanded.has(seg.id);
+                    const tagColor = seg.customerType ? "#6366f1" : "#0ea5e9";
+                    return (
+                      <div key={seg.id} style={{ borderRadius: 8, border: `1px solid rgba(255,255,255,0.07)`, overflow: "hidden" }}>
+                        <button
+                          onClick={() => setPreviewExpanded((prev) => {
+                            const next = new Set(prev);
+                            isOpen ? next.delete(seg.id) : next.add(seg.id);
+                            return next;
+                          })}
+                          style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: "rgba(255,255,255,0.03)", border: "none", cursor: "pointer", gap: 8 }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontSize: 10, fontFamily: "monospace", color: tagColor, background: `${tagColor}18`, padding: "2px 7px", borderRadius: 4 }}>
+                              {seg.customerType ? "CUST" : "SVC"}
+                            </span>
+                            <span style={{ color: "#cbd5e1", fontSize: 12, fontFamily: "system-ui" }}>{seg.persona}</span>
+                            {seg.location && (
+                              <span style={{ color: "#475569", fontSize: 11 }}>· {seg.location}</span>
+                            )}
+                          </div>
+                          <span style={{ color: "#475569", fontSize: 11 }}>{isOpen ? "▲" : "▼"} {seg.prompts.length}p</span>
+                        </button>
+                        {isOpen && (
+                          <div style={{ padding: "4px 14px 12px", display: "flex", flexDirection: "column", gap: 4 }}>
+                            {seg.prompts.map((p, i) => (
+                              <div key={p.id} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                                <span style={{ color: "#334155", fontSize: 10, fontFamily: "monospace", minWidth: 18, paddingTop: 1 }}>{i + 1}.</span>
+                                <span style={{ color: "#94a3b8", fontSize: 12, fontFamily: "system-ui", lineHeight: 1.5 }}>{p.text}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div style={{ padding: "12px 18px 14px", borderTop: "1px solid rgba(255,255,255,0.04)", marginTop: 8 }}>
+                <p style={{ color: "#334155", fontSize: 10, fontFamily: "monospace", margin: 0, letterSpacing: 1 }}>
+                  Turn off Prompt Preview Mode in Admin Settings to run the full audit with scoring.
+                </p>
               </div>
             </div>
           </div>

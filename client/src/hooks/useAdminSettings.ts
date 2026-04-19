@@ -16,6 +16,7 @@ export interface AdminSettings {
   chatgptModel: "gpt-5.2" | "gpt-4o" | "gpt-4o-mini";
   searchContextSize: "low" | "medium" | "high";
   forceFreshRun: boolean;
+  promptPreviewMode: boolean;
 }
 
 const STORAGE_KEY = "answermonk_admin_settings";
@@ -36,6 +37,7 @@ const DEFAULTS: AdminSettings = {
   chatgptModel: "gpt-5.2",
   searchContextSize: "medium",
   forceFreshRun: false,
+  promptPreviewMode: false,
 };
 
 export function mergeSettings(parsed: Partial<AdminSettings>): AdminSettings {
@@ -56,6 +58,7 @@ export function mergeSettings(parsed: Partial<AdminSettings>): AdminSettings {
       ? parsed.searchContextSize as AdminSettings["searchContextSize"]
       : DEFAULTS.searchContextSize,
     forceFreshRun: parsed.forceFreshRun ?? DEFAULTS.forceFreshRun,
+    promptPreviewMode: parsed.promptPreviewMode ?? DEFAULTS.promptPreviewMode,
   };
 }
 

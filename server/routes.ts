@@ -872,6 +872,30 @@ export async function registerRoutes(
         })),
       ];
 
+      // ── Prompt Preview Mode gate (admin-only, read from DB) ─────────────────
+      // If enabled in admin_config, return segments+prompts immediately without
+      // firing any scoring. Regular users cannot set this — it lives server-side.
+      {
+        const { pool } = await import("./db");
+        const { rows } = await pool.query(`SELECT value FROM admin_config WHERE key = 'global'`);
+        const adminCfg = rows[0]?.value ?? {};
+        if (adminCfg.promptPreviewMode === true) {
+          await storage.updateLandingSubmission(submissionId, { status: "pending" } as any);
+          return res.json({
+            previewMode: true,
+            brandName,
+            segments: segments.map((s: any) => ({
+              id: s.id,
+              persona: s.persona,
+              serviceType: s.serviceType,
+              customerType: s.customerType,
+              location: s.location,
+              prompts: s.prompts,
+            })),
+          });
+        }
+      }
+
       const firstService = (Array.isArray(services) ? services[0] : "") || "";
       const rawSlug = firstService && city
         ? `${firstService}-in-${city}`
