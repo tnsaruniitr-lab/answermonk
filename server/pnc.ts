@@ -35,6 +35,54 @@ function extractJSON(text: string, startChar: string): any {
   throw new Error("Malformed JSON in response");
 }
 
+async function scrapeHomepage(domain: string): Promise<string> {
+  const targets = [`https://${domain}`, `http://${domain}`];
+  for (const target of targets) {
+    try {
+      const res = await fetch(target, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; AnswerMonkBot/1.0)" },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!res.ok) continue;
+      const html = await res.text();
+
+      // Extract title
+      const title = (html.match(/<title[^>]*>([^<]+)<\/title>/i) || [])[1]?.trim() || "";
+
+      // Extract meta tags (description, og:description, og:title, keywords)
+      const metaValues: string[] = [];
+      for (const m of html.matchAll(/<meta[^>]+>/gi)) {
+        const tag = m[0];
+        const name = (tag.match(/(?:name|property)=["']([^"']+)["']/i) || [])[1] || "";
+        const content = (tag.match(/content=["']([^"']+)["']/i) || [])[1] || "";
+        if (content && /^(description|og:description|og:title|twitter:description|keywords)$/i.test(name)) {
+          metaValues.push(content);
+        }
+      }
+
+      // Strip tags for body text (works for server-rendered pages)
+      const bodyText = html
+        .replace(/<script[\s\S]*?<\/script>/gi, " ")
+        .replace(/<style[\s\S]*?<\/style>/gi, " ")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 3000);
+
+      // Build context — meta tags are always reliable even for SPAs
+      const parts: string[] = [];
+      if (title) parts.push(`Page title: ${title}`);
+      if (metaValues.length) parts.push(`Meta description: ${[...new Set(metaValues)].join(" | ")}`);
+      if (bodyText.length > 200) parts.push(`Page text: ${bodyText}`);
+
+      if (parts.length > 0) return parts.join("\n");
+    } catch {
+      // try next
+    }
+  }
+  return "";
+}
+
 export async function pncExtract(url: string) {
   const system = `You are a business analyst. Analyze the given website and extract structured information for a prompt generator.
 Return ONLY raw valid JSON — no markdown, no backticks, no commentary:
@@ -53,21 +101,36 @@ Rules:
 - city and country from website; empty string if not found`;
 
   const cleanDomain = url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+
+  // Scrape the homepage directly first — avoids web-search confusing similar domain names
+  const pageContent = await scrapeHomepage(cleanDomain);
+
+  let userContent: string;
+  if (pageContent) {
+    userContent = `Analyze this business and extract the required JSON.
+
+Domain: ${cleanDomain}
+Homepage content (scraped directly):
+---
+${pageContent}
+---
+
+Base your extraction on the homepage content above. Use web_search ONLY to find competitors in the same category — do NOT use it to identify the business itself.`;
+  } else {
+    userContent = `Analyze the business at this exact domain: ${cleanDomain}
+
+Use web_search to find information about "${cleanDomain}" specifically. Search for:
+1. site:${cleanDomain}
+2. "${cleanDomain}" company services
+
+CRITICAL: Only extract data from the business at "${cleanDomain}". Do NOT substitute a different domain or company even if the name looks similar.`;
+  }
+
   const response = await (anthropic.messages.create as any)({
     model: "claude-sonnet-4-5",
     max_tokens: 6000,
     system,
-    messages: [{
-      role: "user",
-      content: `Analyze the business at this exact domain: ${cleanDomain}
-
-Use web_search to find information about "${cleanDomain}" specifically. Try these searches in order:
-1. site:${cleanDomain}
-2. "${cleanDomain}" company
-3. ${cleanDomain} services
-
-CRITICAL: Only extract data from the business at "${cleanDomain}". Do NOT substitute a different domain or company even if the name looks similar. If you cannot find information, return your best estimate based on whatever search results mention "${cleanDomain}" directly.`,
-    }],
+    messages: [{ role: "user", content: userContent }],
     tools: [{ type: "web_search_20250305", name: "web_search" }],
   });
 
