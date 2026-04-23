@@ -44,7 +44,7 @@ export default function Tryps() {
           background: "rgba(220,38,38,0.07)", border: "1px solid rgba(220,38,38,0.18)",
           borderRadius: 20, padding: "5px 14px", marginBottom: 28,
         }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "#dc2626" }}>AI Visibility Check</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "#dc2626" }}>Tryps · Group Travel App</span>
         </div>
 
         <h1 style={{
@@ -85,9 +85,9 @@ export default function Tryps() {
         display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20,
       }}>
         {[
-          { icon: "💬", label: "ChatGPT", desc: "Does TRYPS appear when users ask about group trip planning apps?" },
-          { icon: "🔮", label: "Gemini", desc: "How does Google's AI describe TRYPS in travel and itinerary queries?" },
-          { icon: "🔍", label: "Perplexity", desc: "What sources does Perplexity cite when recommending trip planning tools?" },
+          { icon: "💬", label: "ChatGPT", desc: "Does TRYPS appear when users ask about group travel apps and trip planning?" },
+          { icon: "🔮", label: "Gemini", desc: "How does Google's AI describe TRYPS in group travel and itinerary queries?" },
+          { icon: "🔍", label: "Perplexity", desc: "What sources does Perplexity cite when recommending group travel tools?" },
         ].map(item => (
           <div key={item.label} style={{
             background: "#fff", border: "1px solid rgba(220,38,38,0.1)",
