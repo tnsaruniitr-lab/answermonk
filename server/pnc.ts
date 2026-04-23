@@ -218,40 +218,6 @@ const FLR_QUALIFIERS = [
   "most experienced", "best reviewed", "most recommended", "top rated",
 ];
 
-// Heuristic: pick the right offering-type suffix for a given service label
-function getOfferingSuffix(service: string): string {
-  const s = service.toLowerCase();
-  if (/agency|studio|firm|consultanc/.test(s)) return " agency";
-  if (/marketplace|exchange|directory/.test(s)) return " platform";
-  if (
-    /healthcare|medical|care|therapy|nursing|clinic|physiother|homecare/.test(s)
-  ) return " services";
-  if (
-    /consulting|legal|accounting|coaching|training|staffing|recruitment|outsourc/.test(s)
-  ) return " services";
-  return " software"; // default for SaaS / digital / automation / analytics / etc
-}
-
-// Build the full deterministic S×C cross-product customer segments
-function buildCrossProduct(services: string[], customers: string[], loc: string): any[] {
-  const locPart = loc ? ` in ${loc}` : "";
-  const segments: any[] = [];
-  for (const svc of services) {
-    const suffix = getOfferingSuffix(svc);
-    for (const cust of customers) {
-      segments.push({
-        customer: cust,
-        service: svc,
-        prompts: FLR_QUALIFIERS.map((q) => ({
-          verb: "Find, list and rank",
-          text: `Find, list and rank 10 ${q} ${svc}${suffix} for ${cust}${locPart}`,
-        })),
-      });
-    }
-  }
-  return segments;
-}
-
 // Fix service prompts: only repair ones that don't start with the right verb
 function enforceFlrFormat(result: any, loc?: string): any {
   if (result.by_service) {
@@ -273,68 +239,47 @@ function enforceFlrFormat(result: any, loc?: string): any {
 
 export async function pncClassifyGenerate(services: string[], customers: string[], loc: string, url: string) {
   const hasLocation = loc.trim().length > 0;
+  const locPart = hasLocation ? ` in ${loc}` : "";
 
-  if (!hasLocation) {
-    // ── GLOBAL MODE ────────────────────────────────────────────────────────────
-    // Claude only needed for business_name. All prompts built deterministically.
-    const sysP = `You are a business analyst. Return ONLY raw valid JSON — no markdown:
-{"business_name":"the brand or company name from this URL"}`;
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-5",
-      max_tokens: 200,
-      system: sysP,
-      messages: [{ role: "user", content: `URL: ${url}` }],
-    });
-    const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
-    if (!tb) throw new Error("No response from Claude");
-    const { business_name = "" } = extractJSON(tb.text, "{");
-    return {
-      result: {
-        business_name,
-        by_service: [],
-        by_customer: buildCrossProduct(services, customers, ""),
-      },
-      cost: calcCost(response.usage),
-    };
+  // Resolve business name cheaply — no tools needed
+  const nameResponse = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 200,
+    system: `You are a business analyst. Return ONLY raw valid JSON — no markdown: {"business_name":"the brand or company name from this URL"}`,
+    messages: [{ role: "user", content: `URL: ${url}` }],
+  });
+  const nameTb = (nameResponse.content || []).filter((b: any) => b.type === "text").pop() as any;
+  const { business_name = "" } = nameTb ? extractJSON(nameTb.text, "{") : {};
+
+  // Tier 1 — service in location (only when geo present)
+  // One clean prompt per service: "Find, list and rank 10 {service} in {loc}"
+  const by_service = hasLocation
+    ? services.map((svc) => ({
+        service: svc,
+        prompts: [
+          { verb: "Find, list and rank", text: `Find, list and rank 10 ${svc} in ${loc}` },
+        ],
+      }))
+    : [];
+
+  // Tier 2 — service for customer (always, geo appended when present)
+  // One prompt per S×C combination: "Find, list and rank 10 {service} for {customer} in {loc}"
+  const by_customer: any[] = [];
+  for (const svc of services) {
+    for (const cust of customers) {
+      by_customer.push({
+        customer: cust,
+        service: svc,
+        prompts: [
+          { verb: "Find, list and rank", text: `Find, list and rank 10 ${svc} for ${cust}${locPart}` },
+        ],
+      });
+    }
   }
 
-  // ── CITY MODE ──────────────────────────────────────────────────────────────
-  // Claude generates business_name + service-only segments (with city).
-  // Customer segments are always built as deterministic S×C cross-product.
-  const locSuffix = ` in ${loc}`;
-  const sysP = `Search prompt strategist. Generate service prompts for a business located in "${loc}".
-Return ONLY raw valid JSON — no markdown:
-{"business_name":"","by_service":[{"service":"exact service label from input","prompts":[{"verb":"Find, list and rank","text":"Find, list and rank 10 most trusted [service + offering type]${locSuffix}"}]}]}
-Rules:
-- business_name: brand/company name from the URL
-- by_service: one group per service, 8 prompts each
-- Every prompt MUST start with "Find, list and rank 10" followed by a qualifier
-- Offering type: append "software"/"platform"/"tools" for digital; "services"/"agency" for professional
-- Qualifiers (vary, no repeats per group): most trusted, most reliable, most affordable, highest rated, most experienced, best reviewed, most recommended, top rated
-- End EVERY prompt with "${locSuffix}"
-- Use the EXACT service labels provided — do not rename or substitute them`;
-
-  const userMsg = `Services: ${JSON.stringify(services)}\nLocation: "${loc}"\nURL: ${url}`;
-
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 4000,
-    system: sysP,
-    messages: [{ role: "user", content: userMsg }],
-  });
-
-  const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
-  if (!tb) throw new Error("No response from Claude");
-  const claudeResult = extractJSON(tb.text, "{");
-  const fixed = enforceFlrFormat({ by_service: claudeResult.by_service || [] }, loc);
-
   return {
-    result: {
-      business_name: claudeResult.business_name || "",
-      by_service: fixed.by_service,
-      by_customer: buildCrossProduct(services, customers, loc),
-    },
-    cost: calcCost(response.usage),
+    result: { business_name, by_service, by_customer },
+    cost: calcCost(nameResponse.usage),
   };
 }
 
