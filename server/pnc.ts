@@ -218,6 +218,16 @@ const FLR_QUALIFIERS = [
   "most experienced", "best reviewed", "most recommended", "top rated",
 ];
 
+function getOfferingSuffix(service: string): string {
+  const s = service.toLowerCase();
+  if (/agency|studio|firm|consultanc/.test(s)) return "";
+  if (/marketplace|exchange|directory/.test(s)) return " platform";
+  if (/healthcare|medical|care|therapy|nursing|clinic|physiother|homecare/.test(s)) return " services";
+  if (/consulting|legal|accounting|coaching|training|staffing|recruitment|outsourc/.test(s)) return " services";
+  if (/app|mobile|game/.test(s)) return " apps";
+  return " software";
+}
+
 // Fix service prompts: only repair ones that don't start with the right verb
 function enforceFlrFormat(result: any, loc?: string): any {
   if (result.by_service) {
@@ -252,26 +262,30 @@ export async function pncClassifyGenerate(services: string[], customers: string[
   const { business_name = "" } = nameTb ? extractJSON(nameTb.text, "{") : {};
 
   // Tier 1 — service in location (only when geo present)
-  // One clean prompt per service: "Find, list and rank 10 {service} in {loc}"
+  // One clean prompt per service: "Find, list and rank 10 {service}{suffix} in {loc}"
   const by_service = hasLocation
-    ? services.map((svc) => ({
-        service: svc,
-        prompts: [
-          { verb: "Find, list and rank", text: `Find, list and rank 10 ${svc} in ${loc}` },
-        ],
-      }))
+    ? services.map((svc) => {
+        const suffix = getOfferingSuffix(svc);
+        return {
+          service: svc,
+          prompts: [
+            { verb: "Find, list and rank", text: `Find, list and rank 10 ${svc}${suffix} in ${loc}` },
+          ],
+        };
+      })
     : [];
 
   // Tier 2 — service for customer (always, geo appended when present)
-  // One prompt per S×C combination: "Find, list and rank 10 {service} for {customer} in {loc}"
+  // One prompt per S×C combination: "Find, list and rank 10 {service}{suffix} for {customer} in {loc}"
   const by_customer: any[] = [];
   for (const svc of services) {
+    const suffix = getOfferingSuffix(svc);
     for (const cust of customers) {
       by_customer.push({
         customer: cust,
         service: svc,
         prompts: [
-          { verb: "Find, list and rank", text: `Find, list and rank 10 ${svc} for ${cust}${locPart}` },
+          { verb: "Find, list and rank", text: `Find, list and rank 10 ${svc}${suffix} for ${cust}${locPart}` },
         ],
       });
     }
