@@ -29,6 +29,7 @@ import PeopleReport from "@/pages/people/PeopleReport";
 import BrandSmithLanding from "@/pages/brandsmith/BrandSmithLanding";
 import BrandSmithResults from "@/pages/brandsmith/BrandSmithResults";
 import Socials from "@/pages/Socials";
+import Tryps from "@/pages/Tryps";
 import ReportsSession from "@/pages/ReportsSession";
 import ReportsIndex from "@/pages/ReportsIndex";
 import DirectoryListing from "@/pages/DirectoryListing";
@@ -247,6 +248,17 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <PeopleLanding />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  // Tryps branded page — public
+  if (path === "/tryps") {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Tryps />
         </TooltipProvider>
       </QueryClientProvider>
     );
