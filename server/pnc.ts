@@ -228,6 +228,17 @@ function getOfferingSuffix(service: string): string {
   return " software";
 }
 
+function getBusinessSuffix(businessTypeVariants: string[]): string {
+  const combined = businessTypeVariants.join(" ").toLowerCase();
+  if (/\bagency\b|agencies|studio|firm|consultanc/.test(combined)) return "";
+  if (/\bapp\b|apps|mobile app/.test(combined)) return " apps";
+  if (/\bplatform\b|marketplace|exchange|directory/.test(combined)) return " platform";
+  if (/healthcare|medical|\bcare\b|therapy|nursing|clinic|hospital/.test(combined)) return " services";
+  if (/consulting|legal|accounting|coaching|recruitment|staffing/.test(combined)) return " services";
+  if (/\bsoftware\b|\bsaas\b|\btool\b|tools/.test(combined)) return " software";
+  return " software";
+}
+
 // Fix service prompts: only repair ones that don't start with the right verb
 function enforceFlrFormat(result: any, loc?: string): any {
   if (result.by_service) {
@@ -247,9 +258,15 @@ function enforceFlrFormat(result: any, loc?: string): any {
   return result;
 }
 
-export async function pncClassifyGenerate(services: string[], customers: string[], loc: string, url: string) {
+export async function pncClassifyGenerate(services: string[], customers: string[], loc: string, url: string, businessTypeVariants?: string[]) {
   const hasLocation = loc.trim().length > 0;
   const locPart = hasLocation ? ` in ${loc}` : "";
+
+  // Derive one suffix for the whole business from its type variants (e.g. "apps", " software", "")
+  // Falls back to per-service heuristic only if no variants available
+  const suffix = businessTypeVariants && businessTypeVariants.length > 0
+    ? getBusinessSuffix(businessTypeVariants)
+    : getOfferingSuffix(services[0] ?? "");
 
   // Resolve business name cheaply — no tools needed
   const nameResponse = await anthropic.messages.create({
@@ -264,23 +281,19 @@ export async function pncClassifyGenerate(services: string[], customers: string[
   // Tier 1 — service in location (only when geo present)
   // One segment per service, 8 qualifier-varied prompts each for scoring robustness
   const by_service = hasLocation
-    ? services.map((svc) => {
-        const suffix = getOfferingSuffix(svc);
-        return {
-          service: svc,
-          prompts: FLR_QUALIFIERS.map((q) => ({
-            verb: "Find, list and rank",
-            text: `Find, list and rank 10 ${q} ${svc}${suffix} in ${loc}`,
-          })),
-        };
-      })
+    ? services.map((svc) => ({
+        service: svc,
+        prompts: FLR_QUALIFIERS.map((q) => ({
+          verb: "Find, list and rank",
+          text: `Find, list and rank 10 ${q} ${svc}${suffix} in ${loc}`,
+        })),
+      }))
     : [];
 
   // Tier 2 — service for customer (always, geo appended when present)
   // One segment per S×C pair, 8 qualifier-varied prompts each for scoring robustness
   const by_customer: any[] = [];
   for (const svc of services) {
-    const suffix = getOfferingSuffix(svc);
     for (const cust of customers) {
       by_customer.push({
         customer: cust,

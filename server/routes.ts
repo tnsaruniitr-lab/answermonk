@@ -844,7 +844,12 @@ export async function registerRoutes(
 
       const url = submission.websiteUrl;
 
-      const { result: pncResult } = await pncClassifyGenerate(services, customers, city, url);
+      const storedPnc = submission.pncResult as any;
+      const businessTypeVariants: string[] = Array.isArray(storedPnc?.business_type_variants)
+        ? storedPnc.business_type_variants
+        : [];
+
+      const { result: pncResult } = await pncClassifyGenerate(services, customers, city, url, businessTypeVariants);
 
       const brandName = (pncResult as any).business_name || submission.normalizedDomain || "Brand";
       const brandDomain = submission.normalizedDomain || undefined;
