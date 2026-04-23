@@ -262,21 +262,22 @@ export async function pncClassifyGenerate(services: string[], customers: string[
   const { business_name = "" } = nameTb ? extractJSON(nameTb.text, "{") : {};
 
   // Tier 1 — service in location (only when geo present)
-  // One clean prompt per service: "Find, list and rank 10 {service}{suffix} in {loc}"
+  // One segment per service, 8 qualifier-varied prompts each for scoring robustness
   const by_service = hasLocation
     ? services.map((svc) => {
         const suffix = getOfferingSuffix(svc);
         return {
           service: svc,
-          prompts: [
-            { verb: "Find, list and rank", text: `Find, list and rank 10 ${svc}${suffix} in ${loc}` },
-          ],
+          prompts: FLR_QUALIFIERS.map((q) => ({
+            verb: "Find, list and rank",
+            text: `Find, list and rank 10 ${q} ${svc}${suffix} in ${loc}`,
+          })),
         };
       })
     : [];
 
   // Tier 2 — service for customer (always, geo appended when present)
-  // One prompt per S×C combination: "Find, list and rank 10 {service}{suffix} for {customer} in {loc}"
+  // One segment per S×C pair, 8 qualifier-varied prompts each for scoring robustness
   const by_customer: any[] = [];
   for (const svc of services) {
     const suffix = getOfferingSuffix(svc);
@@ -284,9 +285,10 @@ export async function pncClassifyGenerate(services: string[], customers: string[
       by_customer.push({
         customer: cust,
         service: svc,
-        prompts: [
-          { verb: "Find, list and rank", text: `Find, list and rank 10 ${svc}${suffix} for ${cust}${locPart}` },
-        ],
+        prompts: FLR_QUALIFIERS.map((q) => ({
+          verb: "Find, list and rank",
+          text: `Find, list and rank 10 ${q} ${svc}${suffix} for ${cust}${locPart}`,
+        })),
       });
     }
   }
