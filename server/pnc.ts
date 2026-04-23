@@ -52,17 +52,30 @@ Rules:
 - competitors: up to 12 real competing businesses — search broadly, include direct competitors, aggregators, adjacent providers
 - city and country from website; empty string if not found`;
 
+  const cleanDomain = url.replace(/^https?:\/\//, "").replace(/\/$/, "");
   const response = await (anthropic.messages.create as any)({
     model: "claude-sonnet-4-5",
     max_tokens: 6000,
     system,
-    messages: [{ role: "user", content: `Extract blocks from: ${url}` }],
+    messages: [{
+      role: "user",
+      content: `Analyze the business at this exact domain: ${cleanDomain}
+
+Use web_search to find information about "${cleanDomain}" specifically. Try these searches in order:
+1. site:${cleanDomain}
+2. "${cleanDomain}" company
+3. ${cleanDomain} services
+
+CRITICAL: Only extract data from the business at "${cleanDomain}". Do NOT substitute a different domain or company even if the name looks similar. If you cannot find information, return your best estimate based on whatever search results mention "${cleanDomain}" directly.`,
+    }],
     tools: [{ type: "web_search_20250305", name: "web_search" }],
   });
 
   const tb = (response.content || []).filter((b: any) => b.type === "text").pop() as any;
   if (!tb) throw new Error("No response from Claude");
-  return { result: extractJSON(tb.text, "{"), cost: calcCost(response.usage) };
+  const result = extractJSON(tb.text, "{");
+  if (result.error) throw new Error(`PNC extraction error: ${result.error}`);
+  return { result, cost: calcCost(response.usage) };
 }
 
 export async function pncV1Generate(

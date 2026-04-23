@@ -678,9 +678,10 @@ export async function registerRoutes(
         const ageMs = Date.now() - new Date(existing.createdAt).getTime();
         const isStuckProcessing = existing.status === "processing" && ageMs > 5 * 60 * 1000;
         const isError = existing.status === "error";
+        const hasErrorResult = existing.status === "complete" && existing.pncResult && (existing.pncResult as any).error;
 
-        // If PNC died mid-flight (server restart or crash), re-launch it on the same record
-        if (isStuckProcessing || isError) {
+        // If PNC died mid-flight, errored, or returned an error JSON result — re-launch
+        if (isStuckProcessing || isError || hasErrorResult) {
           console.log(`[Landing] Re-launching PNC for submission ${existing.id} (${existing.status}, age=${Math.round(ageMs / 1000)}s)`);
           await storage.updateLandingSubmission(existing.id, { status: "processing", pncResult: null });
           (async () => {
